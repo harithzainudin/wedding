@@ -1,0 +1,23 @@
+{
+  "name": "wedding-backend",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "sst dev",
+    "build": "sst build",
+    "deploy:prod": "sst deploy --stage prod",
+    "deploy": "sst deploy --stage dev",
+    "remove": "sst remove"
+  },
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.964.0",
+    "@aws-sdk/lib-dynamodb": "^3.965.0",
+    "uuid": "^13.0.0"
+  },
+  "devDependencies": {
+    "@types/aws-lambda": "^8.10.147",
+    "sst": "^3.17.25",
+    "typescript": "~5.9.3"
+  },
+  "packageManager": "pnpm@10.26.1"
+}
