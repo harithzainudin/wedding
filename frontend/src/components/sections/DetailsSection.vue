@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, ref } from "vue";
 import { weddingConfig } from "@/config/wedding";
 
 const formattedDate = computed(() => {
@@ -21,6 +21,30 @@ const formattedTime = computed(() => {
     hour12: true,
   });
 });
+
+const copied = ref(false);
+
+const copyHashtag = async (): Promise<void> => {
+  try {
+    await navigator.clipboard.writeText(weddingConfig.hashtag);
+    copied.value = true;
+    setTimeout(() => {
+      copied.value = false;
+    }, 2000);
+  } catch {
+    // Fallback for older browsers
+    const textArea = document.createElement("textarea");
+    textArea.value = weddingConfig.hashtag;
+    document.body.appendChild(textArea);
+    textArea.select();
+    document.execCommand("copy");
+    document.body.removeChild(textArea);
+    copied.value = true;
+    setTimeout(() => {
+      copied.value = false;
+    }, 2000);
+  }
+};
 </script>
 
 <template>
@@ -124,14 +148,35 @@ const formattedTime = computed(() => {
         </div>
       </div>
 
-      <!-- Dress Code -->
-      <div class="mt-6 sm:mt-8 p-3 sm:p-4 bg-white rounded-lg">
-        <p class="font-body text-xs sm:text-sm uppercase tracking-wider text-charcoal-light mb-1">
-          Dress Code
-        </p>
-        <p class="font-heading text-base sm:text-lg text-sage-dark">
-          {{ weddingConfig.dressCode }}
-        </p>
+      <!-- Dress Code & Hashtag -->
+      <div class="mt-6 sm:mt-8 flex flex-col sm:flex-row gap-3 sm:gap-4">
+        <div class="flex-1 p-3 sm:p-4 bg-white rounded-lg">
+          <p class="font-body text-xs sm:text-sm uppercase tracking-wider text-charcoal-light mb-1">
+            Dress Code
+          </p>
+          <p class="font-heading text-base sm:text-lg text-sage-dark">
+            {{ weddingConfig.dressCode }}
+          </p>
+        </div>
+
+        <div class="flex-1 p-3 sm:p-4 bg-white rounded-lg">
+          <p class="font-body text-xs sm:text-sm uppercase tracking-wider text-charcoal-light mb-1">
+            Share Your Moments
+          </p>
+          <button
+            type="button"
+            class="font-heading text-base sm:text-lg text-sage-dark hover:text-sage cursor-pointer transition-colors"
+            @click="copyHashtag"
+          >
+            {{ weddingConfig.hashtag }}
+          </button>
+          <p
+            v-if="copied"
+            class="font-body text-xs text-sage mt-1"
+          >
+            Copied!
+          </p>
+        </div>
       </div>
     </div>
   </section>
