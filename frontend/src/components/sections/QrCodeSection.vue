@@ -2,8 +2,12 @@
 import { ref, onMounted } from "vue";
 import QRCode from "qrcode";
 import { weddingConfig } from "@/config/wedding";
+import { useLanguage } from "@/composables/useLanguage";
+
+const { t } = useLanguage();
 
 const qrCodeDataUrl = ref<string>("");
+const linkCopied = ref(false);
 const websiteUrl = `https://harithzainudin.github.io/wedding/`;
 
 const generateQrCode = async (): Promise<void> => {
@@ -34,8 +38,8 @@ const shareQrCode = async (): Promise<void> => {
   if (navigator.share) {
     try {
       await navigator.share({
-        title: `Jemputan Perkahwinan ${weddingConfig.couple.bride.nickname} & ${weddingConfig.couple.groom.nickname}`,
-        text: "Anda dijemput ke majlis perkahwinan kami!",
+        title: `${weddingConfig.couple.bride.nickname} & ${weddingConfig.couple.groom.nickname}`,
+        text: t.value.qrCode.subtitle,
         url: websiteUrl,
       });
     } catch {
@@ -44,7 +48,10 @@ const shareQrCode = async (): Promise<void> => {
   } else {
     // Fallback: copy URL to clipboard
     await navigator.clipboard.writeText(websiteUrl);
-    alert("Link telah disalin!");
+    linkCopied.value = true;
+    setTimeout(() => {
+      linkCopied.value = false;
+    }, 2000);
   }
 };
 
@@ -57,10 +64,10 @@ onMounted(() => {
   <section class="py-12 sm:py-16 px-4 sm:px-6 bg-white">
     <div class="max-w-xl mx-auto text-center">
       <h2 class="font-heading text-xl sm:text-2xl md:text-3xl text-sage-dark mb-2">
-        Kongsi Jemputan
+        {{ t.qrCode.title }}
       </h2>
       <p class="font-body text-sm sm:text-base text-charcoal-light mb-6 sm:mb-8">
-        Imbas kod QR untuk berkongsi jemputan ini
+        {{ t.qrCode.subtitle }}
       </p>
 
       <!-- QR Code Display -->
@@ -95,7 +102,7 @@ onMounted(() => {
           <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3" />
           </svg>
-          <span>Muat Turun</span>
+          <span>{{ t.qrCode.download }}</span>
         </button>
 
         <!-- Share Button -->
@@ -111,9 +118,17 @@ onMounted(() => {
             <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
             <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
           </svg>
-          <span>Kongsi</span>
+          <span>{{ t.qrCode.share }}</span>
         </button>
       </div>
+
+      <!-- Link Copied Message -->
+      <p
+        v-if="linkCopied"
+        class="font-body text-sm text-sage mt-3"
+      >
+        {{ t.qrCode.linkCopied }}
+      </p>
     </div>
   </section>
 </template>

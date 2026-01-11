@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { weddingConfig } from "@/config/wedding";
 import { generateGoogleCalendarUrl } from "@/composables/useCalendar";
+import { useLanguage } from "@/composables/useLanguage";
+
+const { t } = useLanguage();
 
 const openGoogleMaps = (): void => {
   window.open(weddingConfig.event.venue.googleMapsUrl, "_blank");
@@ -40,7 +43,7 @@ const scrollToRsvp = (): void => {
             d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"
           />
         </svg>
-        <span>Maps</span>
+        <span>{{ t.nav.maps }}</span>
       </button>
 
       <!-- Waze -->
@@ -55,7 +58,7 @@ const scrollToRsvp = (): void => {
             d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"
           />
         </svg>
-        <span>Waze</span>
+        <span>{{ t.nav.waze }}</span>
       </button>
 
       <!-- Calendar -->
@@ -70,7 +73,7 @@ const scrollToRsvp = (): void => {
             d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM9 10H7v2h2v-2zm4 0h-2v2h2v-2zm4 0h-2v2h2v-2zm-8 4H7v2h2v-2zm4 0h-2v2h2v-2zm4 0h-2v2h2v-2z"
           />
         </svg>
-        <span>Calendar</span>
+        <span>{{ t.nav.calendar }}</span>
       </button>
 
       <!-- RSVP Button -->

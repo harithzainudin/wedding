@@ -2,7 +2,11 @@
 import { computed } from "vue";
 import CountdownTimer from "@/components/ui/CountdownTimer.vue";
 import MusicToggle from "@/components/ui/MusicToggle.vue";
+import LanguageToggle from "@/components/ui/LanguageToggle.vue";
 import { weddingConfig } from "@/config/wedding";
+import { useLanguage } from "@/composables/useLanguage";
+
+const { t } = useLanguage();
 
 const coupleNames = computed(() => ({
   bride: weddingConfig.couple.bride.nickname,
@@ -21,8 +25,9 @@ const weddingDate = computed(() => weddingConfig.event.date);
       <div class="absolute inset-0 bg-black/30"></div>
     </div>
 
-    <!-- Music Toggle -->
-    <div class="absolute top-4 right-4 z-10">
+    <!-- Top Controls -->
+    <div class="absolute top-4 right-4 z-10 flex gap-2">
+      <LanguageToggle />
       <MusicToggle />
     </div>
 
@@ -37,7 +42,7 @@ const weddingDate = computed(() => weddingConfig.event.date);
           بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ
         </p>
         <p class="font-body text-[10px] sm:text-xs md:text-sm opacity-80 leading-relaxed">
-          Dengan Nama Allah Yang Maha Pemurah Lagi Maha Penyayang
+          {{ t.hero.bismillahTranslation }}
         </p>
       </div>
 
@@ -45,7 +50,7 @@ const weddingDate = computed(() => weddingConfig.event.date);
       <p
         class="font-body text-[10px] sm:text-xs uppercase tracking-[0.15em] sm:tracking-[0.2em] mb-2 sm:mb-3 opacity-90"
       >
-        Walimatulurus
+        {{ t.hero.weddingOf }}
       </p>
 
       <!-- Couple Names - Stacked -->

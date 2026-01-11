@@ -1,3 +1,8 @@
+export interface GalleryPhoto {
+  src: string;
+  alt?: string;
+}
+
 export interface WeddingConfig {
   couple: {
     bride: {
@@ -37,6 +42,7 @@ export interface WeddingConfig {
   contacts: ContactPerson[];
   hashtag: string;
   dressCode: string;
+  gallery?: GalleryPhoto[];
 }
 
 export interface EventScheduleItem {

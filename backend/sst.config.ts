@@ -15,8 +15,14 @@ export default $config({
     };
   },
   async run() {
+    // Admin password secret
+    const adminPassword = new sst.Secret("AdminPassword");
+
     const { table } = await import("./infra/database");
-    const { api } = await import("./infra/api");
+    const { api, addAdminRoutes } = await import("./infra/api");
+
+    // Add admin routes with secret
+    addAdminRoutes(adminPassword);
 
     return {
       apiUrl: api.url,

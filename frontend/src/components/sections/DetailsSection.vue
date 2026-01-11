@@ -1,21 +1,33 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
 import { weddingConfig } from "@/config/wedding";
+import { useLanguage } from "@/composables/useLanguage";
+
+const { t, currentLanguage } = useLanguage();
+
+const localeMap: Record<string, string> = {
+  ms: "ms-MY",
+  en: "en-MY",
+  zh: "zh-CN",
+  ta: "ta-MY",
+};
 
 const formattedDate = computed(() => {
   const date = weddingConfig.event.date;
+  const locale = localeMap[currentLanguage.value] ?? "ms-MY";
   const options: Intl.DateTimeFormatOptions = {
     weekday: "long",
     year: "numeric",
     month: "long",
     day: "numeric",
   };
-  return date.toLocaleDateString("ms-MY", options);
+  return date.toLocaleDateString(locale, options);
 });
 
 const formattedTime = computed(() => {
   const date = weddingConfig.event.date;
-  return date.toLocaleTimeString("ms-MY", {
+  const locale = localeMap[currentLanguage.value] ?? "ms-MY";
+  return date.toLocaleTimeString(locale, {
     hour: "2-digit",
     minute: "2-digit",
     hour12: true,
@@ -53,11 +65,11 @@ const copyHashtag = async (): Promise<void> => {
       <!-- Formal Invitation -->
       <div class="mb-8 sm:mb-12">
         <p class="font-heading text-lg sm:text-xl text-sage-dark mb-4 sm:mb-6">
-          Assalamualaikum Warahmatullahi Wabarakatuh
+          {{ t.details.greeting }}
         </p>
 
         <p class="font-body text-sm sm:text-base text-charcoal-light leading-relaxed mb-4 sm:mb-6">
-          Dengan penuh kesyukuran ke hadrat Ilahi, kami
+          {{ t.details.withGratitude }}
         </p>
 
         <!-- Bride's Parents -->
@@ -71,7 +83,7 @@ const copyHashtag = async (): Promise<void> => {
         </div>
 
         <p class="font-body text-sm sm:text-base text-charcoal-light mb-3 sm:mb-4">
-          bersama
+          {{ t.details.together }}
         </p>
 
         <!-- Groom's Parents -->
@@ -85,13 +97,7 @@ const copyHashtag = async (): Promise<void> => {
         </div>
 
         <p class="font-body text-xs sm:text-sm text-charcoal-light leading-relaxed px-2">
-          dengan segala hormatnya menjemput
-          <br class="hidden sm:block" />
-          <span class="sm:hidden"> </span>
-          Tan Sri / Puan Sri / Dato' Seri / Datin Seri / Dato' / Datin / Tuan /
-          Puan / Encik / Cik
-          <br />
-          ke majlis perkahwinan puteri/putera kesayangan kami
+          {{ t.details.invitation }}
         </p>
       </div>
 
@@ -119,7 +125,7 @@ const copyHashtag = async (): Promise<void> => {
       <div class="space-y-4 sm:space-y-5">
         <div>
           <p class="font-body text-xs sm:text-sm uppercase tracking-wider text-charcoal-light mb-1">
-            Tarikh
+            {{ t.details.date }}
           </p>
           <p class="font-heading text-lg sm:text-xl text-charcoal">
             {{ formattedDate }}
@@ -128,7 +134,7 @@ const copyHashtag = async (): Promise<void> => {
 
         <div>
           <p class="font-body text-xs sm:text-sm uppercase tracking-wider text-charcoal-light mb-1">
-            Masa
+            {{ t.details.time }}
           </p>
           <p class="font-heading text-lg sm:text-xl text-charcoal">
             {{ formattedTime }}
@@ -137,7 +143,7 @@ const copyHashtag = async (): Promise<void> => {
 
         <div>
           <p class="font-body text-xs sm:text-sm uppercase tracking-wider text-charcoal-light mb-1">
-            Tempat
+            {{ t.details.venue }}
           </p>
           <p class="font-heading text-lg sm:text-xl text-charcoal mb-1">
             {{ weddingConfig.event.venue.name }}
@@ -167,7 +173,7 @@ const copyHashtag = async (): Promise<void> => {
       <div class="mt-6 sm:mt-8 flex flex-col sm:flex-row gap-3 sm:gap-4">
         <div class="flex-1 p-3 sm:p-4 bg-white rounded-lg">
           <p class="font-body text-xs sm:text-sm uppercase tracking-wider text-charcoal-light mb-1">
-            Dress Code
+            {{ t.details.dressCode }}
           </p>
           <p class="font-heading text-base sm:text-lg text-sage-dark">
             {{ weddingConfig.dressCode }}
@@ -176,7 +182,7 @@ const copyHashtag = async (): Promise<void> => {
 
         <div class="flex-1 p-3 sm:p-4 bg-white rounded-lg">
           <p class="font-body text-xs sm:text-sm uppercase tracking-wider text-charcoal-light mb-1">
-            Share Your Moments
+            {{ t.details.shareYourMoments }}
           </p>
           <button
             type="button"
@@ -189,7 +195,7 @@ const copyHashtag = async (): Promise<void> => {
             v-if="copied"
             class="font-body text-xs text-sage mt-1"
           >
-            Copied!
+            {{ t.details.copied }}
           </p>
         </div>
       </div>

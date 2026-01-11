@@ -1,14 +1,28 @@
 <script setup lang="ts">
+import { computed } from "vue";
 import { weddingConfig } from "@/config/wedding";
+import { useLanguage } from "@/composables/useLanguage";
+
+const { t, currentLanguage } = useLanguage();
 
 const schedule = weddingConfig.event.schedule;
+
+// Get the appropriate title based on current language
+const getScheduleTitle = (item: { title: string; titleMalay: string }): string => {
+  return currentLanguage.value === "ms" ? item.titleMalay : item.title;
+};
+
+// Get subtitle (show the other language as subtitle)
+const getScheduleSubtitle = computed(() => (item: { title: string; titleMalay: string }): string => {
+  return currentLanguage.value === "ms" ? item.title : item.titleMalay;
+});
 </script>
 
 <template>
   <section class="py-12 sm:py-16 px-4 sm:px-6 bg-white">
     <div class="max-w-xl mx-auto">
       <h2 class="font-heading text-xl sm:text-2xl md:text-3xl text-center text-sage-dark mb-6 sm:mb-8">
-        Aturcara Majlis
+        {{ t.schedule.title }}
       </h2>
 
       <div class="space-y-4 sm:space-y-6">
@@ -36,10 +50,10 @@ const schedule = weddingConfig.event.schedule;
           <!-- Event Description -->
           <div class="flex-1 pb-4 sm:pb-6">
             <p class="font-heading text-base sm:text-lg text-charcoal">
-              {{ item.titleMalay }}
+              {{ getScheduleTitle(item) }}
             </p>
             <p class="font-body text-xs sm:text-sm text-charcoal-light">
-              {{ item.title }}
+              {{ getScheduleSubtitle(item) }}
             </p>
           </div>
         </div>

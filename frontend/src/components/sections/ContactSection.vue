@@ -1,5 +1,8 @@
 <script setup lang="ts">
 import { weddingConfig } from "@/config/wedding";
+import { useLanguage } from "@/composables/useLanguage";
+
+const { t } = useLanguage();
 
 const contacts = weddingConfig.contacts;
 
@@ -9,8 +12,9 @@ const getCleanPhone = (phone: string): string => {
 
 const openWhatsApp = (phone: string): void => {
   const cleanPhone = getCleanPhone(phone);
+  const coupleNames = `${weddingConfig.couple.bride.nickname} & ${weddingConfig.couple.groom.nickname}`;
   const message = encodeURIComponent(
-    `Assalamualaikum, saya ingin bertanya mengenai majlis perkahwinan ${weddingConfig.couple.bride.nickname} & ${weddingConfig.couple.groom.nickname}.`
+    t.value.contact.whatsappMessage.replace("{couple}", coupleNames)
   );
   window.open(`https://wa.me/${cleanPhone}?text=${message}`, "_blank");
 };
@@ -24,10 +28,10 @@ const callPhone = (phone: string): void => {
   <section class="py-12 sm:py-16 px-4 sm:px-6 bg-sand">
     <div class="max-w-xl mx-auto text-center">
       <h2 class="font-heading text-xl sm:text-2xl md:text-3xl text-sage-dark mb-2">
-        Hubungi Kami
+        {{ t.contact.title }}
       </h2>
       <p class="font-body text-sm sm:text-base text-charcoal-light mb-6 sm:mb-8">
-        Ada pertanyaan? Hubungi kami melalui WhatsApp
+        {{ t.contact.subtitle }}
       </p>
 
       <div class="grid gap-3 sm:gap-4">

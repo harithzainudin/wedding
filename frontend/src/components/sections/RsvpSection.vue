@@ -3,6 +3,9 @@ import { ref, reactive } from "vue";
 import type { RsvpFormData } from "@/types/rsvp";
 import { HONORIFIC_TITLES } from "@/types";
 import { submitRsvp } from "@/services/api";
+import { useLanguage } from "@/composables/useLanguage";
+
+const { t } = useLanguage();
 
 const guestOptions = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 
@@ -24,12 +27,12 @@ const handleSubmit = async (): Promise<void> => {
 
   // Basic validation
   if (!formData.fullName.trim()) {
-    errorMessage.value = "Sila masukkan nama penuh anda.";
+    errorMessage.value = t.value.rsvp.errorName;
     return;
   }
 
   if (!formData.phoneNumber.trim()) {
-    errorMessage.value = "Sila masukkan nombor telefon anda.";
+    errorMessage.value = t.value.rsvp.errorPhone;
     return;
   }
 
@@ -40,10 +43,10 @@ const handleSubmit = async (): Promise<void> => {
     if (response.success) {
       isSubmitted.value = true;
     } else {
-      errorMessage.value = response.error ?? "Maaf, terdapat masalah. Sila cuba lagi.";
+      errorMessage.value = response.error ?? t.value.rsvp.errorGeneric;
     }
   } catch {
-    errorMessage.value = "Maaf, terdapat masalah. Sila cuba lagi.";
+    errorMessage.value = t.value.rsvp.errorGeneric;
   } finally {
     isSubmitting.value = false;
   }
@@ -54,10 +57,10 @@ const handleSubmit = async (): Promise<void> => {
   <section id="rsvp" class="py-12 sm:py-16 px-4 sm:px-6 bg-white">
     <div class="max-w-md mx-auto">
       <h2 class="font-heading text-xl sm:text-2xl md:text-3xl text-center text-sage-dark mb-1 sm:mb-2">
-        RSVP
+        {{ t.rsvp.title }}
       </h2>
       <p class="font-body text-sm sm:text-base text-center text-charcoal-light mb-6 sm:mb-8">
-        Sila maklumkan kehadiran anda
+        {{ t.rsvp.subtitle }}
       </p>
 
       <!-- Success Message -->
@@ -71,16 +74,15 @@ const handleSubmit = async (): Promise<void> => {
           ✓
         </div>
         <h3 class="font-heading text-xl sm:text-2xl text-sage-dark mb-2">
-          Terima Kasih!
+          {{ t.rsvp.thankYou }}
         </h3>
         <p class="font-body text-sm sm:text-base text-charcoal-light mb-3 sm:mb-4">
-          Maklum balas anda telah diterima.
+          {{ t.rsvp.responseReceived }}
         </p>
         <p
           class="font-body text-xs sm:text-sm italic text-charcoal-light p-3 sm:p-4 bg-sand rounded-lg"
         >
-          "Ya Allah, berkatilah majlis ini dan kurniakanlah kebahagiaan kepada
-          kedua mempelai. Amin."
+          {{ t.rsvp.prayer }}
         </p>
       </div>
 
@@ -97,7 +99,7 @@ const handleSubmit = async (): Promise<void> => {
               for="title"
               class="block font-body text-xs sm:text-sm font-medium text-charcoal mb-1"
             >
-              Gelaran
+              {{ t.rsvp.titleLabel }}
             </label>
             <select
               id="title"
@@ -119,14 +121,14 @@ const handleSubmit = async (): Promise<void> => {
               for="fullName"
               class="block font-body text-xs sm:text-sm font-medium text-charcoal mb-1"
             >
-              Nama Penuh *
+              {{ t.rsvp.fullName }} *
             </label>
             <input
               id="fullName"
               v-model="formData.fullName"
               type="text"
               class="w-full px-3 py-2.5 font-body text-sm sm:text-base border border-sand-dark rounded-lg bg-sand text-charcoal focus:outline-none focus:border-sage"
-              placeholder="Nama penuh anda"
+              :placeholder="t.rsvp.fullNamePlaceholder"
               required
             />
           </div>
@@ -135,7 +137,7 @@ const handleSubmit = async (): Promise<void> => {
         <!-- Attendance -->
         <div>
           <label class="block font-body text-xs sm:text-sm font-medium text-charcoal mb-2">
-            Kehadiran *
+            {{ t.rsvp.attendance }} *
           </label>
           <div class="space-y-2">
             <label class="flex items-center gap-2 cursor-pointer p-2 -m-2 rounded-lg active:bg-sand/50">
@@ -146,7 +148,7 @@ const handleSubmit = async (): Promise<void> => {
                 class="w-4 h-4 accent-sage"
               />
               <span class="font-body text-sm sm:text-base text-charcoal">
-                Ya, saya akan hadir
+                {{ t.rsvp.attending }}
               </span>
             </label>
             <label class="flex items-center gap-2 cursor-pointer p-2 -m-2 rounded-lg active:bg-sand/50">
@@ -157,7 +159,7 @@ const handleSubmit = async (): Promise<void> => {
                 class="w-4 h-4 accent-sage"
               />
               <span class="font-body text-sm sm:text-base text-charcoal">
-                Maaf, tidak dapat hadir
+                {{ t.rsvp.notAttending }}
               </span>
             </label>
           </div>
@@ -169,7 +171,7 @@ const handleSubmit = async (): Promise<void> => {
             for="numberOfGuests"
             class="block font-body text-xs sm:text-sm font-medium text-charcoal mb-1"
           >
-            Bilangan Tetamu
+            {{ t.rsvp.numberOfGuests }}
           </label>
           <select
             id="numberOfGuests"
@@ -181,7 +183,7 @@ const handleSubmit = async (): Promise<void> => {
               :key="num"
               :value="num"
             >
-              {{ num }} orang
+              {{ num }} {{ t.rsvp.guestUnit }}
             </option>
           </select>
         </div>
@@ -192,14 +194,14 @@ const handleSubmit = async (): Promise<void> => {
             for="phoneNumber"
             class="block font-body text-xs sm:text-sm font-medium text-charcoal mb-1"
           >
-            Nombor Telefon *
+            {{ t.rsvp.phoneNumber }} *
           </label>
           <input
             id="phoneNumber"
             v-model="formData.phoneNumber"
             type="tel"
             class="w-full px-3 py-2.5 font-body text-sm sm:text-base border border-sand-dark rounded-lg bg-sand text-charcoal focus:outline-none focus:border-sage"
-            placeholder="012-3456789"
+            :placeholder="t.rsvp.phonePlaceholder"
             required
           />
         </div>
@@ -210,14 +212,14 @@ const handleSubmit = async (): Promise<void> => {
             for="message"
             class="block font-body text-xs sm:text-sm font-medium text-charcoal mb-1"
           >
-            Ucapan / Doa (Pilihan)
+            {{ t.rsvp.message }}
           </label>
           <textarea
             id="message"
             v-model="formData.message"
             rows="3"
             class="w-full px-3 py-2.5 font-body text-sm sm:text-base border border-sand-dark rounded-lg bg-sand text-charcoal focus:outline-none focus:border-sage resize-none"
-            placeholder="Tinggalkan ucapan atau doa untuk pengantin..."
+            :placeholder="t.rsvp.messagePlaceholder"
           ></textarea>
         </div>
 
@@ -235,7 +237,7 @@ const handleSubmit = async (): Promise<void> => {
           class="w-full py-3 px-6 font-body text-sm sm:text-base font-medium text-white bg-sage rounded-lg cursor-pointer transition-colors hover:bg-sage-dark active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed"
           :disabled="isSubmitting"
         >
-          {{ isSubmitting ? "Menghantar..." : "Hantar RSVP" }}
+          {{ isSubmitting ? t.rsvp.submitting : t.rsvp.submit }}
         </button>
       </form>
 
