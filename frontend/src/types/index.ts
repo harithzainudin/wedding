@@ -30,6 +30,7 @@ export interface WeddingConfig {
         lat: number;
         lng: number;
       };
+      parkingInfo?: string;
     };
     schedule: EventScheduleItem[];
   };

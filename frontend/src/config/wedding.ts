@@ -33,6 +33,8 @@ export const weddingConfig: WeddingConfig = {
         lat: 2.9264,
         lng: 101.6964,
       },
+      parkingInfo:
+        "Parking percuma disediakan di kawasan hadapan dewan. Sila ikut papan tanda ke tempat letak kereta.",
     },
     schedule: [
       {

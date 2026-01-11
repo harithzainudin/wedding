@@ -146,6 +146,21 @@ const copyHashtag = async (): Promise<void> => {
             {{ weddingConfig.event.venue.address }}
           </p>
         </div>
+
+        <!-- Parking Info -->
+        <div
+          v-if="weddingConfig.event.venue.parkingInfo"
+          class="mt-2 p-3 sm:p-4 bg-white/50 rounded-lg"
+        >
+          <div class="flex items-start gap-2 justify-center">
+            <svg class="w-4 h-4 sm:w-5 sm:h-5 text-sage flex-shrink-0 mt-0.5" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M13 3H6v18h4v-6h3c3.31 0 6-2.69 6-6s-2.69-6-6-6zm.2 8H10V7h3.2c1.1 0 2 .9 2 2s-.9 2-2 2z"/>
+            </svg>
+            <p class="font-body text-xs sm:text-sm text-charcoal-light text-left">
+              {{ weddingConfig.event.venue.parkingInfo }}
+            </p>
+          </div>
+        </div>
       </div>
 
       <!-- Dress Code & Hashtag -->
