@@ -18,7 +18,7 @@ export const handler: APIGatewayProxyHandlerV2 = async () => {
     // Query all admin users using GSI
     const result = await docClient.send(
       new QueryCommand({
-        TableName: Resource.RsvpTable.name,
+        TableName: Resource.AppDataTable.name,
         IndexName: "byStatus",
         KeyConditionExpression: "gsi1pk = :pk",
         ExpressionAttributeValues: {

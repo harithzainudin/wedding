@@ -51,7 +51,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     // Save to DynamoDB
     await docClient.send(
       new PutCommand({
-        TableName: Resource.RsvpTable.name,
+        TableName: Resource.AppDataTable.name,
         Item: rsvpItem,
       })
     );

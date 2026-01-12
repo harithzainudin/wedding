@@ -58,7 +58,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
   // Check if username already exists
   const existingUser = await docClient.send(
     new GetCommand({
-      TableName: Resource.RsvpTable.name,
+      TableName: Resource.AppDataTable.name,
       Key: {
         pk: `ADMIN#${username}`,
         sk: "PROFILE",
@@ -79,7 +79,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
   // Create admin user
   await docClient.send(
     new PutCommand({
-      TableName: Resource.RsvpTable.name,
+      TableName: Resource.AppDataTable.name,
       Item: {
         pk: `ADMIN#${username}`,
         sk: "PROFILE",

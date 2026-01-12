@@ -53,7 +53,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
   // Look up user in DynamoDB
   const result = await docClient.send(
     new GetCommand({
-      TableName: Resource.RsvpTable.name,
+      TableName: Resource.AppDataTable.name,
       Key: {
         pk: `ADMIN#${username}`,
         sk: "PROFILE",

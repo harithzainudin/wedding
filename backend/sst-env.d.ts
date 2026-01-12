@@ -13,13 +13,13 @@ declare module "sst" {
       "type": "sst.sst.Secret"
       "value": string
     }
+    "AppDataTable": {
+      "name": string
+      "type": "sst.aws.Dynamo"
+    }
     "BrevoApiKey": {
       "type": "sst.sst.Secret"
       "value": string
-    }
-    "RsvpTable": {
-      "name": string
-      "type": "sst.aws.Dynamo"
     }
     "SenderEmail": {
       "type": "sst.sst.Secret"

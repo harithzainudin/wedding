@@ -19,7 +19,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
   // Check how many admins exist - don't allow deleting the last one
   const adminsResult = await docClient.send(
     new QueryCommand({
-      TableName: Resource.RsvpTable.name,
+      TableName: Resource.AppDataTable.name,
       IndexName: "byStatus",
       KeyConditionExpression: "gsi1pk = :pk",
       ExpressionAttributeValues: {
@@ -36,7 +36,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
   // Delete the admin user
   await docClient.send(
     new DeleteCommand({
-      TableName: Resource.RsvpTable.name,
+      TableName: Resource.AppDataTable.name,
       Key: {
         pk: `ADMIN#${normalizedUsername}`,
         sk: "PROFILE",

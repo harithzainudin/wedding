@@ -1,4 +1,4 @@
-export const table = new sst.aws.Dynamo("RsvpTable", {
+export const table = new sst.aws.Dynamo("AppDataTable", {
   fields: {
     pk: "string",
     sk: "string",

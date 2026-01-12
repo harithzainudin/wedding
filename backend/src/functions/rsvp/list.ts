@@ -35,7 +35,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
       // Query by status using GSI
       const result = await docClient.send(
         new QueryCommand({
-          TableName: Resource.RsvpTable.name,
+          TableName: Resource.AppDataTable.name,
           IndexName: "byStatus",
           KeyConditionExpression: "gsi1pk = :status",
           ExpressionAttributeValues: {
@@ -49,7 +49,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
       // Scan all RSVPs
       const result = await docClient.send(
         new ScanCommand({
-          TableName: Resource.RsvpTable.name,
+          TableName: Resource.AppDataTable.name,
           FilterExpression: "begins_with(pk, :prefix)",
           ExpressionAttributeValues: {
             ":prefix": "RSVP#",
