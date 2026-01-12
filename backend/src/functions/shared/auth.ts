@@ -52,7 +52,8 @@ export function validateToken(token: string): AuthResult {
     };
   }
 
-  const [payloadStr, providedSignature] = parts;
+  const payloadStr = parts[0] as string;
+  const providedSignature = parts[1] as string;
   const expectedSignature = sign(payloadStr);
 
   if (providedSignature !== expectedSignature) {

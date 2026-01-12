@@ -19,6 +19,6 @@
     "outDir": "./dist",
     "rootDir": "."
   },
-  "include": ["src/**/*", "infra/**/*", "sst.config.ts"],
+  "include": ["src/**/*", "infra/**/*", "sst.config.ts", "sst-env.d.ts"],
   "exclude": ["node_modules", "dist"]
 }
