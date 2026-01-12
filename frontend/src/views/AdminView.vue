@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from "vue";
-import { adminLogin, listRsvps, listAdminUsers, createAdminUser, deleteAdminUser } from "@/services/api";
+import { adminLogin, listRsvps, listAdminUsers, createAdminUser, deleteAdminUser, changeAdminPassword } from "@/services/api";
 import type { RsvpSubmission } from "@/types/rsvp";
 import type { AdminUser } from "@/types/admin";
 
@@ -41,6 +41,18 @@ const showEmailWarningPopup = ref(false);
 const emailWarningMessage = ref("");
 const createdCredentials = ref({ username: "", password: "", email: "" });
 const clipboardCopied = ref(false);
+
+// Password change state
+const showPasswordChangeModal = ref(false);
+const currentPasswordInput = ref("");
+const newPasswordInput = ref("");
+const confirmNewPasswordInput = ref("");
+const showCurrentPassword = ref(false);
+const showNewPassword = ref(false);
+const showConfirmNewPassword = ref(false);
+const passwordChangeError = ref("");
+const passwordChangeSuccess = ref(false);
+const isChangingPassword = ref(false);
 
 // Summary stats
 const summary = ref({
@@ -246,6 +258,71 @@ const handleDeleteAdmin = async (adminUsername: string): Promise<void> => {
   }
 };
 
+// Change Password handler
+const handleChangePassword = async (): Promise<void> => {
+  passwordChangeError.value = "";
+
+  // Client-side validation
+  if (!currentPasswordInput.value || !newPasswordInput.value || !confirmNewPasswordInput.value) {
+    passwordChangeError.value = "All fields are required";
+    return;
+  }
+
+  if (newPasswordInput.value.length < 6) {
+    passwordChangeError.value = "New password must be at least 6 characters";
+    return;
+  }
+
+  if (newPasswordInput.value !== confirmNewPasswordInput.value) {
+    passwordChangeError.value = "New passwords do not match";
+    return;
+  }
+
+  if (currentPasswordInput.value === newPasswordInput.value) {
+    passwordChangeError.value = "New password must be different from current password";
+    return;
+  }
+
+  isChangingPassword.value = true;
+
+  try {
+    const response = await changeAdminPassword({
+      username: currentUser.value,
+      currentPassword: currentPasswordInput.value,
+      newPassword: newPasswordInput.value,
+    });
+
+    if (response.success) {
+      passwordChangeSuccess.value = true;
+      // Clear form
+      currentPasswordInput.value = "";
+      newPasswordInput.value = "";
+      confirmNewPasswordInput.value = "";
+      // Close modal after delay
+      setTimeout(() => {
+        showPasswordChangeModal.value = false;
+        passwordChangeSuccess.value = false;
+      }, 2000);
+    } else {
+      passwordChangeError.value = response.error ?? "Failed to change password";
+    }
+  } catch {
+    passwordChangeError.value = "Failed to change password. Please try again.";
+  } finally {
+    isChangingPassword.value = false;
+  }
+};
+
+// Close password change modal and reset
+const closePasswordChangeModal = (): void => {
+  showPasswordChangeModal.value = false;
+  currentPasswordInput.value = "";
+  newPasswordInput.value = "";
+  confirmNewPasswordInput.value = "";
+  passwordChangeError.value = "";
+  passwordChangeSuccess.value = false;
+};
+
 // Switch tab handler
 const switchTab = (tab: "rsvps" | "admins"): void => {
   activeTab.value = tab;
@@ -379,6 +456,165 @@ const exportToCsv = (): void => {
       </div>
     </div>
 
+    <!-- Password Change Modal -->
+    <div
+      v-if="showPasswordChangeModal"
+      class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4"
+      @click.self="closePasswordChangeModal"
+    >
+      <div class="bg-white rounded-xl p-6 max-w-md w-full shadow-xl">
+        <!-- Success State -->
+        <div v-if="passwordChangeSuccess" class="text-center">
+          <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg class="w-6 h-6 text-green-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M20 6L9 17l-5-5" />
+            </svg>
+          </div>
+          <h3 class="font-heading text-lg text-charcoal mb-2">Password Changed</h3>
+          <p class="font-body text-sm text-charcoal-light">Your password has been updated successfully.</p>
+        </div>
+
+        <!-- Form State -->
+        <div v-else>
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="font-heading text-lg text-charcoal">Change Password</h3>
+            <button
+              type="button"
+              class="text-charcoal-light hover:text-charcoal transition-colors cursor-pointer"
+              @click="closePasswordChangeModal"
+            >
+              <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="18" y1="6" x2="6" y2="18" />
+                <line x1="6" y1="6" x2="18" y2="18" />
+              </svg>
+            </button>
+          </div>
+
+          <form @submit.prevent="handleChangePassword" class="space-y-4">
+            <!-- Current Password -->
+            <div>
+              <label for="currentPassword" class="block font-body text-sm font-medium text-charcoal mb-1">
+                Current Password
+              </label>
+              <div class="relative">
+                <input
+                  id="currentPassword"
+                  v-model="currentPasswordInput"
+                  :type="showCurrentPassword ? 'text' : 'password'"
+                  class="w-full px-3 py-2.5 pr-10 font-body text-base border border-sand-dark rounded-lg bg-sand text-charcoal focus:outline-none focus:border-sage"
+                  placeholder="Enter current password"
+                  required
+                />
+                <button
+                  type="button"
+                  class="absolute right-3 top-1/2 -translate-y-1/2 text-charcoal-light hover:text-charcoal transition-colors cursor-pointer"
+                  @click="showCurrentPassword = !showCurrentPassword"
+                >
+                  <svg v-if="showCurrentPassword" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24" />
+                    <line x1="1" y1="1" x2="23" y2="23" />
+                  </svg>
+                  <svg v-else class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                    <circle cx="12" cy="12" r="3" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <!-- New Password -->
+            <div>
+              <label for="newPassword" class="block font-body text-sm font-medium text-charcoal mb-1">
+                New Password
+              </label>
+              <div class="relative">
+                <input
+                  id="newPassword"
+                  v-model="newPasswordInput"
+                  :type="showNewPassword ? 'text' : 'password'"
+                  class="w-full px-3 py-2.5 pr-10 font-body text-base border border-sand-dark rounded-lg bg-sand text-charcoal focus:outline-none focus:border-sage"
+                  placeholder="Enter new password"
+                  required
+                  minlength="6"
+                />
+                <button
+                  type="button"
+                  class="absolute right-3 top-1/2 -translate-y-1/2 text-charcoal-light hover:text-charcoal transition-colors cursor-pointer"
+                  @click="showNewPassword = !showNewPassword"
+                >
+                  <svg v-if="showNewPassword" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24" />
+                    <line x1="1" y1="1" x2="23" y2="23" />
+                  </svg>
+                  <svg v-else class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                    <circle cx="12" cy="12" r="3" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <!-- Confirm New Password -->
+            <div>
+              <label for="confirmNewPassword" class="block font-body text-sm font-medium text-charcoal mb-1">
+                Confirm New Password
+              </label>
+              <div class="relative">
+                <input
+                  id="confirmNewPassword"
+                  v-model="confirmNewPasswordInput"
+                  :type="showConfirmNewPassword ? 'text' : 'password'"
+                  class="w-full px-3 py-2.5 pr-10 font-body text-base border border-sand-dark rounded-lg bg-sand text-charcoal focus:outline-none focus:border-sage"
+                  placeholder="Confirm new password"
+                  required
+                  minlength="6"
+                />
+                <button
+                  type="button"
+                  class="absolute right-3 top-1/2 -translate-y-1/2 text-charcoal-light hover:text-charcoal transition-colors cursor-pointer"
+                  @click="showConfirmNewPassword = !showConfirmNewPassword"
+                >
+                  <svg v-if="showConfirmNewPassword" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24" />
+                    <line x1="1" y1="1" x2="23" y2="23" />
+                  </svg>
+                  <svg v-else class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                    <circle cx="12" cy="12" r="3" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <p class="font-body text-xs text-charcoal-light">
+              Password must be at least 6 characters.
+            </p>
+
+            <p v-if="passwordChangeError" class="text-red-600 font-body text-sm">
+              {{ passwordChangeError }}
+            </p>
+
+            <div class="flex gap-3">
+              <button
+                type="submit"
+                class="px-4 py-2 font-body text-sm text-white bg-sage rounded-lg hover:bg-sage-dark transition-colors cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed"
+                :disabled="isChangingPassword"
+              >
+                {{ isChangingPassword ? "Changing..." : "Change Password" }}
+              </button>
+              <button
+                type="button"
+                class="px-4 py-2 font-body text-sm text-charcoal border border-charcoal-light rounded-lg hover:bg-sand-dark transition-colors cursor-pointer"
+                @click="closePasswordChangeModal"
+              >
+                Cancel
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
     <!-- Login Form -->
     <div v-if="!isAuthenticated" class="flex items-center justify-center min-h-screen px-4">
       <div class="w-full max-w-sm p-6 bg-white rounded-xl shadow-lg">
@@ -460,13 +696,28 @@ const exportToCsv = (): void => {
             <span v-if="isMasterUser" class="ml-2 px-2 py-0.5 text-xs bg-amber-100 text-amber-700 rounded-full">Master</span>
           </p>
         </div>
-        <button
-          type="button"
-          class="px-4 py-2 font-body text-sm text-charcoal border border-charcoal-light rounded-lg hover:bg-charcoal hover:text-white transition-colors cursor-pointer"
-          @click="handleLogout"
-        >
-          Logout
-        </button>
+        <div class="flex items-center gap-3">
+          <!-- Change Password Button (hidden for master) -->
+          <button
+            v-if="!isMasterUser"
+            type="button"
+            class="flex items-center gap-2 px-4 py-2 font-body text-sm text-sage border border-sage rounded-lg hover:bg-sage hover:text-white transition-colors cursor-pointer"
+            @click="showPasswordChangeModal = true"
+          >
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+              <path d="M7 11V7a5 5 0 0110 0v4" />
+            </svg>
+            Change Password
+          </button>
+          <button
+            type="button"
+            class="px-4 py-2 font-body text-sm text-charcoal border border-charcoal-light rounded-lg hover:bg-charcoal hover:text-white transition-colors cursor-pointer"
+            @click="handleLogout"
+          >
+            Logout
+          </button>
+        </div>
       </div>
 
       <!-- Tabs -->

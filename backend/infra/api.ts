@@ -10,7 +10,7 @@ export const api = new sst.aws.ApiGatewayV2("WeddingApi", {
       "http://localhost:5173",
       "https://harithzainudin.github.io",
     ],
-    allowMethods: ["GET", "POST", "DELETE", "OPTIONS"],
+    allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowHeaders: ["Content-Type", "Authorization"],
     allowCredentials: false,
   },
@@ -61,6 +61,13 @@ export function addAdminRoutes(
   // DELETE /admin/users/{username} - Delete admin user
   api.route("DELETE /admin/users/{username}", {
     handler: "src/functions/admin/delete.handler",
+    link: [table],
+    ...functionConfig,
+  });
+
+  // PUT /admin/users/password - Change admin password
+  api.route("PUT /admin/users/password", {
+    handler: "src/functions/admin/change-password.handler",
     link: [table],
     ...functionConfig,
   });

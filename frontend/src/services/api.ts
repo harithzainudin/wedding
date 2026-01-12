@@ -6,6 +6,8 @@ import type {
   CreateAdminResponse,
   ListAdminsResponse,
   DeleteAdminResponse,
+  ChangePasswordRequest,
+  ChangePasswordResponse,
 } from "@/types/admin";
 
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3000";
@@ -87,5 +89,18 @@ export async function deleteAdminUser(username: string): Promise<DeleteAdminResp
   });
 
   const result = (await response.json()) as DeleteAdminResponse;
+  return result;
+}
+
+export async function changeAdminPassword(data: ChangePasswordRequest): Promise<ChangePasswordResponse> {
+  const response = await fetch(`${API_URL}/admin/users/password`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(data),
+  });
+
+  const result = (await response.json()) as ChangePasswordResponse;
   return result;
 }

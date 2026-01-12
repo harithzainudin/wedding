@@ -47,3 +47,15 @@ export interface DeleteAdminResponse {
   message?: string;
   error?: string;
 }
+
+export interface ChangePasswordRequest {
+  username: string;
+  currentPassword: string;
+  newPassword: string;
+}
+
+export interface ChangePasswordResponse {
+  success: boolean;
+  message?: string;
+  error?: string;
+}
