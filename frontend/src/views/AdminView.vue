@@ -8,6 +8,7 @@ import type { AdminUser } from "@/types/admin";
 const isAuthenticated = ref(false);
 const username = ref("");
 const password = ref("");
+const showLoginPassword = ref(false);
 const loginError = ref("");
 const isLoggingIn = ref(false);
 const currentUser = ref("");
@@ -27,6 +28,7 @@ const adminLoadError = ref("");
 const showCreateForm = ref(false);
 const newAdminUsername = ref("");
 const newAdminPassword = ref("");
+const showNewAdminPassword = ref(false);
 const createError = ref("");
 const isCreating = ref(false);
 const deleteConfirm = ref<string | null>(null);
@@ -252,14 +254,30 @@ const exportToCsv = (): void => {
             <label for="password" class="block font-body text-sm font-medium text-charcoal mb-1">
               Password
             </label>
-            <input
-              id="password"
-              v-model="password"
-              type="password"
-              class="w-full px-3 py-2.5 font-body text-base border border-sand-dark rounded-lg bg-sand text-charcoal focus:outline-none focus:border-sage"
-              placeholder="Enter password"
-              required
-            />
+            <div class="relative">
+              <input
+                id="password"
+                v-model="password"
+                :type="showLoginPassword ? 'text' : 'password'"
+                class="w-full px-3 py-2.5 pr-10 font-body text-base border border-sand-dark rounded-lg bg-sand text-charcoal focus:outline-none focus:border-sage"
+                placeholder="Enter password"
+                required
+              />
+              <button
+                type="button"
+                class="absolute right-3 top-1/2 -translate-y-1/2 text-charcoal-light hover:text-charcoal transition-colors"
+                @click="showLoginPassword = !showLoginPassword"
+              >
+                <svg v-if="showLoginPassword" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24" />
+                  <line x1="1" y1="1" x2="23" y2="23" />
+                </svg>
+                <svg v-else class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                  <circle cx="12" cy="12" r="3" />
+                </svg>
+              </button>
+            </div>
           </div>
 
           <p class="font-body text-xs text-charcoal-light text-center">
@@ -495,15 +513,31 @@ const exportToCsv = (): void => {
                 <label for="newPassword" class="block font-body text-sm font-medium text-charcoal mb-1">
                   Password
                 </label>
-                <input
-                  id="newPassword"
-                  v-model="newAdminPassword"
-                  type="password"
-                  class="w-full px-3 py-2.5 font-body text-base border border-sand-dark rounded-lg bg-sand text-charcoal focus:outline-none focus:border-sage"
-                  placeholder="Enter password"
-                  required
-                  minlength="6"
-                />
+                <div class="relative">
+                  <input
+                    id="newPassword"
+                    v-model="newAdminPassword"
+                    :type="showNewAdminPassword ? 'text' : 'password'"
+                    class="w-full px-3 py-2.5 pr-10 font-body text-base border border-sand-dark rounded-lg bg-sand text-charcoal focus:outline-none focus:border-sage"
+                    placeholder="Enter password"
+                    required
+                    minlength="6"
+                  />
+                  <button
+                    type="button"
+                    class="absolute right-3 top-1/2 -translate-y-1/2 text-charcoal-light hover:text-charcoal transition-colors"
+                    @click="showNewAdminPassword = !showNewAdminPassword"
+                  >
+                    <svg v-if="showNewAdminPassword" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24" />
+                      <line x1="1" y1="1" x2="23" y2="23" />
+                    </svg>
+                    <svg v-else class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                      <circle cx="12" cy="12" r="3" />
+                    </svg>
+                  </button>
+                </div>
               </div>
             </div>
 
