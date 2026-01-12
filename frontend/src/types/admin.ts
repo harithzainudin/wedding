@@ -13,6 +13,7 @@ export interface AdminLoginResponse {
 
 export interface AdminUser {
   username: string;
+  email?: string;
   createdAt: string;
   createdBy: string;
 }
@@ -20,12 +21,15 @@ export interface AdminUser {
 export interface CreateAdminRequest {
   username: string;
   password: string;
+  email?: string;
   createdBy?: string;
 }
 
 export interface CreateAdminResponse {
   success: boolean;
   data?: AdminUser;
+  emailSent?: boolean;
+  emailError?: string;
   error?: string;
 }
 

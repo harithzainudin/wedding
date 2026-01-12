@@ -18,11 +18,16 @@ export default $config({
     // Admin password secret
     const adminPassword = new sst.Secret("AdminPassword");
 
+    // Email configuration secrets
+    const brevoApiKey = new sst.Secret("BrevoApiKey");
+    const senderEmail = new sst.Secret("SenderEmail");
+    const adminLoginUrl = new sst.Secret("AdminLoginUrl");
+
     const { table } = await import("./infra/database");
     const { api, addAdminRoutes } = await import("./infra/api");
 
-    // Add admin routes with secret
-    addAdminRoutes(adminPassword);
+    // Add admin routes with secrets
+    addAdminRoutes(adminPassword, brevoApiKey, senderEmail, adminLoginUrl);
 
     return {
       apiUrl: api.url,

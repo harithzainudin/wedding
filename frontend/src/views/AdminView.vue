@@ -28,11 +28,19 @@ const adminLoadError = ref("");
 const showCreateForm = ref(false);
 const newAdminUsername = ref("");
 const newAdminPassword = ref("");
+const newAdminEmail = ref("");
 const showNewAdminPassword = ref(false);
 const createError = ref("");
 const isCreating = ref(false);
 const deleteConfirm = ref<string | null>(null);
 const isDeleting = ref(false);
+
+// Popup state for email notifications
+const showSuccessPopup = ref(false);
+const showEmailWarningPopup = ref(false);
+const emailWarningMessage = ref("");
+const createdCredentials = ref({ username: "", password: "", email: "" });
+const clipboardCopied = ref(false);
 
 // Summary stats
 const summary = ref({
@@ -134,14 +142,39 @@ const handleCreateAdmin = async (): Promise<void> => {
   isCreating.value = true;
 
   try {
-    const response = await createAdminUser({
+    const request: { username: string; password: string; email?: string; createdBy: string } = {
       username: newAdminUsername.value,
       password: newAdminPassword.value,
       createdBy: currentUser.value,
-    });
+    };
+    if (newAdminEmail.value) {
+      request.email = newAdminEmail.value;
+    }
+    const response = await createAdminUser(request);
     if (response.success) {
+      // Store credentials for potential clipboard use
+      createdCredentials.value = {
+        username: newAdminUsername.value,
+        password: newAdminPassword.value,
+        email: newAdminEmail.value,
+      };
+
+      // Check email status and show appropriate popup
+      if (newAdminEmail.value) {
+        if (response.emailSent) {
+          showSuccessPopup.value = true;
+        } else {
+          emailWarningMessage.value = response.emailError ?? "Failed to send welcome email";
+          showEmailWarningPopup.value = true;
+        }
+      } else {
+        // No email provided, just show success
+        showSuccessPopup.value = true;
+      }
+
       newAdminUsername.value = "";
       newAdminPassword.value = "";
+      newAdminEmail.value = "";
       showCreateForm.value = false;
       await fetchAdminUsers();
     } else {
@@ -151,6 +184,46 @@ const handleCreateAdmin = async (): Promise<void> => {
     createError.value = "Failed to create admin user. Please try again.";
   } finally {
     isCreating.value = false;
+  }
+};
+
+// Close popups
+const closePopups = (): void => {
+  showSuccessPopup.value = false;
+  showEmailWarningPopup.value = false;
+  emailWarningMessage.value = "";
+  clipboardCopied.value = false;
+};
+
+// Copy credentials to clipboard
+const copyCredentialsToClipboard = async (): Promise<void> => {
+  const subject = "Wedding Admin Portal - Your Login Credentials";
+  const body = `Hi there!
+
+Your admin account for the Wedding Admin Portal has been created.
+
+LOGIN CREDENTIALS
+-----------------
+Username: ${createdCredentials.value.username}
+Password: ${createdCredentials.value.password}
+
+LOGIN URL
+---------
+https://harithzainudin.github.io/wedding/admin
+
+Please keep your credentials secure and consider changing your password after your first login.
+
+Best regards,
+Wedding Admin Team`;
+
+  try {
+    await navigator.clipboard.writeText(`Subject: ${subject}\n\n${body}`);
+    clipboardCopied.value = true;
+    setTimeout(() => {
+      clipboardCopied.value = false;
+    }, 2000);
+  } catch (err) {
+    console.error("Failed to copy to clipboard:", err);
   }
 };
 
@@ -229,6 +302,83 @@ const exportToCsv = (): void => {
 
 <template>
   <div class="min-h-screen bg-sand">
+    <!-- Success Popup -->
+    <div v-if="showSuccessPopup" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4">
+      <div class="bg-white rounded-xl p-6 max-w-sm w-full shadow-xl">
+        <div class="text-center">
+          <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg class="w-6 h-6 text-green-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M20 6L9 17l-5-5" />
+            </svg>
+          </div>
+          <h3 class="font-heading text-lg text-charcoal mb-2">Admin Created Successfully</h3>
+          <p class="font-body text-sm text-charcoal-light mb-4">
+            User "{{ createdCredentials.username }}" has been created
+            <span v-if="createdCredentials.email"> and a welcome email has been sent.</span>
+            <span v-else>.</span>
+          </p>
+          <button
+            type="button"
+            class="px-6 py-2 font-body text-sm text-white bg-sage rounded-lg hover:bg-sage-dark transition-colors"
+            @click="closePopups"
+          >
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Email Warning Popup -->
+    <div v-if="showEmailWarningPopup" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4">
+      <div class="bg-white rounded-xl p-6 max-w-md w-full shadow-xl">
+        <div class="text-center">
+          <div class="w-12 h-12 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg class="w-6 h-6 text-amber-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+          </div>
+          <h3 class="font-heading text-lg text-charcoal mb-2">Admin Created (Email Failed)</h3>
+          <p class="font-body text-sm text-charcoal-light mb-2">
+            User "{{ createdCredentials.username }}" has been created successfully, but the welcome email could not be sent.
+          </p>
+          <p class="font-body text-xs text-red-600 mb-4">
+            {{ emailWarningMessage }}
+          </p>
+
+          <!-- Clipboard section -->
+          <div class="bg-sand rounded-lg p-3 mb-4 text-left">
+            <p class="font-body text-xs text-charcoal-light mb-2">Subject:</p>
+            <p class="font-body text-sm text-charcoal font-medium mb-3">Wedding Admin Portal - Your Login Credentials</p>
+            <p class="font-body text-xs text-charcoal-light">Click below to copy the full message with credentials:</p>
+          </div>
+
+          <div class="flex gap-3 justify-center">
+            <button
+              type="button"
+              class="flex items-center gap-2 px-4 py-2 font-body text-sm text-white bg-sage rounded-lg hover:bg-sage-dark transition-colors"
+              @click="copyCredentialsToClipboard"
+            >
+              <svg v-if="!clipboardCopied" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+                <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
+              </svg>
+              <svg v-else class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M20 6L9 17l-5-5" />
+              </svg>
+              {{ clipboardCopied ? "Copied!" : "Copy Credentials" }}
+            </button>
+            <button
+              type="button"
+              class="px-4 py-2 font-body text-sm text-charcoal border border-charcoal-light rounded-lg hover:bg-sand-dark transition-colors"
+              @click="closePopups"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Login Form -->
     <div v-if="!isAuthenticated" class="flex items-center justify-center min-h-screen px-4">
       <div class="w-full max-w-sm p-6 bg-white rounded-xl shadow-lg">
@@ -541,6 +691,23 @@ const exportToCsv = (): void => {
               </div>
             </div>
 
+            <!-- Email field -->
+            <div>
+              <label for="newEmail" class="block font-body text-sm font-medium text-charcoal mb-1">
+                Email <span class="text-charcoal-light font-normal">(optional)</span>
+              </label>
+              <input
+                id="newEmail"
+                v-model="newAdminEmail"
+                type="email"
+                class="w-full px-3 py-2.5 font-body text-base border border-sand-dark rounded-lg bg-sand text-charcoal focus:outline-none focus:border-sage"
+                placeholder="Enter email for welcome notification"
+              />
+              <p class="font-body text-xs text-charcoal-light mt-1">
+                A welcome email with login credentials will be sent to this address.
+              </p>
+            </div>
+
             <p v-if="createError" class="text-red-600 font-body text-sm">
               {{ createError }}
             </p>
@@ -556,7 +723,7 @@ const exportToCsv = (): void => {
               <button
                 type="button"
                 class="px-4 py-2 font-body text-sm text-charcoal border border-charcoal-light rounded-lg hover:bg-sand-dark transition-colors"
-                @click="showCreateForm = false; newAdminUsername = ''; newAdminPassword = ''; createError = ''"
+                @click="showCreateForm = false; newAdminUsername = ''; newAdminPassword = ''; newAdminEmail = ''; createError = ''"
               >
                 Cancel
               </button>

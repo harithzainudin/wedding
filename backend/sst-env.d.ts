@@ -5,13 +5,25 @@
 
 declare module "sst" {
   export interface Resource {
+    "AdminLoginUrl": {
+      "type": "sst.sst.Secret"
+      "value": string
+    }
     "AdminPassword": {
+      "type": "sst.sst.Secret"
+      "value": string
+    }
+    "BrevoApiKey": {
       "type": "sst.sst.Secret"
       "value": string
     }
     "RsvpTable": {
       "name": string
       "type": "sst.aws.Dynamo"
+    }
+    "SenderEmail": {
+      "type": "sst.sst.Secret"
+      "value": string
     }
     "WeddingApi": {
       "type": "sst.aws.ApiGatewayV2"

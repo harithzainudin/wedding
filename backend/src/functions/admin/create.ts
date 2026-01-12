@@ -4,6 +4,7 @@ import { DynamoDBDocumentClient, PutCommand, GetCommand } from "@aws-sdk/lib-dyn
 import bcrypt from "bcryptjs";
 import { createResponse, createErrorResponse } from "../shared/response";
 import { Resource } from "sst";
+import { sendWelcomeEmail } from "../../services/email";
 
 const client = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(client);
@@ -11,11 +12,13 @@ const docClient = DynamoDBDocumentClient.from(client);
 interface CreateAdminRequest {
   username: string;
   password: string;
+  email?: string;
   createdBy?: string;
 }
 
 interface AdminUser {
   username: string;
+  email?: string;
   createdAt: string;
   createdBy: string;
 }
@@ -41,7 +44,16 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     return createErrorResponse(400, "Password must be at least 6 characters");
   }
 
+  // Validate email format if provided
+  if (body.email) {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(body.email)) {
+      return createErrorResponse(400, "Invalid email format");
+    }
+  }
+
   const username = body.username.trim().toLowerCase();
+  const email = body.email?.trim().toLowerCase();
 
   // Check if username already exists
   const existingUser = await docClient.send(
@@ -72,6 +84,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
         pk: `ADMIN#${username}`,
         sk: "PROFILE",
         username,
+        email,
         passwordHash,
         createdAt: now,
         createdBy: body.createdBy ?? "system",
@@ -83,12 +96,33 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
 
   const adminUser: AdminUser = {
     username,
+    email,
     createdAt: now,
     createdBy: body.createdBy ?? "system",
   };
 
+  // Send welcome email if email is provided
+  let emailSent = false;
+  let emailError: string | undefined;
+
+  if (email) {
+    const emailResult = await sendWelcomeEmail({
+      recipientEmail: email,
+      username: username,
+      password: body.password, // Send the plaintext password (only in email, never stored)
+    });
+
+    emailSent = emailResult.success;
+    if (!emailResult.success) {
+      emailError = emailResult.error;
+      console.error(`Failed to send welcome email to ${email}:`, emailResult.error);
+    }
+  }
+
   return createResponse(201, {
     success: true,
     data: adminUser,
+    emailSent,
+    ...(emailError && { emailError }),
   });
 };

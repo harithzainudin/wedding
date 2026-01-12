@@ -24,18 +24,23 @@ api.route("GET /rsvp", {
   link: [table],
 });
 
-// Function to add admin routes with secret
-export function addAdminRoutes(adminPassword: sst.Secret) {
+// Function to add admin routes with secrets
+export function addAdminRoutes(
+  adminPassword: sst.Secret,
+  brevoApiKey: sst.Secret,
+  senderEmail: sst.Secret,
+  adminLoginUrl: sst.Secret
+) {
   // POST /admin/login - Admin login
   api.route("POST /admin/login", {
     handler: "src/functions/admin/login.handler",
     link: [adminPassword, table],
   });
 
-  // POST /admin/users - Create admin user
+  // POST /admin/users - Create admin user (with email notification)
   api.route("POST /admin/users", {
     handler: "src/functions/admin/create.handler",
-    link: [table],
+    link: [table, brevoApiKey, senderEmail, adminLoginUrl],
   });
 
   // GET /admin/users - List admin users
