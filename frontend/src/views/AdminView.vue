@@ -641,11 +641,27 @@ const exportToCsv = (): void => {
           </button>
         </div>
 
-        <!-- Create Admin Form -->
-        <div v-if="showCreateForm" class="mb-6 p-4 bg-white rounded-xl shadow-sm">
-          <h3 class="font-heading text-lg text-charcoal mb-4">Create New Admin</h3>
-          <form @submit.prevent="handleCreateAdmin" class="space-y-4">
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <!-- Create Admin Modal -->
+        <div
+          v-if="showCreateForm"
+          class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4"
+          @click.self="showCreateForm = false; newAdminUsername = ''; newAdminPassword = ''; newAdminEmail = ''; createError = ''"
+        >
+          <div class="bg-white rounded-xl p-6 max-w-md w-full shadow-xl">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="font-heading text-lg text-charcoal">Create New Admin</h3>
+              <button
+                type="button"
+                class="text-charcoal-light hover:text-charcoal transition-colors cursor-pointer"
+                @click="showCreateForm = false; newAdminUsername = ''; newAdminPassword = ''; newAdminEmail = ''; createError = ''"
+              >
+                <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                  <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+              </button>
+            </div>
+            <form @submit.prevent="handleCreateAdmin" class="space-y-4">
               <div>
                 <label for="newUsername" class="block font-body text-sm font-medium text-charcoal mb-1">
                   Username
@@ -689,46 +705,46 @@ const exportToCsv = (): void => {
                   </button>
                 </div>
               </div>
-            </div>
 
-            <!-- Email field -->
-            <div>
-              <label for="newEmail" class="block font-body text-sm font-medium text-charcoal mb-1">
-                Email <span class="text-charcoal-light font-normal">(optional)</span>
-              </label>
-              <input
-                id="newEmail"
-                v-model="newAdminEmail"
-                type="email"
-                class="w-full px-3 py-2.5 font-body text-base border border-sand-dark rounded-lg bg-sand text-charcoal focus:outline-none focus:border-sage"
-                placeholder="Enter email for welcome notification"
-              />
-              <p class="font-body text-xs text-charcoal-light mt-1">
-                A welcome email with login credentials will be sent to this address.
+              <!-- Email field -->
+              <div>
+                <label for="newEmail" class="block font-body text-sm font-medium text-charcoal mb-1">
+                  Email <span class="text-charcoal-light font-normal">(optional)</span>
+                </label>
+                <input
+                  id="newEmail"
+                  v-model="newAdminEmail"
+                  type="email"
+                  class="w-full px-3 py-2.5 font-body text-base border border-sand-dark rounded-lg bg-sand text-charcoal focus:outline-none focus:border-sage"
+                  placeholder="Enter email for welcome notification"
+                />
+                <p class="font-body text-xs text-charcoal-light mt-1">
+                  A welcome email with login credentials will be sent to this address.
+                </p>
+              </div>
+
+              <p v-if="createError" class="text-red-600 font-body text-sm">
+                {{ createError }}
               </p>
-            </div>
 
-            <p v-if="createError" class="text-red-600 font-body text-sm">
-              {{ createError }}
-            </p>
-
-            <div class="flex gap-3">
-              <button
-                type="submit"
-                class="px-4 py-2 font-body text-sm text-white bg-sage rounded-lg hover:bg-sage-dark transition-colors cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed"
-                :disabled="isCreating"
-              >
-                {{ isCreating ? "Creating..." : "Create Admin" }}
-              </button>
-              <button
-                type="button"
-                class="px-4 py-2 font-body text-sm text-charcoal border border-charcoal-light rounded-lg hover:bg-sand-dark transition-colors cursor-pointer"
-                @click="showCreateForm = false; newAdminUsername = ''; newAdminPassword = ''; newAdminEmail = ''; createError = ''"
-              >
-                Cancel
-              </button>
-            </div>
-          </form>
+              <div class="flex gap-3">
+                <button
+                  type="submit"
+                  class="px-4 py-2 font-body text-sm text-white bg-sage rounded-lg hover:bg-sage-dark transition-colors cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed"
+                  :disabled="isCreating"
+                >
+                  {{ isCreating ? "Creating..." : "Create Admin" }}
+                </button>
+                <button
+                  type="button"
+                  class="px-4 py-2 font-body text-sm text-charcoal border border-charcoal-light rounded-lg hover:bg-sand-dark transition-colors cursor-pointer"
+                  @click="showCreateForm = false; newAdminUsername = ''; newAdminPassword = ''; newAdminEmail = ''; createError = ''"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
 
         <!-- Loading State -->
