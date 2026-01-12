@@ -1,10 +1,27 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref, computed, onMounted, onUnmounted } from "vue";
 import { useLanguage } from "@/composables/useLanguage";
+
+interface Props {
+  variant?: "dark" | "light";
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  variant: "dark",
+});
 
 const { currentLanguage, currentLanguageName, setLanguage, languages } = useLanguage();
 
+const buttonClasses = computed(() => {
+  const base = "flex items-center gap-1 px-3 py-2 backdrop-blur-sm border rounded-full cursor-pointer transition-all duration-300 active:scale-95";
+  if (props.variant === "light") {
+    return `${base} bg-sage/10 border-sage/30 text-sage hover:bg-sage/20`;
+  }
+  return `${base} bg-white/20 border-white/30 text-white hover:bg-white/30`;
+});
+
 const isOpen = ref(false);
+const dropdownRef = ref<HTMLElement | null>(null);
 
 const toggleDropdown = (): void => {
   isOpen.value = !isOpen.value;
@@ -16,16 +33,26 @@ const selectLanguage = (lang: "ms" | "en" | "zh" | "ta"): void => {
 };
 
 // Close dropdown when clicking outside
-const closeDropdown = (): void => {
-  isOpen.value = false;
+const handleClickOutside = (event: MouseEvent): void => {
+  if (dropdownRef.value && !dropdownRef.value.contains(event.target as Node)) {
+    isOpen.value = false;
+  }
 };
+
+onMounted(() => {
+  document.addEventListener("click", handleClickOutside);
+});
+
+onUnmounted(() => {
+  document.removeEventListener("click", handleClickOutside);
+});
 </script>
 
 <template>
-  <div class="relative" @mouseleave="closeDropdown">
+  <div ref="dropdownRef" class="relative">
     <button
       type="button"
-      class="flex items-center gap-1 px-3 py-2 bg-white/20 backdrop-blur-sm border border-white/30 rounded-full text-white cursor-pointer transition-all duration-300 hover:bg-white/30 active:scale-95"
+      :class="buttonClasses"
       aria-label="Change language"
       @click="toggleDropdown"
     >

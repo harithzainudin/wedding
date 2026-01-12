@@ -91,6 +91,8 @@ export interface Translations {
     maps: string;
     waze: string;
     calendar: string;
+    weddingInvitation: string;
+    backToInvitation: string;
   };
   // Common
   common: {
@@ -177,6 +179,8 @@ export const translations: Record<Language, Translations> = {
       maps: "Maps",
       waze: "Waze",
       calendar: "Kalendar",
+      weddingInvitation: "Jemputan Perkahwinan",
+      backToInvitation: "Kembali ke Jemputan",
     },
     common: {
       and: "&",
@@ -261,6 +265,8 @@ export const translations: Record<Language, Translations> = {
       maps: "Maps",
       waze: "Waze",
       calendar: "Calendar",
+      weddingInvitation: "Wedding Invitation",
+      backToInvitation: "Back to Invitation",
     },
     common: {
       and: "&",
@@ -344,6 +350,8 @@ export const translations: Record<Language, Translations> = {
       maps: "地图",
       waze: "Waze",
       calendar: "日历",
+      weddingInvitation: "婚礼邀请",
+      backToInvitation: "返回邀请函",
     },
     common: {
       and: "&",
@@ -428,6 +436,8 @@ export const translations: Record<Language, Translations> = {
       maps: "வரைபடம்",
       waze: "Waze",
       calendar: "நாட்காட்டி",
+      weddingInvitation: "திருமண அழைப்பிதழ்",
+      backToInvitation: "அழைப்பிதழுக்குத் திரும்பு",
     },
     common: {
       and: "&",

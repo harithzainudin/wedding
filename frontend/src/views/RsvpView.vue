@@ -1,19 +1,28 @@
 <script setup lang="ts">
 import { RouterLink } from "vue-router";
 import RsvpSection from "@/components/sections/RsvpSection.vue";
+import LanguageToggle from "@/components/ui/LanguageToggle.vue";
 import { weddingConfig } from "@/config/wedding";
+import { useLanguage } from "@/composables/useLanguage";
+
+const { t } = useLanguage();
 </script>
 
 <template>
   <main class="min-h-screen bg-sand">
     <!-- Header -->
-    <header class="py-8 px-6 text-center">
+    <header class="relative py-8 px-6 text-center">
+      <!-- Language Toggle -->
+      <div class="absolute top-4 right-4 z-10">
+        <LanguageToggle variant="light" />
+      </div>
+
       <RouterLink
         to="/"
         class="inline-block text-sage hover:text-sage-dark transition-colors"
       >
         <p class="font-body text-sm uppercase tracking-wider mb-2">
-          Jemputan Perkahwinan
+          {{ t.nav.weddingInvitation }}
         </p>
         <h1 class="font-heading text-2xl sm:text-3xl">
           {{ weddingConfig.couple.bride.nickname }} &
@@ -40,7 +49,7 @@ import { weddingConfig } from "@/config/wedding";
         >
           <path d="M19 12H5M12 19l-7-7 7-7" />
         </svg>
-        Kembali ke Jemputan
+        {{ t.nav.backToInvitation }}
       </RouterLink>
     </div>
   </main>
