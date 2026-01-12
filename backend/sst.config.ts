@@ -23,11 +23,17 @@ export default $config({
     const senderEmail = new sst.Secret("SenderEmail");
     const adminLoginUrl = new sst.Secret("AdminLoginUrl");
 
+    // Token secret for authentication
+    const tokenSecret = new sst.Secret("TokenSecret");
+
     const { table } = await import("./infra/database");
-    const { api, addAdminRoutes } = await import("./infra/api");
+    const { api, addAdminRoutes, addRsvpAuthRoutes } = await import("./infra/api");
 
     // Add admin routes with secrets
-    addAdminRoutes(adminPassword, brevoApiKey, senderEmail, adminLoginUrl);
+    addAdminRoutes(adminPassword, brevoApiKey, senderEmail, adminLoginUrl, tokenSecret);
+
+    // Add RSVP routes with auth
+    addRsvpAuthRoutes(tokenSecret);
 
     return {
       apiUrl: api.url,

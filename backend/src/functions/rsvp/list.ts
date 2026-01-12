@@ -7,6 +7,7 @@ import {
 } from "@aws-sdk/lib-dynamodb";
 import { Resource } from "sst";
 import { createResponse, createErrorResponse } from "../shared/response";
+import { requireAuth } from "../shared/auth";
 
 const client = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(client);
@@ -25,6 +26,12 @@ interface RsvpRecord {
 }
 
 export const handler: APIGatewayProxyHandlerV2 = async (event) => {
+  // Require authentication
+  const authResult = requireAuth(event);
+  if (!authResult.authenticated) {
+    return createErrorResponse(authResult.statusCode, authResult.error);
+  }
+
   try {
     // Get optional status filter from query params
     const status = event.queryStringParameters?.status;

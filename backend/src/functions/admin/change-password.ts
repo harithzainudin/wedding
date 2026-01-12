@@ -3,6 +3,7 @@ import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient, GetCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
 import bcrypt from "bcryptjs";
 import { createResponse, createErrorResponse } from "../shared/response";
+import { requireAuth } from "../shared/auth";
 import { Resource } from "sst";
 
 const client = new DynamoDBClient({});
@@ -20,6 +21,12 @@ interface ChangePasswordResponse {
 }
 
 export const handler: APIGatewayProxyHandlerV2 = async (event) => {
+  // Require authentication
+  const authResult = requireAuth(event);
+  if (!authResult.authenticated) {
+    return createErrorResponse(authResult.statusCode, authResult.error);
+  }
+
   if (!event.body) {
     return createErrorResponse(400, "Missing request body");
   }
@@ -37,6 +44,11 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
   }
 
   const username = body.username.trim().toLowerCase();
+
+  // Ensure user can only change their own password
+  if (username !== authResult.user.username) {
+    return createErrorResponse(403, "You can only change your own password");
+  }
 
   // Block master account from changing password
   if (username === "master") {

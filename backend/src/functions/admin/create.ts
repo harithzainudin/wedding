@@ -3,6 +3,7 @@ import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient, PutCommand, GetCommand } from "@aws-sdk/lib-dynamodb";
 import bcrypt from "bcryptjs";
 import { createResponse, createErrorResponse } from "../shared/response";
+import { requireMaster } from "../shared/auth";
 import { Resource } from "sst";
 import { sendWelcomeEmail } from "../../services/email";
 
@@ -24,6 +25,12 @@ interface AdminUser {
 }
 
 export const handler: APIGatewayProxyHandlerV2 = async (event) => {
+  // Require master admin access
+  const authResult = requireMaster(event);
+  if (!authResult.authenticated) {
+    return createErrorResponse(authResult.statusCode, authResult.error);
+  }
+
   if (!event.body) {
     return createErrorResponse(400, "Missing request body");
   }
@@ -87,7 +94,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
         email,
         passwordHash,
         createdAt: now,
-        createdBy: body.createdBy ?? "system",
+        createdBy: authResult.user.username,
         gsi1pk: "ADMIN",
         gsi1sk: now,
       },
@@ -98,7 +105,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     username,
     email,
     createdAt: now,
-    createdBy: body.createdBy ?? "system",
+    createdBy: authResult.user.username,
   };
 
   // Send welcome email if email is provided

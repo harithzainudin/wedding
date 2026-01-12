@@ -23,52 +23,58 @@ api.route("POST /rsvp", {
   ...functionConfig,
 });
 
-// GET /rsvp - List all RSVPs (admin)
-api.route("GET /rsvp", {
-  handler: "src/functions/rsvp/list.handler",
-  link: [table],
-  ...functionConfig,
-});
+// GET /rsvp - List all RSVPs (admin) - configured via addRsvpAuthRoutes for auth
 
 // Function to add admin routes with secrets
 export function addAdminRoutes(
   adminPassword: sst.Secret,
   brevoApiKey: sst.Secret,
   senderEmail: sst.Secret,
-  adminLoginUrl: sst.Secret
+  adminLoginUrl: sst.Secret,
+  tokenSecret: sst.Secret
 ) {
   // POST /admin/login - Admin login
   api.route("POST /admin/login", {
     handler: "src/functions/admin/login.handler",
-    link: [adminPassword, table],
+    link: [adminPassword, table, tokenSecret],
     ...functionConfig,
   });
 
-  // POST /admin/users - Create admin user (with email notification)
+  // POST /admin/users - Create admin user (with email notification, master-only)
   api.route("POST /admin/users", {
     handler: "src/functions/admin/create.handler",
-    link: [table, brevoApiKey, senderEmail, adminLoginUrl],
+    link: [table, brevoApiKey, senderEmail, adminLoginUrl, tokenSecret],
     ...functionConfig,
   });
 
-  // GET /admin/users - List admin users
+  // GET /admin/users - List admin users (auth required)
   api.route("GET /admin/users", {
     handler: "src/functions/admin/list.handler",
-    link: [table],
+    link: [table, tokenSecret],
     ...functionConfig,
   });
 
-  // DELETE /admin/users/{username} - Delete admin user
+  // DELETE /admin/users/{username} - Delete admin user (master-only)
   api.route("DELETE /admin/users/{username}", {
     handler: "src/functions/admin/delete.handler",
-    link: [table],
+    link: [table, tokenSecret],
     ...functionConfig,
   });
 
-  // PUT /admin/users/password - Change admin password
+  // PUT /admin/users/password - Change admin password (auth required)
   api.route("PUT /admin/users/password", {
     handler: "src/functions/admin/change-password.handler",
-    link: [table],
+    link: [table, tokenSecret],
+    ...functionConfig,
+  });
+}
+
+// Function to add RSVP routes with token secret for protected endpoints
+export function addRsvpAuthRoutes(tokenSecret: sst.Secret) {
+  // Update GET /rsvp to require auth
+  api.route("GET /rsvp", {
+    handler: "src/functions/rsvp/list.handler",
+    link: [table, tokenSecret],
     ...functionConfig,
   });
 }

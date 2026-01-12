@@ -12,6 +12,17 @@ import type {
 
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3000";
 
+function getAuthHeaders(): Record<string, string> {
+  const token = sessionStorage.getItem("admin_token");
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+  };
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
+  return headers;
+}
+
 export async function submitRsvp(data: RsvpFormData): Promise<RsvpApiResponse> {
   const response = await fetch(`${API_URL}/rsvp`, {
     method: "POST",
@@ -33,9 +44,7 @@ export async function listRsvps(status?: "attending" | "not_attending"): Promise
 
   const response = await fetch(url.toString(), {
     method: "GET",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: getAuthHeaders(),
   });
 
   const result = (await response.json()) as RsvpListResponse;
@@ -58,9 +67,7 @@ export async function adminLogin(data: AdminLoginRequest): Promise<AdminLoginRes
 export async function createAdminUser(data: CreateAdminRequest): Promise<CreateAdminResponse> {
   const response = await fetch(`${API_URL}/admin/users`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: getAuthHeaders(),
     body: JSON.stringify(data),
   });
 
@@ -71,9 +78,7 @@ export async function createAdminUser(data: CreateAdminRequest): Promise<CreateA
 export async function listAdminUsers(): Promise<ListAdminsResponse> {
   const response = await fetch(`${API_URL}/admin/users`, {
     method: "GET",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: getAuthHeaders(),
   });
 
   const result = (await response.json()) as ListAdminsResponse;
@@ -83,9 +88,7 @@ export async function listAdminUsers(): Promise<ListAdminsResponse> {
 export async function deleteAdminUser(username: string): Promise<DeleteAdminResponse> {
   const response = await fetch(`${API_URL}/admin/users/${encodeURIComponent(username)}`, {
     method: "DELETE",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: getAuthHeaders(),
   });
 
   const result = (await response.json()) as DeleteAdminResponse;
@@ -95,9 +98,7 @@ export async function deleteAdminUser(username: string): Promise<DeleteAdminResp
 export async function changeAdminPassword(data: ChangePasswordRequest): Promise<ChangePasswordResponse> {
   const response = await fetch(`${API_URL}/admin/users/password`, {
     method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: getAuthHeaders(),
     body: JSON.stringify(data),
   });
 

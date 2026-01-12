@@ -25,6 +25,10 @@ declare module "sst" {
       "type": "sst.sst.Secret"
       "value": string
     }
+    "TokenSecret": {
+      "type": "sst.sst.Secret"
+      "value": string
+    }
     "WeddingApi": {
       "type": "sst.aws.ApiGatewayV2"
       "url": string

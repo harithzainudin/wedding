@@ -3,6 +3,7 @@ import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient, GetCommand } from "@aws-sdk/lib-dynamodb";
 import bcrypt from "bcryptjs";
 import { createResponse, createErrorResponse } from "../shared/response";
+import { generateToken } from "../shared/auth";
 import { Resource } from "sst";
 
 const client = new DynamoDBClient({});
@@ -41,7 +42,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
   // Check if using master password (for initial setup)
   const masterPassword = Resource.AdminPassword.value;
   if (username === "master" && body.password === masterPassword) {
-    const token = Buffer.from(`master:${Date.now()}`).toString("base64");
+    const token = generateToken("master", true);
     return createResponse<LoginResponse>(200, {
       success: true,
       token,
@@ -74,7 +75,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
   }
 
   // Generate token
-  const token = Buffer.from(`${username}:${Date.now()}`).toString("base64");
+  const token = generateToken(username, false);
 
   return createResponse<LoginResponse>(200, {
     success: true,

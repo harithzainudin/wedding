@@ -876,10 +876,11 @@ const exportToCsv = (): void => {
 
       <!-- Admin Users Tab Content -->
       <div v-if="activeTab === 'admins'">
-        <!-- Create Admin Button -->
+        <!-- Create Admin Button (master only) -->
         <div class="flex justify-between items-center mb-6">
           <h2 class="font-heading text-xl text-charcoal">Manage Admin Users</h2>
           <button
+            v-if="isMasterUser"
             type="button"
             class="flex items-center gap-2 px-4 py-2 font-body text-sm text-white bg-sage rounded-lg hover:bg-sage-dark transition-colors cursor-pointer"
             @click="showCreateForm = !showCreateForm"
@@ -1035,7 +1036,8 @@ const exportToCsv = (): void => {
                   Created by {{ admin.createdBy }} on {{ formatDate(admin.createdAt) }}
                 </p>
               </div>
-              <div class="flex items-center gap-2">
+              <!-- Delete buttons (master only) -->
+              <div v-if="isMasterUser" class="flex items-center gap-2">
                 <button
                   v-if="deleteConfirm !== admin.username"
                   type="button"
