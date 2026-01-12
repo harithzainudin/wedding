@@ -61,17 +61,17 @@ onMounted(() => {
 </script>
 
 <template>
-  <section class="py-12 sm:py-16 px-4 sm:px-6 bg-white">
+  <section class="py-12 sm:py-16 px-4 sm:px-6 bg-white dark:bg-dark-bg-secondary transition-colors duration-300">
     <div class="max-w-xl mx-auto text-center">
-      <h2 class="font-heading text-xl sm:text-2xl md:text-3xl text-sage-dark mb-2">
+      <h2 class="font-heading text-xl sm:text-2xl md:text-3xl text-sage-dark dark:text-sage-light mb-2">
         {{ t.qrCode.title }}
       </h2>
-      <p class="font-body text-sm sm:text-base text-charcoal-light mb-6 sm:mb-8">
+      <p class="font-body text-sm sm:text-base text-charcoal-light dark:text-dark-text-secondary mb-6 sm:mb-8">
         {{ t.qrCode.subtitle }}
       </p>
 
       <!-- QR Code Display -->
-      <div class="inline-block p-4 sm:p-6 bg-white rounded-2xl shadow-lg mb-6">
+      <div class="inline-block p-4 sm:p-6 bg-white dark:bg-white rounded-2xl shadow-lg mb-6">
         <img
           v-if="qrCodeDataUrl"
           :src="qrCodeDataUrl"
@@ -80,14 +80,14 @@ onMounted(() => {
         />
         <div
           v-else
-          class="w-40 h-40 sm:w-48 sm:h-48 flex items-center justify-center bg-sand rounded-lg"
+          class="w-40 h-40 sm:w-48 sm:h-48 flex items-center justify-center bg-sand dark:bg-dark-bg-elevated rounded-lg"
         >
-          <span class="font-body text-sm text-charcoal-light">Loading...</span>
+          <span class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary">Loading...</span>
         </div>
       </div>
 
       <!-- Couple Names under QR -->
-      <p class="font-heading text-base sm:text-lg text-sage-dark mb-6">
+      <p class="font-heading text-base sm:text-lg text-sage-dark dark:text-sage-light mb-6">
         {{ weddingConfig.couple.bride.nickname }} & {{ weddingConfig.couple.groom.nickname }}
       </p>
 
@@ -108,7 +108,7 @@ onMounted(() => {
         <!-- Share Button -->
         <button
           type="button"
-          class="flex items-center gap-2 px-4 py-2.5 bg-white border border-sage text-sage rounded-full font-body text-sm font-medium transition-colors hover:bg-sage hover:text-white active:scale-95 cursor-pointer"
+          class="flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-dark-bg-elevated border border-sage text-sage rounded-full font-body text-sm font-medium transition-colors hover:bg-sage hover:text-white active:scale-95 cursor-pointer"
           @click="shareQrCode"
         >
           <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">

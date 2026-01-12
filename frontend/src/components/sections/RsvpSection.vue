@@ -54,12 +54,12 @@ const handleSubmit = async (): Promise<void> => {
 </script>
 
 <template>
-  <section id="rsvp" class="py-12 sm:py-16 px-4 sm:px-6 bg-white">
+  <section id="rsvp" class="py-12 sm:py-16 px-4 sm:px-6 bg-white dark:bg-dark-bg-secondary transition-colors duration-300">
     <div class="max-w-md mx-auto">
-      <h2 class="font-heading text-xl sm:text-2xl md:text-3xl text-center text-sage-dark mb-1 sm:mb-2">
+      <h2 class="font-heading text-xl sm:text-2xl md:text-3xl text-center text-sage-dark dark:text-sage-light mb-1 sm:mb-2">
         {{ t.rsvp.title }}
       </h2>
-      <p class="font-body text-sm sm:text-base text-center text-charcoal-light mb-6 sm:mb-8">
+      <p class="font-body text-sm sm:text-base text-center text-charcoal-light dark:text-dark-text-secondary mb-6 sm:mb-8">
         {{ t.rsvp.subtitle }}
       </p>
 
@@ -73,14 +73,14 @@ const handleSubmit = async (): Promise<void> => {
         >
           ✓
         </div>
-        <h3 class="font-heading text-xl sm:text-2xl text-sage-dark mb-2">
+        <h3 class="font-heading text-xl sm:text-2xl text-sage-dark dark:text-sage-light mb-2">
           {{ t.rsvp.thankYou }}
         </h3>
-        <p class="font-body text-sm sm:text-base text-charcoal-light mb-3 sm:mb-4">
+        <p class="font-body text-sm sm:text-base text-charcoal-light dark:text-dark-text-secondary mb-3 sm:mb-4">
           {{ t.rsvp.responseReceived }}
         </p>
         <p
-          class="font-body text-xs sm:text-sm italic text-charcoal-light p-3 sm:p-4 bg-sand rounded-lg"
+          class="font-body text-xs sm:text-sm italic text-charcoal-light dark:text-dark-text-secondary p-3 sm:p-4 bg-sand dark:bg-dark-bg-elevated rounded-lg"
         >
           {{ t.rsvp.prayer }}
         </p>
@@ -97,14 +97,14 @@ const handleSubmit = async (): Promise<void> => {
           <div class="w-full sm:w-28">
             <label
               for="title"
-              class="block font-body text-xs sm:text-sm font-medium text-charcoal mb-1"
+              class="block font-body text-xs sm:text-sm font-medium text-charcoal dark:text-dark-text mb-1"
             >
               {{ t.rsvp.titleLabel }}
             </label>
             <select
               id="title"
               v-model="formData.title"
-              class="w-full px-3 py-2.5 font-body text-sm sm:text-base border border-sand-dark rounded-lg bg-sand text-charcoal focus:outline-none focus:border-sage"
+              class="w-full px-3 py-2.5 font-body text-sm sm:text-base border border-sand-dark dark:border-dark-border rounded-lg bg-sand dark:bg-dark-bg-elevated text-charcoal dark:text-dark-text focus:outline-none focus:border-sage"
             >
               <option
                 v-for="title in HONORIFIC_TITLES"
@@ -119,7 +119,7 @@ const handleSubmit = async (): Promise<void> => {
           <div class="flex-1">
             <label
               for="fullName"
-              class="block font-body text-xs sm:text-sm font-medium text-charcoal mb-1"
+              class="block font-body text-xs sm:text-sm font-medium text-charcoal dark:text-dark-text mb-1"
             >
               {{ t.rsvp.fullName }} *
             </label>
@@ -127,7 +127,7 @@ const handleSubmit = async (): Promise<void> => {
               id="fullName"
               v-model="formData.fullName"
               type="text"
-              class="w-full px-3 py-2.5 font-body text-sm sm:text-base border border-sand-dark rounded-lg bg-sand text-charcoal focus:outline-none focus:border-sage"
+              class="w-full px-3 py-2.5 font-body text-sm sm:text-base border border-sand-dark dark:border-dark-border rounded-lg bg-sand dark:bg-dark-bg-elevated text-charcoal dark:text-dark-text focus:outline-none focus:border-sage placeholder:text-charcoal-light/60 dark:placeholder:text-dark-text-secondary/60"
               :placeholder="t.rsvp.fullNamePlaceholder"
               required
             />
@@ -136,29 +136,29 @@ const handleSubmit = async (): Promise<void> => {
 
         <!-- Attendance -->
         <div>
-          <label class="block font-body text-xs sm:text-sm font-medium text-charcoal mb-2">
+          <label class="block font-body text-xs sm:text-sm font-medium text-charcoal dark:text-dark-text mb-2">
             {{ t.rsvp.attendance }} *
           </label>
           <div class="space-y-2">
-            <label class="flex items-center gap-2 cursor-pointer p-2 -m-2 rounded-lg active:bg-sand/50">
+            <label class="flex items-center gap-2 cursor-pointer p-2 -m-2 rounded-lg active:bg-sand/50 dark:active:bg-dark-bg-elevated/50">
               <input
                 v-model="formData.isAttending"
                 type="radio"
                 :value="true"
                 class="w-4 h-4 accent-sage"
               />
-              <span class="font-body text-sm sm:text-base text-charcoal">
+              <span class="font-body text-sm sm:text-base text-charcoal dark:text-dark-text">
                 {{ t.rsvp.attending }}
               </span>
             </label>
-            <label class="flex items-center gap-2 cursor-pointer p-2 -m-2 rounded-lg active:bg-sand/50">
+            <label class="flex items-center gap-2 cursor-pointer p-2 -m-2 rounded-lg active:bg-sand/50 dark:active:bg-dark-bg-elevated/50">
               <input
                 v-model="formData.isAttending"
                 type="radio"
                 :value="false"
                 class="w-4 h-4 accent-sage"
               />
-              <span class="font-body text-sm sm:text-base text-charcoal">
+              <span class="font-body text-sm sm:text-base text-charcoal dark:text-dark-text">
                 {{ t.rsvp.notAttending }}
               </span>
             </label>
@@ -169,14 +169,14 @@ const handleSubmit = async (): Promise<void> => {
         <div v-if="formData.isAttending">
           <label
             for="numberOfGuests"
-            class="block font-body text-xs sm:text-sm font-medium text-charcoal mb-1"
+            class="block font-body text-xs sm:text-sm font-medium text-charcoal dark:text-dark-text mb-1"
           >
             {{ t.rsvp.numberOfGuests }}
           </label>
           <select
             id="numberOfGuests"
             v-model="formData.numberOfGuests"
-            class="w-full px-3 py-2.5 font-body text-sm sm:text-base border border-sand-dark rounded-lg bg-sand text-charcoal focus:outline-none focus:border-sage"
+            class="w-full px-3 py-2.5 font-body text-sm sm:text-base border border-sand-dark dark:border-dark-border rounded-lg bg-sand dark:bg-dark-bg-elevated text-charcoal dark:text-dark-text focus:outline-none focus:border-sage"
           >
             <option
               v-for="num in guestOptions"
@@ -192,7 +192,7 @@ const handleSubmit = async (): Promise<void> => {
         <div>
           <label
             for="phoneNumber"
-            class="block font-body text-xs sm:text-sm font-medium text-charcoal mb-1"
+            class="block font-body text-xs sm:text-sm font-medium text-charcoal dark:text-dark-text mb-1"
           >
             {{ t.rsvp.phoneNumber }} *
           </label>
@@ -200,7 +200,7 @@ const handleSubmit = async (): Promise<void> => {
             id="phoneNumber"
             v-model="formData.phoneNumber"
             type="tel"
-            class="w-full px-3 py-2.5 font-body text-sm sm:text-base border border-sand-dark rounded-lg bg-sand text-charcoal focus:outline-none focus:border-sage"
+            class="w-full px-3 py-2.5 font-body text-sm sm:text-base border border-sand-dark dark:border-dark-border rounded-lg bg-sand dark:bg-dark-bg-elevated text-charcoal dark:text-dark-text focus:outline-none focus:border-sage placeholder:text-charcoal-light/60 dark:placeholder:text-dark-text-secondary/60"
             :placeholder="t.rsvp.phonePlaceholder"
             required
           />
@@ -210,7 +210,7 @@ const handleSubmit = async (): Promise<void> => {
         <div>
           <label
             for="message"
-            class="block font-body text-xs sm:text-sm font-medium text-charcoal mb-1"
+            class="block font-body text-xs sm:text-sm font-medium text-charcoal dark:text-dark-text mb-1"
           >
             {{ t.rsvp.message }}
           </label>
@@ -218,7 +218,7 @@ const handleSubmit = async (): Promise<void> => {
             id="message"
             v-model="formData.message"
             rows="3"
-            class="w-full px-3 py-2.5 font-body text-sm sm:text-base border border-sand-dark rounded-lg bg-sand text-charcoal focus:outline-none focus:border-sage resize-none"
+            class="w-full px-3 py-2.5 font-body text-sm sm:text-base border border-sand-dark dark:border-dark-border rounded-lg bg-sand dark:bg-dark-bg-elevated text-charcoal dark:text-dark-text focus:outline-none focus:border-sage resize-none placeholder:text-charcoal-light/60 dark:placeholder:text-dark-text-secondary/60"
             :placeholder="t.rsvp.messagePlaceholder"
           ></textarea>
         </div>

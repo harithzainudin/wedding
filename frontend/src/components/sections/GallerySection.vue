@@ -82,12 +82,12 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <section v-if="photos.length > 0" class="py-12 sm:py-16 px-4 sm:px-6 bg-sand">
+  <section v-if="photos.length > 0" class="py-12 sm:py-16 px-4 sm:px-6 bg-sand dark:bg-dark-bg transition-colors duration-300">
     <div class="max-w-4xl mx-auto">
-      <h2 class="font-heading text-xl sm:text-2xl md:text-3xl text-center text-sage-dark mb-2">
+      <h2 class="font-heading text-xl sm:text-2xl md:text-3xl text-center text-sage-dark dark:text-sage-light mb-2">
         {{ t.gallery.title }}
       </h2>
-      <p class="font-body text-sm sm:text-base text-center text-charcoal-light mb-6 sm:mb-8">
+      <p class="font-body text-sm sm:text-base text-center text-charcoal-light dark:text-dark-text-secondary mb-6 sm:mb-8">
         {{ t.gallery.subtitle }}
       </p>
 

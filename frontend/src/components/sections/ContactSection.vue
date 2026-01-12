@@ -25,12 +25,12 @@ const callPhone = (phone: string): void => {
 </script>
 
 <template>
-  <section class="py-12 sm:py-16 px-4 sm:px-6 bg-sand">
+  <section class="py-12 sm:py-16 px-4 sm:px-6 bg-sand dark:bg-dark-bg transition-colors duration-300">
     <div class="max-w-xl mx-auto text-center">
-      <h2 class="font-heading text-xl sm:text-2xl md:text-3xl text-sage-dark mb-2">
+      <h2 class="font-heading text-xl sm:text-2xl md:text-3xl text-sage-dark dark:text-sage-light mb-2">
         {{ t.contact.title }}
       </h2>
-      <p class="font-body text-sm sm:text-base text-charcoal-light mb-6 sm:mb-8">
+      <p class="font-body text-sm sm:text-base text-charcoal-light dark:text-dark-text-secondary mb-6 sm:mb-8">
         {{ t.contact.subtitle }}
       </p>
 
@@ -38,14 +38,14 @@ const callPhone = (phone: string): void => {
         <div
           v-for="contact in contacts"
           :key="contact.phone"
-          class="flex items-center gap-3 sm:gap-4 p-4 bg-white rounded-xl shadow-sm"
+          class="flex items-center gap-3 sm:gap-4 p-4 bg-white dark:bg-dark-bg-elevated rounded-xl shadow-sm dark:shadow-lg"
         >
           <!-- Contact Info -->
           <div class="flex-1 text-left">
-            <p class="font-heading text-base sm:text-lg text-charcoal">
+            <p class="font-heading text-base sm:text-lg text-charcoal dark:text-dark-text">
               {{ contact.name }}
             </p>
-            <p class="font-body text-xs sm:text-sm text-charcoal-light">
+            <p class="font-body text-xs sm:text-sm text-charcoal-light dark:text-dark-text-secondary">
               {{ contact.role }}
             </p>
           </div>

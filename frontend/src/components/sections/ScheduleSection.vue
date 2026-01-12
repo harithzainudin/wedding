@@ -19,9 +19,9 @@ const getScheduleSubtitle = computed(() => (item: { title: string; titleMalay: s
 </script>
 
 <template>
-  <section class="py-12 sm:py-16 px-4 sm:px-6 bg-white">
+  <section class="py-12 sm:py-16 px-4 sm:px-6 bg-white dark:bg-dark-bg-secondary transition-colors duration-300">
     <div class="max-w-xl mx-auto">
-      <h2 class="font-heading text-xl sm:text-2xl md:text-3xl text-center text-sage-dark mb-6 sm:mb-8">
+      <h2 class="font-heading text-xl sm:text-2xl md:text-3xl text-center text-sage-dark dark:text-sage-light mb-6 sm:mb-8">
         {{ t.schedule.title }}
       </h2>
 
@@ -33,7 +33,7 @@ const getScheduleSubtitle = computed(() => (item: { title: string; titleMalay: s
         >
           <!-- Time -->
           <div class="flex-shrink-0 w-20 sm:w-24 text-right">
-            <p class="font-heading text-base sm:text-lg text-sage-dark">
+            <p class="font-heading text-base sm:text-lg text-sage-dark dark:text-sage-light">
               {{ item.time }}
             </p>
           </div>
@@ -49,10 +49,10 @@ const getScheduleSubtitle = computed(() => (item: { title: string; titleMalay: s
 
           <!-- Event Description -->
           <div class="flex-1 pb-4 sm:pb-6">
-            <p class="font-heading text-base sm:text-lg text-charcoal">
+            <p class="font-heading text-base sm:text-lg text-charcoal dark:text-dark-text">
               {{ getScheduleTitle(item) }}
             </p>
-            <p class="font-body text-xs sm:text-sm text-charcoal-light">
+            <p class="font-body text-xs sm:text-sm text-charcoal-light dark:text-dark-text-secondary">
               {{ getScheduleSubtitle(item) }}
             </p>
           </div>

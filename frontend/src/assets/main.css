@@ -3,9 +3,12 @@
 
 @import "tailwindcss";
 
+/* Enable class-based dark mode (instead of media query) */
+@custom-variant dark (&:where(.dark, .dark *));
+
 /* Theme customization - Earthy Minimalist */
 @theme {
-  /* Colors */
+  /* Light Mode Colors */
   --color-sage: #7c8363;
   --color-sage-light: #9ba58a;
   --color-sage-dark: #5d6349;
@@ -13,6 +16,14 @@
   --color-sand-dark: #e8e3db;
   --color-charcoal: #333333;
   --color-charcoal-light: #555555;
+
+  /* Dark Mode Colors */
+  --color-dark-bg: #1a1a1a;
+  --color-dark-bg-secondary: #2a2a2a;
+  --color-dark-bg-elevated: #3a3a3a;
+  --color-dark-border: #444444;
+  --color-dark-text: #f5f2ed;
+  --color-dark-text-secondary: #c8c4bc;
 
   /* Font Families - use font-family-* for Tailwind v4 */
   --font-family-heading: "Playfair Display", serif;
@@ -31,6 +42,13 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Dark mode body styles */
+.dark body {
+  background-color: var(--color-dark-bg);
+  color: var(--color-dark-text);
 }
 
 h1,

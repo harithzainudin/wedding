@@ -3,6 +3,7 @@ import { computed } from "vue";
 import CountdownTimer from "@/components/ui/CountdownTimer.vue";
 import MusicToggle from "@/components/ui/MusicToggle.vue";
 import LanguageToggle from "@/components/ui/LanguageToggle.vue";
+import DarkModeToggle from "@/components/ui/DarkModeToggle.vue";
 import { weddingConfig } from "@/config/wedding";
 import { useLanguage } from "@/composables/useLanguage";
 
@@ -28,6 +29,7 @@ const weddingDate = computed(() => weddingConfig.event.date);
     <!-- Top Controls -->
     <div class="absolute top-4 right-4 z-10 flex gap-2">
       <LanguageToggle />
+      <DarkModeToggle />
       <MusicToggle />
     </div>
 

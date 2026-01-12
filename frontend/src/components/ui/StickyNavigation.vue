@@ -28,13 +28,13 @@ const scrollToRsvp = (): void => {
 
 <template>
   <nav
-    class="fixed bottom-0 left-0 right-0 bg-white border-t border-sand-dark p-3 z-50 shadow-[0_-4px_6px_rgba(0,0,0,0.05)]"
+    class="fixed bottom-0 left-0 right-0 bg-white dark:bg-dark-bg-secondary border-t border-sand-dark dark:border-dark-border p-3 z-50 shadow-[0_-4px_6px_rgba(0,0,0,0.05)] dark:shadow-[0_-4px_6px_rgba(0,0,0,0.3)] transition-colors duration-300"
   >
     <div class="flex justify-around items-center max-w-md mx-auto">
       <!-- Google Maps -->
       <button
         type="button"
-        class="flex flex-col items-center gap-1 p-2 bg-transparent border-none text-charcoal cursor-pointer font-body text-[10px] font-medium uppercase tracking-wider transition-colors hover:text-sage"
+        class="flex flex-col items-center gap-1 p-2 bg-transparent border-none text-charcoal dark:text-dark-text cursor-pointer font-body text-[10px] font-medium uppercase tracking-wider transition-colors hover:text-sage dark:hover:text-sage-light"
         aria-label="Open Google Maps"
         @click="openGoogleMaps"
       >
@@ -49,7 +49,7 @@ const scrollToRsvp = (): void => {
       <!-- Waze -->
       <button
         type="button"
-        class="flex flex-col items-center gap-1 p-2 bg-transparent border-none text-charcoal cursor-pointer font-body text-[10px] font-medium uppercase tracking-wider transition-colors hover:text-sage"
+        class="flex flex-col items-center gap-1 p-2 bg-transparent border-none text-charcoal dark:text-dark-text cursor-pointer font-body text-[10px] font-medium uppercase tracking-wider transition-colors hover:text-sage dark:hover:text-sage-light"
         aria-label="Open Waze"
         @click="openWaze"
       >
@@ -64,7 +64,7 @@ const scrollToRsvp = (): void => {
       <!-- Calendar -->
       <button
         type="button"
-        class="flex flex-col items-center gap-1 p-2 bg-transparent border-none text-charcoal cursor-pointer font-body text-[10px] font-medium uppercase tracking-wider transition-colors hover:text-sage"
+        class="flex flex-col items-center gap-1 p-2 bg-transparent border-none text-charcoal dark:text-dark-text cursor-pointer font-body text-[10px] font-medium uppercase tracking-wider transition-colors hover:text-sage dark:hover:text-sage-light"
         aria-label="Add to Calendar"
         @click="addToCalendar"
       >

@@ -8,6 +8,16 @@
     <meta name="theme-color" content="#7C8363" />
     <title>Majlis Perkahwinan</title>
 
+    <!-- Prevent flash of wrong theme (FOIT) -->
+    <script>
+      (function() {
+        var stored = localStorage.getItem('wedding-theme');
+        var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        var isDark = stored === 'dark' || (stored === 'system' && prefersDark) || (!stored && prefersDark);
+        if (isDark) document.documentElement.classList.add('dark');
+      })();
+    </script>
+
     <!-- Preconnect to Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />

@@ -15,7 +15,7 @@ const { currentLanguage, currentLanguageName, setLanguage, languages } = useLang
 const buttonClasses = computed(() => {
   const base = "flex items-center gap-1 px-3 py-2 backdrop-blur-sm border rounded-full cursor-pointer transition-all duration-300 active:scale-95";
   if (props.variant === "light") {
-    return `${base} bg-sage/10 border-sage/30 text-sage hover:bg-sage/20`;
+    return `${base} bg-sage/10 border-sage/30 text-sage hover:bg-sage/20 dark:bg-dark-bg-elevated/50 dark:border-dark-border dark:text-dark-text dark:hover:bg-dark-bg-elevated`;
   }
   return `${base} bg-white/20 border-white/30 text-white hover:bg-white/30`;
 });
@@ -77,7 +77,7 @@ onUnmounted(() => {
     <!-- Dropdown Menu -->
     <div
       v-if="isOpen"
-      class="absolute top-full right-0 mt-1 bg-white rounded-lg shadow-lg overflow-hidden z-50 min-w-[80px]"
+      class="absolute top-full right-0 mt-1 bg-white dark:bg-dark-bg-elevated rounded-lg shadow-lg dark:shadow-xl overflow-hidden z-50 min-w-[80px]"
     >
       <button
         v-for="[code, name] in languages"
@@ -87,7 +87,7 @@ onUnmounted(() => {
         :class="
           currentLanguage === code
             ? 'bg-sage text-white'
-            : 'text-charcoal hover:bg-sand'
+            : 'text-charcoal dark:text-dark-text hover:bg-sand dark:hover:bg-dark-bg-secondary'
         "
         @click="selectLanguage(code)"
       >

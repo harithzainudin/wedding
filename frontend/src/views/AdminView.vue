@@ -377,18 +377,18 @@ const exportToCsv = (): void => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-sand">
+  <div class="min-h-screen bg-sand dark:bg-dark-bg transition-colors duration-300">
     <!-- Success Popup -->
-    <div v-if="showSuccessPopup" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4">
-      <div class="bg-white rounded-xl p-6 max-w-sm w-full shadow-xl">
+    <div v-if="showSuccessPopup" class="fixed inset-0 bg-black/50 dark:bg-black/70 flex items-center justify-center z-50 px-4">
+      <div class="bg-white dark:bg-dark-bg-secondary rounded-xl p-6 max-w-sm w-full shadow-xl">
         <div class="text-center">
-          <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <svg class="w-6 h-6 text-green-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <div class="w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg class="w-6 h-6 text-green-600 dark:text-green-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M20 6L9 17l-5-5" />
             </svg>
           </div>
-          <h3 class="font-heading text-lg text-charcoal mb-2">Admin Created Successfully</h3>
-          <p class="font-body text-sm text-charcoal-light mb-4">
+          <h3 class="font-heading text-lg text-charcoal dark:text-dark-text mb-2">Admin Created Successfully</h3>
+          <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary mb-4">
             User "{{ createdCredentials.username }}" has been created
             <span v-if="createdCredentials.email"> and a welcome email has been sent.</span>
             <span v-else>.</span>
@@ -405,16 +405,16 @@ const exportToCsv = (): void => {
     </div>
 
     <!-- Email Warning Popup -->
-    <div v-if="showEmailWarningPopup" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4">
-      <div class="bg-white rounded-xl p-6 max-w-md w-full shadow-xl">
+    <div v-if="showEmailWarningPopup" class="fixed inset-0 bg-black/50 dark:bg-black/70 flex items-center justify-center z-50 px-4">
+      <div class="bg-white dark:bg-dark-bg-secondary rounded-xl p-6 max-w-md w-full shadow-xl">
         <div class="text-center">
-          <div class="w-12 h-12 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <svg class="w-6 h-6 text-amber-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <div class="w-12 h-12 bg-amber-100 dark:bg-amber-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg class="w-6 h-6 text-amber-600 dark:text-amber-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
             </svg>
           </div>
-          <h3 class="font-heading text-lg text-charcoal mb-2">Admin Created (Email Failed)</h3>
-          <p class="font-body text-sm text-charcoal-light mb-2">
+          <h3 class="font-heading text-lg text-charcoal dark:text-dark-text mb-2">Admin Created (Email Failed)</h3>
+          <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary mb-2">
             User "{{ createdCredentials.username }}" has been created successfully, but the welcome email could not be sent.
           </p>
           <p class="font-body text-xs text-red-600 mb-4">
@@ -422,10 +422,10 @@ const exportToCsv = (): void => {
           </p>
 
           <!-- Clipboard section -->
-          <div class="bg-sand rounded-lg p-3 mb-4 text-left">
-            <p class="font-body text-xs text-charcoal-light mb-2">Subject:</p>
-            <p class="font-body text-sm text-charcoal font-medium mb-3">Wedding Admin Portal - Your Login Credentials</p>
-            <p class="font-body text-xs text-charcoal-light">Click below to copy the full message with credentials:</p>
+          <div class="bg-sand dark:bg-dark-bg-elevated rounded-lg p-3 mb-4 text-left">
+            <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary mb-2">Subject:</p>
+            <p class="font-body text-sm text-charcoal dark:text-dark-text font-medium mb-3">Wedding Admin Portal - Your Login Credentials</p>
+            <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary">Click below to copy the full message with credentials:</p>
           </div>
 
           <div class="flex gap-3 justify-center">
@@ -458,19 +458,19 @@ const exportToCsv = (): void => {
     <!-- Password Change Modal -->
     <div
       v-if="showPasswordChangeModal"
-      class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4"
+      class="fixed inset-0 bg-black/50 dark:bg-black/70 flex items-center justify-center z-50 px-4"
       @click.self="closePasswordChangeModal"
     >
-      <div class="bg-white rounded-xl p-6 max-w-md w-full shadow-xl">
+      <div class="bg-white dark:bg-dark-bg-secondary rounded-xl p-6 max-w-md w-full shadow-xl">
         <!-- Success State -->
         <div v-if="passwordChangeSuccess" class="text-center">
-          <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <svg class="w-6 h-6 text-green-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <div class="w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg class="w-6 h-6 text-green-600 dark:text-green-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M20 6L9 17l-5-5" />
             </svg>
           </div>
-          <h3 class="font-heading text-lg text-charcoal mb-2">Password Changed</h3>
-          <p class="font-body text-sm text-charcoal-light">Your password has been updated successfully.</p>
+          <h3 class="font-heading text-lg text-charcoal dark:text-dark-text mb-2">Password Changed</h3>
+          <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary">Your password has been updated successfully.</p>
         </div>
 
         <!-- Form State -->
@@ -616,8 +616,8 @@ const exportToCsv = (): void => {
 
     <!-- Login Form -->
     <div v-if="!isAuthenticated" class="flex items-center justify-center min-h-screen px-4">
-      <div class="w-full max-w-sm p-6 bg-white rounded-xl shadow-lg">
-        <h1 class="font-heading text-2xl text-center text-sage-dark mb-6">Admin Login</h1>
+      <div class="w-full max-w-sm p-6 bg-white dark:bg-dark-bg-secondary rounded-xl shadow-lg">
+        <h1 class="font-heading text-2xl text-center text-sage-dark dark:text-sage-light mb-6">Admin Login</h1>
 
         <form @submit.prevent="handleLogin" class="space-y-4">
           <div>
@@ -689,10 +689,10 @@ const exportToCsv = (): void => {
       <!-- Header -->
       <div class="flex items-center justify-between mb-6">
         <div>
-          <h1 class="font-heading text-2xl sm:text-3xl text-sage-dark">Admin Dashboard</h1>
-          <p class="font-body text-sm text-charcoal-light mt-1">
+          <h1 class="font-heading text-2xl sm:text-3xl text-sage-dark dark:text-sage-light">Admin Dashboard</h1>
+          <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary mt-1">
             Logged in as: <span class="font-medium">{{ currentUser }}</span>
-            <span v-if="isMasterUser" class="ml-2 px-2 py-0.5 text-xs bg-amber-100 text-amber-700 rounded-full">Master</span>
+            <span v-if="isMasterUser" class="ml-2 px-2 py-0.5 text-xs bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 rounded-full">Master</span>
           </p>
         </div>
         <div class="flex items-center gap-3">
@@ -720,11 +720,11 @@ const exportToCsv = (): void => {
       </div>
 
       <!-- Tabs -->
-      <div class="flex border-b border-sand-dark mb-6">
+      <div class="flex border-b border-sand-dark dark:border-dark-border mb-6">
         <button
           type="button"
           class="px-4 py-3 font-body text-sm font-medium transition-colors border-b-2 -mb-px cursor-pointer"
-          :class="activeTab === 'rsvps' ? 'text-sage border-sage' : 'text-charcoal-light border-transparent hover:text-charcoal'"
+          :class="activeTab === 'rsvps' ? 'text-sage border-sage' : 'text-charcoal-light dark:text-dark-text-secondary border-transparent hover:text-charcoal dark:hover:text-dark-text'"
           @click="switchTab('rsvps')"
         >
           RSVPs
@@ -732,7 +732,7 @@ const exportToCsv = (): void => {
         <button
           type="button"
           class="px-4 py-3 font-body text-sm font-medium transition-colors border-b-2 -mb-px cursor-pointer"
-          :class="activeTab === 'admins' ? 'text-sage border-sage' : 'text-charcoal-light border-transparent hover:text-charcoal'"
+          :class="activeTab === 'admins' ? 'text-sage border-sage' : 'text-charcoal-light dark:text-dark-text-secondary border-transparent hover:text-charcoal dark:hover:text-dark-text'"
           @click="switchTab('admins')"
         >
           Admin Users
@@ -743,21 +743,21 @@ const exportToCsv = (): void => {
       <div v-if="activeTab === 'rsvps'">
         <!-- Stats Cards -->
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
-          <div class="p-4 bg-white rounded-xl shadow-sm">
-            <p class="font-body text-sm text-charcoal-light">Total RSVPs</p>
-            <p class="font-heading text-2xl text-sage-dark">{{ summary.total }}</p>
+          <div class="p-4 bg-white dark:bg-dark-bg-secondary rounded-xl shadow-sm dark:shadow-lg">
+            <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary">Total RSVPs</p>
+            <p class="font-heading text-2xl text-sage-dark dark:text-sage-light">{{ summary.total }}</p>
           </div>
-          <div class="p-4 bg-white rounded-xl shadow-sm">
-            <p class="font-body text-sm text-charcoal-light">Attending</p>
-            <p class="font-heading text-2xl text-green-600">{{ summary.attending }}</p>
+          <div class="p-4 bg-white dark:bg-dark-bg-secondary rounded-xl shadow-sm dark:shadow-lg">
+            <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary">Attending</p>
+            <p class="font-heading text-2xl text-green-600 dark:text-green-400">{{ summary.attending }}</p>
           </div>
-          <div class="p-4 bg-white rounded-xl shadow-sm">
-            <p class="font-body text-sm text-charcoal-light">Not Attending</p>
-            <p class="font-heading text-2xl text-red-600">{{ summary.notAttending }}</p>
+          <div class="p-4 bg-white dark:bg-dark-bg-secondary rounded-xl shadow-sm dark:shadow-lg">
+            <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary">Not Attending</p>
+            <p class="font-heading text-2xl text-red-600 dark:text-red-400">{{ summary.notAttending }}</p>
           </div>
-          <div class="p-4 bg-white rounded-xl shadow-sm">
-            <p class="font-body text-sm text-charcoal-light">Total Guests</p>
-            <p class="font-heading text-2xl text-sage-dark">{{ summary.totalGuests }}</p>
+          <div class="p-4 bg-white dark:bg-dark-bg-secondary rounded-xl shadow-sm dark:shadow-lg">
+            <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary">Total Guests</p>
+            <p class="font-heading text-2xl text-sage-dark dark:text-sage-light">{{ summary.totalGuests }}</p>
           </div>
         </div>
 
@@ -768,7 +768,7 @@ const exportToCsv = (): void => {
             <button
               type="button"
               class="px-3 py-1.5 font-body text-sm rounded-full transition-colors cursor-pointer"
-              :class="filter === 'all' ? 'bg-sage text-white' : 'bg-white text-charcoal hover:bg-sand-dark'"
+              :class="filter === 'all' ? 'bg-sage text-white' : 'bg-white dark:bg-dark-bg-elevated text-charcoal dark:text-dark-text hover:bg-sand-dark dark:hover:bg-dark-border'"
               @click="filter = 'all'"
             >
               All ({{ summary.total }})
@@ -776,7 +776,7 @@ const exportToCsv = (): void => {
             <button
               type="button"
               class="px-3 py-1.5 font-body text-sm rounded-full transition-colors cursor-pointer"
-              :class="filter === 'attending' ? 'bg-green-600 text-white' : 'bg-white text-charcoal hover:bg-sand-dark'"
+              :class="filter === 'attending' ? 'bg-green-600 text-white' : 'bg-white dark:bg-dark-bg-elevated text-charcoal dark:text-dark-text hover:bg-sand-dark dark:hover:bg-dark-border'"
               @click="filter = 'attending'"
             >
               Attending ({{ summary.attending }})
@@ -784,7 +784,7 @@ const exportToCsv = (): void => {
             <button
               type="button"
               class="px-3 py-1.5 font-body text-sm rounded-full transition-colors cursor-pointer"
-              :class="filter === 'not_attending' ? 'bg-red-600 text-white' : 'bg-white text-charcoal hover:bg-sand-dark'"
+              :class="filter === 'not_attending' ? 'bg-red-600 text-white' : 'bg-white dark:bg-dark-bg-elevated text-charcoal dark:text-dark-text hover:bg-sand-dark dark:hover:bg-dark-border'"
               @click="filter = 'not_attending'"
             >
               Not Attending ({{ summary.notAttending }})
@@ -807,12 +807,12 @@ const exportToCsv = (): void => {
         <!-- Loading State -->
         <div v-if="isLoading" class="text-center py-12">
           <div class="inline-block w-8 h-8 border-3 border-sage border-t-transparent rounded-full animate-spin"></div>
-          <p class="font-body text-sm text-charcoal-light mt-3">Loading RSVPs...</p>
+          <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary mt-3">Loading RSVPs...</p>
         </div>
 
         <!-- Error State -->
         <div v-else-if="loadError" class="text-center py-12">
-          <p class="font-body text-sm text-red-600">{{ loadError }}</p>
+          <p class="font-body text-sm text-red-600 dark:text-red-400">{{ loadError }}</p>
           <button
             type="button"
             class="mt-3 px-4 py-2 font-body text-sm text-sage border border-sage rounded-full hover:bg-sage hover:text-white transition-colors cursor-pointer"
@@ -823,8 +823,8 @@ const exportToCsv = (): void => {
         </div>
 
         <!-- Empty State -->
-        <div v-else-if="filteredRsvps.length === 0" class="text-center py-12 bg-white rounded-xl">
-          <p class="font-body text-sm text-charcoal-light">No RSVPs found.</p>
+        <div v-else-if="filteredRsvps.length === 0" class="text-center py-12 bg-white dark:bg-dark-bg-secondary rounded-xl">
+          <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary">No RSVPs found.</p>
         </div>
 
         <!-- RSVP List -->
@@ -832,30 +832,30 @@ const exportToCsv = (): void => {
           <div
             v-for="rsvp in filteredRsvps"
             :key="rsvp.id"
-            class="p-4 bg-white rounded-xl shadow-sm"
+            class="p-4 bg-white dark:bg-dark-bg-secondary rounded-xl shadow-sm dark:shadow-lg"
           >
             <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
               <div class="flex-1">
                 <div class="flex items-center gap-2 mb-1">
-                  <p class="font-heading text-lg text-charcoal">
+                  <p class="font-heading text-lg text-charcoal dark:text-dark-text">
                     {{ rsvp.title }} {{ rsvp.fullName }}
                   </p>
                   <span
                     class="px-2 py-0.5 text-xs font-medium rounded-full"
-                    :class="rsvp.isAttending ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'"
+                    :class="rsvp.isAttending ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300' : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300'"
                   >
                     {{ rsvp.isAttending ? "Attending" : "Not Attending" }}
                   </span>
                 </div>
-                <p class="font-body text-sm text-charcoal-light">
+                <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary">
                   {{ rsvp.phoneNumber }}
                   <span v-if="rsvp.isAttending"> &bull; {{ rsvp.numberOfGuests }} guest(s)</span>
                 </p>
-                <p v-if="rsvp.message" class="font-body text-sm text-charcoal mt-2 italic">
+                <p v-if="rsvp.message" class="font-body text-sm text-charcoal dark:text-dark-text mt-2 italic">
                   "{{ rsvp.message }}"
                 </p>
               </div>
-              <p class="font-body text-xs text-charcoal-light whitespace-nowrap">
+              <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary whitespace-nowrap">
                 {{ formatDate(rsvp.submittedAt) }}
               </p>
             </div>
@@ -878,7 +878,7 @@ const exportToCsv = (): void => {
       <div v-if="activeTab === 'admins'">
         <!-- Create Admin Button (master only) -->
         <div class="flex justify-between items-center mb-6">
-          <h2 class="font-heading text-xl text-charcoal">Manage Admin Users</h2>
+          <h2 class="font-heading text-xl text-charcoal dark:text-dark-text">Manage Admin Users</h2>
           <button
             v-if="isMasterUser"
             type="button"
@@ -895,12 +895,12 @@ const exportToCsv = (): void => {
         <!-- Create Admin Modal -->
         <div
           v-if="showCreateForm"
-          class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4"
+          class="fixed inset-0 bg-black/50 dark:bg-black/70 flex items-center justify-center z-50 px-4"
           @click.self="showCreateForm = false; newAdminUsername = ''; newAdminPassword = ''; newAdminEmail = ''; createError = ''"
         >
-          <div class="bg-white rounded-xl p-6 max-w-md w-full shadow-xl">
+          <div class="bg-white dark:bg-dark-bg-secondary rounded-xl p-6 max-w-md w-full shadow-xl">
             <div class="flex items-center justify-between mb-4">
-              <h3 class="font-heading text-lg text-charcoal">Create New Admin</h3>
+              <h3 class="font-heading text-lg text-charcoal dark:text-dark-text">Create New Admin</h3>
               <button
                 type="button"
                 class="text-charcoal-light hover:text-charcoal transition-colors cursor-pointer"
@@ -1001,12 +1001,12 @@ const exportToCsv = (): void => {
         <!-- Loading State -->
         <div v-if="isLoadingAdmins" class="text-center py-12">
           <div class="inline-block w-8 h-8 border-3 border-sage border-t-transparent rounded-full animate-spin"></div>
-          <p class="font-body text-sm text-charcoal-light mt-3">Loading admin users...</p>
+          <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary mt-3">Loading admin users...</p>
         </div>
 
         <!-- Error State -->
         <div v-else-if="adminLoadError" class="text-center py-12">
-          <p class="font-body text-sm text-red-600">{{ adminLoadError }}</p>
+          <p class="font-body text-sm text-red-600 dark:text-red-400">{{ adminLoadError }}</p>
           <button
             type="button"
             class="mt-3 px-4 py-2 font-body text-sm text-sage border border-sage rounded-full hover:bg-sage hover:text-white transition-colors cursor-pointer"
@@ -1017,9 +1017,9 @@ const exportToCsv = (): void => {
         </div>
 
         <!-- Empty State -->
-        <div v-else-if="adminUsers.length === 0" class="text-center py-12 bg-white rounded-xl">
-          <p class="font-body text-sm text-charcoal-light">No admin users found.</p>
-          <p class="font-body text-xs text-charcoal-light mt-2">Create the first admin user to get started.</p>
+        <div v-else-if="adminUsers.length === 0" class="text-center py-12 bg-white dark:bg-dark-bg-secondary rounded-xl">
+          <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary">No admin users found.</p>
+          <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary mt-2">Create the first admin user to get started.</p>
         </div>
 
         <!-- Admin Users List -->
@@ -1027,12 +1027,12 @@ const exportToCsv = (): void => {
           <div
             v-for="admin in adminUsers"
             :key="admin.username"
-            class="p-4 bg-white rounded-xl shadow-sm"
+            class="p-4 bg-white dark:bg-dark-bg-secondary rounded-xl shadow-sm dark:shadow-lg"
           >
             <div class="flex items-center justify-between">
               <div>
-                <p class="font-heading text-lg text-charcoal">{{ admin.username }}</p>
-                <p class="font-body text-sm text-charcoal-light">
+                <p class="font-heading text-lg text-charcoal dark:text-dark-text">{{ admin.username }}</p>
+                <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary">
                   Created by {{ admin.createdBy }} on {{ formatDate(admin.createdAt) }}
                 </p>
               </div>
