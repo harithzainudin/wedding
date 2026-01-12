@@ -319,7 +319,7 @@ const exportToCsv = (): void => {
           </p>
           <button
             type="button"
-            class="px-6 py-2 font-body text-sm text-white bg-sage rounded-lg hover:bg-sage-dark transition-colors"
+            class="px-6 py-2 font-body text-sm text-white bg-sage rounded-lg hover:bg-sage-dark transition-colors cursor-pointer"
             @click="closePopups"
           >
             Close
@@ -355,7 +355,7 @@ const exportToCsv = (): void => {
           <div class="flex gap-3 justify-center">
             <button
               type="button"
-              class="flex items-center gap-2 px-4 py-2 font-body text-sm text-white bg-sage rounded-lg hover:bg-sage-dark transition-colors"
+              class="flex items-center gap-2 px-4 py-2 font-body text-sm text-white bg-sage rounded-lg hover:bg-sage-dark transition-colors cursor-pointer"
               @click="copyCredentialsToClipboard"
             >
               <svg v-if="!clipboardCopied" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -369,7 +369,7 @@ const exportToCsv = (): void => {
             </button>
             <button
               type="button"
-              class="px-4 py-2 font-body text-sm text-charcoal border border-charcoal-light rounded-lg hover:bg-sand-dark transition-colors"
+              class="px-4 py-2 font-body text-sm text-charcoal border border-charcoal-light rounded-lg hover:bg-sand-dark transition-colors cursor-pointer"
               @click="closePopups"
             >
               Close
@@ -415,7 +415,7 @@ const exportToCsv = (): void => {
               />
               <button
                 type="button"
-                class="absolute right-3 top-1/2 -translate-y-1/2 text-charcoal-light hover:text-charcoal transition-colors"
+                class="absolute right-3 top-1/2 -translate-y-1/2 text-charcoal-light hover:text-charcoal transition-colors cursor-pointer"
                 @click="showLoginPassword = !showLoginPassword"
               >
                 <svg v-if="showLoginPassword" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -462,7 +462,7 @@ const exportToCsv = (): void => {
         </div>
         <button
           type="button"
-          class="px-4 py-2 font-body text-sm text-charcoal border border-charcoal-light rounded-lg hover:bg-charcoal hover:text-white transition-colors"
+          class="px-4 py-2 font-body text-sm text-charcoal border border-charcoal-light rounded-lg hover:bg-charcoal hover:text-white transition-colors cursor-pointer"
           @click="handleLogout"
         >
           Logout
@@ -473,7 +473,7 @@ const exportToCsv = (): void => {
       <div class="flex border-b border-sand-dark mb-6">
         <button
           type="button"
-          class="px-4 py-3 font-body text-sm font-medium transition-colors border-b-2 -mb-px"
+          class="px-4 py-3 font-body text-sm font-medium transition-colors border-b-2 -mb-px cursor-pointer"
           :class="activeTab === 'rsvps' ? 'text-sage border-sage' : 'text-charcoal-light border-transparent hover:text-charcoal'"
           @click="switchTab('rsvps')"
         >
@@ -481,7 +481,7 @@ const exportToCsv = (): void => {
         </button>
         <button
           type="button"
-          class="px-4 py-3 font-body text-sm font-medium transition-colors border-b-2 -mb-px"
+          class="px-4 py-3 font-body text-sm font-medium transition-colors border-b-2 -mb-px cursor-pointer"
           :class="activeTab === 'admins' ? 'text-sage border-sage' : 'text-charcoal-light border-transparent hover:text-charcoal'"
           @click="switchTab('admins')"
         >
@@ -517,7 +517,7 @@ const exportToCsv = (): void => {
           <div class="flex gap-2">
             <button
               type="button"
-              class="px-3 py-1.5 font-body text-sm rounded-full transition-colors"
+              class="px-3 py-1.5 font-body text-sm rounded-full transition-colors cursor-pointer"
               :class="filter === 'all' ? 'bg-sage text-white' : 'bg-white text-charcoal hover:bg-sand-dark'"
               @click="filter = 'all'"
             >
@@ -525,7 +525,7 @@ const exportToCsv = (): void => {
             </button>
             <button
               type="button"
-              class="px-3 py-1.5 font-body text-sm rounded-full transition-colors"
+              class="px-3 py-1.5 font-body text-sm rounded-full transition-colors cursor-pointer"
               :class="filter === 'attending' ? 'bg-green-600 text-white' : 'bg-white text-charcoal hover:bg-sand-dark'"
               @click="filter = 'attending'"
             >
@@ -533,7 +533,7 @@ const exportToCsv = (): void => {
             </button>
             <button
               type="button"
-              class="px-3 py-1.5 font-body text-sm rounded-full transition-colors"
+              class="px-3 py-1.5 font-body text-sm rounded-full transition-colors cursor-pointer"
               :class="filter === 'not_attending' ? 'bg-red-600 text-white' : 'bg-white text-charcoal hover:bg-sand-dark'"
               @click="filter = 'not_attending'"
             >
@@ -544,7 +544,7 @@ const exportToCsv = (): void => {
           <!-- Export -->
           <button
             type="button"
-            class="flex items-center gap-2 px-4 py-2 font-body text-sm text-sage border border-sage rounded-lg hover:bg-sage hover:text-white transition-colors"
+            class="flex items-center gap-2 px-4 py-2 font-body text-sm text-sage border border-sage rounded-lg hover:bg-sage hover:text-white transition-colors cursor-pointer"
             @click="exportToCsv"
           >
             <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -565,7 +565,7 @@ const exportToCsv = (): void => {
           <p class="font-body text-sm text-red-600">{{ loadError }}</p>
           <button
             type="button"
-            class="mt-3 px-4 py-2 font-body text-sm text-sage border border-sage rounded-full hover:bg-sage hover:text-white transition-colors"
+            class="mt-3 px-4 py-2 font-body text-sm text-sage border border-sage rounded-full hover:bg-sage hover:text-white transition-colors cursor-pointer"
             @click="fetchRsvps"
           >
             Try Again
@@ -616,7 +616,7 @@ const exportToCsv = (): void => {
         <div class="mt-6 text-center">
           <button
             type="button"
-            class="px-4 py-2 font-body text-sm text-sage hover:text-sage-dark transition-colors"
+            class="px-4 py-2 font-body text-sm text-sage hover:text-sage-dark transition-colors cursor-pointer"
             @click="fetchRsvps"
           >
             Refresh
@@ -631,7 +631,7 @@ const exportToCsv = (): void => {
           <h2 class="font-heading text-xl text-charcoal">Manage Admin Users</h2>
           <button
             type="button"
-            class="flex items-center gap-2 px-4 py-2 font-body text-sm text-white bg-sage rounded-lg hover:bg-sage-dark transition-colors"
+            class="flex items-center gap-2 px-4 py-2 font-body text-sm text-white bg-sage rounded-lg hover:bg-sage-dark transition-colors cursor-pointer"
             @click="showCreateForm = !showCreateForm"
           >
             <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -675,7 +675,7 @@ const exportToCsv = (): void => {
                   />
                   <button
                     type="button"
-                    class="absolute right-3 top-1/2 -translate-y-1/2 text-charcoal-light hover:text-charcoal transition-colors"
+                    class="absolute right-3 top-1/2 -translate-y-1/2 text-charcoal-light hover:text-charcoal transition-colors cursor-pointer"
                     @click="showNewAdminPassword = !showNewAdminPassword"
                   >
                     <svg v-if="showNewAdminPassword" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -715,14 +715,14 @@ const exportToCsv = (): void => {
             <div class="flex gap-3">
               <button
                 type="submit"
-                class="px-4 py-2 font-body text-sm text-white bg-sage rounded-lg hover:bg-sage-dark transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
+                class="px-4 py-2 font-body text-sm text-white bg-sage rounded-lg hover:bg-sage-dark transition-colors cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed"
                 :disabled="isCreating"
               >
                 {{ isCreating ? "Creating..." : "Create Admin" }}
               </button>
               <button
                 type="button"
-                class="px-4 py-2 font-body text-sm text-charcoal border border-charcoal-light rounded-lg hover:bg-sand-dark transition-colors"
+                class="px-4 py-2 font-body text-sm text-charcoal border border-charcoal-light rounded-lg hover:bg-sand-dark transition-colors cursor-pointer"
                 @click="showCreateForm = false; newAdminUsername = ''; newAdminPassword = ''; newAdminEmail = ''; createError = ''"
               >
                 Cancel
@@ -742,7 +742,7 @@ const exportToCsv = (): void => {
           <p class="font-body text-sm text-red-600">{{ adminLoadError }}</p>
           <button
             type="button"
-            class="mt-3 px-4 py-2 font-body text-sm text-sage border border-sage rounded-full hover:bg-sage hover:text-white transition-colors"
+            class="mt-3 px-4 py-2 font-body text-sm text-sage border border-sage rounded-full hover:bg-sage hover:text-white transition-colors cursor-pointer"
             @click="fetchAdminUsers"
           >
             Try Again
@@ -773,7 +773,7 @@ const exportToCsv = (): void => {
                 <button
                   v-if="deleteConfirm !== admin.username"
                   type="button"
-                  class="px-3 py-1.5 font-body text-sm text-red-600 border border-red-600 rounded-lg hover:bg-red-600 hover:text-white transition-colors"
+                  class="px-3 py-1.5 font-body text-sm text-red-600 border border-red-600 rounded-lg hover:bg-red-600 hover:text-white transition-colors cursor-pointer"
                   @click="deleteConfirm = admin.username"
                 >
                   Delete
@@ -782,7 +782,7 @@ const exportToCsv = (): void => {
                   <span class="font-body text-sm text-charcoal-light">Confirm?</span>
                   <button
                     type="button"
-                    class="px-3 py-1.5 font-body text-sm text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors disabled:opacity-70"
+                    class="px-3 py-1.5 font-body text-sm text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed"
                     :disabled="isDeleting"
                     @click="handleDeleteAdmin(admin.username)"
                   >
@@ -790,7 +790,7 @@ const exportToCsv = (): void => {
                   </button>
                   <button
                     type="button"
-                    class="px-3 py-1.5 font-body text-sm text-charcoal border border-charcoal-light rounded-lg hover:bg-sand-dark transition-colors"
+                    class="px-3 py-1.5 font-body text-sm text-charcoal border border-charcoal-light rounded-lg hover:bg-sand-dark transition-colors cursor-pointer"
                     @click="deleteConfirm = null"
                   >
                     No
@@ -805,7 +805,7 @@ const exportToCsv = (): void => {
         <div class="mt-6 text-center">
           <button
             type="button"
-            class="px-4 py-2 font-body text-sm text-sage hover:text-sage-dark transition-colors"
+            class="px-4 py-2 font-body text-sm text-sage hover:text-sage-dark transition-colors cursor-pointer"
             @click="fetchAdminUsers"
           >
             Refresh

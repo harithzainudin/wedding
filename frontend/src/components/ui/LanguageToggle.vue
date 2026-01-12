@@ -56,7 +56,7 @@ const closeDropdown = (): void => {
         v-for="[code, name] in languages"
         :key="code"
         type="button"
-        class="w-full px-4 py-2 text-left font-body text-sm transition-colors"
+        class="w-full px-4 py-2 text-left font-body text-sm transition-colors cursor-pointer"
         :class="
           currentLanguage === code
             ? 'bg-sage text-white'

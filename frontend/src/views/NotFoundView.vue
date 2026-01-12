@@ -12,7 +12,7 @@ import { RouterLink } from "vue-router";
       </p>
       <RouterLink
         to="/"
-        class="inline-flex items-center gap-2 px-6 py-3 bg-sage text-white rounded-lg font-body font-medium hover:bg-sage-dark transition-colors"
+        class="inline-flex items-center gap-2 px-6 py-3 bg-sage text-white rounded-lg font-body font-medium hover:bg-sage-dark transition-colors cursor-pointer"
       >
         <svg
           class="w-4 h-4"

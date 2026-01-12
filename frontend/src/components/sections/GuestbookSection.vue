@@ -78,7 +78,7 @@ onMounted(() => {
         </p>
         <button
           type="button"
-          class="mt-3 px-4 py-2 font-body text-sm text-sage border border-sage rounded-full hover:bg-sage hover:text-white transition-colors"
+          class="mt-3 px-4 py-2 font-body text-sm text-sage border border-sage rounded-full hover:bg-sage hover:text-white transition-colors cursor-pointer"
           @click="fetchWishes"
         >
           Try Again

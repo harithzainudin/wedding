@@ -121,7 +121,7 @@ onUnmounted(() => {
           <!-- Close Button -->
           <button
             type="button"
-            class="absolute top-4 right-4 z-10 p-2 text-white/80 hover:text-white transition-colors"
+            class="absolute top-4 right-4 z-10 p-2 text-white/80 hover:text-white transition-colors cursor-pointer"
             :aria-label="t.gallery.close"
             @click="closeLightbox"
           >
@@ -133,7 +133,7 @@ onUnmounted(() => {
           <!-- Previous Button -->
           <button
             type="button"
-            class="absolute left-2 sm:left-4 z-10 p-2 text-white/80 hover:text-white transition-colors"
+            class="absolute left-2 sm:left-4 z-10 p-2 text-white/80 hover:text-white transition-colors cursor-pointer"
             :aria-label="t.gallery.previous"
             @click="goToPrevious"
           >
@@ -145,7 +145,7 @@ onUnmounted(() => {
           <!-- Next Button -->
           <button
             type="button"
-            class="absolute right-2 sm:right-4 z-10 p-2 text-white/80 hover:text-white transition-colors"
+            class="absolute right-2 sm:right-4 z-10 p-2 text-white/80 hover:text-white transition-colors cursor-pointer"
             :aria-label="t.gallery.next"
             @click="goToNext"
           >

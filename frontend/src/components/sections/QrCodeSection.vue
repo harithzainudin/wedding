@@ -96,7 +96,7 @@ onMounted(() => {
         <!-- Download Button -->
         <button
           type="button"
-          class="flex items-center gap-2 px-4 py-2.5 bg-sage text-white rounded-full font-body text-sm font-medium transition-colors hover:bg-sage-dark active:scale-95"
+          class="flex items-center gap-2 px-4 py-2.5 bg-sage text-white rounded-full font-body text-sm font-medium transition-colors hover:bg-sage-dark active:scale-95 cursor-pointer"
           @click="downloadQrCode"
         >
           <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -108,7 +108,7 @@ onMounted(() => {
         <!-- Share Button -->
         <button
           type="button"
-          class="flex items-center gap-2 px-4 py-2.5 bg-white border border-sage text-sage rounded-full font-body text-sm font-medium transition-colors hover:bg-sage hover:text-white active:scale-95"
+          class="flex items-center gap-2 px-4 py-2.5 bg-white border border-sage text-sage rounded-full font-body text-sm font-medium transition-colors hover:bg-sage hover:text-white active:scale-95 cursor-pointer"
           @click="shareQrCode"
         >
           <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
