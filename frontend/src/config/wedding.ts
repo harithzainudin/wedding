@@ -73,12 +73,4 @@ export const weddingConfig: WeddingConfig = {
   ],
   hashtag: "#AisyahAhmadWedding",
   dressCode: "Pastel / Earthy Tones",
-  gallery: [
-    { src: "/images/gallery/photo-1.png", alt: "Engagement photo" },
-    { src: "/images/gallery/photo-2.png", alt: "Pre-wedding photo" },
-    { src: "/images/gallery/photo-3.png", alt: "Couple portrait" },
-    { src: "/images/gallery/photo-4.png", alt: "Together" },
-    { src: "/images/gallery/photo-5.png", alt: "Love story" },
-    { src: "/images/gallery/photo-6.png", alt: "Beautiful moment" },
-  ],
 };

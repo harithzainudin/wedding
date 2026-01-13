@@ -13,6 +13,7 @@ export interface GallerySettings {
   maxFileSize: number;
   maxImages: number;
   allowedFormats: string[];
+  showGallery: boolean;
   updatedAt?: string | undefined;
   updatedBy?: string | undefined;
 }
@@ -71,6 +72,7 @@ export interface DeleteImageResponse {
 export interface UpdateSettingsRequest {
   maxFileSize?: number | undefined;
   maxImages?: number | undefined;
+  showGallery?: boolean | undefined;
 }
 
 export interface SettingsResponse {

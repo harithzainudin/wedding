@@ -4,7 +4,7 @@ import { DynamoDBDocumentClient, QueryCommand, GetCommand } from "@aws-sdk/lib-d
 import { Resource } from "sst";
 import { createResponse, createErrorResponse } from "../shared/response";
 import { requireAuth } from "../shared/auth";
-import { DEFAULT_MAX_FILE_SIZE, DEFAULT_MAX_IMAGES, ALLOWED_MIME_TYPES } from "../shared/image-constants";
+import { DEFAULT_MAX_FILE_SIZE, DEFAULT_MAX_IMAGES, DEFAULT_SHOW_GALLERY, ALLOWED_MIME_TYPES } from "../shared/image-constants";
 
 const dynamoClient = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(dynamoClient);
@@ -40,19 +40,23 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
       url: `https://${bucketName}.s3.${region}.amazonaws.com/${item.s3Key}`,
     }));
 
-    // If authenticated admin, include settings info
-    if (isAuthenticated) {
-      const settingsResult = await docClient.send(
-        new GetCommand({
-          TableName: Resource.AppDataTable.name,
-          Key: { pk: "SETTINGS", sk: "IMAGES" },
-        })
-      );
+    // Get settings (needed for both admin and public)
+    const settingsResult = await docClient.send(
+      new GetCommand({
+        TableName: Resource.AppDataTable.name,
+        Key: { pk: "SETTINGS", sk: "IMAGES" },
+      })
+    );
 
+    const showGallery = (settingsResult.Item?.showGallery as boolean) ?? DEFAULT_SHOW_GALLERY;
+
+    // If authenticated admin, include full settings info
+    if (isAuthenticated) {
       const settings = {
         maxFileSize: (settingsResult.Item?.maxFileSize as number) ?? DEFAULT_MAX_FILE_SIZE,
         maxImages: (settingsResult.Item?.maxImages as number) ?? DEFAULT_MAX_IMAGES,
         allowedFormats: (settingsResult.Item?.allowedFormats as string[]) ?? [...ALLOWED_MIME_TYPES],
+        showGallery,
       };
 
       return createResponse(200, {
@@ -66,12 +70,13 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
       });
     }
 
-    // Public response - just images, no settings
+    // Public response - images and showGallery flag
     return createResponse(200, {
       success: true,
       data: {
         images,
         total: images.length,
+        showGallery,
       },
     });
   } catch (error) {

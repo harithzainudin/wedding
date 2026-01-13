@@ -1,5 +1,6 @@
 export const DEFAULT_MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 export const DEFAULT_MAX_IMAGES = 50;
+export const DEFAULT_SHOW_GALLERY = true;
 
 export const ALLOWED_MIME_TYPES = [
   "image/jpeg",

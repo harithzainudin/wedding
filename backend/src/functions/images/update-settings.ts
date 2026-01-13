@@ -8,6 +8,7 @@ import { validateSettingsUpdate } from "../shared/image-validation";
 import {
   DEFAULT_MAX_FILE_SIZE,
   DEFAULT_MAX_IMAGES,
+  DEFAULT_SHOW_GALLERY,
   ALLOWED_MIME_TYPES,
 } from "../shared/image-constants";
 
@@ -52,6 +53,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
       maxFileSize: validation.data.maxFileSize ?? currentResult.Item?.maxFileSize ?? DEFAULT_MAX_FILE_SIZE,
       maxImages: validation.data.maxImages ?? currentResult.Item?.maxImages ?? DEFAULT_MAX_IMAGES,
       allowedFormats: currentResult.Item?.allowedFormats ?? [...ALLOWED_MIME_TYPES],
+      showGallery: validation.data.showGallery ?? currentResult.Item?.showGallery ?? DEFAULT_SHOW_GALLERY,
       updatedAt: now,
       updatedBy: authResult.user.username,
     };
@@ -69,6 +71,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
         maxFileSize: newSettings.maxFileSize,
         maxImages: newSettings.maxImages,
         allowedFormats: newSettings.allowedFormats,
+        showGallery: newSettings.showGallery,
         updatedAt: newSettings.updatedAt,
         updatedBy: newSettings.updatedBy,
       },

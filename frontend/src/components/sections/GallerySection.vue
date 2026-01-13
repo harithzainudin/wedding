@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from "vue";
-import { weddingConfig } from "@/config/wedding";
 import { useLanguage } from "@/composables/useLanguage";
 
 const { t } = useLanguage();
@@ -11,11 +10,9 @@ interface Photo {
   alt?: string;
 }
 
-// Static fallback photos from config
-const staticPhotos = weddingConfig.gallery ?? [];
-
-// Reactive photos array (will be populated from API or fallback to static)
-const photos = ref<Photo[]>(staticPhotos);
+// Reactive photos array (populated from API)
+const photos = ref<Photo[]>([]);
+const showGallery = ref(true);
 const isLoadingPhotos = ref(true);
 const selectedIndex = ref<number | null>(null);
 const slideDirection = ref<"left" | "right">("left");
@@ -28,6 +25,8 @@ const fetchPublicGallery = async (): Promise<void> => {
 
     if (response.ok) {
       const result = await response.json();
+      // Check if gallery should be shown (admin can toggle this)
+      showGallery.value = result.data?.showGallery ?? true;
       if (result.success && result.data?.images?.length > 0) {
         // Transform API response to Photo format
         photos.value = result.data.images.map((img: { url: string; filename: string }) => ({
@@ -35,30 +34,12 @@ const fetchPublicGallery = async (): Promise<void> => {
           alt: img.filename,
         }));
       }
-      // If no images from API, keep static photos
     }
   } catch {
-    // On error, keep static photos (already set as default)
+    // On error, photos remain empty and gallery section will be hidden
   } finally {
     isLoadingPhotos.value = false;
   }
-};
-
-// Resolve image path with base URL for GitHub Pages (for static images only)
-const getImageUrl = (src: string): string => {
-  // If it's a full URL (from S3), return as-is
-  if (src.startsWith("http://") || src.startsWith("https://")) {
-    return src;
-  }
-  // For relative paths (static images), add base URL
-  if (src.startsWith("/")) {
-    let base = import.meta.env.BASE_URL;
-    if (!base.endsWith("/")) {
-      base += "/";
-    }
-    return base + src.slice(1);
-  }
-  return src;
 };
 
 const isLightboxOpen = computed(() => selectedIndex.value !== null);
@@ -157,7 +138,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <section v-if="photos.length > 0" class="py-12 sm:py-16 px-4 sm:px-6 bg-sand dark:bg-dark-bg transition-colors duration-300">
+  <section v-if="showGallery && photos.length > 0" class="py-12 sm:py-16 px-4 sm:px-6 bg-sand dark:bg-dark-bg transition-colors duration-300">
     <div class="max-w-4xl mx-auto">
       <h2 class="font-heading text-xl sm:text-2xl md:text-3xl text-center text-sage-dark dark:text-sage-light mb-2">
         {{ t.gallery.title }}
@@ -176,7 +157,7 @@ onUnmounted(() => {
           @click="openLightbox(index)"
         >
           <img
-            :src="getImageUrl(photo.src)"
+            :src="photo.src"
             :alt="photo.alt ?? `Photo ${index + 1}`"
             class="w-full h-full object-cover"
             loading="lazy"
@@ -238,7 +219,7 @@ onUnmounted(() => {
               <img
                 v-if="currentPhoto"
                 :key="selectedIndex ?? 0"
-                :src="getImageUrl(currentPhoto.src)"
+                :src="currentPhoto.src"
                 :alt="currentPhoto.alt ?? 'Gallery photo'"
                 class="max-w-full max-h-[75vh] object-contain select-none"
                 draggable="false"

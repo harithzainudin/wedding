@@ -131,13 +131,13 @@ export function validateReorderRequest(
 
 export function validateSettingsUpdate(
   input: unknown
-): { valid: true; data: { maxFileSize?: number; maxImages?: number } } | { valid: false; error: string } {
+): { valid: true; data: { maxFileSize?: number; maxImages?: number; showGallery?: boolean } } | { valid: false; error: string } {
   if (typeof input !== "object" || input === null) {
     return { valid: false, error: "Invalid request body" };
   }
 
   const body = input as Record<string, unknown>;
-  const result: { maxFileSize?: number; maxImages?: number } = {};
+  const result: { maxFileSize?: number; maxImages?: number; showGallery?: boolean } = {};
 
   // Validate maxFileSize (1MB to 50MB)
   if (body.maxFileSize !== undefined) {
@@ -163,7 +163,15 @@ export function validateSettingsUpdate(
     result.maxImages = body.maxImages;
   }
 
-  if (result.maxFileSize === undefined && result.maxImages === undefined) {
+  // Validate showGallery (boolean)
+  if (body.showGallery !== undefined) {
+    if (typeof body.showGallery !== "boolean") {
+      return { valid: false, error: "showGallery must be a boolean" };
+    }
+    result.showGallery = body.showGallery;
+  }
+
+  if (result.maxFileSize === undefined && result.maxImages === undefined && result.showGallery === undefined) {
     return { valid: false, error: "At least one setting must be provided" };
   }
 

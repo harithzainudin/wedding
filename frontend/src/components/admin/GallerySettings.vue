@@ -8,11 +8,12 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{
-  update: [settings: { maxFileSize?: number; maxImages?: number }];
+  update: [settings: { maxFileSize?: number; maxImages?: number; showGallery?: boolean }];
 }>();
 
 const localMaxFileSize = ref(props.settings.maxFileSize);
 const localMaxImages = ref(props.settings.maxImages);
+const localShowGallery = ref(props.settings.showGallery);
 const isSaving = ref(false);
 
 // Sync with props when they change
@@ -21,6 +22,7 @@ watch(
   (newSettings) => {
     localMaxFileSize.value = newSettings.maxFileSize;
     localMaxImages.value = newSettings.maxImages;
+    localShowGallery.value = newSettings.showGallery;
   }
 );
 
@@ -40,7 +42,8 @@ const maxImagesOptions = [10, 20, 30, 50, 100, 200];
 const hasChanges = (): boolean => {
   return (
     localMaxFileSize.value !== props.settings.maxFileSize ||
-    localMaxImages.value !== props.settings.maxImages
+    localMaxImages.value !== props.settings.maxImages ||
+    localShowGallery.value !== props.settings.showGallery
   );
 };
 
@@ -49,12 +52,15 @@ const handleSave = async (): Promise<void> => {
 
   isSaving.value = true;
 
-  const updates: { maxFileSize?: number; maxImages?: number } = {};
+  const updates: { maxFileSize?: number; maxImages?: number; showGallery?: boolean } = {};
   if (localMaxFileSize.value !== props.settings.maxFileSize) {
     updates.maxFileSize = localMaxFileSize.value;
   }
   if (localMaxImages.value !== props.settings.maxImages) {
     updates.maxImages = localMaxImages.value;
+  }
+  if (localShowGallery.value !== props.settings.showGallery) {
+    updates.showGallery = localShowGallery.value;
   }
 
   emit("update", updates);
@@ -78,6 +84,31 @@ const formatLabels: Record<string, string> = {
     <h3 class="font-heading text-lg font-medium text-charcoal dark:text-dark-text">
       Gallery Settings
     </h3>
+
+    <!-- Show Gallery Toggle -->
+    <div class="flex items-center justify-between py-3 px-4 bg-sand/50 dark:bg-dark-bg rounded-lg">
+      <div>
+        <label class="font-body text-sm font-medium text-charcoal dark:text-dark-text">
+          Show Gallery Section
+        </label>
+        <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary mt-0.5">
+          Display the photo gallery on the public website
+        </p>
+      </div>
+      <button
+        type="button"
+        role="switch"
+        :aria-checked="localShowGallery"
+        class="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-sage focus:ring-offset-2"
+        :class="localShowGallery ? 'bg-sage' : 'bg-gray-300 dark:bg-dark-border'"
+        @click="localShowGallery = !localShowGallery"
+      >
+        <span
+          class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"
+          :class="localShowGallery ? 'translate-x-5' : 'translate-x-0'"
+        />
+      </button>
+    </div>
 
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
       <!-- Max File Size -->
