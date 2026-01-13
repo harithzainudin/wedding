@@ -26,11 +26,9 @@ interface RsvpRecord {
 }
 
 export const handler: APIGatewayProxyHandlerV2 = async (event) => {
-  // Require authentication
+  // Check authentication (optional - public can view wishes, admin gets full data)
   const authResult = requireAuth(event);
-  if (!authResult.authenticated) {
-    return createErrorResponse(authResult.statusCode, authResult.error);
-  }
+  const isAuthenticated = authResult.authenticated;
 
   try {
     // Get optional status filter from query params
@@ -78,7 +76,24 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
       submittedAt: item.submittedAt,
     }));
 
-    // Calculate summary statistics
+    // Public response - only wishes for guestbook (no sensitive data)
+    if (!isAuthenticated) {
+      const wishes = rsvps
+        .filter((r) => r.message && r.message.trim() !== "")
+        .map((r) => ({
+          title: r.title,
+          fullName: r.fullName,
+          message: r.message,
+          submittedAt: r.submittedAt,
+        }));
+
+      return createResponse(200, {
+        success: true,
+        data: { rsvps: wishes },
+      });
+    }
+
+    // Authenticated response - full data with summary statistics
     const attending = rsvps.filter((r) => r.isAttending);
     const totalGuests = attending.reduce((sum, r) => sum + r.numberOfGuests, 0);
 

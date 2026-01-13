@@ -27,7 +27,8 @@ export default $config({
     const tokenSecret = new sst.Secret("TokenSecret");
 
     const { table } = await import("./infra/database");
-    const { api, addAdminRoutes, addRsvpAuthRoutes } = await import("./infra/api");
+    const { api, addAdminRoutes, addRsvpAuthRoutes, addImageRoutes } = await import("./infra/api");
+    const { imageBucket } = await import("./infra/storage");
 
     // Add admin routes with secrets
     addAdminRoutes(adminPassword, brevoApiKey, senderEmail, adminLoginUrl, tokenSecret);
@@ -35,9 +36,13 @@ export default $config({
     // Add RSVP routes with auth
     addRsvpAuthRoutes(tokenSecret);
 
+    // Add image management routes
+    addImageRoutes(tokenSecret, imageBucket);
+
     return {
       apiUrl: api.url,
       tableName: table.name,
+      imageBucketName: imageBucket.name,
     };
   },
 });

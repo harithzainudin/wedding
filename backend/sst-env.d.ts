@@ -33,6 +33,10 @@ declare module "sst" {
       "type": "sst.aws.ApiGatewayV2"
       "url": string
     }
+    "WeddingImageBucket": {
+      "name": string
+      "type": "sst.aws.Bucket"
+    }
   }
 }
 /// <reference path="sst-env.d.ts" />

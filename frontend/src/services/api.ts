@@ -9,6 +9,17 @@ import type {
   ChangePasswordRequest,
   ChangePasswordResponse,
 } from "@/types/admin";
+import type {
+  PresignedUrlRequest,
+  PresignedUrlResponse,
+  ConfirmUploadRequest,
+  ConfirmUploadResponse,
+  ListImagesResponse,
+  ReorderImagesRequest,
+  DeleteImageResponse,
+  UpdateSettingsRequest,
+  SettingsResponse,
+} from "@/types/gallery";
 
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3000";
 
@@ -103,5 +114,92 @@ export async function changeAdminPassword(data: ChangePasswordRequest): Promise<
   });
 
   const result = (await response.json()) as ChangePasswordResponse;
+  return result;
+}
+
+// Gallery API functions
+
+export async function listGalleryImages(): Promise<ListImagesResponse> {
+  const response = await fetch(`${API_URL}/images`, {
+    method: "GET",
+    headers: getAuthHeaders(),
+  });
+
+  const result = (await response.json()) as ListImagesResponse;
+  return result;
+}
+
+export async function getPresignedUrl(data: PresignedUrlRequest): Promise<PresignedUrlResponse> {
+  const response = await fetch(`${API_URL}/images/presigned-url`, {
+    method: "POST",
+    headers: getAuthHeaders(),
+    body: JSON.stringify(data),
+  });
+
+  const result = (await response.json()) as PresignedUrlResponse;
+  return result;
+}
+
+export async function uploadToS3(presignedUrl: string, file: File): Promise<boolean> {
+  const response = await fetch(presignedUrl, {
+    method: "PUT",
+    headers: {
+      "Content-Type": file.type,
+    },
+    body: file,
+  });
+  return response.ok;
+}
+
+export async function confirmImageUpload(data: ConfirmUploadRequest): Promise<ConfirmUploadResponse> {
+  const response = await fetch(`${API_URL}/images/confirm`, {
+    method: "POST",
+    headers: getAuthHeaders(),
+    body: JSON.stringify(data),
+  });
+
+  const result = (await response.json()) as ConfirmUploadResponse;
+  return result;
+}
+
+export async function deleteGalleryImage(imageId: string): Promise<DeleteImageResponse> {
+  const response = await fetch(`${API_URL}/images/${encodeURIComponent(imageId)}`, {
+    method: "DELETE",
+    headers: getAuthHeaders(),
+  });
+
+  const result = (await response.json()) as DeleteImageResponse;
+  return result;
+}
+
+export async function reorderGalleryImages(data: ReorderImagesRequest): Promise<{ success: boolean; error?: string }> {
+  const response = await fetch(`${API_URL}/images/reorder`, {
+    method: "PUT",
+    headers: getAuthHeaders(),
+    body: JSON.stringify(data),
+  });
+
+  const result = (await response.json()) as { success: boolean; error?: string };
+  return result;
+}
+
+export async function getGallerySettings(): Promise<SettingsResponse> {
+  const response = await fetch(`${API_URL}/images/settings`, {
+    method: "GET",
+    headers: getAuthHeaders(),
+  });
+
+  const result = (await response.json()) as SettingsResponse;
+  return result;
+}
+
+export async function updateGallerySettings(data: UpdateSettingsRequest): Promise<SettingsResponse> {
+  const response = await fetch(`${API_URL}/images/settings`, {
+    method: "PUT",
+    headers: getAuthHeaders(),
+    body: JSON.stringify(data),
+  });
+
+  const result = (await response.json()) as SettingsResponse;
   return result;
 }

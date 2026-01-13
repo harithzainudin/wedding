@@ -5,12 +5,52 @@ import { useLanguage } from "@/composables/useLanguage";
 
 const { t } = useLanguage();
 
-const photos = weddingConfig.gallery ?? [];
+// Photo interface for unified handling
+interface Photo {
+  src: string;
+  alt?: string;
+}
+
+// Static fallback photos from config
+const staticPhotos = weddingConfig.gallery ?? [];
+
+// Reactive photos array (will be populated from API or fallback to static)
+const photos = ref<Photo[]>(staticPhotos);
+const isLoadingPhotos = ref(true);
 const selectedIndex = ref<number | null>(null);
 const slideDirection = ref<"left" | "right">("left");
 
-// Resolve image path with base URL for GitHub Pages
+// Fetch photos from API (public endpoint without auth)
+const fetchPublicGallery = async (): Promise<void> => {
+  try {
+    const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3000";
+    const response = await fetch(`${API_URL}/images`);
+
+    if (response.ok) {
+      const result = await response.json();
+      if (result.success && result.data?.images?.length > 0) {
+        // Transform API response to Photo format
+        photos.value = result.data.images.map((img: { url: string; filename: string }) => ({
+          src: img.url,
+          alt: img.filename,
+        }));
+      }
+      // If no images from API, keep static photos
+    }
+  } catch {
+    // On error, keep static photos (already set as default)
+  } finally {
+    isLoadingPhotos.value = false;
+  }
+};
+
+// Resolve image path with base URL for GitHub Pages (for static images only)
 const getImageUrl = (src: string): string => {
+  // If it's a full URL (from S3), return as-is
+  if (src.startsWith("http://") || src.startsWith("https://")) {
+    return src;
+  }
+  // For relative paths (static images), add base URL
   if (src.startsWith("/")) {
     let base = import.meta.env.BASE_URL;
     if (!base.endsWith("/")) {
@@ -25,14 +65,14 @@ const isLightboxOpen = computed(() => selectedIndex.value !== null);
 
 const currentPhoto = computed(() => {
   if (selectedIndex.value === null) return null;
-  return photos[selectedIndex.value] ?? null;
+  return photos.value[selectedIndex.value] ?? null;
 });
 
 const photoCounter = computed(() => {
   if (selectedIndex.value === null) return "";
   return t.value.gallery.photoOf
     .replace("{current}", String(selectedIndex.value + 1))
-    .replace("{total}", String(photos.length));
+    .replace("{total}", String(photos.value.length));
 });
 
 const openLightbox = (index: number): void => {
@@ -49,14 +89,14 @@ const goToPrevious = (): void => {
   if (selectedIndex.value === null) return;
   slideDirection.value = "right";
   selectedIndex.value = selectedIndex.value === 0
-    ? photos.length - 1
+    ? photos.value.length - 1
     : selectedIndex.value - 1;
 };
 
 const goToNext = (): void => {
   if (selectedIndex.value === null) return;
   slideDirection.value = "left";
-  selectedIndex.value = selectedIndex.value === photos.length - 1
+  selectedIndex.value = selectedIndex.value === photos.value.length - 1
     ? 0
     : selectedIndex.value + 1;
 };
@@ -107,6 +147,7 @@ const handleTouchEnd = (): void => {
 
 onMounted(() => {
   window.addEventListener("keydown", handleKeydown);
+  fetchPublicGallery();
 });
 
 onUnmounted(() => {
@@ -129,7 +170,7 @@ onUnmounted(() => {
       <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3">
         <button
           v-for="(photo, index) in photos"
-          :key="index"
+          :key="photo.src"
           type="button"
           class="aspect-square overflow-hidden rounded-lg cursor-pointer transition-transform hover:scale-[1.02] active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-sage focus:ring-offset-2"
           @click="openLightbox(index)"
