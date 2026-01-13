@@ -3,6 +3,7 @@ import { ref, computed, onMounted } from "vue";
 import { adminLogin, listRsvps, listAdminUsers, createAdminUser, deleteAdminUser, changeAdminPassword } from "@/services/api";
 import type { RsvpSubmission } from "@/types/rsvp";
 import type { AdminUser } from "@/types/admin";
+import DarkModeToggle from "@/components/ui/DarkModeToggle.vue";
 
 // Auth state
 const isAuthenticated = ref(false);
@@ -615,20 +616,24 @@ const exportToCsv = (): void => {
     </div>
 
     <!-- Login Form -->
-    <div v-if="!isAuthenticated" class="flex items-center justify-center min-h-screen px-4">
+    <div v-if="!isAuthenticated" class="relative flex items-center justify-center min-h-screen px-4">
+      <!-- Dark Mode Toggle -->
+      <div class="absolute top-4 right-4">
+        <DarkModeToggle variant="light" />
+      </div>
       <div class="w-full max-w-sm p-6 bg-white dark:bg-dark-bg-secondary rounded-xl shadow-lg">
         <h1 class="font-heading text-2xl text-center text-sage-dark dark:text-sage-light mb-6">Admin Login</h1>
 
         <form @submit.prevent="handleLogin" class="space-y-4">
           <div>
-            <label for="username" class="block font-body text-sm font-medium text-charcoal mb-1">
+            <label for="username" class="block font-body text-sm font-medium text-charcoal dark:text-dark-text mb-1">
               Username
             </label>
             <input
               id="username"
               v-model="username"
               type="text"
-              class="w-full px-3 py-2.5 font-body text-base border border-sand-dark rounded-lg bg-sand text-charcoal focus:outline-none focus:border-sage"
+              class="w-full px-3 py-2.5 font-body text-base border border-sand-dark dark:border-dark-border rounded-lg bg-sand dark:bg-dark-bg-elevated text-charcoal dark:text-dark-text focus:outline-none focus:border-sage placeholder:text-charcoal-light/60 dark:placeholder:text-dark-text-secondary/60"
               placeholder="Enter username"
               required
               autofocus
@@ -636,7 +641,7 @@ const exportToCsv = (): void => {
           </div>
 
           <div>
-            <label for="password" class="block font-body text-sm font-medium text-charcoal mb-1">
+            <label for="password" class="block font-body text-sm font-medium text-charcoal dark:text-dark-text mb-1">
               Password
             </label>
             <div class="relative">
@@ -644,13 +649,13 @@ const exportToCsv = (): void => {
                 id="password"
                 v-model="password"
                 :type="showLoginPassword ? 'text' : 'password'"
-                class="w-full px-3 py-2.5 pr-10 font-body text-base border border-sand-dark rounded-lg bg-sand text-charcoal focus:outline-none focus:border-sage"
+                class="w-full px-3 py-2.5 pr-10 font-body text-base border border-sand-dark dark:border-dark-border rounded-lg bg-sand dark:bg-dark-bg-elevated text-charcoal dark:text-dark-text focus:outline-none focus:border-sage placeholder:text-charcoal-light/60 dark:placeholder:text-dark-text-secondary/60"
                 placeholder="Enter password"
                 required
               />
               <button
                 type="button"
-                class="absolute right-3 top-1/2 -translate-y-1/2 text-charcoal-light hover:text-charcoal transition-colors cursor-pointer"
+                class="absolute right-3 top-1/2 -translate-y-1/2 text-charcoal-light dark:text-dark-text-secondary hover:text-charcoal dark:hover:text-dark-text transition-colors cursor-pointer"
                 @click="showLoginPassword = !showLoginPassword"
               >
                 <svg v-if="showLoginPassword" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -665,11 +670,11 @@ const exportToCsv = (): void => {
             </div>
           </div>
 
-          <p class="font-body text-xs text-charcoal-light text-center">
+          <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary text-center">
             Use "master" as username with the master password for initial setup.
           </p>
 
-          <p v-if="loginError" class="text-red-600 font-body text-sm text-center">
+          <p v-if="loginError" class="text-red-600 dark:text-red-400 font-body text-sm text-center">
             {{ loginError }}
           </p>
 
@@ -696,6 +701,8 @@ const exportToCsv = (): void => {
           </p>
         </div>
         <div class="flex items-center gap-3">
+          <!-- Dark Mode Toggle -->
+          <DarkModeToggle variant="light" />
           <!-- Change Password Button (hidden for master) -->
           <button
             v-if="!isMasterUser"
@@ -711,7 +718,7 @@ const exportToCsv = (): void => {
           </button>
           <button
             type="button"
-            class="px-4 py-2 font-body text-sm text-charcoal border border-charcoal-light rounded-lg hover:bg-charcoal hover:text-white transition-colors cursor-pointer"
+            class="px-4 py-2 font-body text-sm text-charcoal dark:text-dark-text border border-charcoal-light dark:border-dark-border rounded-lg hover:bg-charcoal dark:hover:bg-dark-bg-elevated hover:text-white dark:hover:text-dark-text transition-colors cursor-pointer"
             @click="handleLogout"
           >
             Logout

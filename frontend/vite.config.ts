@@ -6,7 +6,7 @@ import { resolve } from "path";
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [vue(), tailwindcss()],
-  base: "/wedding/",
+  base: "/wedding",
   resolve: {
     alias: {
       "@": resolve(__dirname, "src"),

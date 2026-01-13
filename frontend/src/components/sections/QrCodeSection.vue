@@ -8,7 +8,7 @@ const { t } = useLanguage();
 
 const qrCodeDataUrl = ref<string>("");
 const linkCopied = ref(false);
-const websiteUrl = `https://harithzainudin.github.io/wedding/`;
+const websiteUrl = `https://harithzainudin.github.io/wedding`;
 
 const generateQrCode = async (): Promise<void> => {
   try {
