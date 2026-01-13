@@ -2,8 +2,14 @@
 import { computed } from "vue";
 import { weddingConfig } from "@/config/wedding";
 import { useLanguage } from "@/composables/useLanguage";
+import { useScrollReveal } from "@/composables/useScrollReveal";
 
 const { t, currentLanguage } = useLanguage();
+const { isRevealed } = useScrollReveal({
+  threshold: 0.2,
+  rootMargin: "0px 0px -30px 0px",
+  selector: ".schedule-item",
+});
 
 const schedule = weddingConfig.event.schedule;
 
@@ -29,7 +35,10 @@ const getScheduleSubtitle = computed(() => (item: { title: string; titleMalay: s
         <div
           v-for="(item, index) in schedule"
           :key="index"
-          class="flex items-start gap-3 sm:gap-4"
+          :data-index="index"
+          class="flex items-start gap-3 sm:gap-4 schedule-item"
+          :class="{ 'schedule-item--revealed': isRevealed(index) }"
+          :style="{ transitionDelay: `${index * 150}ms` }"
         >
           <!-- Time -->
           <div class="flex-shrink-0 w-20 sm:w-24 text-right">
@@ -61,3 +70,18 @@ const getScheduleSubtitle = computed(() => (item: { title: string; titleMalay: s
     </div>
   </section>
 </template>
+
+<style scoped>
+.schedule-item {
+  opacity: 0;
+  transform: translateY(20px);
+  transition:
+    opacity 0.6s ease-out,
+    transform 0.6s ease-out;
+}
+
+.schedule-item--revealed {
+  opacity: 1;
+  transform: translateY(0);
+}
+</style>
