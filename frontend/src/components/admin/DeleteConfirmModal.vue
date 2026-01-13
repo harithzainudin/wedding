@@ -2,7 +2,7 @@
 import type { GalleryImage } from "@/types/gallery";
 
 defineProps<{
-  image?: GalleryImage;
+  image?: GalleryImage | undefined;
   isDeleting: boolean;
 }>();
 

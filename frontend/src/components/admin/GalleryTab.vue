@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import { useGallery } from "@/composables/useGallery";
+import type { GalleryImage } from "@/types/gallery";
 import ImageUploader from "./ImageUploader.vue";
 import ImageGrid from "./ImageGrid.vue";
 import GallerySettings from "./GallerySettings.vue";
@@ -71,7 +72,7 @@ const handleDeleteCancel = (): void => {
   deleteConfirmId.value = null;
 };
 
-const handleSettingsUpdate = async (newSettings: { maxFileSize?: number; maxImages?: number }): Promise<void> => {
+const handleSettingsUpdate = async (newSettings: { maxFileSize?: number | undefined; maxImages?: number | undefined }): Promise<void> => {
   const result = await updateSettings(newSettings);
   if (!result.success) {
     console.error("Settings update failed:", result.error);
@@ -82,7 +83,7 @@ const dismissError = (index: number): void => {
   uploadErrors.value.splice(index, 1);
 };
 
-const getImageToDelete = () => {
+const getImageToDelete = (): GalleryImage | undefined => {
   return images.value.find((img) => img.id === deleteConfirmId.value);
 };
 </script>

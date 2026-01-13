@@ -33,7 +33,7 @@ export function useGallery() {
   const remainingSlots = computed(() => settings.value.maxImages - images.value.length);
 
   // Validate a file before upload
-  const validateFile = (file: File): { valid: boolean; error?: string } => {
+  const validateFile = (file: File): { valid: boolean; error?: string | undefined } => {
     // Check file type
     if (!ALLOWED_MIME_TYPES.includes(file.type)) {
       return {
@@ -71,7 +71,9 @@ export function useGallery() {
       const response = await listGalleryImages();
       if (response.success && response.data) {
         images.value = response.data.images;
-        settings.value = response.data.settings;
+        if (response.data.settings) {
+          settings.value = response.data.settings;
+        }
       } else {
         loadError.value = response.error ?? "Failed to load images";
       }
@@ -83,7 +85,7 @@ export function useGallery() {
   };
 
   // Upload a single image
-  const uploadImage = async (file: File): Promise<{ success: boolean; error?: string }> => {
+  const uploadImage = async (file: File): Promise<{ success: boolean; error?: string | undefined }> => {
     const validation = validateFile(file);
     if (!validation.valid) {
       return { success: false, error: validation.error };
@@ -147,7 +149,7 @@ export function useGallery() {
   };
 
   // Remove an image
-  const removeImage = async (imageId: string): Promise<{ success: boolean; error?: string }> => {
+  const removeImage = async (imageId: string): Promise<{ success: boolean; error?: string | undefined }> => {
     try {
       const response = await deleteGalleryImage(imageId);
       if (response.success) {
@@ -161,7 +163,7 @@ export function useGallery() {
   };
 
   // Update image order
-  const updateOrder = async (newOrder: string[]): Promise<{ success: boolean; error?: string }> => {
+  const updateOrder = async (newOrder: string[]): Promise<{ success: boolean; error?: string | undefined }> => {
     // Optimistically update the UI
     const previousImages = [...images.value];
     images.value = newOrder
@@ -188,8 +190,8 @@ export function useGallery() {
 
   // Update settings
   const updateSettings = async (
-    newSettings: { maxFileSize?: number; maxImages?: number }
-  ): Promise<{ success: boolean; error?: string }> => {
+    newSettings: { maxFileSize?: number | undefined; maxImages?: number | undefined }
+  ): Promise<{ success: boolean; error?: string | undefined }> => {
     try {
       const response = await updateGallerySettings(newSettings);
       if (response.success && response.data) {

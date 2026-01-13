@@ -13,8 +13,8 @@ export interface GallerySettings {
   maxFileSize: number;
   maxImages: number;
   allowedFormats: string[];
-  updatedAt?: string;
-  updatedBy?: string;
+  updatedAt?: string | undefined;
+  updatedBy?: string | undefined;
 }
 
 export interface PresignedUrlRequest {
@@ -30,8 +30,8 @@ export interface PresignedUrlResponse {
     imageId: string;
     s3Key: string;
     expiresIn: number;
-  };
-  error?: string;
+  } | undefined;
+  error?: string | undefined;
 }
 
 export interface ConfirmUploadRequest {
@@ -43,8 +43,8 @@ export interface ConfirmUploadRequest {
 
 export interface ConfirmUploadResponse {
   success: boolean;
-  data?: GalleryImage;
-  error?: string;
+  data?: GalleryImage | undefined;
+  error?: string | undefined;
 }
 
 export interface ListImagesResponse {
@@ -52,10 +52,10 @@ export interface ListImagesResponse {
   data?: {
     images: GalleryImage[];
     total: number;
-    settings: GallerySettings;
-    remainingSlots: number;
-  };
-  error?: string;
+    settings?: GallerySettings | undefined;
+    remainingSlots?: number | undefined;
+  } | undefined;
+  error?: string | undefined;
 }
 
 export interface ReorderImagesRequest {
@@ -64,17 +64,17 @@ export interface ReorderImagesRequest {
 
 export interface DeleteImageResponse {
   success: boolean;
-  message?: string;
-  error?: string;
+  message?: string | undefined;
+  error?: string | undefined;
 }
 
 export interface UpdateSettingsRequest {
-  maxFileSize?: number;
-  maxImages?: number;
+  maxFileSize?: number | undefined;
+  maxImages?: number | undefined;
 }
 
 export interface SettingsResponse {
   success: boolean;
-  data?: GallerySettings;
-  error?: string;
+  data?: GallerySettings | undefined;
+  error?: string | undefined;
 }
