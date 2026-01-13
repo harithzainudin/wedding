@@ -79,7 +79,7 @@ const scrollToRsvp = (): void => {
       <!-- RSVP Button -->
       <button
         type="button"
-        class="flex items-center gap-1 px-4 py-2 bg-sage text-white rounded-full font-body text-xs font-medium uppercase tracking-wider transition-colors hover:bg-sage-dark"
+        class="flex items-center gap-1 px-4 py-2 bg-sage text-white rounded-full font-body text-xs font-medium uppercase tracking-wider transition-colors hover:bg-sage-dark cursor-pointer"
         @click="scrollToRsvp"
       >
         RSVP
