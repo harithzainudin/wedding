@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from "vue";
+import { ref, computed, onMounted, onUnmounted, watch, nextTick } from "vue";
 import { useLanguage } from "@/composables/useLanguage";
 
 const { t } = useLanguage();
@@ -10,12 +10,27 @@ interface Photo {
   alt?: string;
 }
 
+// Maximum photos to show in the grid (rest accessible via lightbox)
+const MAX_VISIBLE_PHOTOS = 6;
+
 // Reactive photos array (populated from API)
 const photos = ref<Photo[]>([]);
 const showGallery = ref(true);
 const isLoadingPhotos = ref(true);
 const selectedIndex = ref<number | null>(null);
 const slideDirection = ref<"left" | "right">("left");
+
+// Lightbox view mode: 'single' for image view, 'grid' for thumbnail grid
+const lightboxMode = ref<"single" | "grid">("single");
+
+// Thumbnail strip container ref for auto-scrolling
+const thumbnailStripRef = ref<HTMLDivElement | null>(null);
+
+// Computed: photos visible in the grid (limited to MAX_VISIBLE_PHOTOS)
+const visiblePhotos = computed(() => photos.value.slice(0, MAX_VISIBLE_PHOTOS));
+
+// Computed: check if there are more photos than displayed
+const hasMorePhotos = computed(() => photos.value.length > MAX_VISIBLE_PHOTOS);
 
 // Fetch photos from API (public endpoint without auth)
 const fetchPublicGallery = async (): Promise<void> => {
@@ -58,13 +73,56 @@ const photoCounter = computed(() => {
 
 const openLightbox = (index: number): void => {
   selectedIndex.value = index;
+  lightboxMode.value = "single";
   document.body.style.overflow = "hidden";
 };
 
 const closeLightbox = (): void => {
   selectedIndex.value = null;
+  lightboxMode.value = "single";
   document.body.style.overflow = "";
 };
+
+// Jump directly to a specific photo
+const jumpToPhoto = (index: number): void => {
+  if (selectedIndex.value !== null) {
+    slideDirection.value = index > selectedIndex.value ? "left" : "right";
+  }
+  selectedIndex.value = index;
+  lightboxMode.value = "single";
+};
+
+// Toggle between single image and grid view
+const toggleLightboxMode = (): void => {
+  lightboxMode.value = lightboxMode.value === "single" ? "grid" : "single";
+};
+
+// Auto-scroll thumbnail strip to keep active thumbnail visible
+const scrollToActiveThumbnail = (): void => {
+  if (!thumbnailStripRef.value || selectedIndex.value === null) return;
+
+  const container = thumbnailStripRef.value;
+  const thumbnails = container.querySelectorAll("button");
+  const activeThumbnail = thumbnails[selectedIndex.value];
+
+  if (activeThumbnail) {
+    const containerRect = container.getBoundingClientRect();
+    const thumbnailRect = activeThumbnail.getBoundingClientRect();
+
+    // Calculate if thumbnail is outside visible area
+    const isOutsideLeft = thumbnailRect.left < containerRect.left;
+    const isOutsideRight = thumbnailRect.right > containerRect.right;
+
+    if (isOutsideLeft || isOutsideRight) {
+      activeThumbnail.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
+    }
+  }
+};
+
+// Watch for selectedIndex changes to auto-scroll thumbnail strip
+watch(selectedIndex, () => {
+  nextTick(scrollToActiveThumbnail);
+});
 
 const goToPrevious = (): void => {
   if (selectedIndex.value === null) return;
@@ -87,13 +145,21 @@ const handleKeydown = (event: KeyboardEvent): void => {
 
   switch (event.key) {
     case "Escape":
-      closeLightbox();
+      if (lightboxMode.value === "grid") {
+        lightboxMode.value = "single";
+      } else {
+        closeLightbox();
+      }
       break;
     case "ArrowLeft":
-      goToPrevious();
+      if (lightboxMode.value === "single") goToPrevious();
       break;
     case "ArrowRight":
-      goToNext();
+      if (lightboxMode.value === "single") goToNext();
+      break;
+    case "g":
+    case "G":
+      toggleLightboxMode();
       break;
   }
 };
@@ -147,10 +213,10 @@ onUnmounted(() => {
         {{ t.gallery.subtitle }}
       </p>
 
-      <!-- Photo Grid -->
+      <!-- Photo Grid (limited to first 6 photos) -->
       <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3">
         <button
-          v-for="(photo, index) in photos"
+          v-for="(photo, index) in visiblePhotos"
           :key="photo.src"
           type="button"
           class="aspect-square overflow-hidden rounded-lg cursor-pointer transition-transform hover:scale-[1.02] active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-sage focus:ring-offset-2"
@@ -164,6 +230,23 @@ onUnmounted(() => {
           />
         </button>
       </div>
+
+      <!-- View All Photos Button -->
+      <div v-if="hasMorePhotos" class="mt-6 text-center">
+        <button
+          type="button"
+          class="inline-flex items-center gap-2 px-6 py-3 font-body text-sm font-medium text-sage-dark dark:text-sage-light border-2 border-sage dark:border-sage-light rounded-full hover:bg-sage hover:text-white dark:hover:bg-sage-light dark:hover:text-dark-bg transition-colors focus:outline-none focus:ring-2 focus:ring-sage focus:ring-offset-2"
+          @click="openLightbox(0)"
+        >
+          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="3" width="7" height="7" rx="1" />
+            <rect x="14" y="3" width="7" height="7" rx="1" />
+            <rect x="3" y="14" width="7" height="7" rx="1" />
+            <rect x="14" y="14" width="7" height="7" rx="1" />
+          </svg>
+          {{ t.gallery.viewAll }} ({{ photos.length }})
+        </button>
+      </div>
     </div>
 
     <!-- Lightbox Modal -->
@@ -171,65 +254,146 @@ onUnmounted(() => {
       <Transition name="fade">
         <div
           v-if="isLightboxOpen"
-          class="fixed inset-0 z-[100] bg-black/90 flex items-center justify-center"
-          @click.self="closeLightbox"
-          @touchstart="handleTouchStart"
-          @touchmove="handleTouchMove"
-          @touchend="handleTouchEnd"
+          class="fixed inset-0 z-[100] bg-black/95 flex flex-col"
+          @click.self="lightboxMode === 'single' ? closeLightbox() : (lightboxMode = 'single')"
         >
-          <!-- Close Button -->
-          <button
-            type="button"
-            class="absolute top-4 right-4 z-10 p-2 text-white/80 hover:text-white transition-colors"
-            :aria-label="t.gallery.close"
-            @click="closeLightbox"
-          >
-            <svg class="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M18 6L6 18M6 6l12 12" />
-            </svg>
-          </button>
-
-          <!-- Previous Button -->
-          <button
-            type="button"
-            class="absolute left-2 sm:left-4 z-10 p-2 text-white/80 hover:text-white transition-colors"
-            :aria-label="t.gallery.previous"
-            @click="goToPrevious"
-          >
-            <svg class="w-8 h-8 sm:w-10 sm:h-10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M15 18l-6-6 6-6" />
-            </svg>
-          </button>
-
-          <!-- Next Button -->
-          <button
-            type="button"
-            class="absolute right-2 sm:right-4 z-10 p-2 text-white/80 hover:text-white transition-colors"
-            :aria-label="t.gallery.next"
-            @click="goToNext"
-          >
-            <svg class="w-8 h-8 sm:w-10 sm:h-10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M9 18l6-6-6-6" />
-            </svg>
-          </button>
-
-          <!-- Image with slide transition -->
-          <div class="max-w-[90vw] max-h-[80vh] flex flex-col items-center overflow-hidden">
-            <Transition :name="slideDirection === 'left' ? 'slide-left' : 'slide-right'" mode="out-in">
-              <img
-                v-if="currentPhoto"
-                :key="selectedIndex ?? 0"
-                :src="currentPhoto.src"
-                :alt="currentPhoto.alt ?? 'Gallery photo'"
-                class="max-w-full max-h-[75vh] object-contain select-none"
-                draggable="false"
-              />
-            </Transition>
-
-            <!-- Photo Counter -->
-            <p class="mt-4 font-body text-sm text-white/80">
+          <!-- Top Bar -->
+          <div class="flex-shrink-0 flex items-center justify-between p-3 sm:p-4">
+            <!-- Photo Counter (left) -->
+            <p class="font-body text-sm text-white/80">
               {{ photoCounter }}
             </p>
+
+            <!-- Action Buttons (right) -->
+            <div class="flex items-center gap-2">
+              <!-- Grid View Toggle -->
+              <button
+                type="button"
+                class="p-2 text-white/80 hover:text-white transition-colors rounded-lg"
+                :class="lightboxMode === 'grid' ? 'bg-white/20' : 'hover:bg-white/10'"
+                :aria-label="lightboxMode === 'grid' ? t.gallery.close : t.gallery.viewAll"
+                @click="toggleLightboxMode"
+              >
+                <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="3" y="3" width="7" height="7" rx="1" />
+                  <rect x="14" y="3" width="7" height="7" rx="1" />
+                  <rect x="3" y="14" width="7" height="7" rx="1" />
+                  <rect x="14" y="14" width="7" height="7" rx="1" />
+                </svg>
+              </button>
+
+              <!-- Close Button -->
+              <button
+                type="button"
+                class="p-2 text-white/80 hover:text-white hover:bg-white/10 transition-colors rounded-lg"
+                :aria-label="t.gallery.close"
+                @click="closeLightbox"
+              >
+                <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M18 6L6 18M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- Single Image View -->
+          <div
+            v-if="lightboxMode === 'single'"
+            class="flex-1 flex items-center justify-center relative min-h-0"
+          >
+            <!-- Previous Button -->
+            <button
+              type="button"
+              class="absolute left-2 sm:left-4 z-10 p-2 text-white/80 hover:text-white hover:bg-white/10 transition-colors rounded-full"
+              :aria-label="t.gallery.previous"
+              @click="goToPrevious"
+            >
+              <svg class="w-8 h-8 sm:w-10 sm:h-10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M15 18l-6-6 6-6" />
+              </svg>
+            </button>
+
+            <!-- Next Button -->
+            <button
+              type="button"
+              class="absolute right-2 sm:right-4 z-10 p-2 text-white/80 hover:text-white hover:bg-white/10 transition-colors rounded-full"
+              :aria-label="t.gallery.next"
+              @click="goToNext"
+            >
+              <svg class="w-8 h-8 sm:w-10 sm:h-10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M9 18l6-6-6-6" />
+              </svg>
+            </button>
+
+            <!-- Main Image (swipe handlers only here) -->
+            <div
+              class="max-w-[90vw] max-h-full flex items-center justify-center px-12 sm:px-16"
+              @touchstart="handleTouchStart"
+              @touchmove="handleTouchMove"
+              @touchend="handleTouchEnd"
+            >
+              <Transition :name="slideDirection === 'left' ? 'slide-left' : 'slide-right'" mode="out-in">
+                <img
+                  v-if="currentPhoto"
+                  :key="selectedIndex ?? 0"
+                  :src="currentPhoto.src"
+                  :alt="currentPhoto.alt ?? 'Gallery photo'"
+                  class="max-w-full max-h-[60vh] sm:max-h-[65vh] object-contain select-none"
+                  draggable="false"
+                />
+              </Transition>
+            </div>
+          </div>
+
+          <!-- Grid View -->
+          <div
+            v-else
+            class="flex-1 overflow-y-auto p-4"
+          >
+            <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2">
+              <button
+                v-for="(photo, index) in photos"
+                :key="photo.src"
+                type="button"
+                class="aspect-square overflow-hidden rounded-lg transition-all"
+                :class="index === selectedIndex ? 'ring-2 ring-white ring-offset-2 ring-offset-black' : 'opacity-70 hover:opacity-100'"
+                @click="jumpToPhoto(index)"
+              >
+                <img
+                  :src="photo.src"
+                  :alt="photo.alt ?? `Photo ${index + 1}`"
+                  class="w-full h-full object-cover"
+                  loading="lazy"
+                />
+              </button>
+            </div>
+          </div>
+
+          <!-- Thumbnail Strip (only in single view) -->
+          <div
+            v-if="lightboxMode === 'single' && photos.length > 1"
+            class="flex-shrink-0 p-3 sm:p-4 bg-black/50"
+          >
+            <div
+              ref="thumbnailStripRef"
+              class="flex gap-2 overflow-x-auto scrollbar-hide"
+            >
+              <button
+                v-for="(photo, index) in photos"
+                :key="photo.src"
+                type="button"
+                class="flex-shrink-0 w-14 h-14 sm:w-16 sm:h-16 overflow-hidden rounded-md transition-all"
+                :class="index === selectedIndex ? 'ring-2 ring-white opacity-100' : 'opacity-50 hover:opacity-80'"
+                @click="jumpToPhoto(index)"
+              >
+                <img
+                  :src="photo.src"
+                  :alt="photo.alt ?? `Thumbnail ${index + 1}`"
+                  class="w-full h-full object-cover"
+                  loading="lazy"
+                />
+              </button>
+            </div>
           </div>
         </div>
       </Transition>
@@ -279,5 +443,15 @@ onUnmounted(() => {
 .slide-right-leave-to {
   transform: translateX(100px);
   opacity: 0;
+}
+
+/* Hide scrollbar but allow scrolling */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
 }
 </style>

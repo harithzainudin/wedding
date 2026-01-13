@@ -8,9 +8,17 @@
     <meta name="theme-color" content="#7C8363" />
     <title>Majlis Perkahwinan</title>
 
-    <!-- Prevent flash of wrong theme (FOIT) -->
+    <!-- Disable browser scroll restoration & prevent theme flash -->
     <script>
       (function() {
+        // Disable browser's automatic scroll restoration on page refresh
+        if ('scrollRestoration' in history) {
+          history.scrollRestoration = 'manual';
+        }
+        // Force scroll to top immediately on page load
+        window.scrollTo(0, 0);
+
+        // Theme handling
         var stored = localStorage.getItem('wedding-theme');
         var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
         var isDark = stored === 'dark' || (stored === 'system' && prefersDark) || (!stored && prefersDark);

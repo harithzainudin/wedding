@@ -77,6 +77,7 @@ export interface Translations {
     previous: string;
     next: string;
     photoOf: string;
+    viewAll: string;
   };
   // Guestbook Section
   guestbook: {
@@ -167,6 +168,7 @@ export const translations: Record<Language, Translations> = {
       previous: "Sebelum",
       next: "Seterusnya",
       photoOf: "Foto {current} daripada {total}",
+      viewAll: "Lihat Semua Foto",
     },
     guestbook: {
       title: "Ucapan & Doa",
@@ -253,6 +255,7 @@ export const translations: Record<Language, Translations> = {
       previous: "Previous",
       next: "Next",
       photoOf: "Photo {current} of {total}",
+      viewAll: "View All Photos",
     },
     guestbook: {
       title: "Wishes & Prayers",
@@ -338,6 +341,7 @@ export const translations: Record<Language, Translations> = {
       previous: "上一张",
       next: "下一张",
       photoOf: "第 {current} 张，共 {total} 张",
+      viewAll: "查看全部照片",
     },
     guestbook: {
       title: "祝福留言",
@@ -424,6 +428,7 @@ export const translations: Record<Language, Translations> = {
       previous: "முந்தைய",
       next: "அடுத்த",
       photoOf: "படம் {current} / {total}",
+      viewAll: "அனைத்து படங்களையும் காண",
     },
     guestbook: {
       title: "வாழ்த்துக்கள்",
