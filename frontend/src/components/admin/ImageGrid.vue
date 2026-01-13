@@ -42,10 +42,11 @@ const handleDrop = (targetIndex: number): void => {
   }
 
   const newOrder = [...props.images];
-  const [removed] = newOrder.splice(draggedIndex.value, 1);
-  newOrder.splice(targetIndex, 0, removed);
-
-  emit("reorder", newOrder.map((img) => img.id));
+  const removed = newOrder.splice(draggedIndex.value, 1)[0];
+  if (removed) {
+    newOrder.splice(targetIndex, 0, removed);
+    emit("reorder", newOrder.map((img) => img.id));
+  }
   resetDragState();
 };
 
