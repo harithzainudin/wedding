@@ -14,19 +14,16 @@ const emit = defineEmits<{
   "address-selected": [address: string];
 }>();
 
-// Map refs
 const mapContainer = ref<HTMLDivElement>();
 let map: L.Map | null = null;
 let marker: L.Marker | null = null;
 
-// Search state
 const searchQuery = ref("");
 const searchResults = ref<NominatimResult[]>([]);
 const isSearching = ref(false);
 const showResults = ref(false);
 let searchTimeout: ReturnType<typeof setTimeout> | null = null;
 
-// Fix Leaflet default icon paths
 const fixLeafletIcons = () => {
   delete (L.Icon.Default.prototype as unknown as { _getIconUrl?: unknown })._getIconUrl;
   L.Icon.Default.mergeOptions({
@@ -36,7 +33,6 @@ const fixLeafletIcons = () => {
   });
 };
 
-// Initialize map
 const initMap = () => {
   if (!mapContainer.value || map) return;
 
@@ -48,19 +44,16 @@ const initMap = () => {
     attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
   }).addTo(map);
 
-  // Add marker
   marker = L.marker([props.coordinates.lat, props.coordinates.lng], {
     draggable: !props.disabled,
   }).addTo(map);
 
-  // Handle marker drag
   marker.on("dragend", () => {
     if (!marker) return;
     const latlng = marker.getLatLng();
     emit("update:coordinates", { lat: latlng.lat, lng: latlng.lng });
   });
 
-  // Handle map click
   map.on("click", (e) => {
     if (props.disabled) return;
     const { lat, lng } = e.latlng;
@@ -69,16 +62,13 @@ const initMap = () => {
   });
 };
 
-// Update marker position
 const updateMarkerPosition = (lat: number, lng: number) => {
   if (!marker || !map) return;
   marker.setLatLng([lat, lng]);
   map.panTo([lat, lng]);
 };
 
-// Search for locations using Nominatim
 const searchLocation = async () => {
-  // Always show dropdown when there's input (for hints/feedback)
   showResults.value = searchQuery.value.length > 0;
 
   if (searchQuery.value.length < 3) {

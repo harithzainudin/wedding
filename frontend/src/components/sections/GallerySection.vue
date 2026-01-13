@@ -4,35 +4,23 @@ import { useLanguage } from "@/composables/useLanguage";
 
 const { t } = useLanguage();
 
-// Photo interface for unified handling
 interface Photo {
   src: string;
   alt?: string;
 }
 
-// Maximum photos to show in the grid (rest accessible via lightbox)
 const MAX_VISIBLE_PHOTOS = 6;
 
-// Reactive photos array (populated from API)
 const photos = ref<Photo[]>([]);
 const showGallery = ref(true);
 const isLoadingPhotos = ref(true);
 const selectedIndex = ref<number | null>(null);
 const slideDirection = ref<"left" | "right">("left");
-
-// Lightbox view mode: 'single' for image view, 'grid' for thumbnail grid
 const lightboxMode = ref<"single" | "grid">("single");
-
-// Thumbnail strip container ref for auto-scrolling
 const thumbnailStripRef = ref<HTMLDivElement | null>(null);
 
-// Computed: photos visible in the grid (limited to MAX_VISIBLE_PHOTOS)
 const visiblePhotos = computed(() => photos.value.slice(0, MAX_VISIBLE_PHOTOS));
-
-// Computed: check if there are more photos than displayed
 const hasMorePhotos = computed(() => photos.value.length > MAX_VISIBLE_PHOTOS);
-
-// Fetch photos from API (public endpoint without auth)
 const fetchPublicGallery = async (): Promise<void> => {
   try {
     const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3000";
@@ -40,10 +28,8 @@ const fetchPublicGallery = async (): Promise<void> => {
 
     if (response.ok) {
       const result = await response.json();
-      // Check if gallery should be shown (admin can toggle this)
       showGallery.value = result.data?.showGallery ?? true;
       if (result.success && result.data?.images?.length > 0) {
-        // Transform API response to Photo format
         photos.value = result.data.images.map((img: { url: string; filename: string }) => ({
           src: img.url,
           alt: img.filename,
@@ -51,7 +37,7 @@ const fetchPublicGallery = async (): Promise<void> => {
       }
     }
   } catch {
-    // On error, photos remain empty and gallery section will be hidden
+    // Photos remain empty on error
   } finally {
     isLoadingPhotos.value = false;
   }
@@ -83,7 +69,6 @@ const closeLightbox = (): void => {
   document.body.style.overflow = "";
 };
 
-// Jump directly to a specific photo
 const jumpToPhoto = (index: number): void => {
   if (selectedIndex.value !== null) {
     slideDirection.value = index > selectedIndex.value ? "left" : "right";
@@ -92,12 +77,10 @@ const jumpToPhoto = (index: number): void => {
   lightboxMode.value = "single";
 };
 
-// Toggle between single image and grid view
 const toggleLightboxMode = (): void => {
   lightboxMode.value = lightboxMode.value === "single" ? "grid" : "single";
 };
 
-// Auto-scroll thumbnail strip to keep active thumbnail visible
 const scrollToActiveThumbnail = (): void => {
   if (!thumbnailStripRef.value || selectedIndex.value === null) return;
 
@@ -108,8 +91,6 @@ const scrollToActiveThumbnail = (): void => {
   if (activeThumbnail) {
     const containerRect = container.getBoundingClientRect();
     const thumbnailRect = activeThumbnail.getBoundingClientRect();
-
-    // Calculate if thumbnail is outside visible area
     const isOutsideLeft = thumbnailRect.left < containerRect.left;
     const isOutsideRight = thumbnailRect.right > containerRect.right;
 
@@ -119,7 +100,6 @@ const scrollToActiveThumbnail = (): void => {
   }
 };
 
-// Watch for selectedIndex changes to auto-scroll thumbnail strip
 watch(selectedIndex, () => {
   nextTick(scrollToActiveThumbnail);
 });
@@ -164,7 +144,6 @@ const handleKeydown = (event: KeyboardEvent): void => {
   }
 };
 
-// Touch/swipe handling
 const touchStartX = ref(0);
 const touchEndX = ref(0);
 
@@ -213,7 +192,6 @@ onUnmounted(() => {
         {{ t.gallery.subtitle }}
       </p>
 
-      <!-- Photo Grid (limited to first 6 photos) -->
       <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3">
         <button
           v-for="(photo, index) in visiblePhotos"
@@ -231,7 +209,6 @@ onUnmounted(() => {
         </button>
       </div>
 
-      <!-- View All Photos Button -->
       <div v-if="hasMorePhotos" class="mt-6 text-center">
         <button
           type="button"
@@ -249,7 +226,6 @@ onUnmounted(() => {
       </div>
     </div>
 
-    <!-- Lightbox Modal -->
     <Teleport to="body">
       <Transition name="fade">
         <div
@@ -257,16 +233,12 @@ onUnmounted(() => {
           class="fixed inset-0 z-[100] bg-black/95 flex flex-col"
           @click.self="lightboxMode === 'single' ? closeLightbox() : (lightboxMode = 'single')"
         >
-          <!-- Top Bar -->
           <div class="flex-shrink-0 flex items-center justify-between p-3 sm:p-4">
-            <!-- Photo Counter (left) -->
             <p class="font-body text-sm text-white/80">
               {{ photoCounter }}
             </p>
 
-            <!-- Action Buttons (right) -->
             <div class="flex items-center gap-2">
-              <!-- Grid View Toggle -->
               <button
                 type="button"
                 class="p-2 text-white/80 hover:text-white transition-colors rounded-lg"
@@ -282,7 +254,6 @@ onUnmounted(() => {
                 </svg>
               </button>
 
-              <!-- Close Button -->
               <button
                 type="button"
                 class="p-2 text-white/80 hover:text-white hover:bg-white/10 transition-colors rounded-lg"
@@ -296,12 +267,10 @@ onUnmounted(() => {
             </div>
           </div>
 
-          <!-- Single Image View -->
           <div
             v-if="lightboxMode === 'single'"
             class="flex-1 flex items-center justify-center relative min-h-0"
           >
-            <!-- Previous Button -->
             <button
               type="button"
               class="absolute left-2 sm:left-4 z-10 p-2 text-white/80 hover:text-white hover:bg-white/10 transition-colors rounded-full"
@@ -313,7 +282,6 @@ onUnmounted(() => {
               </svg>
             </button>
 
-            <!-- Next Button -->
             <button
               type="button"
               class="absolute right-2 sm:right-4 z-10 p-2 text-white/80 hover:text-white hover:bg-white/10 transition-colors rounded-full"
@@ -325,7 +293,6 @@ onUnmounted(() => {
               </svg>
             </button>
 
-            <!-- Main Image (swipe handlers only here) -->
             <div
               class="max-w-[90vw] max-h-full flex items-center justify-center px-12 sm:px-16"
               @touchstart="handleTouchStart"
@@ -345,7 +312,6 @@ onUnmounted(() => {
             </div>
           </div>
 
-          <!-- Grid View -->
           <div
             v-else
             class="flex-1 overflow-y-auto p-4"
@@ -369,7 +335,6 @@ onUnmounted(() => {
             </div>
           </div>
 
-          <!-- Thumbnail Strip (only in single view) -->
           <div
             v-if="lightboxMode === 'single' && photos.length > 1"
             class="flex-shrink-0 p-3 sm:p-4 bg-black/50"
@@ -402,7 +367,6 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
-/* Fade transition for lightbox open/close */
 .fade-enter-active,
 .fade-leave-active {
   transition: opacity 0.2s ease;
@@ -413,7 +377,6 @@ onUnmounted(() => {
   opacity: 0;
 }
 
-/* Slide left transition (for next) */
 .slide-left-enter-active,
 .slide-left-leave-active {
   transition: transform 0.25s ease, opacity 0.25s ease;
@@ -429,7 +392,6 @@ onUnmounted(() => {
   opacity: 0;
 }
 
-/* Slide right transition (for previous) */
 .slide-right-enter-active,
 .slide-right-leave-active {
   transition: transform 0.25s ease, opacity 0.25s ease;
@@ -445,7 +407,6 @@ onUnmounted(() => {
   opacity: 0;
 }
 
-/* Hide scrollbar but allow scrolling */
 .scrollbar-hide {
   -ms-overflow-style: none;
   scrollbar-width: none;
