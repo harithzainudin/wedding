@@ -20,6 +20,7 @@ import type {
   UpdateSettingsRequest,
   SettingsResponse,
 } from "@/types/gallery";
+import type { VenueResponse, VenueUpdateRequest } from "@/types/venue";
 
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3000";
 
@@ -201,5 +202,30 @@ export async function updateGallerySettings(data: UpdateSettingsRequest): Promis
   });
 
   const result = (await response.json()) as SettingsResponse;
+  return result;
+}
+
+// Venue API functions
+
+export async function getVenue(): Promise<VenueResponse> {
+  const response = await fetch(`${API_URL}/venue`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+
+  const result = (await response.json()) as VenueResponse;
+  return result;
+}
+
+export async function updateVenue(data: VenueUpdateRequest): Promise<VenueResponse> {
+  const response = await fetch(`${API_URL}/venue`, {
+    method: "PUT",
+    headers: getAuthHeaders(),
+    body: JSON.stringify(data),
+  });
+
+  const result = (await response.json()) as VenueResponse;
   return result;
 }

@@ -133,3 +133,20 @@ export function addImageRoutes(
     ...functionConfig,
   });
 }
+
+// Function to add venue routes
+export function addVenueRoutes(tokenSecret: sst.Secret) {
+  // GET /venue - Public endpoint to fetch venue data
+  api.route("GET /venue", {
+    handler: "src/functions/venue/get.handler",
+    link: [table],
+    ...functionConfig,
+  });
+
+  // PUT /venue - Update venue data (auth required)
+  api.route("PUT /venue", {
+    handler: "src/functions/venue/update.handler",
+    link: [table, tokenSecret],
+    ...functionConfig,
+  });
+}

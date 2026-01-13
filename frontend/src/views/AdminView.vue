@@ -5,6 +5,7 @@ import type { RsvpSubmission } from "@/types/rsvp";
 import type { AdminUser } from "@/types/admin";
 import DarkModeToggle from "@/components/ui/DarkModeToggle.vue";
 import GalleryTab from "@/components/admin/GalleryTab.vue";
+import LocationTab from "@/components/admin/LocationTab.vue";
 
 // Auth state
 const isAuthenticated = ref(false);
@@ -17,7 +18,7 @@ const currentUser = ref("");
 const isMasterUser = ref(false);
 
 // Dashboard state
-const activeTab = ref<"rsvps" | "admins" | "gallery">("rsvps");
+const activeTab = ref<"rsvps" | "admins" | "gallery" | "location">("rsvps");
 const rsvps = ref<RsvpSubmission[]>([]);
 const isLoading = ref(false);
 const loadError = ref("");
@@ -326,7 +327,7 @@ const closePasswordChangeModal = (): void => {
 };
 
 // Switch tab handler
-const switchTab = (tab: "rsvps" | "admins" | "gallery"): void => {
+const switchTab = (tab: "rsvps" | "admins" | "gallery" | "location"): void => {
   activeTab.value = tab;
   if (tab === "admins" && adminUsers.value.length === 0) {
     fetchAdminUsers();
@@ -753,6 +754,14 @@ const exportToCsv = (): void => {
         >
           Gallery
         </button>
+        <button
+          type="button"
+          class="px-4 py-3 font-body text-sm font-medium transition-colors border-b-2 -mb-px cursor-pointer"
+          :class="activeTab === 'location' ? 'text-sage border-sage' : 'text-charcoal-light dark:text-dark-text-secondary border-transparent hover:text-charcoal dark:hover:text-dark-text'"
+          @click="switchTab('location')"
+        >
+          Location
+        </button>
       </div>
 
       <!-- RSVP Tab Content -->
@@ -1100,6 +1109,11 @@ const exportToCsv = (): void => {
       <!-- Gallery Tab Content -->
       <div v-if="activeTab === 'gallery'">
         <GalleryTab />
+      </div>
+
+      <!-- Location Tab Content -->
+      <div v-if="activeTab === 'location'">
+        <LocationTab />
       </div>
     </div>
   </div>

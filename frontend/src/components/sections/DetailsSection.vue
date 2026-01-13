@@ -2,8 +2,10 @@
 import { computed, ref } from "vue";
 import { weddingConfig } from "@/config/wedding";
 import { useLanguage } from "@/composables/useLanguage";
+import { useVenueConfig } from "@/composables/useVenueConfig";
 
 const { t, currentLanguage } = useLanguage();
+const { venue } = useVenueConfig();
 
 const localeMap: Record<string, string> = {
   ms: "ms-MY",
@@ -146,16 +148,16 @@ const copyHashtag = async (): Promise<void> => {
             {{ t.details.venue }}
           </p>
           <p class="font-heading text-lg sm:text-xl text-charcoal dark:text-dark-text mb-1">
-            {{ weddingConfig.event.venue.name }}
+            {{ venue.venueName }}
           </p>
           <p class="font-body text-xs sm:text-sm text-charcoal-light dark:text-dark-text-secondary px-4">
-            {{ weddingConfig.event.venue.address }}
+            {{ venue.address }}
           </p>
         </div>
 
         <!-- Parking Info -->
         <div
-          v-if="weddingConfig.event.venue.parkingInfo"
+          v-if="venue.parkingInfo"
           class="mt-2 p-3 sm:p-4 bg-white/50 dark:bg-dark-bg-elevated/50 rounded-lg"
         >
           <div class="flex items-start gap-2 justify-center">
@@ -163,7 +165,7 @@ const copyHashtag = async (): Promise<void> => {
               <path d="M13 3H6v18h4v-6h3c3.31 0 6-2.69 6-6s-2.69-6-6-6zm.2 8H10V7h3.2c1.1 0 2 .9 2 2s-.9 2-2 2z"/>
             </svg>
             <p class="font-body text-xs sm:text-sm text-charcoal-light dark:text-dark-text-secondary text-left">
-              {{ weddingConfig.event.venue.parkingInfo }}
+              {{ venue.parkingInfo }}
             </p>
           </div>
         </div>
