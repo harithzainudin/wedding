@@ -151,3 +151,54 @@ export function addVenueRoutes(tokenSecret: sst.Secret) {
     ...functionConfig,
   });
 }
+
+// Function to add wedding details routes
+export function addWeddingDetailsRoutes(tokenSecret: sst.Secret) {
+  // GET /wedding-details - Public endpoint to fetch wedding details
+  api.route("GET /wedding-details", {
+    handler: "src/functions/wedding-details/get.handler",
+    link: [table],
+    ...functionConfig,
+  });
+
+  // PUT /wedding-details - Update wedding details (auth required)
+  api.route("PUT /wedding-details", {
+    handler: "src/functions/wedding-details/update.handler",
+    link: [table, tokenSecret],
+    ...functionConfig,
+  });
+}
+
+// Function to add schedule routes
+export function addScheduleRoutes(tokenSecret: sst.Secret) {
+  // GET /schedule - Public endpoint to fetch schedule
+  api.route("GET /schedule", {
+    handler: "src/functions/schedule/get.handler",
+    link: [table],
+    ...functionConfig,
+  });
+
+  // PUT /schedule - Update schedule (auth required)
+  api.route("PUT /schedule", {
+    handler: "src/functions/schedule/update.handler",
+    link: [table, tokenSecret],
+    ...functionConfig,
+  });
+}
+
+// Function to add contacts routes
+export function addContactsRoutes(tokenSecret: sst.Secret) {
+  // GET /contacts - Public endpoint to fetch contacts
+  api.route("GET /contacts", {
+    handler: "src/functions/contacts/get.handler",
+    link: [table],
+    ...functionConfig,
+  });
+
+  // PUT /contacts - Update contacts (auth required)
+  api.route("PUT /contacts", {
+    handler: "src/functions/contacts/update.handler",
+    link: [table, tokenSecret],
+    ...functionConfig,
+  });
+}

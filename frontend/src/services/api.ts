@@ -21,6 +21,9 @@ import type {
   SettingsResponse,
 } from "@/types/gallery";
 import type { VenueResponse, VenueUpdateRequest } from "@/types/venue";
+import type { WeddingDetailsResponse, WeddingDetailsUpdateRequest } from "@/types/weddingDetails";
+import type { ScheduleResponse, ScheduleUpdateRequest } from "@/types/schedule";
+import type { ContactsResponse, ContactsUpdateRequest } from "@/types/contacts";
 
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3000";
 
@@ -227,5 +230,80 @@ export async function updateVenue(data: VenueUpdateRequest): Promise<VenueRespon
   });
 
   const result = (await response.json()) as VenueResponse;
+  return result;
+}
+
+// Wedding Details API functions
+
+export async function getWeddingDetails(): Promise<WeddingDetailsResponse> {
+  const response = await fetch(`${API_URL}/wedding-details`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+
+  const result = (await response.json()) as WeddingDetailsResponse;
+  return result;
+}
+
+export async function updateWeddingDetails(data: WeddingDetailsUpdateRequest): Promise<WeddingDetailsResponse> {
+  const response = await fetch(`${API_URL}/wedding-details`, {
+    method: "PUT",
+    headers: getAuthHeaders(),
+    body: JSON.stringify(data),
+  });
+
+  const result = (await response.json()) as WeddingDetailsResponse;
+  return result;
+}
+
+// Schedule API functions
+
+export async function getSchedule(): Promise<ScheduleResponse> {
+  const response = await fetch(`${API_URL}/schedule`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+
+  const result = (await response.json()) as ScheduleResponse;
+  return result;
+}
+
+export async function updateSchedule(data: ScheduleUpdateRequest): Promise<ScheduleResponse> {
+  const response = await fetch(`${API_URL}/schedule`, {
+    method: "PUT",
+    headers: getAuthHeaders(),
+    body: JSON.stringify(data),
+  });
+
+  const result = (await response.json()) as ScheduleResponse;
+  return result;
+}
+
+// Contacts API functions
+
+export async function getContacts(): Promise<ContactsResponse> {
+  const response = await fetch(`${API_URL}/contacts`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+
+  const result = (await response.json()) as ContactsResponse;
+  return result;
+}
+
+export async function updateContacts(data: ContactsUpdateRequest): Promise<ContactsResponse> {
+  const response = await fetch(`${API_URL}/contacts`, {
+    method: "PUT",
+    headers: getAuthHeaders(),
+    body: JSON.stringify(data),
+  });
+
+  const result = (await response.json()) as ContactsResponse;
   return result;
 }

@@ -6,6 +6,10 @@ import type { AdminUser } from "@/types/admin";
 import DarkModeToggle from "@/components/ui/DarkModeToggle.vue";
 import GalleryTab from "@/components/admin/GalleryTab.vue";
 import LocationTab from "@/components/admin/LocationTab.vue";
+import DashboardTab from "@/components/admin/DashboardTab.vue";
+import WeddingDetailsTab from "@/components/admin/WeddingDetailsTab.vue";
+import ScheduleTab from "@/components/admin/ScheduleTab.vue";
+import ContactsTab from "@/components/admin/ContactsTab.vue";
 
 // Auth state
 const isAuthenticated = ref(false);
@@ -18,7 +22,8 @@ const currentUser = ref("");
 const isMasterUser = ref(false);
 
 // Dashboard state
-const activeTab = ref<"rsvps" | "admins" | "gallery" | "location">("rsvps");
+type TabType = "dashboard" | "wedding" | "venue" | "schedule" | "gallery" | "contacts" | "rsvps" | "settings";
+const activeTab = ref<TabType>("dashboard");
 const rsvps = ref<RsvpSubmission[]>([]);
 const isLoading = ref(false);
 const loadError = ref("");
@@ -327,10 +332,13 @@ const closePasswordChangeModal = (): void => {
 };
 
 // Switch tab handler
-const switchTab = (tab: "rsvps" | "admins" | "gallery" | "location"): void => {
+const switchTab = (tab: TabType): void => {
   activeTab.value = tab;
-  if (tab === "admins" && adminUsers.value.length === 0) {
+  if (tab === "settings" && adminUsers.value.length === 0) {
     fetchAdminUsers();
+  }
+  if (tab === "rsvps" && rsvps.value.length === 0) {
+    fetchRsvps();
   }
 };
 
@@ -729,39 +737,103 @@ const exportToCsv = (): void => {
       </div>
 
       <!-- Tabs -->
-      <div class="flex border-b border-sand-dark dark:border-dark-border mb-6">
-        <button
-          type="button"
-          class="px-4 py-3 font-body text-sm font-medium transition-colors border-b-2 -mb-px cursor-pointer"
-          :class="activeTab === 'rsvps' ? 'text-sage border-sage' : 'text-charcoal-light dark:text-dark-text-secondary border-transparent hover:text-charcoal dark:hover:text-dark-text'"
-          @click="switchTab('rsvps')"
-        >
-          RSVPs
-        </button>
-        <button
-          type="button"
-          class="px-4 py-3 font-body text-sm font-medium transition-colors border-b-2 -mb-px cursor-pointer"
-          :class="activeTab === 'admins' ? 'text-sage border-sage' : 'text-charcoal-light dark:text-dark-text-secondary border-transparent hover:text-charcoal dark:hover:text-dark-text'"
-          @click="switchTab('admins')"
-        >
-          Admin Users
-        </button>
-        <button
-          type="button"
-          class="px-4 py-3 font-body text-sm font-medium transition-colors border-b-2 -mb-px cursor-pointer"
-          :class="activeTab === 'gallery' ? 'text-sage border-sage' : 'text-charcoal-light dark:text-dark-text-secondary border-transparent hover:text-charcoal dark:hover:text-dark-text'"
-          @click="switchTab('gallery')"
-        >
-          Gallery
-        </button>
-        <button
-          type="button"
-          class="px-4 py-3 font-body text-sm font-medium transition-colors border-b-2 -mb-px cursor-pointer"
-          :class="activeTab === 'location' ? 'text-sage border-sage' : 'text-charcoal-light dark:text-dark-text-secondary border-transparent hover:text-charcoal dark:hover:text-dark-text'"
-          @click="switchTab('location')"
-        >
-          Location
-        </button>
+      <div class="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
+        <div class="flex border-b border-sand-dark dark:border-dark-border mb-6 min-w-max sm:min-w-0">
+          <button
+            type="button"
+            class="px-3 sm:px-4 py-3 font-body text-sm font-medium transition-colors border-b-2 -mb-px cursor-pointer whitespace-nowrap"
+            :class="activeTab === 'dashboard' ? 'text-sage border-sage' : 'text-charcoal-light dark:text-dark-text-secondary border-transparent hover:text-charcoal dark:hover:text-dark-text'"
+            @click="switchTab('dashboard')"
+          >
+            Dashboard
+          </button>
+          <button
+            type="button"
+            class="px-3 sm:px-4 py-3 font-body text-sm font-medium transition-colors border-b-2 -mb-px cursor-pointer whitespace-nowrap"
+            :class="activeTab === 'wedding' ? 'text-sage border-sage' : 'text-charcoal-light dark:text-dark-text-secondary border-transparent hover:text-charcoal dark:hover:text-dark-text'"
+            @click="switchTab('wedding')"
+          >
+            Wedding
+          </button>
+          <button
+            type="button"
+            class="px-3 sm:px-4 py-3 font-body text-sm font-medium transition-colors border-b-2 -mb-px cursor-pointer whitespace-nowrap"
+            :class="activeTab === 'venue' ? 'text-sage border-sage' : 'text-charcoal-light dark:text-dark-text-secondary border-transparent hover:text-charcoal dark:hover:text-dark-text'"
+            @click="switchTab('venue')"
+          >
+            Venue
+          </button>
+          <button
+            type="button"
+            class="px-3 sm:px-4 py-3 font-body text-sm font-medium transition-colors border-b-2 -mb-px cursor-pointer whitespace-nowrap"
+            :class="activeTab === 'schedule' ? 'text-sage border-sage' : 'text-charcoal-light dark:text-dark-text-secondary border-transparent hover:text-charcoal dark:hover:text-dark-text'"
+            @click="switchTab('schedule')"
+          >
+            Schedule
+          </button>
+          <button
+            type="button"
+            class="px-3 sm:px-4 py-3 font-body text-sm font-medium transition-colors border-b-2 -mb-px cursor-pointer whitespace-nowrap"
+            :class="activeTab === 'gallery' ? 'text-sage border-sage' : 'text-charcoal-light dark:text-dark-text-secondary border-transparent hover:text-charcoal dark:hover:text-dark-text'"
+            @click="switchTab('gallery')"
+          >
+            Gallery
+          </button>
+          <button
+            type="button"
+            class="px-3 sm:px-4 py-3 font-body text-sm font-medium transition-colors border-b-2 -mb-px cursor-pointer whitespace-nowrap"
+            :class="activeTab === 'contacts' ? 'text-sage border-sage' : 'text-charcoal-light dark:text-dark-text-secondary border-transparent hover:text-charcoal dark:hover:text-dark-text'"
+            @click="switchTab('contacts')"
+          >
+            Contacts
+          </button>
+          <button
+            type="button"
+            class="px-3 sm:px-4 py-3 font-body text-sm font-medium transition-colors border-b-2 -mb-px cursor-pointer whitespace-nowrap"
+            :class="activeTab === 'rsvps' ? 'text-sage border-sage' : 'text-charcoal-light dark:text-dark-text-secondary border-transparent hover:text-charcoal dark:hover:text-dark-text'"
+            @click="switchTab('rsvps')"
+          >
+            RSVPs
+          </button>
+          <button
+            type="button"
+            class="px-3 sm:px-4 py-3 font-body text-sm font-medium transition-colors border-b-2 -mb-px cursor-pointer whitespace-nowrap"
+            :class="activeTab === 'settings' ? 'text-sage border-sage' : 'text-charcoal-light dark:text-dark-text-secondary border-transparent hover:text-charcoal dark:hover:text-dark-text'"
+            @click="switchTab('settings')"
+          >
+            Settings
+          </button>
+        </div>
+      </div>
+
+      <!-- Dashboard Tab Content -->
+      <div v-if="activeTab === 'dashboard'">
+        <DashboardTab @switch-tab="switchTab" />
+      </div>
+
+      <!-- Wedding Details Tab Content -->
+      <div v-if="activeTab === 'wedding'">
+        <WeddingDetailsTab />
+      </div>
+
+      <!-- Venue Tab Content -->
+      <div v-if="activeTab === 'venue'">
+        <LocationTab />
+      </div>
+
+      <!-- Schedule Tab Content -->
+      <div v-if="activeTab === 'schedule'">
+        <ScheduleTab />
+      </div>
+
+      <!-- Gallery Tab Content -->
+      <div v-if="activeTab === 'gallery'">
+        <GalleryTab />
+      </div>
+
+      <!-- Contacts Tab Content -->
+      <div v-if="activeTab === 'contacts'">
+        <ContactsTab />
       </div>
 
       <!-- RSVP Tab Content -->
@@ -899,8 +971,8 @@ const exportToCsv = (): void => {
         </div>
       </div>
 
-      <!-- Admin Users Tab Content -->
-      <div v-if="activeTab === 'admins'">
+      <!-- Settings Tab Content (Admin Users) -->
+      <div v-if="activeTab === 'settings'">
         <!-- Create Admin Button (master only) -->
         <div class="flex justify-between items-center mb-6">
           <h2 class="font-heading text-xl text-charcoal dark:text-dark-text">Manage Admin Users</h2>
@@ -1104,16 +1176,6 @@ const exportToCsv = (): void => {
             Refresh
           </button>
         </div>
-      </div>
-
-      <!-- Gallery Tab Content -->
-      <div v-if="activeTab === 'gallery'">
-        <GalleryTab />
-      </div>
-
-      <!-- Location Tab Content -->
-      <div v-if="activeTab === 'location'">
-        <LocationTab />
       </div>
     </div>
   </div>

@@ -4,17 +4,21 @@ import CountdownTimer from "@/components/ui/CountdownTimer.vue";
 import MusicToggle from "@/components/ui/MusicToggle.vue";
 import LanguageToggle from "@/components/ui/LanguageToggle.vue";
 import DarkModeToggle from "@/components/ui/DarkModeToggle.vue";
-import { weddingConfig } from "@/config/wedding";
 import { useLanguage } from "@/composables/useLanguage";
+import { usePublicWeddingData } from "@/composables/usePublicWeddingData";
 
 const { t } = useLanguage();
+const { getCoupleNames, getEventDate } = usePublicWeddingData();
 
-const coupleNames = computed(() => ({
-  bride: weddingConfig.couple.bride.nickname,
-  groom: weddingConfig.couple.groom.nickname,
-}));
+const coupleNames = computed(() => {
+  const couple = getCoupleNames();
+  return {
+    bride: couple.bride.nickname,
+    groom: couple.groom.nickname,
+  };
+});
 
-const weddingDate = computed(() => weddingConfig.event.date);
+const weddingDate = computed(() => getEventDate());
 </script>
 
 <template>

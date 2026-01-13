@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
-import { weddingConfig } from "@/config/wedding";
 import { useLanguage } from "@/composables/useLanguage";
 import { useVenueConfig } from "@/composables/useVenueConfig";
+import { usePublicWeddingData } from "@/composables/usePublicWeddingData";
 
 const { t, currentLanguage } = useLanguage();
 const { venue } = useVenueConfig();
+const { getCoupleNames, getParents, getEventDate, getDressCode, getHashtag } = usePublicWeddingData();
 
 const localeMap: Record<string, string> = {
   ms: "ms-MY",
@@ -14,8 +15,14 @@ const localeMap: Record<string, string> = {
   ta: "ta-MY",
 };
 
+const couple = computed(() => getCoupleNames());
+const parents = computed(() => getParents());
+const eventDate = computed(() => getEventDate());
+const dressCode = computed(() => getDressCode());
+const hashtag = computed(() => getHashtag());
+
 const formattedDate = computed(() => {
-  const date = weddingConfig.event.date;
+  const date = eventDate.value;
   const locale = localeMap[currentLanguage.value] ?? "ms-MY";
   const options: Intl.DateTimeFormatOptions = {
     weekday: "long",
@@ -27,7 +34,7 @@ const formattedDate = computed(() => {
 });
 
 const formattedTime = computed(() => {
-  const date = weddingConfig.event.date;
+  const date = eventDate.value;
   const locale = localeMap[currentLanguage.value] ?? "ms-MY";
   return date.toLocaleTimeString(locale, {
     hour: "2-digit",
@@ -39,8 +46,9 @@ const formattedTime = computed(() => {
 const copied = ref(false);
 
 const copyHashtag = async (): Promise<void> => {
+  const hashtagValue = hashtag.value;
   try {
-    await navigator.clipboard.writeText(weddingConfig.hashtag);
+    await navigator.clipboard.writeText(hashtagValue);
     copied.value = true;
     setTimeout(() => {
       copied.value = false;
@@ -48,7 +56,7 @@ const copyHashtag = async (): Promise<void> => {
   } catch {
     // Fallback for older browsers
     const textArea = document.createElement("textarea");
-    textArea.value = weddingConfig.hashtag;
+    textArea.value = hashtagValue;
     document.body.appendChild(textArea);
     textArea.select();
     document.execCommand("copy");
@@ -77,10 +85,10 @@ const copyHashtag = async (): Promise<void> => {
         <!-- Bride's Parents -->
         <div class="mb-3 sm:mb-4">
           <p class="font-heading text-base sm:text-lg text-charcoal dark:text-dark-text">
-            {{ weddingConfig.parents.bride.father }}
+            {{ parents.bride.father }}
           </p>
           <p class="font-heading text-base sm:text-lg text-charcoal dark:text-dark-text">
-            & {{ weddingConfig.parents.bride.mother }}
+            & {{ parents.bride.mother }}
           </p>
         </div>
 
@@ -91,10 +99,10 @@ const copyHashtag = async (): Promise<void> => {
         <!-- Groom's Parents -->
         <div class="mb-4 sm:mb-6">
           <p class="font-heading text-base sm:text-lg text-charcoal dark:text-dark-text">
-            {{ weddingConfig.parents.groom.father }}
+            {{ parents.groom.father }}
           </p>
           <p class="font-heading text-base sm:text-lg text-charcoal dark:text-dark-text">
-            & {{ weddingConfig.parents.groom.mother }}
+            & {{ parents.groom.mother }}
           </p>
         </div>
 
@@ -106,13 +114,13 @@ const copyHashtag = async (): Promise<void> => {
       <!-- Couple Names -->
       <div class="mb-8 sm:mb-12">
         <h2 class="font-heading text-2xl sm:text-3xl md:text-4xl text-sage-dark dark:text-sage-light mb-1 sm:mb-2 leading-tight">
-          {{ weddingConfig.couple.bride.fullName }}
+          {{ couple.bride.fullName }}
         </h2>
         <p class="font-heading text-xl sm:text-2xl text-charcoal-light dark:text-dark-text-secondary mb-1 sm:mb-2">
           &
         </p>
         <h2 class="font-heading text-2xl sm:text-3xl md:text-4xl text-sage-dark dark:text-sage-light leading-tight">
-          {{ weddingConfig.couple.groom.fullName }}
+          {{ couple.groom.fullName }}
         </h2>
       </div>
 
@@ -178,7 +186,7 @@ const copyHashtag = async (): Promise<void> => {
             {{ t.details.dressCode }}
           </p>
           <p class="font-heading text-base sm:text-lg text-sage-dark dark:text-sage-light">
-            {{ weddingConfig.dressCode }}
+            {{ dressCode }}
           </p>
         </div>
 
@@ -191,7 +199,7 @@ const copyHashtag = async (): Promise<void> => {
             class="font-heading text-base sm:text-lg text-sage-dark dark:text-sage-light hover:text-sage cursor-pointer transition-colors"
             @click="copyHashtag"
           >
-            {{ weddingConfig.hashtag }}
+            {{ hashtag }}
           </button>
           <p
             v-if="copied"

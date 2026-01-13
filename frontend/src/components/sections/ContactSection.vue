@@ -1,18 +1,28 @@
 <script setup lang="ts">
-import { weddingConfig } from "@/config/wedding";
+import { computed } from "vue";
 import { useLanguage } from "@/composables/useLanguage";
+import { usePublicWeddingData } from "@/composables/usePublicWeddingData";
+import type { ContactPerson } from "@/types/contacts";
 
-const { t } = useLanguage();
+const { t, currentLanguage } = useLanguage();
+const { getContactsMultilingual, getCoupleNames, isLoadingContacts } = usePublicWeddingData();
 
-const contacts = weddingConfig.contacts;
+const contacts = computed(() => getContactsMultilingual());
+const couple = computed(() => getCoupleNames());
 
 const getCleanPhone = (phone: string): string => {
   return phone.replace(/[^0-9+]/g, "");
 };
 
+// Get role based on current language
+const getContactRole = (contact: ContactPerson): string => {
+  const lang = currentLanguage.value as keyof typeof contact.role;
+  return contact.role[lang] || contact.role.ms;
+};
+
 const openWhatsApp = (phone: string): void => {
   const cleanPhone = getCleanPhone(phone);
-  const coupleNames = `${weddingConfig.couple.bride.nickname} & ${weddingConfig.couple.groom.nickname}`;
+  const coupleNames = `${couple.value.bride.nickname} & ${couple.value.groom.nickname}`;
   const message = encodeURIComponent(
     t.value.contact.whatsappMessage.replace("{couple}", coupleNames)
   );
@@ -34,10 +44,29 @@ const callPhone = (phone: string): void => {
         {{ t.contact.subtitle }}
       </p>
 
-      <div class="grid gap-3 sm:gap-4">
+      <!-- Loading Skeleton -->
+      <div v-if="isLoadingContacts" class="grid gap-3 sm:gap-4">
+        <div
+          v-for="i in 3"
+          :key="i"
+          class="flex items-center gap-3 sm:gap-4 p-4 bg-white dark:bg-dark-bg-elevated rounded-xl shadow-sm dark:shadow-lg animate-pulse"
+        >
+          <div class="flex-1 space-y-2">
+            <div class="h-5 sm:h-6 w-32 bg-charcoal/10 dark:bg-dark-text/10 rounded"></div>
+            <div class="h-4 w-24 bg-charcoal/5 dark:bg-dark-text/5 rounded"></div>
+          </div>
+          <div class="flex gap-2">
+            <div class="w-11 h-11 sm:w-12 sm:h-12 bg-sage/30 rounded-full"></div>
+            <div class="w-11 h-11 sm:w-12 sm:h-12 bg-[#25D366]/30 rounded-full"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Actual Contacts -->
+      <div v-else class="grid gap-3 sm:gap-4">
         <div
           v-for="contact in contacts"
-          :key="contact.phone"
+          :key="contact.id"
           class="flex items-center gap-3 sm:gap-4 p-4 bg-white dark:bg-dark-bg-elevated rounded-xl shadow-sm dark:shadow-lg"
         >
           <!-- Contact Info -->
@@ -46,7 +75,7 @@ const callPhone = (phone: string): void => {
               {{ contact.name }}
             </p>
             <p class="font-body text-xs sm:text-sm text-charcoal-light dark:text-dark-text-secondary">
-              {{ contact.role }}
+              {{ getContactRole(contact) }}
             </p>
           </div>
 
@@ -57,7 +86,7 @@ const callPhone = (phone: string): void => {
               type="button"
               class="flex items-center justify-center w-11 h-11 sm:w-12 sm:h-12 bg-sage rounded-full cursor-pointer transition-transform hover:scale-105 active:scale-95"
               aria-label="Call"
-              @click="callPhone(contact.phone)"
+              @click="callPhone(contact.phoneNumber)"
             >
               <svg class="w-5 h-5 sm:w-6 sm:h-6 text-white" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M20.01 15.38c-1.23 0-2.42-.2-3.53-.56a.977.977 0 00-1.01.24l-1.57 1.97c-2.83-1.35-5.48-3.9-6.89-6.83l1.95-1.66c.27-.28.35-.67.24-1.02-.37-1.11-.56-2.3-.56-3.53 0-.54-.45-.99-.99-.99H4.19C3.65 3 3 3.24 3 3.99 3 13.28 10.73 21 20.01 21c.71 0 .99-.63.99-1.18v-3.45c0-.54-.45-.99-.99-.99z"/>
@@ -69,7 +98,7 @@ const callPhone = (phone: string): void => {
               type="button"
               class="flex items-center justify-center w-11 h-11 sm:w-12 sm:h-12 bg-[#25D366] rounded-full cursor-pointer transition-transform hover:scale-105 active:scale-95"
               aria-label="WhatsApp"
-              @click="openWhatsApp(contact.phone)"
+              @click="openWhatsApp(contact.phoneNumber)"
             >
               <svg class="w-5 h-5 sm:w-6 sm:h-6 text-white" viewBox="0 0 24 24" fill="currentColor">
                 <path

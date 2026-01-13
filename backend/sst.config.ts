@@ -27,7 +27,7 @@ export default $config({
     const tokenSecret = new sst.Secret("TokenSecret");
 
     const { table } = await import("./infra/database");
-    const { api, addAdminRoutes, addRsvpAuthRoutes, addImageRoutes, addVenueRoutes } = await import("./infra/api");
+    const { api, addAdminRoutes, addRsvpAuthRoutes, addImageRoutes, addVenueRoutes, addWeddingDetailsRoutes, addScheduleRoutes, addContactsRoutes } = await import("./infra/api");
     const { imageBucket } = await import("./infra/storage");
 
     // Add admin routes with secrets
@@ -41,6 +41,15 @@ export default $config({
 
     // Add venue routes
     addVenueRoutes(tokenSecret);
+
+    // Add wedding details routes
+    addWeddingDetailsRoutes(tokenSecret);
+
+    // Add schedule routes
+    addScheduleRoutes(tokenSecret);
+
+    // Add contacts routes
+    addContactsRoutes(tokenSecret);
 
     return {
       apiUrl: api.url,

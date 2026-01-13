@@ -1,20 +1,23 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from "vue";
+import { ref, computed, onMounted, onUnmounted } from "vue";
 import QRCode from "qrcode";
-import { weddingConfig } from "@/config/wedding";
 import { useLanguage } from "@/composables/useLanguage";
+import { usePublicWeddingData } from "@/composables/usePublicWeddingData";
 
 const { t } = useLanguage();
+const { getCoupleNames, getQrCodeUrl, isLoadingWeddingDetails } = usePublicWeddingData();
+
+const couple = computed(() => getCoupleNames());
+const websiteUrl = computed(() => getQrCodeUrl());
 
 const qrCodeDataUrl = ref<string>("");
 const largeQrCodeDataUrl = ref<string>("");
 const linkCopied = ref(false);
 const isModalOpen = ref(false);
-const websiteUrl = `https://harithzainudin.github.io/wedding`;
 
 const generateQrCode = async (): Promise<void> => {
   try {
-    qrCodeDataUrl.value = await QRCode.toDataURL(websiteUrl, {
+    qrCodeDataUrl.value = await QRCode.toDataURL(websiteUrl.value, {
       width: 200,
       margin: 2,
       color: {
@@ -29,7 +32,7 @@ const generateQrCode = async (): Promise<void> => {
 
 const generateLargeQrCode = async (): Promise<void> => {
   try {
-    largeQrCodeDataUrl.value = await QRCode.toDataURL(websiteUrl, {
+    largeQrCodeDataUrl.value = await QRCode.toDataURL(websiteUrl.value, {
       width: 400,
       margin: 2,
       color: {
@@ -63,7 +66,7 @@ const downloadQrCode = (): void => {
   if (!qrCodeDataUrl.value) return;
 
   const link = document.createElement("a");
-  link.download = `${weddingConfig.couple.bride.nickname}-${weddingConfig.couple.groom.nickname}-wedding-qr.png`;
+  link.download = `${couple.value.bride.nickname}-${couple.value.groom.nickname}-wedding-qr.png`;
   link.href = qrCodeDataUrl.value;
   link.click();
 };
@@ -72,16 +75,16 @@ const shareQrCode = async (): Promise<void> => {
   if (navigator.share) {
     try {
       await navigator.share({
-        title: `${weddingConfig.couple.bride.nickname} & ${weddingConfig.couple.groom.nickname}`,
+        title: `${couple.value.bride.nickname} & ${couple.value.groom.nickname}`,
         text: t.value.qrCode.subtitle,
-        url: websiteUrl,
+        url: websiteUrl.value,
       });
     } catch {
       // User cancelled or share failed
     }
   } else {
     // Fallback: copy URL to clipboard
-    await navigator.clipboard.writeText(websiteUrl);
+    await navigator.clipboard.writeText(websiteUrl.value);
     linkCopied.value = true;
     setTimeout(() => {
       linkCopied.value = false;
@@ -134,8 +137,11 @@ onUnmounted(() => {
       </p>
 
       <!-- Couple Names under QR -->
-      <p class="font-heading text-base sm:text-lg text-sage-dark dark:text-sage-light mb-6">
-        {{ weddingConfig.couple.bride.nickname }} & {{ weddingConfig.couple.groom.nickname }}
+      <div v-if="isLoadingWeddingDetails" class="mb-6 flex justify-center">
+        <div class="h-6 w-40 bg-sage/20 rounded animate-pulse"></div>
+      </div>
+      <p v-else class="font-heading text-base sm:text-lg text-sage-dark dark:text-sage-light mb-6">
+        {{ couple.bride.nickname }} & {{ couple.groom.nickname }}
       </p>
 
       <!-- Action Buttons -->
@@ -220,7 +226,7 @@ onUnmounted(() => {
 
             <!-- Couple Names -->
             <p class="font-heading text-lg sm:text-xl text-sage-dark mt-4">
-              {{ weddingConfig.couple.bride.nickname }} & {{ weddingConfig.couple.groom.nickname }}
+              {{ couple.bride.nickname }} & {{ couple.groom.nickname }}
             </p>
 
             <!-- Scan instruction -->

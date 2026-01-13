@@ -54,5 +54,6 @@ export function useScrollReveal(options: ScrollRevealOptions = {}) {
   return {
     revealedItems,
     isRevealed,
+    observeElements,
   };
 }
