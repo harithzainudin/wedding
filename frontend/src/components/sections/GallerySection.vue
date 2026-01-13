@@ -7,11 +7,15 @@ const { t } = useLanguage();
 
 const photos = weddingConfig.gallery ?? [];
 const selectedIndex = ref<number | null>(null);
+const slideDirection = ref<"left" | "right">("left");
 
 // Resolve image path with base URL for GitHub Pages
 const getImageUrl = (src: string): string => {
   if (src.startsWith("/")) {
-    const base = import.meta.env.BASE_URL;
+    let base = import.meta.env.BASE_URL;
+    if (!base.endsWith("/")) {
+      base += "/";
+    }
     return base + src.slice(1);
   }
   return src;
@@ -43,6 +47,7 @@ const closeLightbox = (): void => {
 
 const goToPrevious = (): void => {
   if (selectedIndex.value === null) return;
+  slideDirection.value = "right";
   selectedIndex.value = selectedIndex.value === 0
     ? photos.length - 1
     : selectedIndex.value - 1;
@@ -50,6 +55,7 @@ const goToPrevious = (): void => {
 
 const goToNext = (): void => {
   if (selectedIndex.value === null) return;
+  slideDirection.value = "left";
   selectedIndex.value = selectedIndex.value === photos.length - 1
     ? 0
     : selectedIndex.value + 1;
@@ -69,6 +75,34 @@ const handleKeydown = (event: KeyboardEvent): void => {
       goToNext();
       break;
   }
+};
+
+// Touch/swipe handling
+const touchStartX = ref(0);
+const touchEndX = ref(0);
+
+const handleTouchStart = (e: TouchEvent): void => {
+  touchStartX.value = e.touches[0]?.clientX ?? 0;
+};
+
+const handleTouchMove = (e: TouchEvent): void => {
+  touchEndX.value = e.touches[0]?.clientX ?? 0;
+};
+
+const handleTouchEnd = (): void => {
+  const diff = touchStartX.value - touchEndX.value;
+  const threshold = 50;
+
+  if (Math.abs(diff) > threshold) {
+    if (diff > 0) {
+      goToNext();
+    } else {
+      goToPrevious();
+    }
+  }
+
+  touchStartX.value = 0;
+  touchEndX.value = 0;
 };
 
 onMounted(() => {
@@ -115,13 +149,16 @@ onUnmounted(() => {
       <Transition name="fade">
         <div
           v-if="isLightboxOpen"
-          class="fixed inset-0 z-[100] flex items-center justify-center bg-black/90"
+          class="fixed inset-0 z-[100] bg-black/90 flex items-center justify-center"
           @click.self="closeLightbox"
+          @touchstart="handleTouchStart"
+          @touchmove="handleTouchMove"
+          @touchend="handleTouchEnd"
         >
           <!-- Close Button -->
           <button
             type="button"
-            class="absolute top-4 right-4 z-10 p-2 text-white/80 hover:text-white transition-colors cursor-pointer"
+            class="absolute top-4 right-4 z-10 p-2 text-white/80 hover:text-white transition-colors"
             :aria-label="t.gallery.close"
             @click="closeLightbox"
           >
@@ -133,7 +170,7 @@ onUnmounted(() => {
           <!-- Previous Button -->
           <button
             type="button"
-            class="absolute left-2 sm:left-4 z-10 p-2 text-white/80 hover:text-white transition-colors cursor-pointer"
+            class="absolute left-2 sm:left-4 z-10 p-2 text-white/80 hover:text-white transition-colors"
             :aria-label="t.gallery.previous"
             @click="goToPrevious"
           >
@@ -145,7 +182,7 @@ onUnmounted(() => {
           <!-- Next Button -->
           <button
             type="button"
-            class="absolute right-2 sm:right-4 z-10 p-2 text-white/80 hover:text-white transition-colors cursor-pointer"
+            class="absolute right-2 sm:right-4 z-10 p-2 text-white/80 hover:text-white transition-colors"
             :aria-label="t.gallery.next"
             @click="goToNext"
           >
@@ -154,14 +191,18 @@ onUnmounted(() => {
             </svg>
           </button>
 
-          <!-- Image -->
-          <div class="max-w-[90vw] max-h-[80vh] flex flex-col items-center">
-            <img
-              v-if="currentPhoto"
-              :src="getImageUrl(currentPhoto.src)"
-              :alt="currentPhoto.alt ?? 'Gallery photo'"
-              class="max-w-full max-h-[75vh] object-contain"
-            />
+          <!-- Image with slide transition -->
+          <div class="max-w-[90vw] max-h-[80vh] flex flex-col items-center overflow-hidden">
+            <Transition :name="slideDirection === 'left' ? 'slide-left' : 'slide-right'" mode="out-in">
+              <img
+                v-if="currentPhoto"
+                :key="selectedIndex ?? 0"
+                :src="getImageUrl(currentPhoto.src)"
+                :alt="currentPhoto.alt ?? 'Gallery photo'"
+                class="max-w-full max-h-[75vh] object-contain select-none"
+                draggable="false"
+              />
+            </Transition>
 
             <!-- Photo Counter -->
             <p class="mt-4 font-body text-sm text-white/80">
@@ -175,6 +216,7 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
+/* Fade transition for lightbox open/close */
 .fade-enter-active,
 .fade-leave-active {
   transition: opacity 0.2s ease;
@@ -182,6 +224,38 @@ onUnmounted(() => {
 
 .fade-enter-from,
 .fade-leave-to {
+  opacity: 0;
+}
+
+/* Slide left transition (for next) */
+.slide-left-enter-active,
+.slide-left-leave-active {
+  transition: transform 0.25s ease, opacity 0.25s ease;
+}
+
+.slide-left-enter-from {
+  transform: translateX(100px);
+  opacity: 0;
+}
+
+.slide-left-leave-to {
+  transform: translateX(-100px);
+  opacity: 0;
+}
+
+/* Slide right transition (for previous) */
+.slide-right-enter-active,
+.slide-right-leave-active {
+  transition: transform 0.25s ease, opacity 0.25s ease;
+}
+
+.slide-right-enter-from {
+  transform: translateX(-100px);
+  opacity: 0;
+}
+
+.slide-right-leave-to {
+  transform: translateX(100px);
   opacity: 0;
 }
 </style>
