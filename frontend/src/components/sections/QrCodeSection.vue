@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
+import { ref, onMounted, onUnmounted } from "vue";
 import QRCode from "qrcode";
 import { weddingConfig } from "@/config/wedding";
 import { useLanguage } from "@/composables/useLanguage";
@@ -7,7 +7,9 @@ import { useLanguage } from "@/composables/useLanguage";
 const { t } = useLanguage();
 
 const qrCodeDataUrl = ref<string>("");
+const largeQrCodeDataUrl = ref<string>("");
 const linkCopied = ref(false);
+const isModalOpen = ref(false);
 const websiteUrl = `https://harithzainudin.github.io/wedding`;
 
 const generateQrCode = async (): Promise<void> => {
@@ -22,6 +24,38 @@ const generateQrCode = async (): Promise<void> => {
     });
   } catch (error) {
     console.error("Failed to generate QR code:", error);
+  }
+};
+
+const generateLargeQrCode = async (): Promise<void> => {
+  try {
+    largeQrCodeDataUrl.value = await QRCode.toDataURL(websiteUrl, {
+      width: 400,
+      margin: 2,
+      color: {
+        dark: "#333333",
+        light: "#FFFFFF",
+      },
+    });
+  } catch (error) {
+    console.error("Failed to generate large QR code:", error);
+  }
+};
+
+const openModal = async (): Promise<void> => {
+  await generateLargeQrCode();
+  isModalOpen.value = true;
+  document.body.style.overflow = "hidden";
+};
+
+const closeModal = (): void => {
+  isModalOpen.value = false;
+  document.body.style.overflow = "";
+};
+
+const handleKeydown = (e: KeyboardEvent): void => {
+  if (e.key === "Escape" && isModalOpen.value) {
+    closeModal();
   }
 };
 
@@ -57,6 +91,11 @@ const shareQrCode = async (): Promise<void> => {
 
 onMounted(() => {
   generateQrCode();
+  window.addEventListener("keydown", handleKeydown);
+});
+
+onUnmounted(() => {
+  window.removeEventListener("keydown", handleKeydown);
 });
 </script>
 
@@ -71,7 +110,10 @@ onMounted(() => {
       </p>
 
       <!-- QR Code Display -->
-      <div class="inline-block p-4 sm:p-6 bg-white dark:bg-white rounded-2xl shadow-lg mb-6">
+      <div
+        class="inline-block p-4 sm:p-6 bg-white dark:bg-white rounded-2xl shadow-lg mb-4 cursor-pointer transition-transform hover:scale-105 active:scale-95"
+        @click="openModal"
+      >
         <img
           v-if="qrCodeDataUrl"
           :src="qrCodeDataUrl"
@@ -85,6 +127,11 @@ onMounted(() => {
           <span class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary">Loading...</span>
         </div>
       </div>
+
+      <!-- Tap to enlarge hint -->
+      <p class="font-body text-xs text-charcoal-light/70 dark:text-dark-text-secondary/70 mb-4">
+        {{ t.qrCode.tapToEnlarge }}
+      </p>
 
       <!-- Couple Names under QR -->
       <p class="font-heading text-base sm:text-lg text-sage-dark dark:text-sage-light mb-6">
@@ -131,4 +178,70 @@ onMounted(() => {
       </p>
     </div>
   </section>
+
+  <!-- QR Code Modal -->
+  <Teleport to="body">
+    <Transition name="fade">
+      <div
+        v-if="isModalOpen"
+        class="fixed inset-0 z-[100] flex items-center justify-center p-4"
+        @click.self="closeModal"
+      >
+        <!-- Backdrop -->
+        <div class="absolute inset-0 bg-black/90" @click="closeModal"></div>
+
+        <!-- Modal Content -->
+        <div class="relative bg-white rounded-3xl p-6 sm:p-8 shadow-2xl max-w-sm w-full">
+          <!-- Close Button -->
+          <button
+            type="button"
+            class="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 transition-colors cursor-pointer"
+            @click="closeModal"
+          >
+            <svg class="w-5 h-5 text-gray-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M18 6L6 18M6 6l12 12" />
+            </svg>
+          </button>
+
+          <!-- Large QR Code -->
+          <div class="flex flex-col items-center">
+            <img
+              v-if="largeQrCodeDataUrl"
+              :src="largeQrCodeDataUrl"
+              alt="QR Code untuk jemputan perkahwinan"
+              class="w-64 h-64 sm:w-72 sm:h-72"
+            />
+            <div
+              v-else
+              class="w-64 h-64 sm:w-72 sm:h-72 flex items-center justify-center bg-gray-100 rounded-lg"
+            >
+              <span class="font-body text-sm text-gray-500">Loading...</span>
+            </div>
+
+            <!-- Couple Names -->
+            <p class="font-heading text-lg sm:text-xl text-sage-dark mt-4">
+              {{ weddingConfig.couple.bride.nickname }} & {{ weddingConfig.couple.groom.nickname }}
+            </p>
+
+            <!-- Scan instruction -->
+            <p class="font-body text-sm text-charcoal-light mt-2">
+              {{ t.qrCode.subtitle }}
+            </p>
+          </div>
+        </div>
+      </div>
+    </Transition>
+  </Teleport>
 </template>
+
+<style scoped>
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+</style>

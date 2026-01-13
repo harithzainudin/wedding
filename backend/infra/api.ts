@@ -8,6 +8,7 @@ export const api = new sst.aws.ApiGatewayV2("WeddingApi", {
   cors: {
     allowOrigins: [
       "http://localhost:5173",
+      "http://192.168.0.2:5173",
       "https://harithzainudin.github.io",
     ],
     allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],

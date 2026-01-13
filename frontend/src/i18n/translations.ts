@@ -43,6 +43,7 @@ export interface Translations {
     download: string;
     share: string;
     linkCopied: string;
+    tapToEnlarge: string;
   };
   // RSVP Section
   rsvp: {
@@ -135,6 +136,7 @@ export const translations: Record<Language, Translations> = {
       download: "Muat Turun",
       share: "Kongsi",
       linkCopied: "Link telah disalin!",
+      tapToEnlarge: "Ketik untuk besarkan",
     },
     rsvp: {
       title: "RSVP",
@@ -222,6 +224,7 @@ export const translations: Record<Language, Translations> = {
       download: "Download",
       share: "Share",
       linkCopied: "Link copied!",
+      tapToEnlarge: "Tap to enlarge",
     },
     rsvp: {
       title: "RSVP",
@@ -309,6 +312,7 @@ export const translations: Record<Language, Translations> = {
       download: "下载",
       share: "分享",
       linkCopied: "链接已复制！",
+      tapToEnlarge: "点击放大",
     },
     rsvp: {
       title: "回复出席",
@@ -395,6 +399,7 @@ export const translations: Record<Language, Translations> = {
       download: "பதிவிறக்கம்",
       share: "பகிர்",
       linkCopied: "இணைப்பு நகலெடுக்கப்பட்டது!",
+      tapToEnlarge: "பெரிதாக்க தட்டவும்",
     },
     rsvp: {
       title: "RSVP",
