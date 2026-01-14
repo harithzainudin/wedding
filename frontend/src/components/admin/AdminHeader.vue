@@ -26,6 +26,20 @@ const emit = defineEmits<{
 
     <!-- Desktop actions -->
     <div class="hidden sm:flex items-center gap-3">
+      <a
+        href="/wedding/"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="flex items-center gap-2 px-3 py-2 text-sm font-body text-white bg-sage hover:bg-sage-dark rounded-lg transition-colors"
+        title="View Live Site"
+      >
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6" />
+          <polyline points="15,3 21,3 21,9" />
+          <line x1="10" y1="14" x2="21" y2="3" />
+        </svg>
+        View Site
+      </a>
       <DarkModeToggle variant="light" />
       <UserProfileDropdown
         :username="currentUser"

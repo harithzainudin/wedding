@@ -77,6 +77,21 @@ const handleAction = (action: "profile" | "changePassword" | "logout"): void => 
             <DarkModeToggle variant="light" />
           </div>
 
+          <a
+            href="/wedding/"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="w-full flex items-center gap-3 px-4 py-3 font-body text-sm text-charcoal dark:text-dark-text hover:bg-sand dark:hover:bg-dark-bg-elevated transition-colors text-left"
+            @click="emit('close')"
+          >
+            <svg class="w-5 h-5 text-charcoal-light dark:text-dark-text-secondary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6" />
+              <polyline points="15,3 21,3 21,9" />
+              <line x1="10" y1="14" x2="21" y2="3" />
+            </svg>
+            View Live Site
+          </a>
+
           <button
             type="button"
             class="w-full flex items-center gap-3 px-4 py-3 font-body text-sm text-charcoal dark:text-dark-text hover:bg-sand dark:hover:bg-dark-bg-elevated transition-colors cursor-pointer text-left"
