@@ -1,7 +1,8 @@
 import { ref, onMounted } from "vue";
 import { getWeddingDetails, getSchedule as fetchScheduleApi, getContacts } from "@/services/api";
 import { weddingConfig } from "@/config/wedding";
-import type { WeddingDetailsData } from "@/types/weddingDetails";
+import type { WeddingDetailsData, EventDisplayFormat } from "@/types/weddingDetails";
+import { DEFAULT_DISPLAY_FORMAT } from "@/types/weddingDetails";
 import type { ScheduleData, ScheduleItem } from "@/types/schedule";
 import type { ContactsData, ContactPerson } from "@/types/contacts";
 
@@ -111,6 +112,28 @@ export function usePublicWeddingData() {
     return weddingConfig.event.date;
   };
 
+  // Event end time with fallback
+  const getEventEndTime = (): Date | null => {
+    if (weddingDetails.value?.eventEndTime) {
+      return new Date(weddingDetails.value.eventEndTime);
+    }
+    if (weddingConfig.event.endDate) {
+      return weddingConfig.event.endDate;
+    }
+    return null;
+  };
+
+  // Event display format with fallback
+  const getEventDisplayFormat = (): EventDisplayFormat => {
+    if (weddingDetails.value?.eventDisplayFormat) {
+      return weddingDetails.value.eventDisplayFormat;
+    }
+    if (weddingConfig.event.displayFormat) {
+      return weddingConfig.event.displayFormat;
+    }
+    return DEFAULT_DISPLAY_FORMAT;
+  };
+
   // Dress code with fallback
   const getDressCode = (): string => {
     if (weddingDetails.value?.dressCode) {
@@ -216,6 +239,8 @@ export function usePublicWeddingData() {
     getCoupleNames,
     getParents,
     getEventDate,
+    getEventEndTime,
+    getEventDisplayFormat,
     getDressCode,
     getHashtag,
     getQrCodeUrl,

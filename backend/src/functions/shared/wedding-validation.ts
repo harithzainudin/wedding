@@ -10,6 +10,49 @@ export interface ParentsInfo {
   mother: string;
 }
 
+// Display format types
+export type EventDisplayPreset =
+  | "date_time_range"
+  | "date_start_only"
+  | "date_only"
+  | "full_details"
+  | "custom";
+
+export interface EventDisplayCustomOptions {
+  showDate: boolean;
+  showStartTime: boolean;
+  showEndTime: boolean;
+  showDayOfWeek: boolean;
+  timeFormat: "12h" | "24h";
+  // Advanced custom format strings (e.g., "DD/MM/YYYY", "hh:mm A")
+  customDateFormat?: string;
+  customTimeFormat?: string;
+}
+
+export interface EventDisplayFormat {
+  preset: EventDisplayPreset;
+  customOptions: EventDisplayCustomOptions;
+}
+
+export const DEFAULT_DISPLAY_FORMAT: EventDisplayFormat = {
+  preset: "date_start_only",
+  customOptions: {
+    showDate: true,
+    showStartTime: true,
+    showEndTime: false,
+    showDayOfWeek: true,
+    timeFormat: "12h",
+  },
+};
+
+export const VALID_PRESETS: EventDisplayPreset[] = [
+  "date_time_range",
+  "date_start_only",
+  "date_only",
+  "full_details",
+  "custom",
+];
+
 export interface WeddingDetailsData {
   couple: {
     bride: CoupleInfo;
@@ -19,7 +62,9 @@ export interface WeddingDetailsData {
     bride: ParentsInfo;
     groom: ParentsInfo;
   };
-  eventDate: string; // ISO datetime string
+  eventDate: string; // ISO datetime string (start time)
+  eventEndTime?: string; // ISO datetime string (end time)
+  eventDisplayFormat?: EventDisplayFormat;
   dressCode: string;
   hashtag: string;
   qrCodeUrl: string;
@@ -37,6 +82,8 @@ export interface WeddingDetailsUpdateRequest {
     groom: ParentsInfo;
   };
   eventDate: string;
+  eventEndTime?: string;
+  eventDisplayFormat?: EventDisplayFormat;
   dressCode: string;
   hashtag: string;
   qrCodeUrl: string;
@@ -154,6 +201,89 @@ export function validateWeddingDetailsUpdate(
     return { valid: false, error: "Invalid event date format" };
   }
 
+  // Validate eventEndTime (optional)
+  let validatedEndTime: string | undefined;
+  if (body.eventEndTime !== undefined && body.eventEndTime !== null && body.eventEndTime !== "") {
+    if (typeof body.eventEndTime !== "string") {
+      return { valid: false, error: "Invalid event end time format" };
+    }
+    const endDateObj = new Date(body.eventEndTime);
+    if (isNaN(endDateObj.getTime())) {
+      return { valid: false, error: "Invalid event end time format" };
+    }
+    // Validate end time is after start time
+    if (endDateObj <= dateObj) {
+      return { valid: false, error: "Event end time must be after start time" };
+    }
+    validatedEndTime = body.eventEndTime.trim();
+  }
+
+  // Validate eventDisplayFormat (optional)
+  let validatedDisplayFormat: EventDisplayFormat | undefined;
+  if (body.eventDisplayFormat !== undefined && body.eventDisplayFormat !== null) {
+    if (typeof body.eventDisplayFormat !== "object") {
+      return { valid: false, error: "Invalid display format" };
+    }
+    const format = body.eventDisplayFormat as Record<string, unknown>;
+
+    // Validate preset
+    if (!format.preset || VALID_PRESETS.indexOf(format.preset as EventDisplayPreset) === -1) {
+      return { valid: false, error: "Invalid display format preset" };
+    }
+
+    // Validate customOptions if provided
+    if (format.customOptions !== undefined) {
+      if (typeof format.customOptions !== "object" || format.customOptions === null) {
+        return { valid: false, error: "Invalid custom options" };
+      }
+      const options = format.customOptions as Record<string, unknown>;
+
+      // Validate boolean fields
+      if (typeof options.showDate !== "boolean" ||
+          typeof options.showStartTime !== "boolean" ||
+          typeof options.showEndTime !== "boolean" ||
+          typeof options.showDayOfWeek !== "boolean") {
+        return { valid: false, error: "Custom options must have valid boolean values" };
+      }
+
+      // Validate timeFormat
+      if (options.timeFormat !== "12h" && options.timeFormat !== "24h") {
+        return { valid: false, error: "Time format must be '12h' or '24h'" };
+      }
+
+      // Validate optional custom format strings (max 50 chars each)
+      if (options.customDateFormat !== undefined && options.customDateFormat !== null && options.customDateFormat !== "") {
+        if (typeof options.customDateFormat !== "string" || options.customDateFormat.length > 50) {
+          return { valid: false, error: "Custom date format must be a string of 50 characters or less" };
+        }
+      }
+      if (options.customTimeFormat !== undefined && options.customTimeFormat !== null && options.customTimeFormat !== "") {
+        if (typeof options.customTimeFormat !== "string" || options.customTimeFormat.length > 50) {
+          return { valid: false, error: "Custom time format must be a string of 50 characters or less" };
+        }
+      }
+
+      validatedDisplayFormat = {
+        preset: format.preset as EventDisplayPreset,
+        customOptions: {
+          showDate: options.showDate,
+          showStartTime: options.showStartTime,
+          showEndTime: options.showEndTime,
+          showDayOfWeek: options.showDayOfWeek,
+          timeFormat: options.timeFormat,
+          customDateFormat: typeof options.customDateFormat === "string" ? options.customDateFormat : undefined,
+          customTimeFormat: typeof options.customTimeFormat === "string" ? options.customTimeFormat : undefined,
+        },
+      };
+    } else {
+      // Use default custom options if not provided
+      validatedDisplayFormat = {
+        preset: format.preset as EventDisplayPreset,
+        customOptions: DEFAULT_DISPLAY_FORMAT.customOptions,
+      };
+    }
+  }
+
   // Validate dressCode
   if (typeof body.dressCode !== "string" || !body.dressCode.trim()) {
     return { valid: false, error: "Dress code is required" };
@@ -190,6 +320,8 @@ export function validateWeddingDetailsUpdate(
         groom: groomParentsResult.data,
       },
       eventDate: body.eventDate.trim(),
+      eventEndTime: validatedEndTime,
+      eventDisplayFormat: validatedDisplayFormat,
       dressCode: body.dressCode.trim(),
       hashtag: body.hashtag.trim(),
       qrCodeUrl: body.qrCodeUrl.trim(),
@@ -220,6 +352,8 @@ export const DEFAULT_WEDDING_DETAILS: WeddingDetailsData = {
     },
   },
   eventDate: "2026-12-12T11:00:00+08:00",
+  eventEndTime: "2026-12-12T16:00:00+08:00",
+  eventDisplayFormat: DEFAULT_DISPLAY_FORMAT,
   dressCode: "Pastel / Earthy Tones",
   hashtag: "#AisyahAhmadWedding",
   qrCodeUrl: "https://harithzainudin.github.io/wedding",

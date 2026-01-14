@@ -176,6 +176,7 @@ onMounted(async () => {
             :is-saving="isSaving"
             :has-changes="hasChanges"
             @save="handleSave"
+            @cancel="syncFormData"
           />
 
           <!-- Save Error -->

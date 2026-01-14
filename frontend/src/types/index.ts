@@ -1,3 +1,5 @@
+import type { EventDisplayFormat } from "./weddingDetails";
+
 export interface GalleryPhoto {
   src: string;
   alt?: string;
@@ -26,6 +28,8 @@ export interface WeddingConfig {
   };
   event: {
     date: Date;
+    endDate?: Date;
+    displayFormat?: EventDisplayFormat;
     venue: {
       name: string;
       address: string;

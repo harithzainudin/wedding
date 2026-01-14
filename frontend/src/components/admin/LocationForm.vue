@@ -15,6 +15,7 @@ const emit = defineEmits<{
   "update:address": [value: string];
   "update:parkingInfo": [value: string];
   save: [];
+  cancel: [];
 }>();
 
 // Form validation
@@ -108,40 +109,50 @@ const canSave = computed(() => {
       </div>
     </div>
 
-    <!-- Save Button -->
-    <button
-      type="button"
-      :disabled="!canSave"
-      class="w-full py-3 rounded-lg font-body text-sm font-medium transition-all duration-200 flex items-center justify-center gap-2"
-      :class="
-        canSave
-          ? 'bg-sage text-white hover:bg-sage-dark cursor-pointer'
-          : 'bg-sand-dark dark:bg-dark-border text-charcoal-light dark:text-dark-text-secondary cursor-not-allowed'
-      "
-      @click="emit('save')"
-    >
-      <svg
-        v-if="isSaving"
-        class="w-4 h-4 animate-spin"
-        viewBox="0 0 24 24"
-        fill="none"
+    <!-- Action Buttons -->
+    <div class="flex gap-2">
+      <button
+        v-if="hasChanges"
+        type="button"
+        class="flex-1 py-3 rounded-lg font-body text-sm font-medium text-charcoal border border-charcoal-light hover:bg-sand-dark transition-colors cursor-pointer"
+        @click="emit('cancel')"
       >
-        <circle
-          cx="12"
-          cy="12"
-          r="10"
-          stroke="currentColor"
-          stroke-width="3"
-          class="opacity-25"
-        />
-        <path
-          fill="currentColor"
-          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-          class="opacity-75"
-        />
-      </svg>
-      <span>{{ isSaving ? "Saving..." : "Save Changes" }}</span>
-    </button>
+        Cancel
+      </button>
+      <button
+        type="button"
+        :disabled="!canSave"
+        class="flex-1 py-3 rounded-lg font-body text-sm font-medium transition-all duration-200 flex items-center justify-center gap-2"
+        :class="
+          canSave
+            ? 'bg-sage text-white hover:bg-sage-dark cursor-pointer'
+            : 'bg-sand-dark dark:bg-dark-border text-charcoal-light dark:text-dark-text-secondary cursor-not-allowed'
+        "
+        @click="emit('save')"
+      >
+        <svg
+          v-if="isSaving"
+          class="w-4 h-4 animate-spin"
+          viewBox="0 0 24 24"
+          fill="none"
+        >
+          <circle
+            cx="12"
+            cy="12"
+            r="10"
+            stroke="currentColor"
+            stroke-width="3"
+            class="opacity-25"
+          />
+          <path
+            fill="currentColor"
+            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+            class="opacity-75"
+          />
+        </svg>
+        <span>{{ isSaving ? "Saving..." : "Save Changes" }}</span>
+      </button>
+    </div>
 
     <!-- Validation Message -->
     <p v-if="!isValid && (venueName.length > 0 || address.length > 0)" class="font-body text-xs text-red-500 text-center">

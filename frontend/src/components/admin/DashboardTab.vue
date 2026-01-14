@@ -2,8 +2,10 @@
 import { ref, computed, onMounted } from "vue";
 import { listRsvps, listGalleryImages } from "@/services/api";
 
+type TabType = "dashboard" | "wedding" | "venue" | "schedule" | "gallery" | "contacts" | "rsvps" | "settings";
+
 const emit = defineEmits<{
-  (e: "switch-tab", tab: string): void;
+  (e: "switch-tab", tab: TabType): void;
 }>();
 
 // Stats
@@ -32,7 +34,7 @@ const loadStats = async () => {
   }
 };
 
-const quickLinks = computed(() => [
+const quickLinks = computed<{ label: string; tab: TabType; icon: string; description: string }[]>(() => [
   { label: "Wedding Details", tab: "wedding", icon: "heart", description: "Couple & event info" },
   { label: "Venue", tab: "venue", icon: "location", description: "Location settings" },
   { label: "Schedule", tab: "schedule", icon: "calendar", description: "Event timeline" },

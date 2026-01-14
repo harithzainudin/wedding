@@ -1,4 +1,5 @@
 import type { WeddingConfig } from "@/types";
+import { DEFAULT_DISPLAY_FORMAT } from "@/types/weddingDetails";
 
 export const weddingConfig: WeddingConfig = {
   couple: {
@@ -23,6 +24,8 @@ export const weddingConfig: WeddingConfig = {
   },
   event: {
     date: new Date("2026-12-12T11:00:00+08:00"),
+    endDate: new Date("2026-12-12T16:00:00+08:00"),
+    displayFormat: DEFAULT_DISPLAY_FORMAT,
     venue: {
       name: "Dewan Seri Endon",
       address:

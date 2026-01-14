@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from "vue";
 import { useWeddingDetails } from "@/composables/useWeddingDetails";
+import type { EventDisplayFormat, EventDisplayPreset } from "@/types/weddingDetails";
+import { DEFAULT_DISPLAY_FORMAT } from "@/types/weddingDetails";
 
 const {
   weddingDetails,
@@ -13,6 +15,18 @@ const {
   updateWeddingDetails,
 } = useWeddingDetails();
 
+// Preset options for dropdown
+const presetOptions: { value: EventDisplayPreset; label: string }[] = [
+  { value: "date_time_range", label: "Date + Time Range" },
+  { value: "date_start_only", label: "Date + Start Time Only" },
+  { value: "date_only", label: "Date Only" },
+  { value: "full_details", label: "Full Details (Separate Lines)" },
+  { value: "custom", label: "Custom" },
+];
+
+// Toggle for custom options
+const showCustomOptions = ref(false);
+
 // Local form state
 const formData = ref({
   couple: {
@@ -24,6 +38,8 @@ const formData = ref({
     groom: { father: "", mother: "" },
   },
   eventDate: "",
+  eventEndTime: "",
+  eventDisplayFormat: { ...DEFAULT_DISPLAY_FORMAT } as EventDisplayFormat,
   dressCode: "",
   hashtag: "",
   qrCodeUrl: "",
@@ -35,6 +51,8 @@ const hasChanges = computed(() => {
     couple: weddingDetails.value.couple,
     parents: weddingDetails.value.parents,
     eventDate: weddingDetails.value.eventDate,
+    eventEndTime: weddingDetails.value.eventEndTime ?? "",
+    eventDisplayFormat: weddingDetails.value.eventDisplayFormat ?? DEFAULT_DISPLAY_FORMAT,
     dressCode: weddingDetails.value.dressCode,
     hashtag: weddingDetails.value.hashtag,
     qrCodeUrl: weddingDetails.value.qrCodeUrl,
@@ -53,10 +71,16 @@ const syncFormData = () => {
       groom: { ...weddingDetails.value.parents.groom },
     },
     eventDate: weddingDetails.value.eventDate,
+    eventEndTime: weddingDetails.value.eventEndTime ?? "",
+    eventDisplayFormat: weddingDetails.value.eventDisplayFormat
+      ? { ...weddingDetails.value.eventDisplayFormat, customOptions: { ...weddingDetails.value.eventDisplayFormat.customOptions } }
+      : { ...DEFAULT_DISPLAY_FORMAT, customOptions: { ...DEFAULT_DISPLAY_FORMAT.customOptions } },
     dressCode: weddingDetails.value.dressCode,
     hashtag: weddingDetails.value.hashtag,
     qrCodeUrl: weddingDetails.value.qrCodeUrl,
   };
+  // Set custom options toggle based on preset
+  showCustomOptions.value = formData.value.eventDisplayFormat.preset === "custom";
 };
 
 // Format datetime for input - handles timezone correctly
@@ -93,9 +117,187 @@ const formattedEventDate = computed({
   },
 });
 
+// Format end time for input - handles timezone correctly
+const formattedEventEndTime = computed({
+  get: () => {
+    if (!formData.value.eventEndTime) return "";
+    const date = new Date(formData.value.eventEndTime);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    const hours = String(date.getHours()).padStart(2, "0");
+    const minutes = String(date.getMinutes()).padStart(2, "0");
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
+  },
+  set: (value: string) => {
+    if (value) {
+      const date = new Date(value);
+      const tzOffset = -date.getTimezoneOffset();
+      const tzHours = String(Math.floor(Math.abs(tzOffset) / 60)).padStart(2, "0");
+      const tzMinutes = String(Math.abs(tzOffset) % 60).padStart(2, "0");
+      const tzSign = tzOffset >= 0 ? "+" : "-";
+
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const day = String(date.getDate()).padStart(2, "0");
+      const hours = String(date.getHours()).padStart(2, "0");
+      const minutes = String(date.getMinutes()).padStart(2, "0");
+      const seconds = String(date.getSeconds()).padStart(2, "0");
+
+      formData.value.eventEndTime = `${year}-${month}-${day}T${hours}:${minutes}:${seconds}${tzSign}${tzHours}:${tzMinutes}`;
+    } else {
+      formData.value.eventEndTime = "";
+    }
+  },
+});
+
+// Custom format parser - converts format strings like "DD/MM/YYYY" to formatted date
+function formatDateWithPattern(date: Date, pattern: string): string {
+  const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"] as const;
+  const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"] as const;
+
+  const year = date.getFullYear();
+  const month = date.getMonth();
+  const day = date.getDate();
+  const dayOfWeek = date.getDay();
+  const hours24 = date.getHours();
+  const hours12 = hours24 % 12 || 12;
+  const minutes = date.getMinutes();
+  const ampm = hours24 >= 12 ? "PM" : "AM";
+
+  const monthName = monthNames[month] ?? "Unknown";
+  const dayName = dayNames[dayOfWeek] ?? "Unknown";
+
+  return pattern
+    .replace(/YYYY/g, String(year))
+    .replace(/YY/g, String(year).slice(-2))
+    .replace(/MMMM/g, monthName)
+    .replace(/MMM/g, monthName.slice(0, 3))
+    .replace(/MM/g, String(month + 1).padStart(2, "0"))
+    .replace(/M(?!a)/g, String(month + 1))
+    .replace(/dddd/g, dayName)
+    .replace(/ddd/g, dayName.slice(0, 3))
+    .replace(/DD/g, String(day).padStart(2, "0"))
+    .replace(/D(?!e)/g, String(day))
+    .replace(/HH/g, String(hours24).padStart(2, "0"))
+    .replace(/H(?!o)/g, String(hours24))
+    .replace(/hh/g, String(hours12).padStart(2, "0"))
+    .replace(/h(?!o)/g, String(hours12))
+    .replace(/mm/g, String(minutes).padStart(2, "0"))
+    .replace(/m(?!b)/g, String(minutes))
+    .replace(/A/g, ampm)
+    .replace(/a/g, ampm.toLowerCase());
+}
+
+// Preview computed properties
+const previewDate = computed(() => {
+  if (!formData.value.eventDate) return "No date set";
+  const date = new Date(formData.value.eventDate);
+  const format = formData.value.eventDisplayFormat;
+  const options = format.preset === "custom" ? format.customOptions : getOptionsForPreset(format.preset);
+
+  if (!options.showDate) return "";
+
+  // Use custom format if provided
+  if (format.preset === "custom" && options.customDateFormat) {
+    return formatDateWithPattern(date, options.customDateFormat);
+  }
+
+  const dateOptions: Intl.DateTimeFormatOptions = {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  };
+  if (options.showDayOfWeek) {
+    dateOptions.weekday = "long";
+  }
+  return date.toLocaleDateString("en-MY", dateOptions);
+});
+
+const previewTime = computed(() => {
+  if (!formData.value.eventDate) return "";
+  const format = formData.value.eventDisplayFormat;
+  const options = format.preset === "custom" ? format.customOptions : getOptionsForPreset(format.preset);
+
+  if (!options.showStartTime && !options.showEndTime) return "";
+
+  const startDate = new Date(formData.value.eventDate);
+
+  // Use custom time format if provided
+  if (format.preset === "custom" && options.customTimeFormat) {
+    const startTimeStr = formatDateWithPattern(startDate, options.customTimeFormat);
+
+    if (options.showEndTime && formData.value.eventEndTime) {
+      const endDate = new Date(formData.value.eventEndTime);
+      const endTimeStr = formatDateWithPattern(endDate, options.customTimeFormat);
+      return `${startTimeStr} - ${endTimeStr}`;
+    }
+
+    return options.showStartTime ? startTimeStr : "";
+  }
+
+  const timeOptions: Intl.DateTimeFormatOptions = {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: options.timeFormat === "12h",
+  };
+
+  const startTimeStr = startDate.toLocaleTimeString("en-MY", timeOptions);
+
+  if (options.showEndTime && formData.value.eventEndTime) {
+    const endDate = new Date(formData.value.eventEndTime);
+    const endTimeStr = endDate.toLocaleTimeString("en-MY", timeOptions);
+
+    if (format.preset === "full_details") {
+      return `Starts: ${startTimeStr}\nEnds: ${endTimeStr}`;
+    }
+    return `${startTimeStr} - ${endTimeStr}`;
+  }
+
+  if (format.preset === "full_details" && options.showStartTime) {
+    return `Starts: ${startTimeStr}`;
+  }
+
+  return options.showStartTime ? startTimeStr : "";
+});
+
+// Get display options for a preset
+function getOptionsForPreset(preset: EventDisplayPreset) {
+  switch (preset) {
+    case "date_time_range":
+      return { showDate: true, showStartTime: true, showEndTime: true, showDayOfWeek: true, timeFormat: "12h" as const };
+    case "date_start_only":
+      return { showDate: true, showStartTime: true, showEndTime: false, showDayOfWeek: true, timeFormat: "12h" as const };
+    case "date_only":
+      return { showDate: true, showStartTime: false, showEndTime: false, showDayOfWeek: true, timeFormat: "12h" as const };
+    case "full_details":
+      return { showDate: true, showStartTime: true, showEndTime: true, showDayOfWeek: true, timeFormat: "12h" as const };
+    case "custom":
+    default:
+      return formData.value.eventDisplayFormat.customOptions;
+  }
+}
+
+// Handle preset change
+const handlePresetChange = (preset: EventDisplayPreset) => {
+  formData.value.eventDisplayFormat.preset = preset;
+  if (preset === "custom") {
+    showCustomOptions.value = true;
+  } else {
+    showCustomOptions.value = false;
+    // Update custom options to match preset for consistency
+    formData.value.eventDisplayFormat.customOptions = { ...getOptionsForPreset(preset) };
+  }
+};
+
 // Save changes
 const handleSave = async () => {
   await updateWeddingDetails(formData.value);
+};
+
+// Discard changes
+const discardChanges = () => {
+  syncFormData();
 };
 
 // Watch for wedding details changes and sync form
@@ -291,10 +493,10 @@ onMounted(async () => {
         <h3 class="font-heading text-base font-medium text-charcoal dark:text-dark-text mb-4">
           Event Details
         </h3>
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
           <div>
             <label class="block font-body text-xs text-charcoal-light dark:text-dark-text-secondary mb-1">
-              Event Date & Time
+              Event Start Date & Time
             </label>
             <input
               v-model="formattedEventDate"
@@ -305,15 +507,182 @@ onMounted(async () => {
           </div>
           <div>
             <label class="block font-body text-xs text-charcoal-light dark:text-dark-text-secondary mb-1">
-              Dress Code
+              Event End Time
             </label>
             <input
-              v-model="formData.dressCode"
-              type="text"
+              v-model="formattedEventEndTime"
+              type="datetime-local"
               class="w-full px-3 py-2.5 font-body text-base border border-sand-dark dark:border-dark-border rounded-lg bg-sand dark:bg-dark-bg-elevated text-charcoal dark:text-dark-text focus:outline-none focus:border-sage"
-              placeholder="e.g., Pastel / Earthy Tones"
               :disabled="isSaving"
             />
+          </div>
+        </div>
+        <div>
+          <label class="block font-body text-xs text-charcoal-light dark:text-dark-text-secondary mb-1">
+            Dress Code
+          </label>
+          <input
+            v-model="formData.dressCode"
+            type="text"
+            class="w-full px-3 py-2.5 font-body text-base border border-sand-dark dark:border-dark-border rounded-lg bg-sand dark:bg-dark-bg-elevated text-charcoal dark:text-dark-text focus:outline-none focus:border-sage"
+            placeholder="e.g., Pastel / Earthy Tones"
+            :disabled="isSaving"
+          />
+        </div>
+      </div>
+
+      <!-- Display Format Settings -->
+      <div class="bg-white dark:bg-dark-bg-secondary rounded-lg border border-sand-dark dark:border-dark-border p-4 sm:p-6">
+        <h3 class="font-heading text-base font-medium text-charcoal dark:text-dark-text mb-4">
+          Display Format Settings
+        </h3>
+        <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary mb-4">
+          Choose how the event date and time should appear on the public website.
+        </p>
+
+        <!-- Preset Dropdown -->
+        <div class="mb-4">
+          <label class="block font-body text-xs text-charcoal-light dark:text-dark-text-secondary mb-1">
+            Display Format
+          </label>
+          <select
+            :value="formData.eventDisplayFormat.preset"
+            class="w-full px-3 py-2.5 font-body text-base border border-sand-dark dark:border-dark-border rounded-lg bg-sand dark:bg-dark-bg-elevated text-charcoal dark:text-dark-text focus:outline-none focus:border-sage"
+            :disabled="isSaving"
+            @change="handlePresetChange(($event.target as HTMLSelectElement).value as EventDisplayPreset)"
+          >
+            <option v-for="option in presetOptions" :key="option.value" :value="option.value">
+              {{ option.label }}
+            </option>
+          </select>
+        </div>
+
+        <!-- Preview Box -->
+        <div class="mb-4 p-4 bg-sand/50 dark:bg-dark-bg-elevated rounded-lg border border-sand-dark/50 dark:border-dark-border">
+          <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary mb-2">Preview:</p>
+          <div class="text-center">
+            <p v-if="previewDate" class="font-heading text-base text-charcoal dark:text-dark-text">
+              {{ previewDate }}
+            </p>
+            <p v-if="previewTime" class="font-heading text-base text-charcoal dark:text-dark-text whitespace-pre-line">
+              {{ previewTime }}
+            </p>
+            <p v-if="!previewDate && !previewTime" class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary italic">
+              No date/time will be displayed
+            </p>
+          </div>
+        </div>
+
+        <!-- Custom Options Toggle -->
+        <div v-if="formData.eventDisplayFormat.preset === 'custom'" class="space-y-4">
+          <div class="border-t border-sand-dark dark:border-dark-border pt-4">
+            <h4 class="font-body text-sm font-medium text-charcoal dark:text-dark-text mb-3">Custom Options</h4>
+
+            <!-- Boolean toggles -->
+            <div class="grid grid-cols-2 gap-3 mb-4">
+              <label class="flex items-center gap-2 cursor-pointer">
+                <input
+                  v-model="formData.eventDisplayFormat.customOptions.showDate"
+                  type="checkbox"
+                  class="w-4 h-4 rounded border-sand-dark text-sage focus:ring-sage"
+                  :disabled="isSaving"
+                />
+                <span class="font-body text-sm text-charcoal dark:text-dark-text">Show date</span>
+              </label>
+              <label class="flex items-center gap-2 cursor-pointer">
+                <input
+                  v-model="formData.eventDisplayFormat.customOptions.showDayOfWeek"
+                  type="checkbox"
+                  class="w-4 h-4 rounded border-sand-dark text-sage focus:ring-sage"
+                  :disabled="isSaving"
+                />
+                <span class="font-body text-sm text-charcoal dark:text-dark-text">Show day of week</span>
+              </label>
+              <label class="flex items-center gap-2 cursor-pointer">
+                <input
+                  v-model="formData.eventDisplayFormat.customOptions.showStartTime"
+                  type="checkbox"
+                  class="w-4 h-4 rounded border-sand-dark text-sage focus:ring-sage"
+                  :disabled="isSaving"
+                />
+                <span class="font-body text-sm text-charcoal dark:text-dark-text">Show start time</span>
+              </label>
+              <label class="flex items-center gap-2 cursor-pointer">
+                <input
+                  v-model="formData.eventDisplayFormat.customOptions.showEndTime"
+                  type="checkbox"
+                  class="w-4 h-4 rounded border-sand-dark text-sage focus:ring-sage"
+                  :disabled="isSaving"
+                />
+                <span class="font-body text-sm text-charcoal dark:text-dark-text">Show end time</span>
+              </label>
+            </div>
+
+            <!-- Time format -->
+            <div>
+              <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary mb-2">Time format:</p>
+              <div class="flex gap-4">
+                <label class="flex items-center gap-2 cursor-pointer">
+                  <input
+                    v-model="formData.eventDisplayFormat.customOptions.timeFormat"
+                    type="radio"
+                    value="12h"
+                    class="w-4 h-4 border-sand-dark text-sage focus:ring-sage"
+                    :disabled="isSaving"
+                  />
+                  <span class="font-body text-sm text-charcoal dark:text-dark-text">12-hour (AM/PM)</span>
+                </label>
+                <label class="flex items-center gap-2 cursor-pointer">
+                  <input
+                    v-model="formData.eventDisplayFormat.customOptions.timeFormat"
+                    type="radio"
+                    value="24h"
+                    class="w-4 h-4 border-sand-dark text-sage focus:ring-sage"
+                    :disabled="isSaving"
+                  />
+                  <span class="font-body text-sm text-charcoal dark:text-dark-text">24-hour</span>
+                </label>
+              </div>
+            </div>
+
+            <!-- Advanced Custom Format -->
+            <div class="border-t border-sand-dark dark:border-dark-border pt-4 mt-4">
+              <h5 class="font-body text-sm font-medium text-charcoal dark:text-dark-text mb-2">Advanced Format (Optional)</h5>
+              <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary mb-3">
+                Use custom format strings. Leave empty to use default formatting.
+              </p>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label class="block font-body text-xs text-charcoal-light dark:text-dark-text-secondary mb-1">
+                    Date Format
+                  </label>
+                  <input
+                    v-model="formData.eventDisplayFormat.customOptions.customDateFormat"
+                    type="text"
+                    class="w-full px-3 py-2 font-body text-sm border border-sand-dark dark:border-dark-border rounded-lg bg-sand dark:bg-dark-bg-elevated text-charcoal dark:text-dark-text focus:outline-none focus:border-sage font-mono"
+                    placeholder="e.g., DD/MM/YYYY or MMMM D, YYYY"
+                    :disabled="isSaving"
+                  />
+                </div>
+                <div>
+                  <label class="block font-body text-xs text-charcoal-light dark:text-dark-text-secondary mb-1">
+                    Time Format
+                  </label>
+                  <input
+                    v-model="formData.eventDisplayFormat.customOptions.customTimeFormat"
+                    type="text"
+                    class="w-full px-3 py-2 font-body text-sm border border-sand-dark dark:border-dark-border rounded-lg bg-sand dark:bg-dark-bg-elevated text-charcoal dark:text-dark-text focus:outline-none focus:border-sage font-mono"
+                    placeholder="e.g., hh:mm A or HH:mm"
+                    :disabled="isSaving"
+                  />
+                </div>
+              </div>
+              <div class="mt-2 p-2 bg-sand/30 dark:bg-dark-bg-elevated rounded text-xs text-charcoal-light dark:text-dark-text-secondary">
+                <p class="font-medium mb-1">Format tokens:</p>
+                <p>Date: YYYY (year), MM (month), DD (day), MMMM (month name), dddd (day name)</p>
+                <p>Time: HH (24h), hh (12h), mm (minutes), A (AM/PM)</p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -382,14 +751,24 @@ onMounted(async () => {
           </div>
         </div>
 
-        <button
-          type="button"
-          class="px-6 py-2.5 font-body text-sm text-white bg-sage rounded-lg hover:bg-sage-dark transition-colors cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed"
-          :disabled="isSaving || !hasChanges"
-          @click="handleSave"
-        >
-          {{ isSaving ? "Saving..." : "Save Changes" }}
-        </button>
+        <div class="flex gap-2">
+          <button
+            v-if="hasChanges"
+            type="button"
+            class="px-4 py-2.5 font-body text-sm text-charcoal border border-charcoal-light rounded-lg hover:bg-sand-dark transition-colors cursor-pointer"
+            @click="discardChanges"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            class="px-6 py-2.5 font-body text-sm text-white bg-sage rounded-lg hover:bg-sage-dark transition-colors cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed"
+            :disabled="isSaving || !hasChanges"
+            @click="handleSave"
+          >
+            {{ isSaving ? "Saving..." : "Save Changes" }}
+          </button>
+        </div>
       </div>
 
       <!-- Last Updated Info -->

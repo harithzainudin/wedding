@@ -1,5 +1,6 @@
 import { ref } from "vue";
 import type { WeddingDetailsData, WeddingDetailsUpdateRequest } from "@/types/weddingDetails";
+import { DEFAULT_DISPLAY_FORMAT } from "@/types/weddingDetails";
 import { getWeddingDetails, updateWeddingDetails as apiUpdateWeddingDetails } from "@/services/api";
 
 // Default wedding details data (matches backend defaults)
@@ -25,6 +26,8 @@ const DEFAULT_WEDDING_DETAILS: WeddingDetailsData = {
     },
   },
   eventDate: "2026-12-12T11:00:00+08:00",
+  eventEndTime: "2026-12-12T16:00:00+08:00",
+  eventDisplayFormat: DEFAULT_DISPLAY_FORMAT,
   dressCode: "Pastel / Earthy Tones",
   hashtag: "#AisyahAhmadWedding",
   qrCodeUrl: "https://harithzainudin.github.io/wedding",
