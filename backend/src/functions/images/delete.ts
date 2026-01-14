@@ -3,22 +3,22 @@ import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient, GetCommand, DeleteCommand } from "@aws-sdk/lib-dynamodb";
 import { S3Client, DeleteObjectCommand } from "@aws-sdk/client-s3";
 import { Resource } from "sst";
-import { createResponse, createErrorResponse } from "../shared/response";
+import { createSuccessResponse, createErrorResponse } from "../shared/response";
 import { requireAuth } from "../shared/auth";
 
 const dynamoClient = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(dynamoClient);
 const s3Client = new S3Client({});
 
-export const handler: APIGatewayProxyHandlerV2 = async (event) => {
+export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
   const authResult = requireAuth(event);
   if (!authResult.authenticated) {
-    return createErrorResponse(authResult.statusCode, authResult.error);
+    return createErrorResponse(authResult.statusCode, authResult.error, context, "AUTH_ERROR");
   }
 
   const imageId = event.pathParameters?.id;
   if (!imageId) {
-    return createErrorResponse(400, "Image ID is required");
+    return createErrorResponse(400, "Image ID is required", context, "VALIDATION_ERROR");
   }
 
   // Get the image record
@@ -30,7 +30,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
   );
 
   if (!getResult.Item) {
-    return createErrorResponse(404, "Image not found");
+    return createErrorResponse(404, "Image not found", context, "NOT_FOUND");
   }
 
   const s3Key = getResult.Item.s3Key as string;
@@ -56,8 +56,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     })
   );
 
-  return createResponse(200, {
-    success: true,
+  return createSuccessResponse(200, {
     message: "Image deleted successfully",
-  });
+  }, context);
 };

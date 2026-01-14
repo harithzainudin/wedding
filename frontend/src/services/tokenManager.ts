@@ -93,6 +93,27 @@ function scheduleProactiveRefresh(expiresInMs: number): void {
   }, refreshIn);
 }
 
+// Response types for refresh endpoint
+interface RefreshResponseData {
+  accessToken: string;
+  refreshToken: string;
+  expiresIn: number;
+}
+
+interface ApiSuccessResponse {
+  success: true;
+  data: RefreshResponseData;
+  metadata: { requestId: string; timestamp: string };
+}
+
+interface ApiErrorResponse {
+  success: false;
+  error: { message: string; code?: string };
+  metadata: { requestId: string; timestamp: string };
+}
+
+type RefreshApiResponse = ApiSuccessResponse | ApiErrorResponse;
+
 export async function refreshTokens(): Promise<boolean> {
   // Prevent concurrent refresh calls
   if (isRefreshing && refreshPromise) {
@@ -114,18 +135,13 @@ export async function refreshTokens(): Promise<boolean> {
         body: JSON.stringify({ refreshToken }),
       });
 
-      const result = (await response.json()) as {
-        success: boolean;
-        accessToken?: string;
-        refreshToken?: string;
-        expiresIn?: number;
-      };
+      const result = (await response.json()) as RefreshApiResponse;
 
-      if (result.success && result.accessToken && result.refreshToken) {
+      if (result.success) {
         storeTokens({
-          accessToken: result.accessToken,
-          refreshToken: result.refreshToken,
-          expiresIn: result.expiresIn ?? 900,
+          accessToken: result.data.accessToken,
+          refreshToken: result.data.refreshToken,
+          expiresIn: result.data.expiresIn ?? 900,
           username: getStoredUsername() ?? "",
           isMaster: getStoredIsMaster(),
         });

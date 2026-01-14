@@ -12,6 +12,7 @@ const emit = defineEmits<{
 
 const localSettings = ref({
   enabled: props.settings.enabled,
+  autoplay: props.settings.autoplay,
   mode: props.settings.mode as PlayMode,
   shuffle: props.settings.shuffle,
   loop: props.settings.loop,
@@ -24,6 +25,7 @@ watch(
   (newSettings) => {
     localSettings.value = {
       enabled: newSettings.enabled,
+      autoplay: newSettings.autoplay,
       mode: newSettings.mode,
       shuffle: newSettings.shuffle,
       loop: newSettings.loop,
@@ -67,6 +69,29 @@ const volumePercentage = (vol: number): string => {
         <span
           class="absolute top-1 w-4 h-4 bg-white rounded-full transition-transform shadow"
           :class="localSettings.enabled ? 'left-7' : 'left-1'"
+        />
+      </button>
+    </div>
+
+    <!-- Autoplay -->
+    <div class="flex items-center justify-between">
+      <div>
+        <p class="font-body text-sm font-medium text-charcoal dark:text-dark-text">
+          Autoplay
+        </p>
+        <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary">
+          Try to play music automatically when page loads
+        </p>
+      </div>
+      <button
+        type="button"
+        class="relative w-12 h-6 rounded-full transition-colors cursor-pointer"
+        :class="localSettings.autoplay ? 'bg-sage' : 'bg-sand-dark dark:bg-dark-border'"
+        @click="updateSetting('autoplay', !localSettings.autoplay)"
+      >
+        <span
+          class="absolute top-1 w-4 h-4 bg-white rounded-full transition-transform shadow"
+          :class="localSettings.autoplay ? 'left-7' : 'left-1'"
         />
       </button>
     </div>
@@ -181,8 +206,9 @@ const volumePercentage = (vol: number): string => {
     <!-- Info -->
     <div class="p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
       <p class="font-body text-xs text-blue-700 dark:text-blue-300">
-        Music is OFF by default for visitors. They can click the music button to start playing.
-        Most browsers block autoplay until user interaction.
+        <strong>Note:</strong> Most browsers block autoplay until user interaction.
+        Even with autoplay enabled, music may not start automatically on first visit.
+        Visitors can always click the music button to start playing.
       </p>
     </div>
   </div>

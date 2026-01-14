@@ -2,7 +2,7 @@ import type { APIGatewayProxyHandlerV2 } from "aws-lambda";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient, GetCommand, QueryCommand } from "@aws-sdk/lib-dynamodb";
 import { Resource } from "sst";
-import { createResponse, createErrorResponse } from "../shared/response";
+import { createSuccessResponse, createErrorResponse } from "../shared/response";
 import {
   DEFAULT_MAX_FILE_SIZE,
   DEFAULT_MAX_TRACKS,
@@ -50,7 +50,7 @@ interface MusicSettings {
   updatedBy?: string;
 }
 
-export const handler: APIGatewayProxyHandlerV2 = async () => {
+export const handler: APIGatewayProxyHandlerV2 = async (_event, context) => {
   try {
     // Get music settings
     const settingsResult = await docClient.send(
@@ -104,15 +104,16 @@ export const handler: APIGatewayProxyHandlerV2 = async () => {
       uploadedBy: item.uploadedBy as string,
     }));
 
-    return createResponse(200, {
-      success: true,
-      data: {
-        settings,
-        tracks,
-      },
-    });
+    return createSuccessResponse(200, {
+      settings,
+      tracks,
+    }, context);
   } catch (error) {
-    console.error("Error getting music data:", error);
-    return createErrorResponse(500, "Failed to get music data");
+    const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    console.error("Error getting music data:", {
+      requestId: context.awsRequestId,
+      error: errorMessage,
+    });
+    return createErrorResponse(500, "Failed to get music data", context, "DB_ERROR");
   }
 };

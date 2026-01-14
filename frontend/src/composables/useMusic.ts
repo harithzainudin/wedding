@@ -93,12 +93,8 @@ export function useMusic() {
 
     try {
       const response = await getMusic();
-      if (response.success && response.data) {
-        tracks.value = response.data.tracks;
-        settings.value = response.data.settings;
-      } else {
-        loadError.value = response.error ?? "Failed to load music";
-      }
+      tracks.value = response.tracks;
+      settings.value = response.settings;
     } catch (err) {
       loadError.value = err instanceof Error ? err.message : "Failed to load music";
     } finally {
@@ -162,15 +158,10 @@ export function useMusic() {
       }
       const presignedResponse = await getMusicPresignedUrl(presignedRequest);
 
-      if (!presignedResponse.success || !presignedResponse.data) {
-        uploadProgress.value.delete(fileId);
-        return { success: false, error: presignedResponse.error ?? "Failed to get upload URL" };
-      }
-
       uploadProgress.value.set(fileId, 30);
 
       // Step 2: Upload to S3
-      const uploadSuccess = await uploadMusicToS3(presignedResponse.data.uploadUrl, file);
+      const uploadSuccess = await uploadMusicToS3(presignedResponse.uploadUrl, file);
       if (!uploadSuccess) {
         uploadProgress.value.delete(fileId);
         return { success: false, error: "Failed to upload file to storage" };
@@ -188,8 +179,8 @@ export function useMusic() {
         artist?: string;
         duration: number;
       } = {
-        trackId: presignedResponse.data.trackId,
-        s3Key: presignedResponse.data.s3Key,
+        trackId: presignedResponse.trackId,
+        s3Key: presignedResponse.s3Key,
         filename: file.name,
         mimeType: file.type,
         title,
@@ -200,15 +191,23 @@ export function useMusic() {
       }
       const confirmResponse = await confirmMusicUpload(confirmRequest);
 
-      if (!confirmResponse.success || !confirmResponse.data) {
-        uploadProgress.value.delete(fileId);
-        return { success: false, error: confirmResponse.error ?? "Failed to confirm upload" };
-      }
-
       uploadProgress.value.set(fileId, 100);
 
       // Add the new track to the list
-      tracks.value.push(confirmResponse.data);
+      tracks.value.push({
+        id: confirmResponse.id,
+        title: confirmResponse.title,
+        artist: confirmResponse.artist,
+        duration: confirmResponse.duration,
+        filename: confirmResponse.filename,
+        url: confirmResponse.url,
+        mimeType: confirmResponse.mimeType,
+        fileSize: 0,
+        order: confirmResponse.order,
+        source: confirmResponse.source,
+        uploadedAt: confirmResponse.uploadedAt,
+        uploadedBy: confirmResponse.uploadedBy,
+      });
 
       // Clean up progress after a delay
       setTimeout(() => {
@@ -225,16 +224,13 @@ export function useMusic() {
   // Remove a track
   const removeTrack = async (trackId: string): Promise<{ success: boolean; error?: string }> => {
     try {
-      const response = await deleteMusicTrack(trackId);
-      if (response.success) {
-        tracks.value = tracks.value.filter((t) => t.id !== trackId);
-        // Clear selected track if it was deleted
-        if (settings.value.selectedTrackId === trackId) {
-          settings.value.selectedTrackId = undefined;
-        }
-        return { success: true };
+      await deleteMusicTrack(trackId);
+      tracks.value = tracks.value.filter((t) => t.id !== trackId);
+      // Clear selected track if it was deleted
+      if (settings.value.selectedTrackId === trackId) {
+        settings.value.selectedTrackId = undefined;
       }
-      return { success: false, error: response.error ?? "Failed to delete track" };
+      return { success: true };
     } catch (err) {
       return { success: false, error: err instanceof Error ? err.message : "Failed to delete track" };
     }
@@ -252,12 +248,7 @@ export function useMusic() {
       .filter((track): track is MusicTrack => track !== null);
 
     try {
-      const response = await reorderMusicTracks({ trackIds: newOrder });
-      if (!response.success) {
-        // Revert on failure
-        tracks.value = previousTracks;
-        return { success: false, error: response.error ?? "Failed to reorder tracks" };
-      }
+      await reorderMusicTracks({ trackIds: newOrder });
       return { success: true };
     } catch (err) {
       // Revert on error
@@ -271,13 +262,10 @@ export function useMusic() {
     newSettings: MusicSettingsUpdateRequest
   ): Promise<{ success: boolean; error?: string }> => {
     try {
-      const response = await updateMusicSettings(newSettings);
-      if (response.success) {
-        // Update local settings
-        Object.assign(settings.value, newSettings);
-        return { success: true };
-      }
-      return { success: false, error: response.error ?? "Failed to update settings" };
+      await updateMusicSettings(newSettings);
+      // Update local settings
+      Object.assign(settings.value, newSettings);
+      return { success: true };
     } catch (err) {
       return { success: false, error: err instanceof Error ? err.message : "Failed to update settings" };
     }

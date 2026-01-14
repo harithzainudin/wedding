@@ -2,14 +2,14 @@ import type { APIGatewayProxyHandlerV2 } from "aws-lambda";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient, QueryCommand, GetCommand } from "@aws-sdk/lib-dynamodb";
 import { Resource } from "sst";
-import { createResponse, createErrorResponse } from "../shared/response";
+import { createSuccessResponse, createErrorResponse } from "../shared/response";
 import { requireAuth } from "../shared/auth";
 import { DEFAULT_MAX_FILE_SIZE, DEFAULT_MAX_IMAGES, DEFAULT_SHOW_GALLERY, ALLOWED_MIME_TYPES } from "../shared/image-constants";
 
 const dynamoClient = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(dynamoClient);
 
-export const handler: APIGatewayProxyHandlerV2 = async (event) => {
+export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
   // Auth is optional for listing images - public can view, admin gets extra details
   const authResult = requireAuth(event);
   const isAuthenticated = authResult.authenticated;
@@ -59,28 +59,26 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
         showGallery,
       };
 
-      return createResponse(200, {
-        success: true,
-        data: {
-          images,
-          total: images.length,
-          settings,
-          remainingSlots: settings.maxImages - images.length,
-        },
-      });
+      return createSuccessResponse(200, {
+        images,
+        total: images.length,
+        settings,
+        remainingSlots: settings.maxImages - images.length,
+      }, context);
     }
 
     // Public response - images and showGallery flag
-    return createResponse(200, {
-      success: true,
-      data: {
-        images,
-        total: images.length,
-        showGallery,
-      },
-    });
+    return createSuccessResponse(200, {
+      images,
+      total: images.length,
+      showGallery,
+    }, context);
   } catch (error) {
-    console.error("Error listing images:", error);
-    return createErrorResponse(500, "Failed to list images");
+    const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    console.error("Error listing images:", {
+      requestId: context.awsRequestId,
+      error: errorMessage,
+    });
+    return createErrorResponse(500, "Failed to list images", context, "DB_ERROR");
   }
 };

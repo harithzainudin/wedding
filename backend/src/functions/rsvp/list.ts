@@ -6,7 +6,7 @@ import {
   QueryCommand,
 } from "@aws-sdk/lib-dynamodb";
 import { Resource } from "sst";
-import { createResponse, createErrorResponse } from "../shared/response";
+import { createSuccessResponse, createErrorResponse } from "../shared/response";
 import { requireAuth } from "../shared/auth";
 
 const client = new DynamoDBClient({});
@@ -25,7 +25,7 @@ interface RsvpRecord {
   submittedAt: string;
 }
 
-export const handler: APIGatewayProxyHandlerV2 = async (event) => {
+export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
   // Check authentication (optional - public can view wishes, admin gets full data)
   const authResult = requireAuth(event);
   const isAuthenticated = authResult.authenticated;
@@ -87,30 +87,28 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
           submittedAt: r.submittedAt,
         }));
 
-      return createResponse(200, {
-        success: true,
-        data: { rsvps: wishes },
-      });
+      return createSuccessResponse(200, { rsvps: wishes }, context);
     }
 
     // Authenticated response - full data with summary statistics
     const attending = rsvps.filter((r) => r.isAttending);
     const totalGuests = attending.reduce((sum, r) => sum + r.numberOfGuests, 0);
 
-    return createResponse(200, {
-      success: true,
-      data: {
-        rsvps,
-        summary: {
-          total: rsvps.length,
-          attending: attending.length,
-          notAttending: rsvps.length - attending.length,
-          totalGuests,
-        },
+    return createSuccessResponse(200, {
+      rsvps,
+      summary: {
+        total: rsvps.length,
+        attending: attending.length,
+        notAttending: rsvps.length - attending.length,
+        totalGuests,
       },
-    });
+    }, context);
   } catch (error) {
-    console.error("Error listing RSVPs:", error);
-    return createErrorResponse(500, "Internal server error");
+    const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    console.error("Error listing RSVPs:", {
+      requestId: context.awsRequestId,
+      error: errorMessage,
+    });
+    return createErrorResponse(500, "Internal server error", context, "DB_ERROR");
   }
 };

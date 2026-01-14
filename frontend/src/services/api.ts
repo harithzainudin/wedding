@@ -51,6 +51,41 @@ import {
 
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3000";
 
+// API Response wrapper types for standardized backend format
+interface ApiSuccessResponse<T> {
+  success: true;
+  data: T;
+  metadata: {
+    requestId: string;
+    timestamp: string;
+  };
+}
+
+interface ApiErrorResponse {
+  success: false;
+  error: {
+    message: string;
+    code?: string;
+  };
+  metadata: {
+    requestId: string;
+    timestamp: string;
+  };
+}
+
+type ApiResponse<T> = ApiSuccessResponse<T> | ApiErrorResponse;
+
+/**
+ * Unwraps the standardized API response format
+ * Returns the data on success, throws an error on failure
+ */
+function unwrapResponse<T>(response: ApiResponse<T>): T {
+  if (response.success) {
+    return response.data;
+  }
+  throw new Error(response.error.message);
+}
+
 function getAuthHeaders(): Record<string, string> {
   const token = getAccessToken();
   const headers: Record<string, string> = {
@@ -92,14 +127,16 @@ async function authenticatedFetch<T>(
           ...(options.headers as Record<string, string> ?? {}),
         },
       });
-      return retryResponse.json() as Promise<T>;
+      const retryJson = (await retryResponse.json()) as ApiResponse<T>;
+      return unwrapResponse(retryJson);
     }
 
     // Refresh failed - notify app to redirect to login
     notifyAuthExpired();
   }
 
-  return response.json() as Promise<T>;
+  const json = (await response.json()) as ApiResponse<T>;
+  return unwrapResponse(json);
 }
 
 export async function submitRsvp(data: RsvpFormData): Promise<RsvpApiResponse> {
@@ -111,8 +148,8 @@ export async function submitRsvp(data: RsvpFormData): Promise<RsvpApiResponse> {
     body: JSON.stringify(data),
   });
 
-  const result = (await response.json()) as RsvpApiResponse;
-  return result;
+  const json = (await response.json()) as ApiResponse<RsvpApiResponse>;
+  return unwrapResponse(json);
 }
 
 export async function listRsvps(status?: "attending" | "not_attending"): Promise<RsvpListResponse> {
@@ -135,8 +172,8 @@ export async function adminLogin(data: AdminLoginRequest): Promise<AdminLoginRes
     body: JSON.stringify(data),
   });
 
-  const result = (await response.json()) as AdminLoginResponse;
-  return result;
+  const json = (await response.json()) as ApiResponse<AdminLoginResponse>;
+  return unwrapResponse(json);
 }
 
 export async function createAdminUser(data: CreateAdminRequest): Promise<CreateAdminResponse> {
@@ -263,8 +300,8 @@ export async function getVenue(): Promise<VenueResponse> {
     },
   });
 
-  const result = (await response.json()) as VenueResponse;
-  return result;
+  const json = (await response.json()) as ApiResponse<VenueResponse>;
+  return unwrapResponse(json);
 }
 
 export async function updateVenue(data: VenueUpdateRequest): Promise<VenueResponse> {
@@ -284,8 +321,8 @@ export async function getWeddingDetails(): Promise<WeddingDetailsResponse> {
     },
   });
 
-  const result = (await response.json()) as WeddingDetailsResponse;
-  return result;
+  const json = (await response.json()) as ApiResponse<WeddingDetailsResponse>;
+  return unwrapResponse(json);
 }
 
 export async function updateWeddingDetails(data: WeddingDetailsUpdateRequest): Promise<WeddingDetailsResponse> {
@@ -305,8 +342,8 @@ export async function getSchedule(): Promise<ScheduleResponse> {
     },
   });
 
-  const result = (await response.json()) as ScheduleResponse;
-  return result;
+  const json = (await response.json()) as ApiResponse<ScheduleResponse>;
+  return unwrapResponse(json);
 }
 
 export async function updateSchedule(data: ScheduleUpdateRequest): Promise<ScheduleResponse> {
@@ -326,8 +363,8 @@ export async function getContacts(): Promise<ContactsResponse> {
     },
   });
 
-  const result = (await response.json()) as ContactsResponse;
-  return result;
+  const json = (await response.json()) as ApiResponse<ContactsResponse>;
+  return unwrapResponse(json);
 }
 
 export async function updateContacts(data: ContactsUpdateRequest): Promise<ContactsResponse> {
@@ -347,8 +384,8 @@ export async function getMusic(): Promise<MusicResponse> {
     },
   });
 
-  const result = (await response.json()) as MusicResponse;
-  return result;
+  const json = (await response.json()) as ApiResponse<MusicResponse>;
+  return unwrapResponse(json);
 }
 
 export async function updateMusicSettings(data: MusicSettingsUpdateRequest): Promise<MusicSettingsUpdateResponse> {

@@ -5,7 +5,7 @@ import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { v4 as uuidv4 } from "uuid";
 import { Resource } from "sst";
-import { createResponse, createErrorResponse } from "../shared/response";
+import { createSuccessResponse, createErrorResponse } from "../shared/response";
 import { requireAuth } from "../shared/auth";
 import { validateImageUpload } from "../shared/image-validation";
 import {
@@ -47,34 +47,34 @@ async function getCurrentImageCount(): Promise<number> {
   return result.Count ?? 0;
 }
 
-export const handler: APIGatewayProxyHandlerV2 = async (event) => {
+export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
   const authResult = requireAuth(event);
   if (!authResult.authenticated) {
-    return createErrorResponse(authResult.statusCode, authResult.error);
+    return createErrorResponse(authResult.statusCode, authResult.error, context, "AUTH_ERROR");
   }
 
   if (!event.body) {
-    return createErrorResponse(400, "Missing request body");
+    return createErrorResponse(400, "Missing request body", context, "MISSING_BODY");
   }
 
   let body: unknown;
   try {
     body = JSON.parse(event.body);
   } catch {
-    return createErrorResponse(400, "Invalid JSON body");
+    return createErrorResponse(400, "Invalid JSON body", context, "INVALID_JSON");
   }
 
   // Get settings and validate
   const settings = await getImageSettings();
   const validation = validateImageUpload(body, settings);
   if (!validation.valid) {
-    return createErrorResponse(400, validation.error);
+    return createErrorResponse(400, validation.error, context, "VALIDATION_ERROR");
   }
 
   // Check max images limit
   const currentCount = await getCurrentImageCount();
   if (currentCount >= settings.maxImages) {
-    return createErrorResponse(400, `Maximum of ${settings.maxImages} images reached`);
+    return createErrorResponse(400, `Maximum of ${settings.maxImages} images reached`, context, "LIMIT_EXCEEDED");
   }
 
   const { mimeType, fileSize } = validation.data;
@@ -92,13 +92,10 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
 
   const presignedUrl = await getSignedUrl(s3Client, command, { expiresIn: 600 });
 
-  return createResponse(200, {
-    success: true,
-    data: {
-      uploadUrl: presignedUrl,
-      imageId,
-      s3Key,
-      expiresIn: 600,
-    },
-  });
+  return createSuccessResponse(200, {
+    uploadUrl: presignedUrl,
+    imageId,
+    s3Key,
+    expiresIn: 600,
+  }, context);
 };

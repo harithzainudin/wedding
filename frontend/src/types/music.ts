@@ -33,13 +33,10 @@ export interface MusicSettings {
   updatedBy?: string | undefined;
 }
 
+// Response data from music endpoint (unwrapped)
 export interface MusicResponse {
-  success: boolean;
-  data?: {
-    settings: MusicSettings;
-    tracks: MusicTrack[];
-  };
-  error?: string;
+  settings: MusicSettings;
+  tracks: MusicTrack[];
 }
 
 export interface MusicSettingsUpdateRequest {
@@ -52,10 +49,9 @@ export interface MusicSettingsUpdateRequest {
   selectedTrackId?: string | null | undefined;
 }
 
+// Response data from music settings update endpoint (unwrapped)
 export interface MusicSettingsUpdateResponse {
-  success: boolean;
-  message?: string;
-  error?: string;
+  message: string;
 }
 
 export interface MusicPresignedUrlRequest {
@@ -67,15 +63,12 @@ export interface MusicPresignedUrlRequest {
   duration?: number | undefined;
 }
 
+// Response data from music presigned URL endpoint (unwrapped)
 export interface MusicPresignedUrlResponse {
-  success: boolean;
-  data?: {
-    uploadUrl: string;
-    trackId: string;
-    s3Key: string;
-    expiresIn: number;
-  };
-  error?: string;
+  uploadUrl: string;
+  trackId: string;
+  s3Key: string;
+  expiresIn: number;
 }
 
 export interface MusicConfirmRequest {
@@ -88,24 +81,31 @@ export interface MusicConfirmRequest {
   duration: number;
 }
 
+// Response data from music confirm upload endpoint (unwrapped)
 export interface MusicConfirmResponse {
-  success: boolean;
-  data?: MusicTrack;
-  error?: string;
+  id: string;
+  title: string;
+  artist?: string | undefined;
+  duration: number;
+  filename: string;
+  url: string;
+  mimeType: string;
+  order: number;
+  source: MusicSource;
+  uploadedAt: string;
+  uploadedBy: string;
 }
 
+// Response data from music delete endpoint (unwrapped)
 export interface MusicDeleteResponse {
-  success: boolean;
-  message?: string;
-  error?: string;
+  message: string;
 }
 
 export interface MusicReorderRequest {
   trackIds: string[];
 }
 
+// Response data from music reorder endpoint (unwrapped)
 export interface MusicReorderResponse {
-  success: boolean;
-  message?: string;
-  error?: string;
+  message: string;
 }

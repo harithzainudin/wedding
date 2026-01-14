@@ -1,7 +1,7 @@
 import type { APIGatewayProxyHandlerV2 } from "aws-lambda";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient, GetCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
-import { createResponse, createErrorResponse } from "../shared/response";
+import { createSuccessResponse, createErrorResponse } from "../shared/response";
 import { requireAuth } from "../shared/auth";
 import { Resource } from "sst";
 
@@ -12,43 +12,37 @@ interface UpdateEmailRequest {
   email: string;
 }
 
-interface UpdateEmailResponse {
-  success: boolean;
-  message?: string;
-  error?: string;
-}
-
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-export const handler: APIGatewayProxyHandlerV2 = async (event) => {
+export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
   // Require authentication
   const authResult = requireAuth(event);
   if (!authResult.authenticated) {
-    return createErrorResponse(authResult.statusCode, authResult.error);
+    return createErrorResponse(authResult.statusCode, authResult.error, context, "AUTH_ERROR");
   }
 
   const username = authResult.user.username;
 
   // Block master account from updating email
   if (username === "master") {
-    return createErrorResponse(403, "Master account email cannot be updated");
+    return createErrorResponse(403, "Master account email cannot be updated", context, "FORBIDDEN");
   }
 
   if (!event.body) {
-    return createErrorResponse(400, "Missing request body");
+    return createErrorResponse(400, "Missing request body", context, "MISSING_BODY");
   }
 
   let body: UpdateEmailRequest;
   try {
     body = JSON.parse(event.body) as UpdateEmailRequest;
   } catch {
-    return createErrorResponse(400, "Invalid JSON body");
+    return createErrorResponse(400, "Invalid JSON body", context, "INVALID_JSON");
   }
 
   // Validate email format (allow empty string to remove email)
   const email = body.email?.trim() ?? "";
   if (email && !EMAIL_REGEX.test(email)) {
-    return createErrorResponse(400, "Invalid email format");
+    return createErrorResponse(400, "Invalid email format", context, "VALIDATION_ERROR");
   }
 
   // Verify user exists
@@ -63,7 +57,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
   );
 
   if (!result.Item) {
-    return createErrorResponse(404, "User not found");
+    return createErrorResponse(404, "User not found", context, "NOT_FOUND");
   }
 
   // Update email in DynamoDB
@@ -82,8 +76,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     })
   );
 
-  return createResponse<UpdateEmailResponse>(200, {
-    success: true,
+  return createSuccessResponse(200, {
     message: email ? "Email updated successfully" : "Email removed successfully",
-  });
+  }, context);
 };

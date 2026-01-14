@@ -2,33 +2,33 @@ import type { APIGatewayProxyHandlerV2 } from "aws-lambda";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient, UpdateCommand } from "@aws-sdk/lib-dynamodb";
 import { Resource } from "sst";
-import { createResponse, createErrorResponse } from "../shared/response";
+import { createSuccessResponse, createErrorResponse } from "../shared/response";
 import { requireAuth } from "../shared/auth";
 import { validateSettingsUpdate } from "../shared/music-validation";
 
 const dynamoClient = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(dynamoClient);
 
-export const handler: APIGatewayProxyHandlerV2 = async (event) => {
+export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
   const authResult = requireAuth(event);
   if (!authResult.authenticated) {
-    return createErrorResponse(authResult.statusCode, authResult.error);
+    return createErrorResponse(authResult.statusCode, authResult.error, context, "AUTH_ERROR");
   }
 
   if (!event.body) {
-    return createErrorResponse(400, "Missing request body");
+    return createErrorResponse(400, "Missing request body", context, "MISSING_BODY");
   }
 
   let body: unknown;
   try {
     body = JSON.parse(event.body);
   } catch {
-    return createErrorResponse(400, "Invalid JSON body");
+    return createErrorResponse(400, "Invalid JSON body", context, "INVALID_JSON");
   }
 
   const validation = validateSettingsUpdate(body);
   if (!validation.valid) {
-    return createErrorResponse(400, validation.error);
+    return createErrorResponse(400, validation.error, context, "VALIDATION_ERROR");
   }
 
   try {
@@ -94,12 +94,15 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
       })
     );
 
-    return createResponse(200, {
-      success: true,
+    return createSuccessResponse(200, {
       message: "Music settings updated successfully",
-    });
+    }, context);
   } catch (error) {
-    console.error("Error updating music settings:", error);
-    return createErrorResponse(500, "Failed to update music settings");
+    const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    console.error("Error updating music settings:", {
+      requestId: context.awsRequestId,
+      error: errorMessage,
+    });
+    return createErrorResponse(500, "Failed to update music settings", context, "DB_ERROR");
   }
 };

@@ -30,11 +30,7 @@ const fetchWishes = async (): Promise<void> => {
 
   try {
     const response = await listRsvps();
-    if (response.success && response.data) {
-      wishes.value = response.data.rsvps;
-    } else {
-      hasError.value = true;
-    }
+    wishes.value = response.rsvps;
   } catch {
     hasError.value = true;
   } finally {

@@ -2,13 +2,13 @@ import type { APIGatewayProxyHandlerV2 } from "aws-lambda";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient, GetCommand } from "@aws-sdk/lib-dynamodb";
 import { Resource } from "sst";
-import { createResponse, createErrorResponse } from "../shared/response";
+import { createSuccessResponse, createErrorResponse } from "../shared/response";
 import { DEFAULT_VENUE, type VenueData } from "../shared/venue-validation";
 
 const dynamoClient = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(dynamoClient);
 
-export const handler: APIGatewayProxyHandlerV2 = async () => {
+export const handler: APIGatewayProxyHandlerV2 = async (_event, context) => {
   try {
     const result = await docClient.send(
       new GetCommand({
@@ -19,10 +19,7 @@ export const handler: APIGatewayProxyHandlerV2 = async () => {
 
     if (!result.Item) {
       // Return default venue if none exists in database
-      return createResponse(200, {
-        success: true,
-        data: DEFAULT_VENUE,
-      });
+      return createSuccessResponse(200, DEFAULT_VENUE, context);
     }
 
     const venueData: VenueData = {
@@ -36,12 +33,13 @@ export const handler: APIGatewayProxyHandlerV2 = async () => {
       updatedBy: result.Item.updatedBy,
     };
 
-    return createResponse(200, {
-      success: true,
-      data: venueData,
-    });
+    return createSuccessResponse(200, venueData, context);
   } catch (error) {
-    console.error("Error fetching venue:", error);
-    return createErrorResponse(500, "Failed to fetch venue data");
+    const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    console.error("Error fetching venue:", {
+      requestId: context.awsRequestId,
+      error: errorMessage,
+    });
+    return createErrorResponse(500, "Failed to fetch venue data", context, "DB_ERROR");
   }
 };

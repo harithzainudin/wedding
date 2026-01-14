@@ -2,13 +2,14 @@
 import { computed } from "vue";
 import { useLanguage } from "@/composables/useLanguage";
 import { usePublicWeddingData } from "@/composables/usePublicWeddingData";
+import { useNameOrder } from "@/composables/useNameOrder";
 import type { ContactPerson } from "@/types/contacts";
 
 const { t, currentLanguage } = useLanguage();
-const { getContactsMultilingual, getCoupleNames, isLoadingContacts } = usePublicWeddingData();
+const { getContactsMultilingual, isLoadingContacts } = usePublicWeddingData();
+const { getOrderedNicknamesString } = useNameOrder();
 
 const contacts = computed(() => getContactsMultilingual());
-const couple = computed(() => getCoupleNames());
 
 const getCleanPhone = (phone: string): string => {
   return phone.replace(/[^0-9+]/g, "");
@@ -22,7 +23,7 @@ const getContactRole = (contact: ContactPerson): string => {
 
 const openWhatsApp = (phone: string): void => {
   const cleanPhone = getCleanPhone(phone);
-  const coupleNames = `${couple.value.bride.nickname} & ${couple.value.groom.nickname}`;
+  const coupleNames = getOrderedNicknamesString(" & ");
   const message = encodeURIComponent(
     t.value.contact.whatsappMessage.replace("{couple}", coupleNames)
   );

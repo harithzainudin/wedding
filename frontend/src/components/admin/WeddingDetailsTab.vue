@@ -1,8 +1,19 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from "vue";
 import { useWeddingDetails } from "@/composables/useWeddingDetails";
-import type { EventDisplayFormat, EventDisplayPreset } from "@/types/weddingDetails";
+import type { EventDisplayFormat, EventDisplayPreset, DisplayNameOrder } from "@/types/weddingDetails";
 import { DEFAULT_DISPLAY_FORMAT } from "@/types/weddingDetails";
+
+// Tooltip content for name order setting
+const nameOrderTooltip = `Adat Perkahwinan Melayu (Malay Wedding Custom)
+
+Secara tradisi, susunan nama mencerminkan pihak mana yang mengadakan majlis resepsi terlebih dahulu:
+
+• Pengantin Perempuan Dahulu: Apabila majlis resepsi utama (bersanding) diadakan di rumah keluarga pengantin perempuan terlebih dahulu. Ini adalah susunan tradisional.
+
+• Pengantin Lelaki Dahulu: Apabila pihak pengantin lelaki mengadakan majlis terlebih dahulu, atau untuk majlis bertandang di rumah pengantin lelaki.
+
+Pilih berdasarkan susunan majlis perkahwinan anda.`;
 
 const {
   weddingDetails,
@@ -40,6 +51,7 @@ const formData = ref({
   eventDate: "",
   eventEndTime: "",
   eventDisplayFormat: { ...DEFAULT_DISPLAY_FORMAT } as EventDisplayFormat,
+  displayNameOrder: "bride_first" as DisplayNameOrder,
   dressCode: "",
   hashtag: "",
   qrCodeUrl: "",
@@ -53,6 +65,7 @@ const hasChanges = computed(() => {
     eventDate: weddingDetails.value.eventDate,
     eventEndTime: weddingDetails.value.eventEndTime ?? "",
     eventDisplayFormat: weddingDetails.value.eventDisplayFormat ?? DEFAULT_DISPLAY_FORMAT,
+    displayNameOrder: weddingDetails.value.displayNameOrder ?? "bride_first",
     dressCode: weddingDetails.value.dressCode,
     hashtag: weddingDetails.value.hashtag,
     qrCodeUrl: weddingDetails.value.qrCodeUrl,
@@ -75,6 +88,7 @@ const syncFormData = () => {
     eventDisplayFormat: weddingDetails.value.eventDisplayFormat
       ? { ...weddingDetails.value.eventDisplayFormat, customOptions: { ...weddingDetails.value.eventDisplayFormat.customOptions } }
       : { ...DEFAULT_DISPLAY_FORMAT, customOptions: { ...DEFAULT_DISPLAY_FORMAT.customOptions } },
+    displayNameOrder: weddingDetails.value.displayNameOrder ?? "bride_first",
     dressCode: weddingDetails.value.dressCode,
     hashtag: weddingDetails.value.hashtag,
     qrCodeUrl: weddingDetails.value.qrCodeUrl,
@@ -419,6 +433,78 @@ onMounted(async () => {
               />
             </div>
           </div>
+        </div>
+      </div>
+
+      <!-- Name Display Order Setting -->
+      <div class="bg-white dark:bg-dark-bg-secondary rounded-lg border border-sand-dark dark:border-dark-border p-4 sm:p-6">
+        <div class="flex items-start gap-2 mb-4">
+          <h3 class="font-heading text-base font-medium text-charcoal dark:text-dark-text">
+            Name Display Order
+          </h3>
+          <!-- Tooltip -->
+          <div class="relative group">
+            <button
+              type="button"
+              class="w-5 h-5 rounded-full bg-sage/20 text-sage-dark dark:text-sage-light flex items-center justify-center text-xs font-medium hover:bg-sage/30 transition-colors"
+              aria-label="Information about name display order"
+            >
+              ?
+            </button>
+            <!-- Tooltip content - centered on mobile, left-aligned on desktop -->
+            <div class="absolute left-1/2 -translate-x-1/2 sm:left-0 sm:translate-x-0 top-full mt-2 w-[calc(100vw-2rem)] max-w-72 sm:max-w-80 sm:w-80 p-3 bg-charcoal dark:bg-dark-bg-elevated text-white text-xs rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 whitespace-pre-line max-h-64 overflow-y-auto">
+              {{ nameOrderTooltip }}
+            </div>
+          </div>
+        </div>
+        <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary mb-4">
+          Choose whether to display the bride or groom name first throughout the website.
+        </p>
+
+        <div class="flex flex-col sm:flex-row gap-3">
+          <label class="flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors"
+            :class="formData.displayNameOrder === 'bride_first'
+              ? 'border-sage bg-sage/10 dark:bg-sage/20'
+              : 'border-sand-dark dark:border-dark-border hover:border-sage/50'"
+          >
+            <input
+              v-model="formData.displayNameOrder"
+              type="radio"
+              value="bride_first"
+              class="w-4 h-4 border-sand-dark text-sage focus:ring-sage"
+              :disabled="isSaving"
+            />
+            <div>
+              <span class="font-body text-sm font-medium text-charcoal dark:text-dark-text block">
+                Bride First
+              </span>
+              <span class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary">
+                Pengantin Perempuan Dahulu (Traditional)
+              </span>
+            </div>
+          </label>
+
+          <label class="flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors"
+            :class="formData.displayNameOrder === 'groom_first'
+              ? 'border-sage bg-sage/10 dark:bg-sage/20'
+              : 'border-sand-dark dark:border-dark-border hover:border-sage/50'"
+          >
+            <input
+              v-model="formData.displayNameOrder"
+              type="radio"
+              value="groom_first"
+              class="w-4 h-4 border-sand-dark text-sage focus:ring-sage"
+              :disabled="isSaving"
+            />
+            <div>
+              <span class="font-body text-sm font-medium text-charcoal dark:text-dark-text block">
+                Groom First
+              </span>
+              <span class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary">
+                Pengantin Lelaki Dahulu
+              </span>
+            </div>
+          </label>
         </div>
       </div>
 

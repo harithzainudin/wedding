@@ -3,9 +3,11 @@ import { weddingConfig } from "@/config/wedding";
 import { generateGoogleCalendarUrl } from "@/composables/useCalendar";
 import { useLanguage } from "@/composables/useLanguage";
 import { useVenueConfig } from "@/composables/useVenueConfig";
+import { usePublicWeddingData } from "@/composables/usePublicWeddingData";
 
 const { t } = useLanguage();
 const { venue } = useVenueConfig();
+const { getDisplayNameOrder } = usePublicWeddingData();
 
 const openGoogleMaps = (): void => {
   window.open(venue.value.googleMapsUrl, "_blank");
@@ -16,7 +18,7 @@ const openWaze = (): void => {
 };
 
 const addToCalendar = (): void => {
-  const url = generateGoogleCalendarUrl(weddingConfig);
+  const url = generateGoogleCalendarUrl(weddingConfig, getDisplayNameOrder());
   window.open(url, "_blank");
 };
 

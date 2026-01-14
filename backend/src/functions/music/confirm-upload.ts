@@ -3,7 +3,7 @@ import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient, PutCommand, QueryCommand } from "@aws-sdk/lib-dynamodb";
 import { S3Client, HeadObjectCommand } from "@aws-sdk/client-s3";
 import { Resource } from "sst";
-import { createResponse, createErrorResponse } from "../shared/response";
+import { createSuccessResponse, createErrorResponse } from "../shared/response";
 import { requireAuth } from "../shared/auth";
 import { validateConfirmMusicUpload } from "../shared/music-validation";
 
@@ -23,32 +23,33 @@ async function getNextOrder(): Promise<number> {
     })
   );
 
-  if (result.Items && result.Items.length > 0) {
-    return ((result.Items[0].order as number) ?? 0) + 1;
+  const firstItem = result.Items?.[0];
+  if (firstItem) {
+    return ((firstItem.order as number) ?? 0) + 1;
   }
   return 0;
 }
 
-export const handler: APIGatewayProxyHandlerV2 = async (event) => {
+export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
   const authResult = requireAuth(event);
   if (!authResult.authenticated) {
-    return createErrorResponse(authResult.statusCode, authResult.error);
+    return createErrorResponse(authResult.statusCode, authResult.error, context, "AUTH_ERROR");
   }
 
   if (!event.body) {
-    return createErrorResponse(400, "Missing request body");
+    return createErrorResponse(400, "Missing request body", context, "MISSING_BODY");
   }
 
   let body: unknown;
   try {
     body = JSON.parse(event.body);
   } catch {
-    return createErrorResponse(400, "Invalid JSON body");
+    return createErrorResponse(400, "Invalid JSON body", context, "INVALID_JSON");
   }
 
   const validation = validateConfirmMusicUpload(body);
   if (!validation.valid) {
-    return createErrorResponse(400, validation.error);
+    return createErrorResponse(400, validation.error, context, "VALIDATION_ERROR");
   }
 
   const { trackId, s3Key, filename, mimeType, title, artist, duration } = validation.data;
@@ -63,7 +64,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     );
   } catch (error) {
     console.error("File not found in S3:", error);
-    return createErrorResponse(400, "File not found in S3. Upload may have failed.");
+    return createErrorResponse(400, "File not found in S3. Upload may have failed.", context, "S3_ERROR");
   }
 
   try {
@@ -101,24 +102,25 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
       })
     );
 
-    return createResponse(200, {
-      success: true,
-      data: {
-        id: trackId,
-        title,
-        artist,
-        duration,
-        filename,
-        url: `https://${bucketName}.s3.ap-southeast-5.amazonaws.com/${s3Key}`,
-        mimeType,
-        order,
-        source: "upload",
-        uploadedAt: now,
-        uploadedBy: authResult.user.username,
-      },
-    });
+    return createSuccessResponse(200, {
+      id: trackId,
+      title,
+      artist,
+      duration,
+      filename,
+      url: `https://${bucketName}.s3.ap-southeast-5.amazonaws.com/${s3Key}`,
+      mimeType,
+      order,
+      source: "upload",
+      uploadedAt: now,
+      uploadedBy: authResult.user.username,
+    }, context);
   } catch (error) {
-    console.error("Error confirming upload:", error);
-    return createErrorResponse(500, "Failed to confirm upload");
+    const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    console.error("Error confirming upload:", {
+      requestId: context.awsRequestId,
+      error: errorMessage,
+    });
+    return createErrorResponse(500, "Failed to confirm upload", context, "DB_ERROR");
   }
 };

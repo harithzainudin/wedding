@@ -1,7 +1,7 @@
 import type { APIGatewayProxyHandlerV2 } from "aws-lambda";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient, QueryCommand } from "@aws-sdk/lib-dynamodb";
-import { createResponse, createErrorResponse } from "../shared/response";
+import { createSuccessResponse, createErrorResponse } from "../shared/response";
 import { requireAuth } from "../shared/auth";
 import { Resource } from "sst";
 
@@ -14,11 +14,11 @@ interface AdminUser {
   createdBy: string;
 }
 
-export const handler: APIGatewayProxyHandlerV2 = async (event) => {
+export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
   // Require authentication
   const authResult = requireAuth(event);
   if (!authResult.authenticated) {
-    return createErrorResponse(authResult.statusCode, authResult.error);
+    return createErrorResponse(authResult.statusCode, authResult.error, context, "AUTH_ERROR");
   }
 
   try {
@@ -41,15 +41,16 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
       createdBy: item.createdBy as string,
     }));
 
-    return createResponse(200, {
-      success: true,
-      data: {
-        admins,
-        total: admins.length,
-      },
-    });
+    return createSuccessResponse(200, {
+      admins,
+      total: admins.length,
+    }, context);
   } catch (error) {
-    console.error("Error listing admin users:", error);
-    return createErrorResponse(500, "Failed to list admin users");
+    const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    console.error("Error listing admin users:", {
+      requestId: context.awsRequestId,
+      error: errorMessage,
+    });
+    return createErrorResponse(500, "Failed to list admin users", context, "DB_ERROR");
   }
 };

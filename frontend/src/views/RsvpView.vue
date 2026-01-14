@@ -3,11 +3,12 @@ import { RouterLink } from "vue-router";
 import RsvpSection from "@/components/sections/RsvpSection.vue";
 import LanguageToggle from "@/components/ui/LanguageToggle.vue";
 import DarkModeToggle from "@/components/ui/DarkModeToggle.vue";
-import { weddingConfig } from "@/config/wedding";
 import { useLanguage } from "@/composables/useLanguage";
 import { useDocumentTitle } from "@/composables/useDocumentTitle";
+import { useNameOrder } from "@/composables/useNameOrder";
 
 const { t } = useLanguage();
+const { orderedCouple } = useNameOrder();
 
 useDocumentTitle({ text: "RSVP", position: "prefix" });
 </script>
@@ -30,8 +31,8 @@ useDocumentTitle({ text: "RSVP", position: "prefix" });
           {{ t.nav.weddingInvitation }}
         </p>
         <h1 class="font-heading text-2xl sm:text-3xl">
-          {{ weddingConfig.couple.bride.nickname }} &
-          {{ weddingConfig.couple.groom.nickname }}
+          {{ orderedCouple.first.nickname }} &
+          {{ orderedCouple.second.nickname }}
         </h1>
       </RouterLink>
     </header>

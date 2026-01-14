@@ -14,26 +14,20 @@ export interface RsvpSubmission extends RsvpFormData {
   submittedAt: string;
 }
 
+// Response data from RSVP submit endpoint (unwrapped)
 export interface RsvpApiResponse {
-  success: boolean;
-  message?: string;
-  error?: string;
-  data?: {
-    id: string;
-    submittedAt: string;
-  };
+  message: string;
+  id: string;
+  submittedAt: string;
 }
 
+// Response data from RSVP list endpoint (unwrapped)
 export interface RsvpListResponse {
-  success: boolean;
-  data?: {
-    rsvps: RsvpSubmission[];
-    summary: {
-      total: number;
-      attending: number;
-      notAttending: number;
-      totalGuests: number;
-    };
+  rsvps: RsvpSubmission[];
+  summary: {
+    total: number;
+    attending: number;
+    notAttending: number;
+    totalGuests: number;
   };
-  error?: string;
 }

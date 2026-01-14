@@ -24,15 +24,12 @@ export interface PresignedUrlRequest {
   fileSize: number;
 }
 
+// Response data from presigned URL endpoint (unwrapped)
 export interface PresignedUrlResponse {
-  success: boolean;
-  data?: {
-    uploadUrl: string;
-    imageId: string;
-    s3Key: string;
-    expiresIn: number;
-  } | undefined;
-  error?: string | undefined;
+  uploadUrl: string;
+  imageId: string;
+  s3Key: string;
+  expiresIn: number;
 }
 
 export interface ConfirmUploadRequest {
@@ -42,31 +39,33 @@ export interface ConfirmUploadRequest {
   mimeType: string;
 }
 
+// Response data from confirm upload endpoint (unwrapped)
 export interface ConfirmUploadResponse {
-  success: boolean;
-  data?: GalleryImage | undefined;
-  error?: string | undefined;
+  id: string;
+  filename: string;
+  s3Key: string;
+  mimeType: string;
+  fileSize: number;
+  order: number;
+  uploadedAt: string;
+  url: string;
 }
 
+// Response data from list images endpoint (unwrapped)
 export interface ListImagesResponse {
-  success: boolean;
-  data?: {
-    images: GalleryImage[];
-    total: number;
-    settings?: GallerySettings | undefined;
-    remainingSlots?: number | undefined;
-  } | undefined;
-  error?: string | undefined;
+  images: GalleryImage[];
+  total: number;
+  settings?: GallerySettings | undefined;
+  remainingSlots?: number | undefined;
 }
 
 export interface ReorderImagesRequest {
   imageIds: string[];
 }
 
+// Response data from delete image endpoint (unwrapped)
 export interface DeleteImageResponse {
-  success: boolean;
-  message?: string | undefined;
-  error?: string | undefined;
+  message: string;
 }
 
 export interface UpdateSettingsRequest {
@@ -75,8 +74,12 @@ export interface UpdateSettingsRequest {
   showGallery?: boolean | undefined;
 }
 
+// Response data from settings endpoint (unwrapped)
 export interface SettingsResponse {
-  success: boolean;
-  data?: GallerySettings | undefined;
-  error?: string | undefined;
+  maxFileSize: number;
+  maxImages: number;
+  allowedFormats: string[];
+  showGallery: boolean;
+  updatedAt?: string | undefined;
+  updatedBy?: string | undefined;
 }

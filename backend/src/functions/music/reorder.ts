@@ -2,33 +2,33 @@ import type { APIGatewayProxyHandlerV2 } from "aws-lambda";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient, GetCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
 import { Resource } from "sst";
-import { createResponse, createErrorResponse } from "../shared/response";
+import { createSuccessResponse, createErrorResponse } from "../shared/response";
 import { requireAuth } from "../shared/auth";
 import { validateReorderRequest } from "../shared/music-validation";
 
 const dynamoClient = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(dynamoClient);
 
-export const handler: APIGatewayProxyHandlerV2 = async (event) => {
+export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
   const authResult = requireAuth(event);
   if (!authResult.authenticated) {
-    return createErrorResponse(authResult.statusCode, authResult.error);
+    return createErrorResponse(authResult.statusCode, authResult.error, context, "AUTH_ERROR");
   }
 
   if (!event.body) {
-    return createErrorResponse(400, "Missing request body");
+    return createErrorResponse(400, "Missing request body", context, "MISSING_BODY");
   }
 
   let body: unknown;
   try {
     body = JSON.parse(event.body);
   } catch {
-    return createErrorResponse(400, "Invalid JSON body");
+    return createErrorResponse(400, "Invalid JSON body", context, "INVALID_JSON");
   }
 
   const validation = validateReorderRequest(body);
   if (!validation.valid) {
-    return createErrorResponse(400, validation.error);
+    return createErrorResponse(400, validation.error, context, "VALIDATION_ERROR");
   }
 
   const { trackIds } = validation.data;
@@ -44,7 +44,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
       );
 
       if (!result.Item) {
-        return createErrorResponse(404, `Track not found: ${trackId}`);
+        return createErrorResponse(404, `Track not found: ${trackId}`, context, "NOT_FOUND");
       }
     }
 
@@ -70,12 +70,15 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
       );
     }
 
-    return createResponse(200, {
-      success: true,
+    return createSuccessResponse(200, {
       message: "Tracks reordered successfully",
-    });
+    }, context);
   } catch (error) {
-    console.error("Error reordering tracks:", error);
-    return createErrorResponse(500, "Failed to reorder tracks");
+    const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    console.error("Error reordering tracks:", {
+      requestId: context.awsRequestId,
+      error: errorMessage,
+    });
+    return createErrorResponse(500, "Failed to reorder tracks", context, "DB_ERROR");
   }
 };

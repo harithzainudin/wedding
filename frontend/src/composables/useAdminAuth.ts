@@ -57,7 +57,7 @@ export function useAdminAuth() {
       const accessToken = response.accessToken ?? response.token;
       const refreshToken = response.refreshToken;
 
-      if (response.success && accessToken && refreshToken) {
+      if (accessToken && refreshToken) {
         storeTokens({
           accessToken,
           refreshToken,
@@ -74,11 +74,11 @@ export function useAdminAuth() {
         password.value = "";
         return true;
       } else {
-        loginError.value = response.error ?? "Invalid username or password";
+        loginError.value = "Invalid response from server";
         return false;
       }
-    } catch {
-      loginError.value = "Failed to login. Please try again.";
+    } catch (error) {
+      loginError.value = error instanceof Error ? error.message : "Failed to login. Please try again.";
       return false;
     } finally {
       isLoggingIn.value = false;
@@ -124,18 +124,13 @@ export function useAdminAuth() {
     isSettingNewPassword.value = true;
 
     try {
-      const response = await setNewPassword({ newPassword: newPasswordForChange.value });
-
-      if (response.success) {
-        mustChangePassword.value = false;
-        resetForcedPasswordChangeForm();
-        return true;
-      } else {
-        forcedPasswordChangeError.value = response.error ?? "Failed to set new password";
-        return false;
-      }
-    } catch {
-      forcedPasswordChangeError.value = "Failed to set new password. Please try again.";
+      await setNewPassword({ newPassword: newPasswordForChange.value });
+      // If we get here, password was set successfully
+      mustChangePassword.value = false;
+      resetForcedPasswordChangeForm();
+      return true;
+    } catch (error) {
+      forcedPasswordChangeError.value = error instanceof Error ? error.message : "Failed to set new password. Please try again.";
       return false;
     } finally {
       isSettingNewPassword.value = false;

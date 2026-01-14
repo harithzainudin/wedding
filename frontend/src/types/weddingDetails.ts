@@ -5,6 +5,9 @@ export interface CoupleInfo {
   nickname: string;
 }
 
+// Display name order - determines whether bride or groom name appears first
+export type DisplayNameOrder = "bride_first" | "groom_first";
+
 export interface ParentsInfo {
   father: string;
   mother: string;
@@ -57,6 +60,7 @@ export interface WeddingDetailsData {
   eventDate: string;
   eventEndTime?: string;
   eventDisplayFormat?: EventDisplayFormat;
+  displayNameOrder?: DisplayNameOrder;
   dressCode: string;
   hashtag: string;
   qrCodeUrl: string;
@@ -76,6 +80,7 @@ export interface WeddingDetailsUpdateRequest {
   eventDate: string;
   eventEndTime?: string;
   eventDisplayFormat?: EventDisplayFormat;
+  displayNameOrder?: DisplayNameOrder;
   dressCode: string;
   hashtag: string;
   qrCodeUrl: string;

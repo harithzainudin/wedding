@@ -1,5 +1,5 @@
 import type { APIGatewayProxyHandlerV2 } from "aws-lambda";
-import { createResponse, createErrorResponse } from "../shared/response";
+import { createSuccessResponse, createErrorResponse } from "../shared/response";
 import {
   validateRefreshToken,
   generateAccessToken,
@@ -10,33 +10,26 @@ interface RefreshRequest {
   refreshToken: string;
 }
 
-interface RefreshResponse {
-  success: boolean;
-  accessToken?: string;
-  refreshToken?: string;
-  expiresIn?: number;
-}
-
-export const handler: APIGatewayProxyHandlerV2 = async (event) => {
+export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
   if (!event.body) {
-    return createErrorResponse(400, "Missing request body");
+    return createErrorResponse(400, "Missing request body", context, "MISSING_BODY");
   }
 
   let body: RefreshRequest;
   try {
     body = JSON.parse(event.body) as RefreshRequest;
   } catch {
-    return createErrorResponse(400, "Invalid JSON body");
+    return createErrorResponse(400, "Invalid JSON body", context, "INVALID_JSON");
   }
 
   if (!body.refreshToken) {
-    return createErrorResponse(400, "Refresh token is required");
+    return createErrorResponse(400, "Refresh token is required", context, "VALIDATION_ERROR");
   }
 
   const result = validateRefreshToken(body.refreshToken);
 
   if (!result.authenticated) {
-    return createErrorResponse(result.statusCode, result.error);
+    return createErrorResponse(result.statusCode, result.error, context, "AUTH_ERROR");
   }
 
   const newAccessToken = generateAccessToken(
@@ -48,10 +41,9 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     result.user.isMaster
   );
 
-  return createResponse<RefreshResponse>(200, {
-    success: true,
+  return createSuccessResponse(200, {
     accessToken: newAccessToken,
     refreshToken: newRefreshToken,
     expiresIn: 15 * 60, // 15 minutes in seconds
-  });
+  }, context);
 };

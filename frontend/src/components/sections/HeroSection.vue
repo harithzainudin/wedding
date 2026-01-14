@@ -6,17 +6,16 @@ import LanguageToggle from "@/components/ui/LanguageToggle.vue";
 import DarkModeToggle from "@/components/ui/DarkModeToggle.vue";
 import { useLanguage } from "@/composables/useLanguage";
 import { usePublicWeddingData } from "@/composables/usePublicWeddingData";
+import { useNameOrder } from "@/composables/useNameOrder";
 
 const { t } = useLanguage();
-const { getCoupleNames, getEventDate } = usePublicWeddingData();
+const { getEventDate } = usePublicWeddingData();
+const { orderedCouple } = useNameOrder();
 
-const coupleNames = computed(() => {
-  const couple = getCoupleNames();
-  return {
-    bride: couple.bride.nickname,
-    groom: couple.groom.nickname,
-  };
-});
+const coupleNames = computed(() => ({
+  first: orderedCouple.value.first.nickname,
+  second: orderedCouple.value.second.nickname,
+}));
 
 const weddingDate = computed(() => getEventDate());
 </script>
@@ -62,13 +61,13 @@ const weddingDate = computed(() => getEventDate());
       <!-- Couple Names - Stacked -->
       <div class="mb-6 sm:mb-8">
         <h1 class="font-heading text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-semibold">
-          {{ coupleNames.bride }}
+          {{ coupleNames.first }}
         </h1>
         <p class="font-heading text-xl sm:text-2xl md:text-3xl my-1 sm:my-2 opacity-80">
           &
         </p>
         <h1 class="font-heading text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-semibold">
-          {{ coupleNames.groom }}
+          {{ coupleNames.second }}
         </h1>
       </div>
 

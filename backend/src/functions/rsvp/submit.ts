@@ -3,26 +3,26 @@ import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient, PutCommand } from "@aws-sdk/lib-dynamodb";
 import { v4 as uuidv4 } from "uuid";
 import { Resource } from "sst";
-import { createResponse, createErrorResponse } from "../shared/response";
+import { createSuccessResponse, createErrorResponse } from "../shared/response";
 import { validateRsvpInput } from "../shared/validation";
 
 const client = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(client);
 
-export const handler: APIGatewayProxyHandlerV2 = async (event) => {
+export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
   try {
     // Parse request body
     let body: unknown;
     try {
       body = JSON.parse(event.body ?? "{}");
     } catch {
-      return createErrorResponse(400, "Invalid JSON in request body");
+      return createErrorResponse(400, "Invalid JSON in request body", context, "INVALID_JSON");
     }
 
     // Validate input
     const validation = validateRsvpInput(body);
     if (!validation.valid) {
-      return createErrorResponse(400, validation.error);
+      return createErrorResponse(400, validation.error, context, "VALIDATION_ERROR");
     }
 
     const { data } = validation;
@@ -56,16 +56,16 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
       })
     );
 
-    return createResponse(201, {
-      success: true,
-      message: "RSVP submitted successfully",
-      data: {
-        id,
-        submittedAt: timestamp,
-      },
-    });
+    return createSuccessResponse(201, {
+      id,
+      submittedAt: timestamp,
+    }, context);
   } catch (error) {
-    console.error("Error submitting RSVP:", error);
-    return createErrorResponse(500, "Internal server error");
+    const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    console.error("Error submitting RSVP:", {
+      requestId: context.awsRequestId,
+      error: errorMessage,
+    });
+    return createErrorResponse(500, "Internal server error", context, "DB_ERROR");
   }
 };

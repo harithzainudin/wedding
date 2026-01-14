@@ -10,6 +10,11 @@ export interface ParentsInfo {
   mother: string;
 }
 
+// Display name order - determines whether bride or groom name appears first
+export type DisplayNameOrder = "bride_first" | "groom_first";
+
+export const VALID_DISPLAY_NAME_ORDERS: DisplayNameOrder[] = ["bride_first", "groom_first"];
+
 // Display format types
 export type EventDisplayPreset =
   | "date_time_range"
@@ -65,6 +70,7 @@ export interface WeddingDetailsData {
   eventDate: string; // ISO datetime string (start time)
   eventEndTime?: string; // ISO datetime string (end time)
   eventDisplayFormat?: EventDisplayFormat;
+  displayNameOrder?: DisplayNameOrder;
   dressCode: string;
   hashtag: string;
   qrCodeUrl: string;
@@ -84,6 +90,7 @@ export interface WeddingDetailsUpdateRequest {
   eventDate: string;
   eventEndTime?: string;
   eventDisplayFormat?: EventDisplayFormat;
+  displayNameOrder?: DisplayNameOrder;
   dressCode: string;
   hashtag: string;
   qrCodeUrl: string;
@@ -284,6 +291,15 @@ export function validateWeddingDetailsUpdate(
     }
   }
 
+  // Validate displayNameOrder (optional)
+  let validatedDisplayNameOrder: DisplayNameOrder | undefined;
+  if (body.displayNameOrder !== undefined && body.displayNameOrder !== null && body.displayNameOrder !== "") {
+    if (VALID_DISPLAY_NAME_ORDERS.indexOf(body.displayNameOrder as DisplayNameOrder) === -1) {
+      return { valid: false, error: "Display name order must be 'bride_first' or 'groom_first'" };
+    }
+    validatedDisplayNameOrder = body.displayNameOrder as DisplayNameOrder;
+  }
+
   // Validate dressCode
   if (typeof body.dressCode !== "string" || !body.dressCode.trim()) {
     return { valid: false, error: "Dress code is required" };
@@ -322,6 +338,7 @@ export function validateWeddingDetailsUpdate(
       eventDate: body.eventDate.trim(),
       eventEndTime: validatedEndTime,
       eventDisplayFormat: validatedDisplayFormat,
+      displayNameOrder: validatedDisplayNameOrder,
       dressCode: body.dressCode.trim(),
       hashtag: body.hashtag.trim(),
       qrCodeUrl: body.qrCodeUrl.trim(),

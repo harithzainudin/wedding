@@ -2,7 +2,7 @@ import type { APIGatewayProxyHandlerV2 } from "aws-lambda";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient, GetCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
 import bcrypt from "bcryptjs";
-import { createResponse, createErrorResponse } from "../shared/response";
+import { createSuccessResponse, createErrorResponse } from "../shared/response";
 import { requireMaster } from "../shared/auth";
 import { Resource } from "sst";
 import { sendPasswordResetEmail } from "../../services/email";
@@ -10,14 +10,6 @@ import crypto from "crypto";
 
 const client = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(client);
-
-interface ForceResetPasswordResponse {
-  success: boolean;
-  message?: string;
-  temporaryPassword?: string;
-  emailSent?: boolean;
-  emailError?: string;
-}
 
 function generateTemporaryPassword(length: number = 12): string {
   const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789";
@@ -32,23 +24,23 @@ function generateTemporaryPassword(length: number = 12): string {
   return password;
 }
 
-export const handler: APIGatewayProxyHandlerV2 = async (event) => {
+export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
   // Require master admin access
   const authResult = requireMaster(event);
   if (!authResult.authenticated) {
-    return createErrorResponse(authResult.statusCode, authResult.error);
+    return createErrorResponse(authResult.statusCode, authResult.error, context, "AUTH_ERROR");
   }
 
   // Get username from path parameters
   const targetUsername = event.pathParameters?.username?.trim().toLowerCase();
 
   if (!targetUsername) {
-    return createErrorResponse(400, "Username is required");
+    return createErrorResponse(400, "Username is required", context, "VALIDATION_ERROR");
   }
 
   // Prevent resetting master account password
   if (targetUsername === "master") {
-    return createErrorResponse(403, "Cannot reset master account password");
+    return createErrorResponse(403, "Cannot reset master account password", context, "FORBIDDEN");
   }
 
   // Fetch user from DynamoDB
@@ -63,7 +55,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
   );
 
   if (!result.Item) {
-    return createErrorResponse(404, "User not found");
+    return createErrorResponse(404, "User not found", context, "NOT_FOUND");
   }
 
   // Generate temporary password
@@ -109,8 +101,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     }
   }
 
-  return createResponse<ForceResetPasswordResponse>(200, {
-    success: true,
+  return createSuccessResponse(200, {
     message: emailSent
       ? "Password reset successfully. Email sent with temporary password."
       : userEmail
@@ -119,5 +110,5 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     temporaryPassword,
     emailSent,
     ...(emailError && { emailError }),
-  });
+  }, context);
 };

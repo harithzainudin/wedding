@@ -28,9 +28,11 @@ const fetchPublicGallery = async (): Promise<void> => {
 
     if (response.ok) {
       const result = await response.json();
-      showGallery.value = result.data?.showGallery ?? true;
-      if (result.success && result.data?.images?.length > 0) {
-        photos.value = result.data.images.map((img: { url: string; filename: string }) => ({
+      // Handle new API response format (data is nested in result.data)
+      const data = result.data ?? result;
+      showGallery.value = data.showGallery ?? true;
+      if (data.images?.length > 0) {
+        photos.value = data.images.map((img: { url: string; filename: string }) => ({
           src: img.url,
           alt: img.filename,
         }));

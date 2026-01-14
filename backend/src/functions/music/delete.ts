@@ -3,22 +3,22 @@ import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient, GetCommand, DeleteCommand } from "@aws-sdk/lib-dynamodb";
 import { S3Client, DeleteObjectCommand } from "@aws-sdk/client-s3";
 import { Resource } from "sst";
-import { createResponse, createErrorResponse } from "../shared/response";
+import { createSuccessResponse, createErrorResponse } from "../shared/response";
 import { requireAuth } from "../shared/auth";
 
 const dynamoClient = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(dynamoClient);
 const s3Client = new S3Client({});
 
-export const handler: APIGatewayProxyHandlerV2 = async (event) => {
+export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
   const authResult = requireAuth(event);
   if (!authResult.authenticated) {
-    return createErrorResponse(authResult.statusCode, authResult.error);
+    return createErrorResponse(authResult.statusCode, authResult.error, context, "AUTH_ERROR");
   }
 
   const trackId = event.pathParameters?.id;
   if (!trackId) {
-    return createErrorResponse(400, "Track ID is required");
+    return createErrorResponse(400, "Track ID is required", context, "VALIDATION_ERROR");
   }
 
   try {
@@ -31,7 +31,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     );
 
     if (!trackResult.Item) {
-      return createErrorResponse(404, "Track not found");
+      return createErrorResponse(404, "Track not found", context, "NOT_FOUND");
     }
 
     const s3Key = trackResult.Item.s3Key as string;
@@ -59,12 +59,15 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
       })
     );
 
-    return createResponse(200, {
-      success: true,
+    return createSuccessResponse(200, {
       message: "Track deleted successfully",
-    });
+    }, context);
   } catch (error) {
-    console.error("Error deleting track:", error);
-    return createErrorResponse(500, "Failed to delete track");
+    const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    console.error("Error deleting track:", {
+      requestId: context.awsRequestId,
+      error: errorMessage,
+    });
+    return createErrorResponse(500, "Failed to delete track", context, "DB_ERROR");
   }
 };

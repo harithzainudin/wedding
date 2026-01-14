@@ -24,6 +24,7 @@ const nextAudioElement = ref<HTMLAudioElement | null>(null);
 
 // Computed
 const isEnabled = computed(() => settings.value?.enabled ?? false);
+const shouldAutoplay = computed(() => settings.value?.autoplay ?? false);
 const playMode = computed((): PlayMode => settings.value?.mode ?? "single");
 const shouldShuffle = computed(() => settings.value?.shuffle ?? false);
 const shouldLoop = computed(() => settings.value?.loop ?? true);
@@ -239,20 +240,18 @@ const fetchMusicData = async (): Promise<void> => {
   isLoading.value = true;
   try {
     const response = await getMusic();
-    if (response.success && response.data) {
-      settings.value = response.data.settings;
-      tracks.value = response.data.tracks;
+    settings.value = response.settings;
+    tracks.value = response.tracks;
 
-      // Initialize volume from settings or localStorage
-      loadState();
-      if (!localStorage.getItem(STORAGE_KEY) && settings.value) {
-        localVolume.value = settings.value.volume;
-      }
+    // Initialize volume from settings or localStorage
+    loadState();
+    if (!localStorage.getItem(STORAGE_KEY) && settings.value) {
+      localVolume.value = settings.value.volume;
+    }
 
-      // Initialize shuffle order
-      if (settings.value.shuffle && tracks.value.length > 0) {
-        initShuffle();
-      }
+    // Initialize shuffle order
+    if (settings.value.shuffle && tracks.value.length > 0) {
+      initShuffle();
     }
   } catch (err) {
     console.error("Failed to fetch music:", err);
@@ -309,6 +308,17 @@ onMounted(async () => {
     el.addEventListener("focus", handleFormFocus);
     el.addEventListener("blur", handleFormBlur);
   });
+
+  // Attempt autoplay if enabled
+  if (shouldAutoplay.value && currentTrack.value && audioElement.value) {
+    try {
+      await audioElement.value.play();
+      isPlaying.value = true;
+    } catch {
+      // Autoplay blocked by browser - user will need to click to play
+      console.log("Autoplay blocked by browser policy");
+    }
+  }
 });
 
 onUnmounted(() => {

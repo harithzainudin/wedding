@@ -70,13 +70,9 @@ export function useGallery() {
 
     try {
       const response = await listGalleryImages();
-      if (response.success && response.data) {
-        images.value = response.data.images;
-        if (response.data.settings) {
-          settings.value = response.data.settings;
-        }
-      } else {
-        loadError.value = response.error ?? "Failed to load images";
+      images.value = response.images;
+      if (response.settings) {
+        settings.value = response.settings;
       }
     } catch (err) {
       loadError.value = err instanceof Error ? err.message : "Failed to load images";
@@ -103,15 +99,10 @@ export function useGallery() {
         fileSize: file.size,
       });
 
-      if (!presignedResponse.success || !presignedResponse.data) {
-        uploadProgress.value.delete(fileId);
-        return { success: false, error: presignedResponse.error ?? "Failed to get upload URL" };
-      }
-
       uploadProgress.value.set(fileId, 30);
 
       // Step 2: Upload to S3
-      const uploadSuccess = await uploadToS3(presignedResponse.data.uploadUrl, file);
+      const uploadSuccess = await uploadToS3(presignedResponse.uploadUrl, file);
       if (!uploadSuccess) {
         uploadProgress.value.delete(fileId);
         return { success: false, error: "Failed to upload file to storage" };
@@ -121,21 +112,25 @@ export function useGallery() {
 
       // Step 3: Confirm upload
       const confirmResponse = await confirmImageUpload({
-        imageId: presignedResponse.data.imageId,
-        s3Key: presignedResponse.data.s3Key,
+        imageId: presignedResponse.imageId,
+        s3Key: presignedResponse.s3Key,
         filename: file.name,
         mimeType: file.type,
       });
 
-      if (!confirmResponse.success || !confirmResponse.data) {
-        uploadProgress.value.delete(fileId);
-        return { success: false, error: confirmResponse.error ?? "Failed to confirm upload" };
-      }
-
       uploadProgress.value.set(fileId, 100);
 
       // Add the new image to the list
-      images.value.push(confirmResponse.data);
+      images.value.push({
+        id: confirmResponse.id,
+        url: confirmResponse.url,
+        filename: confirmResponse.filename,
+        mimeType: confirmResponse.mimeType,
+        fileSize: confirmResponse.fileSize,
+        order: confirmResponse.order,
+        uploadedAt: confirmResponse.uploadedAt,
+        uploadedBy: "",
+      });
 
       // Clean up progress after a delay
       setTimeout(() => {
@@ -152,12 +147,9 @@ export function useGallery() {
   // Remove an image
   const removeImage = async (imageId: string): Promise<{ success: boolean; error?: string | undefined }> => {
     try {
-      const response = await deleteGalleryImage(imageId);
-      if (response.success) {
-        images.value = images.value.filter((img) => img.id !== imageId);
-        return { success: true };
-      }
-      return { success: false, error: response.error ?? "Failed to delete image" };
+      await deleteGalleryImage(imageId);
+      images.value = images.value.filter((img) => img.id !== imageId);
+      return { success: true };
     } catch (err) {
       return { success: false, error: err instanceof Error ? err.message : "Failed to delete image" };
     }
@@ -175,12 +167,7 @@ export function useGallery() {
       .filter((img): img is GalleryImage => img !== null);
 
     try {
-      const response = await reorderGalleryImages({ imageIds: newOrder });
-      if (!response.success) {
-        // Revert on failure
-        images.value = previousImages;
-        return { success: false, error: response.error ?? "Failed to reorder images" };
-      }
+      await reorderGalleryImages({ imageIds: newOrder });
       return { success: true };
     } catch (err) {
       // Revert on error
@@ -195,11 +182,8 @@ export function useGallery() {
   ): Promise<{ success: boolean; error?: string | undefined }> => {
     try {
       const response = await updateGallerySettings(newSettings);
-      if (response.success && response.data) {
-        settings.value = response.data;
-        return { success: true };
-      }
-      return { success: false, error: response.error ?? "Failed to update settings" };
+      settings.value = response;
+      return { success: true };
     } catch (err) {
       return { success: false, error: err instanceof Error ? err.message : "Failed to update settings" };
     }

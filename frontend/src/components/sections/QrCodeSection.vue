@@ -3,11 +3,12 @@ import { ref, computed, onMounted, onUnmounted } from "vue";
 import QRCode from "qrcode";
 import { useLanguage } from "@/composables/useLanguage";
 import { usePublicWeddingData } from "@/composables/usePublicWeddingData";
+import { useNameOrder } from "@/composables/useNameOrder";
 
 const { t } = useLanguage();
-const { getCoupleNames, getQrCodeUrl, isLoadingWeddingDetails } = usePublicWeddingData();
+const { getQrCodeUrl, isLoadingWeddingDetails } = usePublicWeddingData();
+const { orderedCouple, getOrderedNicknamesString } = useNameOrder();
 
-const couple = computed(() => getCoupleNames());
 const websiteUrl = computed(() => getQrCodeUrl());
 
 const qrCodeDataUrl = ref<string>("");
@@ -66,7 +67,8 @@ const downloadQrCode = (): void => {
   if (!qrCodeDataUrl.value) return;
 
   const link = document.createElement("a");
-  link.download = `${couple.value.bride.nickname}-${couple.value.groom.nickname}-wedding-qr.png`;
+  const filename = `${orderedCouple.value.first.nickname}-${orderedCouple.value.second.nickname}-wedding-qr.png`;
+  link.download = filename;
   link.href = qrCodeDataUrl.value;
   link.click();
 };
@@ -75,7 +77,7 @@ const shareQrCode = async (): Promise<void> => {
   if (navigator.share) {
     try {
       await navigator.share({
-        title: `${couple.value.bride.nickname} & ${couple.value.groom.nickname}`,
+        title: getOrderedNicknamesString(" & "),
         text: t.value.qrCode.subtitle,
         url: websiteUrl.value,
       });
@@ -141,7 +143,7 @@ onUnmounted(() => {
         <div class="h-6 w-40 bg-sage/20 rounded animate-pulse"></div>
       </div>
       <p v-else class="font-heading text-base sm:text-lg text-sage-dark dark:text-sage-light mb-6">
-        {{ couple.bride.nickname }} & {{ couple.groom.nickname }}
+        {{ orderedCouple.first.nickname }} & {{ orderedCouple.second.nickname }}
       </p>
 
       <!-- Action Buttons -->
@@ -226,7 +228,7 @@ onUnmounted(() => {
 
             <!-- Couple Names -->
             <p class="font-heading text-lg sm:text-xl text-sage-dark mt-4">
-              {{ couple.bride.nickname }} & {{ couple.groom.nickname }}
+              {{ orderedCouple.first.nickname }} & {{ orderedCouple.second.nickname }}
             </p>
 
             <!-- Scan instruction -->

@@ -1,7 +1,7 @@
 import { ref, onMounted } from "vue";
 import { getWeddingDetails, getSchedule as fetchScheduleApi, getContacts } from "@/services/api";
 import { weddingConfig } from "@/config/wedding";
-import type { WeddingDetailsData, EventDisplayFormat } from "@/types/weddingDetails";
+import type { WeddingDetailsData, EventDisplayFormat, DisplayNameOrder } from "@/types/weddingDetails";
 import { DEFAULT_DISPLAY_FORMAT } from "@/types/weddingDetails";
 import type { ScheduleData, ScheduleItem } from "@/types/schedule";
 import type { ContactsData, ContactPerson } from "@/types/contacts";
@@ -134,6 +134,14 @@ export function usePublicWeddingData() {
     return DEFAULT_DISPLAY_FORMAT;
   };
 
+  // Display name order with fallback (defaults to bride_first - traditional)
+  const getDisplayNameOrder = (): DisplayNameOrder => {
+    if (weddingDetails.value?.displayNameOrder) {
+      return weddingDetails.value.displayNameOrder;
+    }
+    return "bride_first";
+  };
+
   // Dress code with fallback
   const getDressCode = (): string => {
     if (weddingDetails.value?.dressCode) {
@@ -241,6 +249,7 @@ export function usePublicWeddingData() {
     getEventDate,
     getEventEndTime,
     getEventDisplayFormat,
+    getDisplayNameOrder,
     getDressCode,
     getHashtag,
     getQrCodeUrl,

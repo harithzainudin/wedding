@@ -2,7 +2,7 @@ import type { APIGatewayProxyHandlerV2 } from "aws-lambda";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient, PutCommand } from "@aws-sdk/lib-dynamodb";
 import { Resource } from "sst";
-import { createResponse, createErrorResponse } from "../shared/response";
+import { createSuccessResponse, createErrorResponse } from "../shared/response";
 import { requireAuth } from "../shared/auth";
 import {
   validateWeddingDetailsUpdate,
@@ -12,32 +12,33 @@ import {
 const dynamoClient = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(dynamoClient);
 
-export const handler: APIGatewayProxyHandlerV2 = async (event) => {
+export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
   const authResult = requireAuth(event);
   if (!authResult.authenticated) {
-    return createErrorResponse(authResult.statusCode, authResult.error);
+    return createErrorResponse(authResult.statusCode, authResult.error, context, "AUTH_ERROR");
   }
 
   if (!event.body) {
-    return createErrorResponse(400, "Missing request body");
+    return createErrorResponse(400, "Missing request body", context, "MISSING_BODY");
   }
 
   let body: unknown;
   try {
     body = JSON.parse(event.body);
   } catch {
-    return createErrorResponse(400, "Invalid JSON body");
+    return createErrorResponse(400, "Invalid JSON body", context, "INVALID_JSON");
   }
 
   const validation = validateWeddingDetailsUpdate(body);
   if (!validation.valid) {
-    return createErrorResponse(400, validation.error);
+    return createErrorResponse(400, validation.error, context, "VALIDATION_ERROR");
   }
 
   try {
     const now = new Date().toISOString();
 
-    const weddingItem = {
+    // Build base item with required fields
+    const weddingItem: Record<string, unknown> = {
       pk: "SETTINGS",
       sk: "WEDDING",
       couple: validation.data.couple,
@@ -50,6 +51,19 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
       updatedBy: authResult.user.username,
     };
 
+    // Only add optional fields if they have values (DynamoDB doesn't accept undefined)
+    if (validation.data.eventEndTime) {
+      weddingItem.eventEndTime = validation.data.eventEndTime;
+    }
+    if (validation.data.eventDisplayFormat) {
+      weddingItem.eventDisplayFormat = validation.data.eventDisplayFormat;
+    }
+    if (validation.data.displayNameOrder) {
+      weddingItem.displayNameOrder = validation.data.displayNameOrder;
+    }
+
+    console.log("Saving wedding item:", JSON.stringify(weddingItem, null, 2));
+
     await docClient.send(
       new PutCommand({
         TableName: Resource.AppDataTable.name,
@@ -58,22 +72,29 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     );
 
     const responseData: WeddingDetailsData = {
-      couple: weddingItem.couple,
-      parents: weddingItem.parents,
-      eventDate: weddingItem.eventDate,
-      dressCode: weddingItem.dressCode,
-      hashtag: weddingItem.hashtag,
-      qrCodeUrl: weddingItem.qrCodeUrl,
-      updatedAt: weddingItem.updatedAt,
-      updatedBy: weddingItem.updatedBy,
+      couple: weddingItem.couple as WeddingDetailsData["couple"],
+      parents: weddingItem.parents as WeddingDetailsData["parents"],
+      eventDate: weddingItem.eventDate as string,
+      eventEndTime: weddingItem.eventEndTime as string | undefined,
+      eventDisplayFormat: weddingItem.eventDisplayFormat as WeddingDetailsData["eventDisplayFormat"],
+      displayNameOrder: weddingItem.displayNameOrder as WeddingDetailsData["displayNameOrder"],
+      dressCode: weddingItem.dressCode as string,
+      hashtag: weddingItem.hashtag as string,
+      qrCodeUrl: weddingItem.qrCodeUrl as string,
+      updatedAt: weddingItem.updatedAt as string,
+      updatedBy: weddingItem.updatedBy as string,
     };
 
-    return createResponse(200, {
-      success: true,
-      data: responseData,
-    });
+    return createSuccessResponse(200, responseData, context);
   } catch (error) {
-    console.error("Error updating wedding details:", error);
-    return createErrorResponse(500, "Failed to update wedding details");
+    const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    const errorStack = error instanceof Error ? error.stack : undefined;
+    console.error("Error updating wedding details:", {
+      requestId: context.awsRequestId,
+      error: errorMessage,
+      stack: errorStack,
+      validationData: JSON.stringify(validation.data, null, 2),
+    });
+    return createErrorResponse(500, "Failed to update wedding details", context, "DB_ERROR");
   }
 };

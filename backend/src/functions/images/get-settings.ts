@@ -2,7 +2,7 @@ import type { APIGatewayProxyHandlerV2 } from "aws-lambda";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient, GetCommand } from "@aws-sdk/lib-dynamodb";
 import { Resource } from "sst";
-import { createResponse, createErrorResponse } from "../shared/response";
+import { createSuccessResponse, createErrorResponse } from "../shared/response";
 import { requireAuth } from "../shared/auth";
 import {
   DEFAULT_MAX_FILE_SIZE,
@@ -14,10 +14,10 @@ import {
 const dynamoClient = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(dynamoClient);
 
-export const handler: APIGatewayProxyHandlerV2 = async (event) => {
+export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
   const authResult = requireAuth(event);
   if (!authResult.authenticated) {
-    return createErrorResponse(authResult.statusCode, authResult.error);
+    return createErrorResponse(authResult.statusCode, authResult.error, context, "AUTH_ERROR");
   }
 
   try {
@@ -37,12 +37,13 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
       updatedBy: result.Item?.updatedBy as string | undefined,
     };
 
-    return createResponse(200, {
-      success: true,
-      data: settings,
-    });
+    return createSuccessResponse(200, settings, context);
   } catch (error) {
-    console.error("Error getting settings:", error);
-    return createErrorResponse(500, "Failed to get settings");
+    const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    console.error("Error getting settings:", {
+      requestId: context.awsRequestId,
+      error: errorMessage,
+    });
+    return createErrorResponse(500, "Failed to get settings", context, "DB_ERROR");
   }
 };

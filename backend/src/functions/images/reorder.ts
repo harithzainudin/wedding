@@ -6,7 +6,7 @@ import {
   QueryCommand,
 } from "@aws-sdk/lib-dynamodb";
 import { Resource } from "sst";
-import { createResponse, createErrorResponse } from "../shared/response";
+import { createSuccessResponse, createErrorResponse } from "../shared/response";
 import { requireAuth } from "../shared/auth";
 import { validateReorderRequest } from "../shared/image-validation";
 
@@ -17,26 +17,26 @@ function padOrder(order: number): string {
   return `ORDER#${order.toString().padStart(5, "0")}`;
 }
 
-export const handler: APIGatewayProxyHandlerV2 = async (event) => {
+export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
   const authResult = requireAuth(event);
   if (!authResult.authenticated) {
-    return createErrorResponse(authResult.statusCode, authResult.error);
+    return createErrorResponse(authResult.statusCode, authResult.error, context, "AUTH_ERROR");
   }
 
   if (!event.body) {
-    return createErrorResponse(400, "Missing request body");
+    return createErrorResponse(400, "Missing request body", context, "MISSING_BODY");
   }
 
   let body: unknown;
   try {
     body = JSON.parse(event.body);
   } catch {
-    return createErrorResponse(400, "Invalid JSON body");
+    return createErrorResponse(400, "Invalid JSON body", context, "INVALID_JSON");
   }
 
   const validation = validateReorderRequest(body);
   if (!validation.valid) {
-    return createErrorResponse(400, validation.error);
+    return createErrorResponse(400, validation.error, context, "VALIDATION_ERROR");
   }
 
   const { imageIds } = validation.data;
@@ -57,13 +57,13 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
   // Validate all provided IDs exist
   for (const id of imageIds) {
     if (!existingIds.has(id)) {
-      return createErrorResponse(400, `Image with ID ${id} not found`);
+      return createErrorResponse(400, `Image with ID ${id} not found`, context, "NOT_FOUND");
     }
   }
 
   // Ensure all images are included
   if (imageIds.length !== existingImages.length) {
-    return createErrorResponse(400, "All image IDs must be included in the reorder request");
+    return createErrorResponse(400, "All image IDs must be included in the reorder request", context, "VALIDATION_ERROR");
   }
 
   // Build transaction to update all orders atomically
@@ -83,13 +83,16 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
   try {
     await docClient.send(new TransactWriteCommand({ TransactItems: transactItems }));
   } catch (error) {
-    console.error("Error reordering images:", error);
-    return createErrorResponse(500, "Failed to reorder images");
+    const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    console.error("Error reordering images:", {
+      requestId: context.awsRequestId,
+      error: errorMessage,
+    });
+    return createErrorResponse(500, "Failed to reorder images", context, "DB_ERROR");
   }
 
-  return createResponse(200, {
-    success: true,
+  return createSuccessResponse(200, {
     message: "Images reordered successfully",
-    data: { newOrder: imageIds },
-  });
+    newOrder: imageIds,
+  }, context);
 };

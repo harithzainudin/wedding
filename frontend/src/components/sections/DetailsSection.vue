@@ -3,11 +3,13 @@ import { computed, ref } from "vue";
 import { useLanguage } from "@/composables/useLanguage";
 import { useVenueConfig } from "@/composables/useVenueConfig";
 import { usePublicWeddingData } from "@/composables/usePublicWeddingData";
+import { useNameOrder } from "@/composables/useNameOrder";
 import type { EventDisplayPreset, EventDisplayCustomOptions } from "@/types/weddingDetails";
 
 const { t, currentLanguage } = useLanguage();
 const { venue } = useVenueConfig();
-const { getCoupleNames, getParents, getEventDate, getEventEndTime, getEventDisplayFormat, getDressCode, getHashtag } = usePublicWeddingData();
+const { getEventDate, getEventEndTime, getEventDisplayFormat, getDressCode, getHashtag } = usePublicWeddingData();
+const { orderedCouple, orderedParents } = useNameOrder();
 
 const localeMap: Record<string, string> = {
   ms: "ms-MY",
@@ -16,8 +18,8 @@ const localeMap: Record<string, string> = {
   ta: "ta-MY",
 };
 
-const couple = computed(() => getCoupleNames());
-const parents = computed(() => getParents());
+const couple = computed(() => orderedCouple.value);
+const parents = computed(() => orderedParents.value);
 const eventDate = computed(() => getEventDate());
 const eventEndTime = computed(() => getEventEndTime());
 const displayFormat = computed(() => getEventDisplayFormat());
@@ -234,13 +236,13 @@ const copyHashtag = async (): Promise<void> => {
           {{ t.details.withGratitude }}
         </p>
 
-        <!-- Bride's Parents -->
+        <!-- First Parents (based on display order) -->
         <div class="mb-3 sm:mb-4">
           <p class="font-heading text-base sm:text-lg text-charcoal dark:text-dark-text">
-            {{ parents.bride.father }}
+            {{ parents.first.father }}
           </p>
           <p class="font-heading text-base sm:text-lg text-charcoal dark:text-dark-text">
-            & {{ parents.bride.mother }}
+            & {{ parents.first.mother }}
           </p>
         </div>
 
@@ -248,13 +250,13 @@ const copyHashtag = async (): Promise<void> => {
           {{ t.details.together }}
         </p>
 
-        <!-- Groom's Parents -->
+        <!-- Second Parents (based on display order) -->
         <div class="mb-4 sm:mb-6">
           <p class="font-heading text-base sm:text-lg text-charcoal dark:text-dark-text">
-            {{ parents.groom.father }}
+            {{ parents.second.father }}
           </p>
           <p class="font-heading text-base sm:text-lg text-charcoal dark:text-dark-text">
-            & {{ parents.groom.mother }}
+            & {{ parents.second.mother }}
           </p>
         </div>
 
@@ -266,13 +268,13 @@ const copyHashtag = async (): Promise<void> => {
       <!-- Couple Names -->
       <div class="mb-8 sm:mb-12">
         <h2 class="font-heading text-2xl sm:text-3xl md:text-4xl text-sage-dark dark:text-sage-light mb-1 sm:mb-2 leading-tight">
-          {{ couple.bride.fullName }}
+          {{ couple.first.fullName }}
         </h2>
         <p class="font-heading text-xl sm:text-2xl text-charcoal-light dark:text-dark-text-secondary mb-1 sm:mb-2">
           &
         </p>
         <h2 class="font-heading text-2xl sm:text-3xl md:text-4xl text-sage-dark dark:text-sage-light leading-tight">
-          {{ couple.groom.fullName }}
+          {{ couple.second.fullName }}
         </h2>
       </div>
 

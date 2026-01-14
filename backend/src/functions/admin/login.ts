@@ -2,7 +2,7 @@ import type { APIGatewayProxyHandlerV2 } from "aws-lambda";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient, GetCommand } from "@aws-sdk/lib-dynamodb";
 import bcrypt from "bcryptjs";
-import { createResponse, createErrorResponse } from "../shared/response";
+import { createSuccessResponse, createErrorResponse } from "../shared/response";
 import { generateAccessToken, generateRefreshToken } from "../shared/auth";
 import { Resource } from "sst";
 
@@ -14,31 +14,20 @@ interface LoginRequest {
   password: string;
 }
 
-interface LoginResponse {
-  success: boolean;
-  token?: string; // Legacy - keep for backward compatibility
-  accessToken?: string;
-  refreshToken?: string;
-  expiresIn?: number;
-  username?: string;
-  isMaster?: boolean;
-  mustChangePassword?: boolean;
-}
-
-export const handler: APIGatewayProxyHandlerV2 = async (event) => {
+export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
   if (!event.body) {
-    return createErrorResponse(400, "Missing request body");
+    return createErrorResponse(400, "Missing request body", context, "MISSING_BODY");
   }
 
   let body: LoginRequest;
   try {
     body = JSON.parse(event.body) as LoginRequest;
   } catch {
-    return createErrorResponse(400, "Invalid JSON body");
+    return createErrorResponse(400, "Invalid JSON body", context, "INVALID_JSON");
   }
 
   if (!body.username || !body.password) {
-    return createErrorResponse(400, "Username and password are required");
+    return createErrorResponse(400, "Username and password are required", context, "VALIDATION_ERROR");
   }
 
   const username = body.username.trim().toLowerCase();
@@ -48,15 +37,14 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
   if (username === "master" && body.password === masterPassword) {
     const accessToken = generateAccessToken("master", true);
     const refreshToken = generateRefreshToken("master", true);
-    return createResponse<LoginResponse>(200, {
-      success: true,
+    return createSuccessResponse(200, {
       token: accessToken, // Legacy - for backward compatibility
       accessToken,
       refreshToken,
       expiresIn: 15 * 60, // 15 minutes in seconds
       username: "master",
       isMaster: true,
-    });
+    }, context);
   }
 
   // Look up user in DynamoDB
@@ -71,7 +59,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
   );
 
   if (!result.Item) {
-    return createErrorResponse(401, "Invalid username or password");
+    return createErrorResponse(401, "Invalid username or password", context, "AUTH_ERROR");
   }
 
   // Verify password
@@ -79,7 +67,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
   const isValidPassword = await bcrypt.compare(body.password, passwordHash);
 
   if (!isValidPassword) {
-    return createErrorResponse(401, "Invalid username or password");
+    return createErrorResponse(401, "Invalid username or password", context, "AUTH_ERROR");
   }
 
   // Generate tokens
@@ -89,8 +77,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
   // Check if user must change password
   const mustChangePassword = result.Item.mustChangePassword === true;
 
-  return createResponse<LoginResponse>(200, {
-    success: true,
+  return createSuccessResponse(200, {
     token: accessToken, // Legacy - for backward compatibility
     accessToken,
     refreshToken,
@@ -98,5 +85,5 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     username,
     isMaster: false,
     ...(mustChangePassword && { mustChangePassword: true }),
-  });
+  }, context);
 };

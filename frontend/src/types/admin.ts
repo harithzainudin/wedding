@@ -3,16 +3,15 @@ export interface AdminLoginRequest {
   password: string;
 }
 
+// Response data from login endpoint (unwrapped from API response)
 export interface AdminLoginResponse {
-  success: boolean;
   token?: string; // Legacy - for backward compatibility
-  accessToken?: string;
-  refreshToken?: string;
-  expiresIn?: number;
-  username?: string;
-  isMaster?: boolean;
+  accessToken: string;
+  refreshToken: string;
+  expiresIn: number;
+  username: string;
+  isMaster: boolean;
   mustChangePassword?: boolean;
-  error?: string;
 }
 
 export interface RefreshTokenRequest {
@@ -20,11 +19,9 @@ export interface RefreshTokenRequest {
 }
 
 export interface RefreshTokenResponse {
-  success: boolean;
-  accessToken?: string;
-  refreshToken?: string;
-  expiresIn?: number;
-  error?: string;
+  accessToken: string;
+  refreshToken: string;
+  expiresIn: number;
 }
 
 export interface AdminUser {
@@ -41,27 +38,22 @@ export interface CreateAdminRequest {
   createdBy?: string;
 }
 
+// Response data from create admin endpoint (unwrapped)
 export interface CreateAdminResponse {
-  success: boolean;
-  data?: AdminUser;
+  admin: AdminUser;
   emailSent?: boolean;
   emailError?: string;
-  error?: string;
 }
 
+// Response data from list admins endpoint (unwrapped)
 export interface ListAdminsResponse {
-  success: boolean;
-  data?: {
-    admins: AdminUser[];
-    total: number;
-  };
-  error?: string;
+  admins: AdminUser[];
+  total: number;
 }
 
+// Response data from delete admin endpoint (unwrapped)
 export interface DeleteAdminResponse {
-  success: boolean;
-  message?: string;
-  error?: string;
+  message: string;
 }
 
 export interface ChangePasswordRequest {
@@ -70,10 +62,9 @@ export interface ChangePasswordRequest {
   newPassword: string;
 }
 
+// Response data from change password endpoint (unwrapped)
 export interface ChangePasswordResponse {
-  success: boolean;
-  message?: string;
-  error?: string;
+  message: string;
 }
 
 export interface AdminProfile {
@@ -83,37 +74,36 @@ export interface AdminProfile {
   createdBy: string;
 }
 
+// Response data from get profile endpoint (unwrapped)
 export interface GetProfileResponse {
-  success: boolean;
-  data?: AdminProfile;
-  error?: string;
+  username: string;
+  email?: string;
+  createdAt: string;
+  createdBy: string;
 }
 
 export interface UpdateEmailRequest {
   email: string;
 }
 
+// Response data from update email endpoint (unwrapped)
 export interface UpdateEmailResponse {
-  success: boolean;
-  message?: string;
-  error?: string;
+  message: string;
 }
 
+// Response data from force reset password endpoint (unwrapped)
 export interface ForceResetPasswordResponse {
-  success: boolean;
-  message?: string;
+  message: string;
   temporaryPassword?: string;
   emailSent?: boolean;
   emailError?: string;
-  error?: string;
 }
 
 export interface SetNewPasswordRequest {
   newPassword: string;
 }
 
+// Response data from set new password endpoint (unwrapped)
 export interface SetNewPasswordResponse {
-  success: boolean;
-  message?: string;
-  error?: string;
+  message: string;
 }
