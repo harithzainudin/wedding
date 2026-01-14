@@ -10,9 +10,9 @@ export interface CreateAdminResult {
 
 export interface ForceResetPasswordResult {
   success: boolean;
-  temporaryPassword?: string;
-  emailSent?: boolean;
-  emailError?: string;
+  temporaryPassword?: string | undefined;
+  emailSent?: boolean | undefined;
+  emailError?: string | undefined;
 }
 
 export function useAdminUsers(getCurrentUser: () => string) {
