@@ -1,5 +1,8 @@
 <script setup lang="ts">
 import { RouterLink } from "vue-router";
+import { useDocumentTitle } from "@/composables/useDocumentTitle";
+
+useDocumentTitle({ text: "Page Not Found", position: "prefix", static: true });
 </script>
 
 <template>

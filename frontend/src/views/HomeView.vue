@@ -8,6 +8,9 @@ import QrCodeSection from "@/components/sections/QrCodeSection.vue";
 import GuestbookSection from "@/components/sections/GuestbookSection.vue";
 import RsvpSection from "@/components/sections/RsvpSection.vue";
 import StickyNavigation from "@/components/ui/StickyNavigation.vue";
+import { useDocumentTitle } from "@/composables/useDocumentTitle";
+
+useDocumentTitle({ text: "Wedding Ceremony", position: "suffix" });
 </script>
 
 <template>

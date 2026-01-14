@@ -5,8 +5,11 @@ import LanguageToggle from "@/components/ui/LanguageToggle.vue";
 import DarkModeToggle from "@/components/ui/DarkModeToggle.vue";
 import { weddingConfig } from "@/config/wedding";
 import { useLanguage } from "@/composables/useLanguage";
+import { useDocumentTitle } from "@/composables/useDocumentTitle";
 
 const { t } = useLanguage();
+
+useDocumentTitle({ text: "RSVP", position: "prefix" });
 </script>
 
 <template>

@@ -2,6 +2,7 @@
 import { ref, onMounted } from "vue";
 import { useAdminAuth } from "@/composables/useAdminAuth";
 import { usePasswordChange } from "@/composables/usePasswordChange";
+import { useDocumentTitle } from "@/composables/useDocumentTitle";
 import AdminLoginForm from "@/components/admin/AdminLoginForm.vue";
 import AdminHeader from "@/components/admin/AdminHeader.vue";
 import PasswordChangeModal from "@/components/admin/PasswordChangeModal.vue";
@@ -13,6 +14,8 @@ import GalleryTab from "@/components/admin/GalleryTab.vue";
 import ContactsTab from "@/components/admin/ContactsTab.vue";
 import RsvpsTab from "@/components/admin/RsvpsTab.vue";
 import SettingsTab from "@/components/admin/SettingsTab.vue";
+
+useDocumentTitle({ text: "CMS Admin", position: "prefix" });
 
 const {
   isAuthenticated,
