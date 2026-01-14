@@ -84,7 +84,14 @@ const closeMobileMenu = (): void => {
 
 // Tab configuration with icons
 type TabType = "dashboard" | "wedding" | "venue" | "schedule" | "gallery" | "contacts" | "rsvps" | "settings";
-const activeTab = ref<TabType>("dashboard");
+const validTabs: TabType[] = ["dashboard", "wedding", "venue", "schedule", "gallery", "contacts", "rsvps", "settings"];
+
+const getTabFromHash = (): TabType => {
+  const hash = window.location.hash.slice(1);
+  return validTabs.includes(hash as TabType) ? (hash as TabType) : "dashboard";
+};
+
+const activeTab = ref<TabType>(getTabFromHash());
 
 interface TabConfig {
   key: TabType;
@@ -105,6 +112,7 @@ const tabs: TabConfig[] = [
 
 const switchTab = (tab: TabType): void => {
   activeTab.value = tab;
+  window.history.replaceState(null, "", `#${tab}`);
 };
 
 const onLogin = async (): Promise<void> => {
@@ -114,6 +122,7 @@ const onLogin = async (): Promise<void> => {
 const onLogout = (): void => {
   handleLogout();
   activeTab.value = "dashboard";
+  window.history.replaceState(null, "", "#dashboard");
 };
 
 const handleOpenPasswordChangeFromProfile = (): void => {
@@ -123,6 +132,11 @@ const handleOpenPasswordChangeFromProfile = (): void => {
 
 onMounted(async () => {
   await checkExistingAuth();
+
+  // Handle browser back/forward navigation
+  window.addEventListener("hashchange", () => {
+    activeTab.value = getTabFromHash();
+  });
 });
 </script>
 

@@ -31,6 +31,10 @@ const router = createRouter({
     if (savedPosition) {
       return savedPosition;
     }
+    // Skip scroll behavior for admin tab hashes
+    if (to.name === "admin" && to.hash) {
+      return false;
+    }
     if (to.hash) {
       return { el: to.hash, behavior: "smooth" };
     }
