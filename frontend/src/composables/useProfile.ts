@@ -15,16 +15,11 @@ export function useProfile(_getCurrentUser: () => string) {
     profileError.value = "";
 
     try {
-      const response = await getAdminProfile();
-
-      if (response.success && response.data) {
-        email.value = response.data.email ?? "";
-        originalEmail.value = response.data.email ?? "";
-      } else {
-        profileError.value = response.error ?? "Failed to fetch profile";
-      }
-    } catch {
-      profileError.value = "Failed to fetch profile. Please try again.";
+      const data = await getAdminProfile();
+      email.value = data.email ?? "";
+      originalEmail.value = data.email ?? "";
+    } catch (err) {
+      profileError.value = err instanceof Error ? err.message : "Failed to fetch profile. Please try again.";
     } finally {
       isLoadingProfile.value = false;
     }
@@ -41,23 +36,18 @@ export function useProfile(_getCurrentUser: () => string) {
     isSavingProfile.value = true;
 
     try {
-      const response = await updateAdminEmail({
+      await updateAdminEmail({
         email: email.value,
       });
 
-      if (response.success) {
-        profileSuccess.value = true;
-        originalEmail.value = email.value;
-        setTimeout(() => {
-          profileSuccess.value = false;
-        }, 2000);
-        return true;
-      } else {
-        profileError.value = response.error ?? "Failed to update email";
-        return false;
-      }
-    } catch {
-      profileError.value = "Failed to update email. Please try again.";
+      profileSuccess.value = true;
+      originalEmail.value = email.value;
+      setTimeout(() => {
+        profileSuccess.value = false;
+      }, 2000);
+      return true;
+    } catch (err) {
+      profileError.value = err instanceof Error ? err.message : "Failed to update email. Please try again.";
       return false;
     } finally {
       isSavingProfile.value = false;

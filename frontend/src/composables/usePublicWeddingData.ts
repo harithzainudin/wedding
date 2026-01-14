@@ -37,30 +37,24 @@ export function usePublicWeddingData() {
 
     try {
       // Fetch all data in parallel but process each independently
-      const weddingPromise = getWeddingDetails().then((res) => {
-        if (res.success && res.data) {
-          weddingDetails.value = res.data;
-        }
+      const weddingPromise = getWeddingDetails().then((data) => {
+        weddingDetails.value = data;
       }).catch((err) => {
         console.error("Failed to fetch wedding details:", err);
       }).finally(() => {
         isLoadingWeddingDetails.value = false;
       });
 
-      const schedulePromise = fetchScheduleApi().then((res) => {
-        if (res.success && res.data) {
-          scheduleData.value = res.data;
-        }
+      const schedulePromise = fetchScheduleApi().then((data) => {
+        scheduleData.value = data;
       }).catch((err) => {
         console.error("Failed to fetch schedule:", err);
       }).finally(() => {
         isLoadingSchedule.value = false;
       });
 
-      const contactsPromise = getContacts().then((res) => {
-        if (res.success && res.data) {
-          contactsData.value = res.data;
-        }
+      const contactsPromise = getContacts().then((data) => {
+        contactsData.value = data;
       }).catch((err) => {
         console.error("Failed to fetch contacts:", err);
       }).finally(() => {

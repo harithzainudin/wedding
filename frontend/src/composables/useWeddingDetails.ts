@@ -48,12 +48,8 @@ export function useWeddingDetails() {
     loadError.value = "";
 
     try {
-      const response = await getWeddingDetails();
-      if (response.success && response.data) {
-        weddingDetails.value = response.data;
-      } else {
-        loadError.value = response.error ?? "Failed to load wedding details";
-      }
+      const data = await getWeddingDetails();
+      weddingDetails.value = data;
     } catch (err) {
       loadError.value = err instanceof Error ? err.message : "Failed to load wedding details";
     } finally {
@@ -62,24 +58,20 @@ export function useWeddingDetails() {
   };
 
   // Update wedding details
-  const updateWeddingDetails = async (data: WeddingDetailsUpdateRequest): Promise<{ success: boolean; error?: string }> => {
+  const updateWeddingDetails = async (updateData: WeddingDetailsUpdateRequest): Promise<{ success: boolean; error?: string }> => {
     isSaving.value = true;
     saveError.value = "";
     saveSuccess.value = false;
 
     try {
-      const response = await apiUpdateWeddingDetails(data);
-      if (response.success && response.data) {
-        weddingDetails.value = response.data;
-        saveSuccess.value = true;
-        // Clear success message after 3 seconds
-        setTimeout(() => {
-          saveSuccess.value = false;
-        }, 3000);
-        return { success: true };
-      }
-      saveError.value = response.error ?? "Failed to update wedding details";
-      return { success: false, error: saveError.value };
+      const responseData = await apiUpdateWeddingDetails(updateData);
+      weddingDetails.value = responseData;
+      saveSuccess.value = true;
+      // Clear success message after 3 seconds
+      setTimeout(() => {
+        saveSuccess.value = false;
+      }, 3000);
+      return { success: true };
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Failed to update wedding details";
       saveError.value = errorMessage;

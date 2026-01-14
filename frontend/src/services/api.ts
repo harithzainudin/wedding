@@ -26,10 +26,10 @@ import type {
   UpdateSettingsRequest,
   SettingsResponse,
 } from "@/types/gallery";
-import type { VenueResponse, VenueUpdateRequest } from "@/types/venue";
-import type { WeddingDetailsResponse, WeddingDetailsUpdateRequest } from "@/types/weddingDetails";
-import type { ScheduleResponse, ScheduleUpdateRequest } from "@/types/schedule";
-import type { ContactsResponse, ContactsUpdateRequest } from "@/types/contacts";
+import type { VenueData, VenueUpdateRequest } from "@/types/venue";
+import type { WeddingDetailsData, WeddingDetailsUpdateRequest } from "@/types/weddingDetails";
+import type { ScheduleData, ScheduleUpdateRequest } from "@/types/schedule";
+import type { ContactsData, ContactsUpdateRequest } from "@/types/contacts";
 import type {
   MusicResponse,
   MusicSettingsUpdateRequest,
@@ -292,7 +292,7 @@ export async function updateGallerySettings(data: UpdateSettingsRequest): Promis
 
 // Venue API functions
 
-export async function getVenue(): Promise<VenueResponse> {
+export async function getVenue(): Promise<VenueData> {
   const response = await fetch(`${API_URL}/venue`, {
     method: "GET",
     headers: {
@@ -300,12 +300,12 @@ export async function getVenue(): Promise<VenueResponse> {
     },
   });
 
-  const json = (await response.json()) as ApiResponse<VenueResponse>;
+  const json = (await response.json()) as ApiResponse<VenueData>;
   return unwrapResponse(json);
 }
 
-export async function updateVenue(data: VenueUpdateRequest): Promise<VenueResponse> {
-  return authenticatedFetch<VenueResponse>(`${API_URL}/venue`, {
+export async function updateVenue(data: VenueUpdateRequest): Promise<VenueData> {
+  return authenticatedFetch<VenueData>(`${API_URL}/venue`, {
     method: "PUT",
     body: JSON.stringify(data),
   });
@@ -313,7 +313,7 @@ export async function updateVenue(data: VenueUpdateRequest): Promise<VenueRespon
 
 // Wedding Details API functions
 
-export async function getWeddingDetails(): Promise<WeddingDetailsResponse> {
+export async function getWeddingDetails(): Promise<WeddingDetailsData> {
   const response = await fetch(`${API_URL}/wedding-details`, {
     method: "GET",
     headers: {
@@ -321,12 +321,12 @@ export async function getWeddingDetails(): Promise<WeddingDetailsResponse> {
     },
   });
 
-  const json = (await response.json()) as ApiResponse<WeddingDetailsResponse>;
+  const json = (await response.json()) as ApiResponse<WeddingDetailsData>;
   return unwrapResponse(json);
 }
 
-export async function updateWeddingDetails(data: WeddingDetailsUpdateRequest): Promise<WeddingDetailsResponse> {
-  return authenticatedFetch<WeddingDetailsResponse>(`${API_URL}/wedding-details`, {
+export async function updateWeddingDetails(data: WeddingDetailsUpdateRequest): Promise<WeddingDetailsData> {
+  return authenticatedFetch<WeddingDetailsData>(`${API_URL}/wedding-details`, {
     method: "PUT",
     body: JSON.stringify(data),
   });
@@ -334,7 +334,7 @@ export async function updateWeddingDetails(data: WeddingDetailsUpdateRequest): P
 
 // Schedule API functions
 
-export async function getSchedule(): Promise<ScheduleResponse> {
+export async function getSchedule(): Promise<ScheduleData> {
   const response = await fetch(`${API_URL}/schedule`, {
     method: "GET",
     headers: {
@@ -342,12 +342,12 @@ export async function getSchedule(): Promise<ScheduleResponse> {
     },
   });
 
-  const json = (await response.json()) as ApiResponse<ScheduleResponse>;
+  const json = (await response.json()) as ApiResponse<ScheduleData>;
   return unwrapResponse(json);
 }
 
-export async function updateSchedule(data: ScheduleUpdateRequest): Promise<ScheduleResponse> {
-  return authenticatedFetch<ScheduleResponse>(`${API_URL}/schedule`, {
+export async function updateSchedule(data: ScheduleUpdateRequest): Promise<ScheduleData> {
+  return authenticatedFetch<ScheduleData>(`${API_URL}/schedule`, {
     method: "PUT",
     body: JSON.stringify(data),
   });
@@ -355,7 +355,7 @@ export async function updateSchedule(data: ScheduleUpdateRequest): Promise<Sched
 
 // Contacts API functions
 
-export async function getContacts(): Promise<ContactsResponse> {
+export async function getContacts(): Promise<ContactsData> {
   const response = await fetch(`${API_URL}/contacts`, {
     method: "GET",
     headers: {
@@ -363,12 +363,12 @@ export async function getContacts(): Promise<ContactsResponse> {
     },
   });
 
-  const json = (await response.json()) as ApiResponse<ContactsResponse>;
+  const json = (await response.json()) as ApiResponse<ContactsData>;
   return unwrapResponse(json);
 }
 
-export async function updateContacts(data: ContactsUpdateRequest): Promise<ContactsResponse> {
-  return authenticatedFetch<ContactsResponse>(`${API_URL}/contacts`, {
+export async function updateContacts(data: ContactsUpdateRequest): Promise<ContactsData> {
+  return authenticatedFetch<ContactsData>(`${API_URL}/contacts`, {
     method: "PUT",
     body: JSON.stringify(data),
   });

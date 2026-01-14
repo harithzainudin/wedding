@@ -47,12 +47,8 @@ export function useContacts() {
     loadError.value = "";
 
     try {
-      const response = await getContacts();
-      if (response.success && response.data) {
-        contacts.value = response.data;
-      } else {
-        loadError.value = response.error ?? "Failed to load contacts";
-      }
+      const data = await getContacts();
+      contacts.value = data;
     } catch (err) {
       loadError.value = err instanceof Error ? err.message : "Failed to load contacts";
     } finally {
@@ -67,19 +63,15 @@ export function useContacts() {
     saveSuccess.value = false;
 
     try {
-      const data: ContactsUpdateRequest = { contacts: contactsList };
-      const response = await apiUpdateContacts(data);
-      if (response.success && response.data) {
-        contacts.value = response.data;
-        saveSuccess.value = true;
-        // Clear success message after 3 seconds
-        setTimeout(() => {
-          saveSuccess.value = false;
-        }, 3000);
-        return { success: true };
-      }
-      saveError.value = response.error ?? "Failed to update contacts";
-      return { success: false, error: saveError.value };
+      const requestData: ContactsUpdateRequest = { contacts: contactsList };
+      const responseData = await apiUpdateContacts(requestData);
+      contacts.value = responseData;
+      saveSuccess.value = true;
+      // Clear success message after 3 seconds
+      setTimeout(() => {
+        saveSuccess.value = false;
+      }, 3000);
+      return { success: true };
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Failed to update contacts";
       saveError.value = errorMessage;

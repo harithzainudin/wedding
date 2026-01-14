@@ -24,10 +24,8 @@ export function useVenueConfig() {
     isLoading.value = true;
 
     try {
-      const response = await getVenue();
-      if (response.success && response.data) {
-        venueData.value = response.data;
-      }
+      const data = await getVenue();
+      venueData.value = data;
       // If API fails, keep static config as fallback (no error thrown to user)
     } catch {
       console.warn("Failed to load venue from API, using static config");

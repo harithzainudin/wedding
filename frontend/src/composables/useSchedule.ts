@@ -67,12 +67,8 @@ export function useSchedule() {
     loadError.value = "";
 
     try {
-      const response = await getSchedule();
-      if (response.success && response.data) {
-        schedule.value = response.data;
-      } else {
-        loadError.value = response.error ?? "Failed to load schedule";
-      }
+      const data = await getSchedule();
+      schedule.value = data;
     } catch (err) {
       loadError.value = err instanceof Error ? err.message : "Failed to load schedule";
     } finally {
@@ -87,19 +83,15 @@ export function useSchedule() {
     saveSuccess.value = false;
 
     try {
-      const data: ScheduleUpdateRequest = { items };
-      const response = await apiUpdateSchedule(data);
-      if (response.success && response.data) {
-        schedule.value = response.data;
-        saveSuccess.value = true;
-        // Clear success message after 3 seconds
-        setTimeout(() => {
-          saveSuccess.value = false;
-        }, 3000);
-        return { success: true };
-      }
-      saveError.value = response.error ?? "Failed to update schedule";
-      return { success: false, error: saveError.value };
+      const requestData: ScheduleUpdateRequest = { items };
+      const responseData = await apiUpdateSchedule(requestData);
+      schedule.value = responseData;
+      saveSuccess.value = true;
+      // Clear success message after 3 seconds
+      setTimeout(() => {
+        saveSuccess.value = false;
+      }, 3000);
+      return { success: true };
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Failed to update schedule";
       saveError.value = errorMessage;

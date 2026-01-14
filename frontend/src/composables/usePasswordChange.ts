@@ -39,28 +39,23 @@ export function usePasswordChange(getCurrentUser: () => string) {
     isChangingPassword.value = true;
 
     try {
-      const response = await changeAdminPassword({
+      await changeAdminPassword({
         username: getCurrentUser(),
         currentPassword: currentPasswordInput.value,
         newPassword: newPasswordInput.value,
       });
 
-      if (response.success) {
-        passwordChangeSuccess.value = true;
-        currentPasswordInput.value = "";
-        newPasswordInput.value = "";
-        confirmNewPasswordInput.value = "";
-        setTimeout(() => {
-          showPasswordChangeModal.value = false;
-          passwordChangeSuccess.value = false;
-        }, 2000);
-        return true;
-      } else {
-        passwordChangeError.value = response.error ?? "Failed to change password";
-        return false;
-      }
-    } catch {
-      passwordChangeError.value = "Failed to change password. Please try again.";
+      passwordChangeSuccess.value = true;
+      currentPasswordInput.value = "";
+      newPasswordInput.value = "";
+      confirmNewPasswordInput.value = "";
+      setTimeout(() => {
+        showPasswordChangeModal.value = false;
+        passwordChangeSuccess.value = false;
+      }, 2000);
+      return true;
+    } catch (err) {
+      passwordChangeError.value = err instanceof Error ? err.message : "Failed to change password. Please try again.";
       return false;
     } finally {
       isChangingPassword.value = false;

@@ -33,13 +33,9 @@ export function useRsvps() {
     loadError.value = "";
 
     try {
-      const response = await listRsvps();
-      if (response.success && response.data) {
-        rsvps.value = response.data.rsvps;
-        summary.value = response.data.summary;
-      } else {
-        loadError.value = response.error ?? "Failed to load RSVPs";
-      }
+      const data = await listRsvps();
+      rsvps.value = data.rsvps;
+      summary.value = data.summary;
     } catch {
       loadError.value = "Failed to load RSVPs. Please try again.";
     } finally {

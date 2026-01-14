@@ -30,12 +30,8 @@ export function useVenue() {
     loadError.value = "";
 
     try {
-      const response = await getVenue();
-      if (response.success && response.data) {
-        venue.value = response.data;
-      } else {
-        loadError.value = response.error ?? "Failed to load venue data";
-      }
+      const data = await getVenue();
+      venue.value = data;
     } catch (err) {
       loadError.value = err instanceof Error ? err.message : "Failed to load venue data";
     } finally {
@@ -44,24 +40,20 @@ export function useVenue() {
   };
 
   // Update venue data
-  const updateVenue = async (data: VenueUpdateRequest): Promise<{ success: boolean; error?: string }> => {
+  const updateVenue = async (updateData: VenueUpdateRequest): Promise<{ success: boolean; error?: string }> => {
     isSaving.value = true;
     saveError.value = "";
     saveSuccess.value = false;
 
     try {
-      const response = await apiUpdateVenue(data);
-      if (response.success && response.data) {
-        venue.value = response.data;
-        saveSuccess.value = true;
-        // Clear success message after 3 seconds
-        setTimeout(() => {
-          saveSuccess.value = false;
-        }, 3000);
-        return { success: true };
-      }
-      saveError.value = response.error ?? "Failed to update venue";
-      return { success: false, error: saveError.value };
+      const responseData = await apiUpdateVenue(updateData);
+      venue.value = responseData;
+      saveSuccess.value = true;
+      // Clear success message after 3 seconds
+      setTimeout(() => {
+        saveSuccess.value = false;
+      }, 3000);
+      return { success: true };
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Failed to update venue";
       saveError.value = errorMessage;

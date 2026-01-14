@@ -17,16 +17,12 @@ const loadStats = async () => {
   isLoading.value = true;
   try {
     // Fetch RSVP stats
-    const rsvpResponse = await listRsvps();
-    if (rsvpResponse.success && rsvpResponse.data) {
-      rsvpStats.value = rsvpResponse.data.summary;
-    }
+    const rsvpData = await listRsvps();
+    rsvpStats.value = rsvpData.summary;
 
     // Fetch gallery count
-    const galleryResponse = await listGalleryImages();
-    if (galleryResponse.success && galleryResponse.data) {
-      galleryCount.value = galleryResponse.data.images.length;
-    }
+    const galleryData = await listGalleryImages();
+    galleryCount.value = galleryData.images.length;
   } catch (error) {
     console.error("Failed to load dashboard stats:", error);
   } finally {

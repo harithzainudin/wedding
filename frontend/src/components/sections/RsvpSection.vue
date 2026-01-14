@@ -39,12 +39,8 @@ const handleSubmit = async (): Promise<void> => {
   isSubmitting.value = true;
 
   try {
-    const response = await submitRsvp(formData);
-    if (response.success) {
-      isSubmitted.value = true;
-    } else {
-      errorMessage.value = response.error ?? t.value.rsvp.errorGeneric;
-    }
+    await submitRsvp(formData);
+    isSubmitted.value = true;
   } catch {
     errorMessage.value = t.value.rsvp.errorGeneric;
   } finally {

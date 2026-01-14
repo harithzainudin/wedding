@@ -40,12 +40,8 @@ export function useAdminUsers(getCurrentUser: () => string) {
     adminLoadError.value = "";
 
     try {
-      const response = await listAdminUsers();
-      if (response.success && response.data) {
-        adminUsers.value = response.data.admins;
-      } else {
-        adminLoadError.value = response.error ?? "Failed to load admin users";
-      }
+      const data = await listAdminUsers();
+      adminUsers.value = data.admins;
     } catch {
       adminLoadError.value = "Failed to load admin users. Please try again.";
     } finally {
@@ -66,25 +62,20 @@ export function useAdminUsers(getCurrentUser: () => string) {
       if (newAdminEmail.value) {
         request.email = newAdminEmail.value;
       }
-      const response = await createAdminUser(request);
-      if (response.success) {
-        newAdminUsername.value = "";
-        newAdminPassword.value = "";
-        newAdminEmail.value = "";
-        showCreateForm.value = false;
-        await fetchAdminUsers();
+      const data = await createAdminUser(request);
+      newAdminUsername.value = "";
+      newAdminPassword.value = "";
+      newAdminEmail.value = "";
+      showCreateForm.value = false;
+      await fetchAdminUsers();
 
-        return {
-          success: true,
-          emailSent: response.emailSent,
-          emailError: response.emailError,
-        };
-      } else {
-        createError.value = response.error ?? "Failed to create admin user";
-        return null;
-      }
-    } catch {
-      createError.value = "Failed to create admin user. Please try again.";
+      return {
+        success: true,
+        emailSent: data.emailSent,
+        emailError: data.emailError,
+      };
+    } catch (err) {
+      createError.value = err instanceof Error ? err.message : "Failed to create admin user. Please try again.";
       return null;
     } finally {
       isCreating.value = false;
@@ -95,17 +86,12 @@ export function useAdminUsers(getCurrentUser: () => string) {
     isDeleting.value = true;
 
     try {
-      const response = await deleteAdminUser(adminUsername);
-      if (response.success) {
-        deleteConfirm.value = null;
-        await fetchAdminUsers();
-        return true;
-      } else {
-        alert(response.error ?? "Failed to delete admin user");
-        return false;
-      }
-    } catch {
-      alert("Failed to delete admin user. Please try again.");
+      await deleteAdminUser(adminUsername);
+      deleteConfirm.value = null;
+      await fetchAdminUsers();
+      return true;
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Failed to delete admin user. Please try again.");
       return false;
     } finally {
       isDeleting.value = false;
@@ -117,21 +103,16 @@ export function useAdminUsers(getCurrentUser: () => string) {
     isResetting.value = true;
 
     try {
-      const response = await forceResetPassword(adminUsername);
-      if (response.success) {
-        resetPasswordConfirm.value = null;
-        return {
-          success: true,
-          temporaryPassword: response.temporaryPassword,
-          emailSent: response.emailSent,
-          emailError: response.emailError,
-        };
-      } else {
-        resetError.value = response.error ?? "Failed to reset password";
-        return null;
-      }
-    } catch {
-      resetError.value = "Failed to reset password. Please try again.";
+      const data = await forceResetPassword(adminUsername);
+      resetPasswordConfirm.value = null;
+      return {
+        success: true,
+        temporaryPassword: data.temporaryPassword,
+        emailSent: data.emailSent,
+        emailError: data.emailError,
+      };
+    } catch (err) {
+      resetError.value = err instanceof Error ? err.message : "Failed to reset password. Please try again.";
       return null;
     } finally {
       isResetting.value = false;
