@@ -8,6 +8,9 @@ import type {
   DeleteAdminResponse,
   ChangePasswordRequest,
   ChangePasswordResponse,
+  GetProfileResponse,
+  UpdateEmailRequest,
+  UpdateEmailResponse,
 } from "@/types/admin";
 import type {
   PresignedUrlRequest,
@@ -118,6 +121,27 @@ export async function changeAdminPassword(data: ChangePasswordRequest): Promise<
   });
 
   const result = (await response.json()) as ChangePasswordResponse;
+  return result;
+}
+
+export async function getAdminProfile(): Promise<GetProfileResponse> {
+  const response = await fetch(`${API_URL}/admin/users/me`, {
+    method: "GET",
+    headers: getAuthHeaders(),
+  });
+
+  const result = (await response.json()) as GetProfileResponse;
+  return result;
+}
+
+export async function updateAdminEmail(data: UpdateEmailRequest): Promise<UpdateEmailResponse> {
+  const response = await fetch(`${API_URL}/admin/users/me/email`, {
+    method: "PUT",
+    headers: getAuthHeaders(),
+    body: JSON.stringify(data),
+  });
+
+  const result = (await response.json()) as UpdateEmailResponse;
   return result;
 }
 

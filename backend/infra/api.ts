@@ -68,6 +68,20 @@ export function addAdminRoutes(
     link: [table, tokenSecret],
     ...functionConfig,
   });
+
+  // GET /admin/users/me - Get current user profile (auth required)
+  api.route("GET /admin/users/me", {
+    handler: "src/functions/admin/get-profile.handler",
+    link: [table, tokenSecret],
+    ...functionConfig,
+  });
+
+  // PUT /admin/users/me/email - Update current user email (auth required)
+  api.route("PUT /admin/users/me/email", {
+    handler: "src/functions/admin/update-email.handler",
+    link: [table, tokenSecret],
+    ...functionConfig,
+  });
 }
 
 // Function to add RSVP routes with token secret for protected endpoints

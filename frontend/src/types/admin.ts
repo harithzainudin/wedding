@@ -59,3 +59,26 @@ export interface ChangePasswordResponse {
   message?: string;
   error?: string;
 }
+
+export interface AdminProfile {
+  username: string;
+  email?: string;
+  createdAt: string;
+  createdBy: string;
+}
+
+export interface GetProfileResponse {
+  success: boolean;
+  data?: AdminProfile;
+  error?: string;
+}
+
+export interface UpdateEmailRequest {
+  email: string;
+}
+
+export interface UpdateEmailResponse {
+  success: boolean;
+  message?: string;
+  error?: string;
+}
