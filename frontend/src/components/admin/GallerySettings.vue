@@ -2,10 +2,18 @@
 import { ref, watch } from "vue";
 import type { GallerySettings } from "@/types/gallery";
 
-const props = defineProps<{
-  settings: GallerySettings;
-  formatFileSize: (bytes: number) => string;
-}>();
+const props = withDefaults(
+  defineProps<{
+    settings: GallerySettings;
+    formatFileSize: (bytes: number) => string;
+    hideTitle?: boolean;
+    embedded?: boolean;
+  }>(),
+  {
+    hideTitle: false,
+    embedded: false,
+  }
+);
 
 const emit = defineEmits<{
   update: [settings: { maxFileSize?: number; maxImages?: number; showGallery?: boolean }];
@@ -80,8 +88,14 @@ const formatLabels: Record<string, string> = {
 </script>
 
 <template>
-  <div class="p-4 bg-white dark:bg-dark-bg-secondary border border-sand-dark dark:border-dark-border rounded-xl space-y-4">
-    <h3 class="font-heading text-lg font-medium text-charcoal dark:text-dark-text">
+  <div
+    class="space-y-4"
+    :class="embedded ? '' : 'p-4 bg-white dark:bg-dark-bg-secondary border border-sand-dark dark:border-dark-border rounded-xl'"
+  >
+    <h3
+      v-if="!hideTitle"
+      class="font-heading text-lg font-medium text-charcoal dark:text-dark-text"
+    >
       Gallery Settings
     </h3>
 

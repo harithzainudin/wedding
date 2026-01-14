@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { onMounted, onUnmounted, ref, watch } from "vue";
 import { useGallery } from "@/composables/useGallery";
 import type { GalleryImage } from "@/types/gallery";
 import ImageUploader from "./ImageUploader.vue";
@@ -88,6 +88,28 @@ const dismissError = (index: number): void => {
 const getImageToDelete = (): GalleryImage | undefined => {
   return images.value.find((img) => img.id === deleteConfirmId.value);
 };
+
+// Handle Escape key to close settings
+const handleEscapeKey = (e: KeyboardEvent): void => {
+  if (e.key === "Escape" && showSettings.value) {
+    showSettings.value = false;
+  }
+};
+
+watch(showSettings, (isOpen) => {
+  if (isOpen) {
+    document.addEventListener("keydown", handleEscapeKey);
+    document.body.style.overflow = "hidden";
+  } else {
+    document.removeEventListener("keydown", handleEscapeKey);
+    document.body.style.overflow = "";
+  }
+});
+
+onUnmounted(() => {
+  document.removeEventListener("keydown", handleEscapeKey);
+  document.body.style.overflow = "";
+});
 </script>
 
 <template>
@@ -114,22 +136,69 @@ const getImageToDelete = (): GalleryImage | undefined => {
           </span>
         </p>
       </div>
-      <button
-        type="button"
-        class="px-4 py-2 font-body text-sm text-charcoal dark:text-dark-text border border-sand-dark dark:border-dark-border rounded-lg hover:bg-sand dark:hover:bg-dark-bg-secondary transition-colors cursor-pointer"
-        @click="showSettings = !showSettings"
-      >
-        {{ showSettings ? "Hide Settings" : "Settings" }}
-      </button>
-    </div>
+      <!-- Settings Button & Panel Container -->
+      <div class="relative">
+        <button
+          type="button"
+          class="flex items-center gap-2 px-4 py-2 font-body text-sm text-charcoal dark:text-dark-text border border-sand-dark dark:border-dark-border rounded-lg hover:bg-sand dark:hover:bg-dark-bg-secondary transition-colors cursor-pointer"
+          @click="showSettings = !showSettings"
+        >
+          <!-- Desktop: Gear icon -->
+          <svg
+            class="hidden sm:block w-4 h-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+          <span>Settings</span>
+          <!-- Mobile: Chevron that rotates -->
+          <svg
+            class="sm:hidden w-4 h-4 transition-transform duration-200"
+            :class="showSettings ? 'rotate-180' : ''"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
 
-    <!-- Settings Panel -->
-    <GallerySettings
-      v-if="showSettings"
-      :settings="settings"
-      :format-file-size="formatFileSize"
-      @update="handleSettingsUpdate"
-    />
+        <!-- Desktop: Popover | Mobile: Bottom Sheet -->
+        <Teleport to="body">
+          <Transition name="settings-panel">
+            <div v-if="showSettings" class="settings-container" @click.self="showSettings = false">
+              <div class="settings-panel">
+                <!-- Mobile Header with Close -->
+                <div class="settings-mobile-header">
+                  <h3 class="font-heading text-lg font-medium text-charcoal dark:text-dark-text">
+                    Gallery Settings
+                  </h3>
+                  <button
+                    type="button"
+                    class="p-2 -m-2 text-charcoal-light hover:text-charcoal dark:text-dark-text-secondary dark:hover:text-dark-text cursor-pointer"
+                    @click="showSettings = false"
+                  >
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+                <GallerySettings
+                  :settings="settings"
+                  :format-file-size="formatFileSize"
+                  :hide-title="true"
+                  :embedded="true"
+                  @update="handleSettingsUpdate"
+                />
+              </div>
+            </div>
+          </Transition>
+        </Teleport>
+      </div>
+    </div>
 
     <!-- Upload Errors -->
     <div v-if="uploadErrors.length > 0" class="space-y-2">
@@ -229,3 +298,112 @@ const getImageToDelete = (): GalleryImage | undefined => {
     />
   </div>
 </template>
+
+<style scoped>
+/* Settings Container - Backdrop for mobile */
+.settings-container {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: flex-end;
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+/* Settings Panel - Mobile: Bottom Sheet */
+.settings-panel {
+  width: 100%;
+  max-height: 85vh;
+  overflow-y: auto;
+  background-color: white;
+  border-top-left-radius: 1rem;
+  border-top-right-radius: 1rem;
+  padding: 1rem;
+}
+
+.settings-mobile-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 0.75rem;
+  margin-bottom: 0.5rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+/* Dark mode */
+:global(.dark) .settings-panel {
+  background-color: #1f2937;
+}
+
+:global(.dark) .settings-mobile-header {
+  border-bottom-color: #374151;
+}
+
+/* Desktop: Popover style */
+@media (min-width: 640px) {
+  .settings-container {
+    position: fixed;
+    inset: 0;
+    background-color: transparent;
+    display: block;
+  }
+
+  .settings-panel {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: auto;
+    min-width: 400px;
+    max-width: 500px;
+    max-height: 80vh;
+    border-radius: 0.75rem;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    border: 1px solid #e5e7eb;
+  }
+
+  :global(.dark) .settings-panel {
+    border-color: #374151;
+  }
+
+  .settings-mobile-header {
+    display: flex;
+  }
+}
+
+/* Transitions - Mobile: Slide up */
+.settings-panel-enter-active,
+.settings-panel-leave-active {
+  transition: all 0.25s ease-out;
+}
+
+.settings-panel-enter-active .settings-panel,
+.settings-panel-leave-active .settings-panel {
+  transition: transform 0.25s ease-out;
+}
+
+.settings-panel-enter-from,
+.settings-panel-leave-to {
+  background-color: rgba(0, 0, 0, 0);
+}
+
+.settings-panel-enter-from .settings-panel,
+.settings-panel-leave-to .settings-panel {
+  transform: translateY(100%);
+}
+
+/* Desktop transitions */
+@media (min-width: 640px) {
+  .settings-panel-enter-from .settings-panel,
+  .settings-panel-leave-to .settings-panel {
+    transform: translate(-50%, -50%) scale(0.95);
+    opacity: 0;
+  }
+
+  .settings-panel-enter-to .settings-panel,
+  .settings-panel-leave-from .settings-panel {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+  }
+}
+</style>
