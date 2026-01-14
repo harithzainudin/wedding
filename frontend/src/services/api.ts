@@ -30,6 +30,18 @@ import type { VenueResponse, VenueUpdateRequest } from "@/types/venue";
 import type { WeddingDetailsResponse, WeddingDetailsUpdateRequest } from "@/types/weddingDetails";
 import type { ScheduleResponse, ScheduleUpdateRequest } from "@/types/schedule";
 import type { ContactsResponse, ContactsUpdateRequest } from "@/types/contacts";
+import type {
+  MusicResponse,
+  MusicSettingsUpdateRequest,
+  MusicSettingsUpdateResponse,
+  MusicPresignedUrlRequest,
+  MusicPresignedUrlResponse,
+  MusicConfirmRequest,
+  MusicConfirmResponse,
+  MusicDeleteResponse,
+  MusicReorderRequest,
+  MusicReorderResponse,
+} from "@/types/music";
 import {
   getAccessToken,
   refreshTokens,
@@ -320,6 +332,66 @@ export async function getContacts(): Promise<ContactsResponse> {
 
 export async function updateContacts(data: ContactsUpdateRequest): Promise<ContactsResponse> {
   return authenticatedFetch<ContactsResponse>(`${API_URL}/contacts`, {
+    method: "PUT",
+    body: JSON.stringify(data),
+  });
+}
+
+// Music API functions
+
+export async function getMusic(): Promise<MusicResponse> {
+  const response = await fetch(`${API_URL}/music`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+
+  const result = (await response.json()) as MusicResponse;
+  return result;
+}
+
+export async function updateMusicSettings(data: MusicSettingsUpdateRequest): Promise<MusicSettingsUpdateResponse> {
+  return authenticatedFetch<MusicSettingsUpdateResponse>(`${API_URL}/music/settings`, {
+    method: "PUT",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function getMusicPresignedUrl(data: MusicPresignedUrlRequest): Promise<MusicPresignedUrlResponse> {
+  return authenticatedFetch<MusicPresignedUrlResponse>(`${API_URL}/music/upload-url`, {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function uploadMusicToS3(presignedUrl: string, file: File): Promise<boolean> {
+  const response = await fetch(presignedUrl, {
+    method: "PUT",
+    headers: {
+      "Content-Type": file.type,
+    },
+    body: file,
+  });
+  return response.ok;
+}
+
+export async function confirmMusicUpload(data: MusicConfirmRequest): Promise<MusicConfirmResponse> {
+  return authenticatedFetch<MusicConfirmResponse>(`${API_URL}/music/confirm`, {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function deleteMusicTrack(trackId: string): Promise<MusicDeleteResponse> {
+  return authenticatedFetch<MusicDeleteResponse>(
+    `${API_URL}/music/${encodeURIComponent(trackId)}`,
+    { method: "DELETE" }
+  );
+}
+
+export async function reorderMusicTracks(data: MusicReorderRequest): Promise<MusicReorderResponse> {
+  return authenticatedFetch<MusicReorderResponse>(`${API_URL}/music/reorder`, {
     method: "PUT",
     body: JSON.stringify(data),
   });

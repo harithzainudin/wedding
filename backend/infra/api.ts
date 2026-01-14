@@ -238,3 +238,51 @@ export function addContactsRoutes(tokenSecret: sst.Secret) {
     ...functionConfig,
   });
 }
+
+// Function to add music management routes
+export function addMusicRoutes(
+  tokenSecret: sst.Secret,
+  imageBucket: sst.aws.Bucket
+) {
+  // GET /music - Public endpoint to fetch music settings and tracks
+  api.route("GET /music", {
+    handler: "src/functions/music/get.handler",
+    link: [table, imageBucket],
+    ...functionConfig,
+  });
+
+  // PUT /music/settings - Update music settings (auth required)
+  api.route("PUT /music/settings", {
+    handler: "src/functions/music/update-settings.handler",
+    link: [table, tokenSecret],
+    ...functionConfig,
+  });
+
+  // POST /music/upload-url - Request presigned URL for upload (auth required)
+  api.route("POST /music/upload-url", {
+    handler: "src/functions/music/request-upload.handler",
+    link: [table, tokenSecret, imageBucket],
+    ...functionConfig,
+  });
+
+  // POST /music/confirm - Confirm upload after S3 upload (auth required)
+  api.route("POST /music/confirm", {
+    handler: "src/functions/music/confirm-upload.handler",
+    link: [table, tokenSecret, imageBucket],
+    ...functionConfig,
+  });
+
+  // DELETE /music/{id} - Delete a track (auth required)
+  api.route("DELETE /music/{id}", {
+    handler: "src/functions/music/delete.handler",
+    link: [table, tokenSecret, imageBucket],
+    ...functionConfig,
+  });
+
+  // PUT /music/reorder - Reorder tracks (auth required)
+  api.route("PUT /music/reorder", {
+    handler: "src/functions/music/reorder.handler",
+    link: [table, tokenSecret],
+    ...functionConfig,
+  });
+}
