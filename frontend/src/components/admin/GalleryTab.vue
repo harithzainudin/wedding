@@ -6,6 +6,8 @@ import ImageUploader from "./ImageUploader.vue";
 import ImageGrid from "./ImageGrid.vue";
 import GallerySettings from "./GallerySettings.vue";
 import DeleteConfirmModal from "./DeleteConfirmModal.vue";
+import HelpTooltip from "./HelpTooltip.vue";
+import GalleryHelpContent from "./GalleryHelpContent.vue";
 
 const {
   images,
@@ -93,9 +95,18 @@ const getImageToDelete = (): GalleryImage | undefined => {
     <!-- Header -->
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
       <div>
-        <h2 class="font-heading text-xl font-semibold text-charcoal dark:text-dark-text">
-          Gallery Management
-        </h2>
+        <div class="flex items-center gap-2">
+          <h2 class="font-heading text-xl font-semibold text-charcoal dark:text-dark-text">
+            Gallery Management
+          </h2>
+          <HelpTooltip title="Gallery Help">
+            <GalleryHelpContent
+              :max-file-size="formatFileSize(settings.maxFileSize)"
+              :allowed-formats="settings.allowedFormats"
+              :max-images="settings.maxImages"
+            />
+          </HelpTooltip>
+        </div>
         <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary mt-1">
           {{ images.length }} / {{ settings.maxImages }} images
           <span v-if="canUploadMore" class="text-sage">
