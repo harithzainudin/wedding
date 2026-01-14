@@ -3,7 +3,7 @@ import { ref, computed, onMounted } from "vue";
 import { listRsvps, listGalleryImages } from "@/services/api";
 
 const emit = defineEmits<{
-  (e: "navigate", tab: string): void;
+  (e: "switch-tab", tab: string): void;
 }>();
 
 // Stats
@@ -99,7 +99,7 @@ onMounted(() => {
             :key="link.tab"
             type="button"
             class="p-4 bg-white dark:bg-dark-bg-secondary rounded-xl shadow-sm dark:shadow-lg text-left hover:bg-sand dark:hover:bg-dark-bg-elevated transition-colors cursor-pointer"
-            @click="emit('navigate', link.tab)"
+            @click="emit('switch-tab', link.tab)"
           >
             <div class="flex items-center gap-3">
               <!-- Icons -->
