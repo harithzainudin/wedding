@@ -1,11 +1,18 @@
 import { ref } from "vue";
-import { listAdminUsers, createAdminUser, deleteAdminUser } from "@/services/api";
+import { listAdminUsers, createAdminUser, deleteAdminUser, forceResetPassword } from "@/services/api";
 import type { AdminUser } from "@/types/admin";
 
 export interface CreateAdminResult {
   success: boolean;
   emailSent?: boolean | undefined;
   emailError?: string | undefined;
+}
+
+export interface ForceResetPasswordResult {
+  success: boolean;
+  temporaryPassword?: string;
+  emailSent?: boolean;
+  emailError?: string;
 }
 
 export function useAdminUsers(getCurrentUser: () => string) {
@@ -23,6 +30,10 @@ export function useAdminUsers(getCurrentUser: () => string) {
 
   const deleteConfirm = ref<string | null>(null);
   const isDeleting = ref(false);
+
+  const resetPasswordConfirm = ref<string | null>(null);
+  const isResetting = ref(false);
+  const resetError = ref("");
 
   const fetchAdminUsers = async (): Promise<void> => {
     isLoadingAdmins.value = true;
@@ -101,6 +112,32 @@ export function useAdminUsers(getCurrentUser: () => string) {
     }
   };
 
+  const handleForceResetPassword = async (adminUsername: string): Promise<ForceResetPasswordResult | null> => {
+    resetError.value = "";
+    isResetting.value = true;
+
+    try {
+      const response = await forceResetPassword(adminUsername);
+      if (response.success) {
+        resetPasswordConfirm.value = null;
+        return {
+          success: true,
+          temporaryPassword: response.temporaryPassword,
+          emailSent: response.emailSent,
+          emailError: response.emailError,
+        };
+      } else {
+        resetError.value = response.error ?? "Failed to reset password";
+        return null;
+      }
+    } catch {
+      resetError.value = "Failed to reset password. Please try again.";
+      return null;
+    } finally {
+      isResetting.value = false;
+    }
+  };
+
   const closeCreateForm = (): void => {
     showCreateForm.value = false;
     newAdminUsername.value = "";
@@ -126,9 +163,13 @@ export function useAdminUsers(getCurrentUser: () => string) {
     isCreating,
     deleteConfirm,
     isDeleting,
+    resetPasswordConfirm,
+    isResetting,
+    resetError,
     fetchAdminUsers,
     handleCreateAdmin,
     handleDeleteAdmin,
+    handleForceResetPassword,
     closeCreateForm,
     clearAdminUsers,
   };

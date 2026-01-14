@@ -3,6 +3,7 @@ import { ref, onMounted } from "vue";
 import { useAdminUsers } from "@/composables/useAdminUsers";
 import SuccessPopup from "./SuccessPopup.vue";
 import EmailWarningPopup from "./EmailWarningPopup.vue";
+import PasswordResetResultPopup from "./PasswordResetResultPopup.vue";
 
 const props = defineProps<{
   isMasterUser: boolean;
@@ -22,9 +23,12 @@ const {
   isCreating,
   deleteConfirm,
   isDeleting,
+  resetPasswordConfirm,
+  isResetting,
   fetchAdminUsers,
   handleCreateAdmin,
   handleDeleteAdmin,
+  handleForceResetPassword,
   closeCreateForm,
 } = useAdminUsers(() => props.currentUser);
 
@@ -32,6 +36,15 @@ const showSuccessPopup = ref(false);
 const showEmailWarningPopup = ref(false);
 const emailWarningMessage = ref("");
 const createdCredentials = ref({ username: "", password: "" });
+
+const showPasswordResetPopup = ref(false);
+const passwordResetResult = ref({
+  username: "",
+  temporaryPassword: "",
+  emailSent: false,
+  emailError: "",
+  hasEmail: false,
+});
 
 const formatDate = (dateString: string): string => {
   const date = new Date(dateString);
@@ -69,6 +82,21 @@ const closePopups = (): void => {
   showSuccessPopup.value = false;
   showEmailWarningPopup.value = false;
   emailWarningMessage.value = "";
+  showPasswordResetPopup.value = false;
+};
+
+const onResetPassword = async (admin: { username: string; email?: string }): Promise<void> => {
+  const result = await handleForceResetPassword(admin.username);
+  if (result?.success) {
+    passwordResetResult.value = {
+      username: admin.username,
+      temporaryPassword: result.temporaryPassword ?? "",
+      emailSent: result.emailSent ?? false,
+      emailError: result.emailError ?? "",
+      hasEmail: !!admin.email,
+    };
+    showPasswordResetPopup.value = true;
+  }
 };
 
 onMounted(() => {
@@ -90,6 +118,16 @@ onMounted(() => {
       :username="createdCredentials.username"
       :password="createdCredentials.password"
       :warning-message="emailWarningMessage"
+      @close="closePopups"
+    />
+
+    <PasswordResetResultPopup
+      :show="showPasswordResetPopup"
+      :username="passwordResetResult.username"
+      :temporary-password="passwordResetResult.temporaryPassword"
+      :email-sent="passwordResetResult.emailSent"
+      :email-error="passwordResetResult.emailError"
+      :has-email="passwordResetResult.hasEmail"
       @close="closePopups"
     />
 
@@ -246,17 +284,48 @@ onMounted(() => {
               Created by {{ admin.createdBy }} on {{ formatDate(admin.createdAt) }}
             </p>
           </div>
-          <div v-if="isMasterUser" class="flex items-center gap-2">
-            <button
-              v-if="deleteConfirm !== admin.username"
-              type="button"
-              class="px-3 py-1.5 font-body text-sm text-red-600 border border-red-600 rounded-lg hover:bg-red-600 hover:text-white transition-colors cursor-pointer"
-              @click="deleteConfirm = admin.username"
-            >
-              Delete
-            </button>
-            <template v-else>
-              <span class="font-body text-sm text-charcoal-light">Confirm?</span>
+          <div v-if="isMasterUser" class="flex items-center gap-2 flex-wrap justify-end">
+            <!-- Reset Password Button -->
+            <template v-if="resetPasswordConfirm !== admin.username && deleteConfirm !== admin.username">
+              <button
+                type="button"
+                class="px-3 py-1.5 font-body text-sm text-amber-600 dark:text-amber-400 border border-amber-600 dark:border-amber-400 rounded-lg hover:bg-amber-600 hover:text-white dark:hover:bg-amber-500 transition-colors cursor-pointer"
+                @click="resetPasswordConfirm = admin.username"
+              >
+                Reset Password
+              </button>
+              <button
+                type="button"
+                class="px-3 py-1.5 font-body text-sm text-red-600 border border-red-600 rounded-lg hover:bg-red-600 hover:text-white transition-colors cursor-pointer"
+                @click="deleteConfirm = admin.username"
+              >
+                Delete
+              </button>
+            </template>
+
+            <!-- Reset Password Confirmation -->
+            <template v-else-if="resetPasswordConfirm === admin.username">
+              <span class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary">Reset password?</span>
+              <button
+                type="button"
+                class="px-3 py-1.5 font-body text-sm text-white bg-amber-600 rounded-lg hover:bg-amber-700 transition-colors cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed"
+                :disabled="isResetting"
+                @click="onResetPassword(admin)"
+              >
+                {{ isResetting ? "..." : "Yes" }}
+              </button>
+              <button
+                type="button"
+                class="px-3 py-1.5 font-body text-sm text-charcoal dark:text-dark-text border border-charcoal-light dark:border-dark-border rounded-lg hover:bg-sand-dark dark:hover:bg-dark-bg-elevated transition-colors cursor-pointer"
+                @click="resetPasswordConfirm = null"
+              >
+                No
+              </button>
+            </template>
+
+            <!-- Delete Confirmation -->
+            <template v-else-if="deleteConfirm === admin.username">
+              <span class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary">Delete?</span>
               <button
                 type="button"
                 class="px-3 py-1.5 font-body text-sm text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed"
@@ -267,7 +336,7 @@ onMounted(() => {
               </button>
               <button
                 type="button"
-                class="px-3 py-1.5 font-body text-sm text-charcoal border border-charcoal-light rounded-lg hover:bg-sand-dark transition-colors cursor-pointer"
+                class="px-3 py-1.5 font-body text-sm text-charcoal dark:text-dark-text border border-charcoal-light dark:border-dark-border rounded-lg hover:bg-sand-dark dark:hover:bg-dark-bg-elevated transition-colors cursor-pointer"
                 @click="deleteConfirm = null"
               >
                 No

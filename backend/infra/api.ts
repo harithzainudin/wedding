@@ -89,6 +89,20 @@ export function addAdminRoutes(
     link: [table, tokenSecret],
     ...functionConfig,
   });
+
+  // PUT /admin/users/{username}/reset-password - Force reset password (master-only)
+  api.route("PUT /admin/users/{username}/reset-password", {
+    handler: "src/functions/admin/force-reset-password.handler",
+    link: [table, brevoApiKey, senderEmail, adminLoginUrl, tokenSecret],
+    ...functionConfig,
+  });
+
+  // PUT /admin/users/set-password - Set new password for forced password change (auth required)
+  api.route("PUT /admin/users/set-password", {
+    handler: "src/functions/admin/set-new-password.handler",
+    link: [table, tokenSecret],
+    ...functionConfig,
+  });
 }
 
 // Function to add RSVP routes with token secret for protected endpoints

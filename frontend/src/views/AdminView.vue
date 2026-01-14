@@ -9,6 +9,7 @@ import AdminHeader from "@/components/admin/AdminHeader.vue";
 import PasswordChangeModal from "@/components/admin/PasswordChangeModal.vue";
 import ProfileSettingsModal from "@/components/admin/ProfileSettingsModal.vue";
 import MobileAdminMenu from "@/components/admin/MobileAdminMenu.vue";
+import ForcedPasswordChangeModal from "@/components/admin/ForcedPasswordChangeModal.vue";
 import DashboardTab from "@/components/admin/DashboardTab.vue";
 import WeddingDetailsTab from "@/components/admin/WeddingDetailsTab.vue";
 import LocationTab from "@/components/admin/LocationTab.vue";
@@ -29,9 +30,17 @@ const {
   isLoggingIn,
   currentUser,
   isMasterUser,
+  mustChangePassword,
+  newPasswordForChange,
+  confirmNewPasswordForChange,
+  showNewPasswordForChange,
+  showConfirmNewPasswordForChange,
+  forcedPasswordChangeError,
+  isSettingNewPassword,
   checkExistingAuth,
   handleLogin,
   handleLogout,
+  handleSetNewPassword,
 } = useAdminAuth();
 
 const {
@@ -154,6 +163,21 @@ onMounted(async () => {
       @close="closeProfileModal"
       @save="updateEmail"
       @open-password-change="handleOpenPasswordChangeFromProfile"
+    />
+
+    <ForcedPasswordChangeModal
+      :show="mustChangePassword"
+      :new-password="newPasswordForChange"
+      :confirm-new-password="confirmNewPasswordForChange"
+      :show-new-password="showNewPasswordForChange"
+      :show-confirm-new-password="showConfirmNewPasswordForChange"
+      :error="forcedPasswordChangeError"
+      :is-submitting="isSettingNewPassword"
+      @update:new-password="newPasswordForChange = $event"
+      @update:confirm-new-password="confirmNewPasswordForChange = $event"
+      @update:show-new-password="showNewPasswordForChange = $event"
+      @update:show-confirm-new-password="showConfirmNewPasswordForChange = $event"
+      @submit="handleSetNewPassword"
     />
 
     <!-- Mobile Menu -->

@@ -11,6 +11,7 @@ export interface AdminLoginResponse {
   expiresIn?: number;
   username?: string;
   isMaster?: boolean;
+  mustChangePassword?: boolean;
   error?: string;
 }
 
@@ -93,6 +94,25 @@ export interface UpdateEmailRequest {
 }
 
 export interface UpdateEmailResponse {
+  success: boolean;
+  message?: string;
+  error?: string;
+}
+
+export interface ForceResetPasswordResponse {
+  success: boolean;
+  message?: string;
+  temporaryPassword?: string;
+  emailSent?: boolean;
+  emailError?: string;
+  error?: string;
+}
+
+export interface SetNewPasswordRequest {
+  newPassword: string;
+}
+
+export interface SetNewPasswordResponse {
   success: boolean;
   message?: string;
   error?: string;

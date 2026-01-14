@@ -11,6 +11,9 @@ import type {
   GetProfileResponse,
   UpdateEmailRequest,
   UpdateEmailResponse,
+  ForceResetPasswordResponse,
+  SetNewPasswordRequest,
+  SetNewPasswordResponse,
 } from "@/types/admin";
 import type {
   PresignedUrlRequest,
@@ -159,6 +162,20 @@ export async function getAdminProfile(): Promise<GetProfileResponse> {
 
 export async function updateAdminEmail(data: UpdateEmailRequest): Promise<UpdateEmailResponse> {
   return authenticatedFetch<UpdateEmailResponse>(`${API_URL}/admin/users/me/email`, {
+    method: "PUT",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function forceResetPassword(username: string): Promise<ForceResetPasswordResponse> {
+  return authenticatedFetch<ForceResetPasswordResponse>(
+    `${API_URL}/admin/users/${encodeURIComponent(username)}/reset-password`,
+    { method: "PUT" }
+  );
+}
+
+export async function setNewPassword(data: SetNewPasswordRequest): Promise<SetNewPasswordResponse> {
+  return authenticatedFetch<SetNewPasswordResponse>(`${API_URL}/admin/users/set-password`, {
     method: "PUT",
     body: JSON.stringify(data),
   });

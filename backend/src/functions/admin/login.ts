@@ -22,6 +22,7 @@ interface LoginResponse {
   expiresIn?: number;
   username?: string;
   isMaster?: boolean;
+  mustChangePassword?: boolean;
 }
 
 export const handler: APIGatewayProxyHandlerV2 = async (event) => {
@@ -85,6 +86,9 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
   const accessToken = generateAccessToken(username, false);
   const refreshToken = generateRefreshToken(username, false);
 
+  // Check if user must change password
+  const mustChangePassword = result.Item.mustChangePassword === true;
+
   return createResponse<LoginResponse>(200, {
     success: true,
     token: accessToken, // Legacy - for backward compatibility
@@ -93,5 +97,6 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     expiresIn: 15 * 60, // 15 minutes in seconds
     username,
     isMaster: false,
+    ...(mustChangePassword && { mustChangePassword: true }),
   });
 };
