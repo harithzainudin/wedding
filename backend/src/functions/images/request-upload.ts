@@ -77,7 +77,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     return createErrorResponse(400, `Maximum of ${settings.maxImages} images reached`);
   }
 
-  const { filename, mimeType, fileSize } = validation.data;
+  const { mimeType, fileSize } = validation.data;
   const imageId = uuidv4();
   const extension = MIME_TO_EXTENSION[mimeType] ?? "";
   const s3Key = `gallery/${imageId}${extension}`;

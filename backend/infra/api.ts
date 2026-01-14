@@ -41,6 +41,13 @@ export function addAdminRoutes(
     ...functionConfig,
   });
 
+  // POST /admin/refresh - Refresh access token
+  api.route("POST /admin/refresh", {
+    handler: "src/functions/admin/refresh.handler",
+    link: [tokenSecret],
+    ...functionConfig,
+  });
+
   // POST /admin/users - Create admin user (with email notification, master-only)
   api.route("POST /admin/users", {
     handler: "src/functions/admin/create.handler",

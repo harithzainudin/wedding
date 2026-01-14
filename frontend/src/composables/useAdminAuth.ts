@@ -1,5 +1,14 @@
-import { ref } from "vue";
+import { ref, onMounted, onUnmounted } from "vue";
 import { adminLogin } from "@/services/api";
+import {
+  storeTokens,
+  clearTokens,
+  hasValidTokens,
+  getStoredUsername,
+  getStoredIsMaster,
+  refreshTokens,
+  AUTH_EXPIRED_EVENT,
+} from "@/services/tokenManager";
 
 export function useAdminAuth() {
   const isAuthenticated = ref(false);
@@ -11,16 +20,20 @@ export function useAdminAuth() {
   const currentUser = ref("");
   const isMasterUser = ref(false);
 
-  const checkExistingAuth = (): boolean => {
-    const token = sessionStorage.getItem("admin_token");
-    const storedUsername = sessionStorage.getItem("admin_username");
-    const storedIsMaster = sessionStorage.getItem("admin_is_master");
-    if (token) {
-      isAuthenticated.value = true;
-      currentUser.value = storedUsername ?? "";
-      isMasterUser.value = storedIsMaster === "true";
-      return true;
+  const checkExistingAuth = async (): Promise<boolean> => {
+    if (hasValidTokens()) {
+      // Try to refresh to validate tokens are still valid
+      const success = await refreshTokens();
+      if (success) {
+        isAuthenticated.value = true;
+        currentUser.value = getStoredUsername() ?? "";
+        isMasterUser.value = getStoredIsMaster();
+        return true;
+      }
     }
+
+    // Clear invalid tokens
+    clearTokens();
     return false;
   };
 
@@ -30,10 +43,20 @@ export function useAdminAuth() {
 
     try {
       const response = await adminLogin({ username: username.value, password: password.value });
-      if (response.success && response.token) {
-        sessionStorage.setItem("admin_token", response.token);
-        sessionStorage.setItem("admin_username", response.username ?? "");
-        sessionStorage.setItem("admin_is_master", response.isMaster ? "true" : "false");
+
+      // Support both new (accessToken/refreshToken) and legacy (token) responses
+      const accessToken = response.accessToken ?? response.token;
+      const refreshToken = response.refreshToken;
+
+      if (response.success && accessToken && refreshToken) {
+        storeTokens({
+          accessToken,
+          refreshToken,
+          expiresIn: response.expiresIn ?? 900,
+          username: response.username ?? "",
+          isMaster: response.isMaster ?? false,
+        });
+
         isAuthenticated.value = true;
         currentUser.value = response.username ?? "";
         isMasterUser.value = response.isMaster ?? false;
@@ -53,13 +76,24 @@ export function useAdminAuth() {
   };
 
   const handleLogout = (): void => {
-    sessionStorage.removeItem("admin_token");
-    sessionStorage.removeItem("admin_username");
-    sessionStorage.removeItem("admin_is_master");
+    clearTokens();
     isAuthenticated.value = false;
     currentUser.value = "";
     isMasterUser.value = false;
   };
+
+  // Listen for auth expiry events from API calls
+  const handleAuthExpired = (): void => {
+    handleLogout();
+  };
+
+  onMounted(() => {
+    window.addEventListener(AUTH_EXPIRED_EVENT, handleAuthExpired);
+  });
+
+  onUnmounted(() => {
+    window.removeEventListener(AUTH_EXPIRED_EVENT, handleAuthExpired);
+  });
 
   return {
     isAuthenticated,

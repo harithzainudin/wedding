@@ -2,12 +2,16 @@ import { createHmac } from "crypto";
 import type { APIGatewayProxyEventV2 } from "aws-lambda";
 import { Resource } from "sst";
 
-const TOKEN_EXPIRY_MS = 24 * 60 * 60 * 1000; // 24 hours
+const ACCESS_TOKEN_EXPIRY_MS = 15 * 60 * 1000; // 15 minutes
+const REFRESH_TOKEN_EXPIRY_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
+
+type TokenType = "access" | "refresh";
 
 interface TokenPayload {
   username: string;
   isMaster: boolean;
   issuedAt: number;
+  tokenType?: TokenType; // Optional for backward compatibility
 }
 
 interface AuthSuccess {
@@ -36,13 +40,41 @@ export function generateToken(username: string, isMaster: boolean): string {
     username,
     isMaster,
     issuedAt: Date.now(),
+    tokenType: "access",
   };
   const payloadStr = Buffer.from(JSON.stringify(payload)).toString("base64url");
   const signature = sign(payloadStr);
   return `${payloadStr}.${signature}`;
 }
 
-export function validateToken(token: string): AuthResult {
+export function generateAccessToken(username: string, isMaster: boolean): string {
+  const payload: TokenPayload = {
+    username,
+    isMaster,
+    issuedAt: Date.now(),
+    tokenType: "access",
+  };
+  const payloadStr = Buffer.from(JSON.stringify(payload)).toString("base64url");
+  const signature = sign(payloadStr);
+  return `${payloadStr}.${signature}`;
+}
+
+export function generateRefreshToken(username: string, isMaster: boolean): string {
+  const payload: TokenPayload = {
+    username,
+    isMaster,
+    issuedAt: Date.now(),
+    tokenType: "refresh",
+  };
+  const payloadStr = Buffer.from(JSON.stringify(payload)).toString("base64url");
+  const signature = sign(payloadStr);
+  return `${payloadStr}.${signature}`;
+}
+
+export function validateToken(
+  token: string,
+  expectedType: TokenType = "access"
+): AuthResult {
   const parts = token.split(".");
   if (parts.length !== 2) {
     return {
@@ -75,12 +107,30 @@ export function validateToken(token: string): AuthResult {
     };
   }
 
-  // Check expiration
-  if (Date.now() - payload.issuedAt > TOKEN_EXPIRY_MS) {
+  // For backward compatibility, treat tokens without tokenType as access tokens
+  const tokenType = payload.tokenType ?? "access";
+
+  // Check token type matches expected
+  if (tokenType !== expectedType) {
+    return {
+      authenticated: false,
+      statusCode: 401,
+      error: "Invalid token type",
+    };
+  }
+
+  // Check expiration based on token type
+  const expiryMs =
+    tokenType === "refresh" ? REFRESH_TOKEN_EXPIRY_MS : ACCESS_TOKEN_EXPIRY_MS;
+  if (Date.now() - payload.issuedAt > expiryMs) {
     return { authenticated: false, statusCode: 401, error: "Token expired" };
   }
 
   return { authenticated: true, user: payload };
+}
+
+export function validateRefreshToken(token: string): AuthResult {
+  return validateToken(token, "refresh");
 }
 
 function extractToken(event: APIGatewayProxyEventV2): string | null {

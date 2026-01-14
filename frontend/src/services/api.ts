@@ -27,11 +27,17 @@ import type { VenueResponse, VenueUpdateRequest } from "@/types/venue";
 import type { WeddingDetailsResponse, WeddingDetailsUpdateRequest } from "@/types/weddingDetails";
 import type { ScheduleResponse, ScheduleUpdateRequest } from "@/types/schedule";
 import type { ContactsResponse, ContactsUpdateRequest } from "@/types/contacts";
+import {
+  getAccessToken,
+  refreshTokens,
+  isTokenExpiringSoon,
+  notifyAuthExpired,
+} from "./tokenManager";
 
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3000";
 
 function getAuthHeaders(): Record<string, string> {
-  const token = sessionStorage.getItem("admin_token");
+  const token = getAccessToken();
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
   };
@@ -39,6 +45,46 @@ function getAuthHeaders(): Record<string, string> {
     headers["Authorization"] = `Bearer ${token}`;
   }
   return headers;
+}
+
+async function authenticatedFetch<T>(
+  url: string,
+  options: RequestInit = {}
+): Promise<T> {
+  // Proactively refresh if token is expiring soon
+  if (isTokenExpiringSoon()) {
+    await refreshTokens();
+  }
+
+  const response = await fetch(url, {
+    ...options,
+    headers: {
+      ...getAuthHeaders(),
+      ...(options.headers as Record<string, string> ?? {}),
+    },
+  });
+
+  // If 401, try to refresh and retry once
+  if (response.status === 401) {
+    const refreshSuccess = await refreshTokens();
+
+    if (refreshSuccess) {
+      // Retry with new token
+      const retryResponse = await fetch(url, {
+        ...options,
+        headers: {
+          ...getAuthHeaders(),
+          ...(options.headers as Record<string, string> ?? {}),
+        },
+      });
+      return retryResponse.json() as Promise<T>;
+    }
+
+    // Refresh failed - notify app to redirect to login
+    notifyAuthExpired();
+  }
+
+  return response.json() as Promise<T>;
 }
 
 export async function submitRsvp(data: RsvpFormData): Promise<RsvpApiResponse> {
@@ -60,13 +106,9 @@ export async function listRsvps(status?: "attending" | "not_attending"): Promise
     url.searchParams.set("status", status);
   }
 
-  const response = await fetch(url.toString(), {
+  return authenticatedFetch<RsvpListResponse>(url.toString(), {
     method: "GET",
-    headers: getAuthHeaders(),
   });
-
-  const result = (await response.json()) as RsvpListResponse;
-  return result;
 }
 
 export async function adminLogin(data: AdminLoginRequest): Promise<AdminLoginResponse> {
@@ -83,89 +125,58 @@ export async function adminLogin(data: AdminLoginRequest): Promise<AdminLoginRes
 }
 
 export async function createAdminUser(data: CreateAdminRequest): Promise<CreateAdminResponse> {
-  const response = await fetch(`${API_URL}/admin/users`, {
+  return authenticatedFetch<CreateAdminResponse>(`${API_URL}/admin/users`, {
     method: "POST",
-    headers: getAuthHeaders(),
     body: JSON.stringify(data),
   });
-
-  const result = (await response.json()) as CreateAdminResponse;
-  return result;
 }
 
 export async function listAdminUsers(): Promise<ListAdminsResponse> {
-  const response = await fetch(`${API_URL}/admin/users`, {
+  return authenticatedFetch<ListAdminsResponse>(`${API_URL}/admin/users`, {
     method: "GET",
-    headers: getAuthHeaders(),
   });
-
-  const result = (await response.json()) as ListAdminsResponse;
-  return result;
 }
 
 export async function deleteAdminUser(username: string): Promise<DeleteAdminResponse> {
-  const response = await fetch(`${API_URL}/admin/users/${encodeURIComponent(username)}`, {
-    method: "DELETE",
-    headers: getAuthHeaders(),
-  });
-
-  const result = (await response.json()) as DeleteAdminResponse;
-  return result;
+  return authenticatedFetch<DeleteAdminResponse>(
+    `${API_URL}/admin/users/${encodeURIComponent(username)}`,
+    { method: "DELETE" }
+  );
 }
 
 export async function changeAdminPassword(data: ChangePasswordRequest): Promise<ChangePasswordResponse> {
-  const response = await fetch(`${API_URL}/admin/users/password`, {
+  return authenticatedFetch<ChangePasswordResponse>(`${API_URL}/admin/users/password`, {
     method: "PUT",
-    headers: getAuthHeaders(),
     body: JSON.stringify(data),
   });
-
-  const result = (await response.json()) as ChangePasswordResponse;
-  return result;
 }
 
 export async function getAdminProfile(): Promise<GetProfileResponse> {
-  const response = await fetch(`${API_URL}/admin/users/me`, {
+  return authenticatedFetch<GetProfileResponse>(`${API_URL}/admin/users/me`, {
     method: "GET",
-    headers: getAuthHeaders(),
   });
-
-  const result = (await response.json()) as GetProfileResponse;
-  return result;
 }
 
 export async function updateAdminEmail(data: UpdateEmailRequest): Promise<UpdateEmailResponse> {
-  const response = await fetch(`${API_URL}/admin/users/me/email`, {
+  return authenticatedFetch<UpdateEmailResponse>(`${API_URL}/admin/users/me/email`, {
     method: "PUT",
-    headers: getAuthHeaders(),
     body: JSON.stringify(data),
   });
-
-  const result = (await response.json()) as UpdateEmailResponse;
-  return result;
 }
 
 // Gallery API functions
 
 export async function listGalleryImages(): Promise<ListImagesResponse> {
-  const response = await fetch(`${API_URL}/images`, {
+  return authenticatedFetch<ListImagesResponse>(`${API_URL}/images`, {
     method: "GET",
-    headers: getAuthHeaders(),
   });
-
-  const result = (await response.json()) as ListImagesResponse;
-  return result;
 }
 
 export async function getPresignedUrl(data: PresignedUrlRequest): Promise<PresignedUrlResponse> {
-  const response = await fetch(`${API_URL}/images/presigned-url`, {
+  return authenticatedFetch<PresignedUrlResponse>(`${API_URL}/images/presigned-url`, {
     method: "POST",
-    headers: getAuthHeaders(),
     body: JSON.stringify(data),
   });
-
-  const result = (await response.json()) as PresignedUrlResponse;
-  return result;
 }
 
 export async function uploadToS3(presignedUrl: string, file: File): Promise<boolean> {
@@ -180,56 +191,37 @@ export async function uploadToS3(presignedUrl: string, file: File): Promise<bool
 }
 
 export async function confirmImageUpload(data: ConfirmUploadRequest): Promise<ConfirmUploadResponse> {
-  const response = await fetch(`${API_URL}/images/confirm`, {
+  return authenticatedFetch<ConfirmUploadResponse>(`${API_URL}/images/confirm`, {
     method: "POST",
-    headers: getAuthHeaders(),
     body: JSON.stringify(data),
   });
-
-  const result = (await response.json()) as ConfirmUploadResponse;
-  return result;
 }
 
 export async function deleteGalleryImage(imageId: string): Promise<DeleteImageResponse> {
-  const response = await fetch(`${API_URL}/images/${encodeURIComponent(imageId)}`, {
-    method: "DELETE",
-    headers: getAuthHeaders(),
-  });
-
-  const result = (await response.json()) as DeleteImageResponse;
-  return result;
+  return authenticatedFetch<DeleteImageResponse>(
+    `${API_URL}/images/${encodeURIComponent(imageId)}`,
+    { method: "DELETE" }
+  );
 }
 
 export async function reorderGalleryImages(data: ReorderImagesRequest): Promise<{ success: boolean; error?: string }> {
-  const response = await fetch(`${API_URL}/images/reorder`, {
+  return authenticatedFetch<{ success: boolean; error?: string }>(`${API_URL}/images/reorder`, {
     method: "PUT",
-    headers: getAuthHeaders(),
     body: JSON.stringify(data),
   });
-
-  const result = (await response.json()) as { success: boolean; error?: string };
-  return result;
 }
 
 export async function getGallerySettings(): Promise<SettingsResponse> {
-  const response = await fetch(`${API_URL}/images/settings`, {
+  return authenticatedFetch<SettingsResponse>(`${API_URL}/images/settings`, {
     method: "GET",
-    headers: getAuthHeaders(),
   });
-
-  const result = (await response.json()) as SettingsResponse;
-  return result;
 }
 
 export async function updateGallerySettings(data: UpdateSettingsRequest): Promise<SettingsResponse> {
-  const response = await fetch(`${API_URL}/images/settings`, {
+  return authenticatedFetch<SettingsResponse>(`${API_URL}/images/settings`, {
     method: "PUT",
-    headers: getAuthHeaders(),
     body: JSON.stringify(data),
   });
-
-  const result = (await response.json()) as SettingsResponse;
-  return result;
 }
 
 // Venue API functions
@@ -247,14 +239,10 @@ export async function getVenue(): Promise<VenueResponse> {
 }
 
 export async function updateVenue(data: VenueUpdateRequest): Promise<VenueResponse> {
-  const response = await fetch(`${API_URL}/venue`, {
+  return authenticatedFetch<VenueResponse>(`${API_URL}/venue`, {
     method: "PUT",
-    headers: getAuthHeaders(),
     body: JSON.stringify(data),
   });
-
-  const result = (await response.json()) as VenueResponse;
-  return result;
 }
 
 // Wedding Details API functions
@@ -272,14 +260,10 @@ export async function getWeddingDetails(): Promise<WeddingDetailsResponse> {
 }
 
 export async function updateWeddingDetails(data: WeddingDetailsUpdateRequest): Promise<WeddingDetailsResponse> {
-  const response = await fetch(`${API_URL}/wedding-details`, {
+  return authenticatedFetch<WeddingDetailsResponse>(`${API_URL}/wedding-details`, {
     method: "PUT",
-    headers: getAuthHeaders(),
     body: JSON.stringify(data),
   });
-
-  const result = (await response.json()) as WeddingDetailsResponse;
-  return result;
 }
 
 // Schedule API functions
@@ -297,14 +281,10 @@ export async function getSchedule(): Promise<ScheduleResponse> {
 }
 
 export async function updateSchedule(data: ScheduleUpdateRequest): Promise<ScheduleResponse> {
-  const response = await fetch(`${API_URL}/schedule`, {
+  return authenticatedFetch<ScheduleResponse>(`${API_URL}/schedule`, {
     method: "PUT",
-    headers: getAuthHeaders(),
     body: JSON.stringify(data),
   });
-
-  const result = (await response.json()) as ScheduleResponse;
-  return result;
 }
 
 // Contacts API functions
@@ -322,12 +302,8 @@ export async function getContacts(): Promise<ContactsResponse> {
 }
 
 export async function updateContacts(data: ContactsUpdateRequest): Promise<ContactsResponse> {
-  const response = await fetch(`${API_URL}/contacts`, {
+  return authenticatedFetch<ContactsResponse>(`${API_URL}/contacts`, {
     method: "PUT",
-    headers: getAuthHeaders(),
     body: JSON.stringify(data),
   });
-
-  const result = (await response.json()) as ContactsResponse;
-  return result;
 }

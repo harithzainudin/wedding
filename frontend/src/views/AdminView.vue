@@ -112,8 +112,8 @@ const handleOpenPasswordChangeFromProfile = (): void => {
   openPasswordChangeModal();
 };
 
-onMounted(() => {
-  checkExistingAuth();
+onMounted(async () => {
+  await checkExistingAuth();
 });
 </script>
 

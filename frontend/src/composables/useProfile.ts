@@ -1,7 +1,7 @@
 import { ref } from "vue";
 import { getAdminProfile, updateAdminEmail } from "@/services/api";
 
-export function useProfile(getCurrentUser: () => string) {
+export function useProfile(_getCurrentUser: () => string) {
   const showProfileModal = ref(false);
   const email = ref<string>("");
   const originalEmail = ref<string>("");

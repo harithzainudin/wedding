@@ -28,7 +28,8 @@ async function getNextOrder(): Promise<number> {
   );
 
   if (result.Items && result.Items.length > 0) {
-    return ((result.Items[0].order as number) ?? 0) + 1;
+    const firstItem = result.Items[0];
+    return ((firstItem?.order as number) ?? 0) + 1;
   }
   return 1;
 }

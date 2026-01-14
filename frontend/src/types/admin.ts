@@ -5,9 +5,24 @@ export interface AdminLoginRequest {
 
 export interface AdminLoginResponse {
   success: boolean;
-  token?: string;
+  token?: string; // Legacy - for backward compatibility
+  accessToken?: string;
+  refreshToken?: string;
+  expiresIn?: number;
   username?: string;
   isMaster?: boolean;
+  error?: string;
+}
+
+export interface RefreshTokenRequest {
+  refreshToken: string;
+}
+
+export interface RefreshTokenResponse {
+  success: boolean;
+  accessToken?: string;
+  refreshToken?: string;
+  expiresIn?: number;
   error?: string;
 }
 
