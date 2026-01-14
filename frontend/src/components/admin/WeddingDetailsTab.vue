@@ -59,17 +59,36 @@ const syncFormData = () => {
   };
 };
 
-// Format datetime for input
+// Format datetime for input - handles timezone correctly
 const formattedEventDate = computed({
   get: () => {
     if (!formData.value.eventDate) return "";
     const date = new Date(formData.value.eventDate);
-    // Format: YYYY-MM-DDTHH:MM
-    return date.toISOString().slice(0, 16);
+    // Format as local datetime for the input (YYYY-MM-DDTHH:MM)
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    const hours = String(date.getHours()).padStart(2, "0");
+    const minutes = String(date.getMinutes()).padStart(2, "0");
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
   },
   set: (value: string) => {
     if (value) {
-      formData.value.eventDate = new Date(value).toISOString();
+      // Parse the local datetime and store with timezone offset
+      const date = new Date(value);
+      const tzOffset = -date.getTimezoneOffset();
+      const tzHours = String(Math.floor(Math.abs(tzOffset) / 60)).padStart(2, "0");
+      const tzMinutes = String(Math.abs(tzOffset) % 60).padStart(2, "0");
+      const tzSign = tzOffset >= 0 ? "+" : "-";
+
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const day = String(date.getDate()).padStart(2, "0");
+      const hours = String(date.getHours()).padStart(2, "0");
+      const minutes = String(date.getMinutes()).padStart(2, "0");
+      const seconds = String(date.getSeconds()).padStart(2, "0");
+
+      formData.value.eventDate = `${year}-${month}-${day}T${hours}:${minutes}:${seconds}${tzSign}${tzHours}:${tzMinutes}`;
     }
   },
 });
