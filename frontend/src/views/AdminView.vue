@@ -24,6 +24,7 @@ useDocumentTitle({ text: "CMS Admin", position: "prefix" });
 
 const {
   isAuthenticated,
+  isCheckingAuth,
   username,
   password,
   showLoginPassword,
@@ -144,8 +145,17 @@ onMounted(async () => {
 
 <template>
   <div class="min-h-screen bg-sand dark:bg-dark-bg transition-colors duration-300">
-    <!-- Modals -->
-    <PasswordChangeModal
+    <!-- Loading state while checking auth -->
+    <div v-if="isCheckingAuth" class="min-h-screen flex items-center justify-center">
+      <div class="flex flex-col items-center gap-3">
+        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-sage"></div>
+        <span class="text-charcoal-light dark:text-dark-text-secondary text-sm font-body">Loading...</span>
+      </div>
+    </div>
+
+    <template v-else>
+      <!-- Modals -->
+      <PasswordChangeModal
       :show="showPasswordChangeModal"
       :current-password="currentPasswordInput"
       :new-password="newPasswordInput"
@@ -264,5 +274,6 @@ onMounted(async () => {
         :current-user="currentUser"
       />
     </div>
+    </template>
   </div>
 </template>

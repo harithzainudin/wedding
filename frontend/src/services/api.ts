@@ -253,7 +253,7 @@ export async function uploadToS3(presignedUrl: string, file: File, signal?: Abor
       "Content-Type": file.type,
     },
     body: file,
-    signal,
+    signal: signal ?? null,
   });
   return response.ok;
 }
@@ -411,7 +411,7 @@ export async function uploadMusicToS3(presignedUrl: string, file: File, signal?:
       "Content-Type": file.type,
     },
     body: file,
-    signal,
+    signal: signal ?? null,
   });
   return response.ok;
 }

@@ -12,6 +12,7 @@ import {
 
 export function useAdminAuth() {
   const isAuthenticated = ref(false);
+  const isCheckingAuth = ref(true);
   const username = ref("");
   const password = ref("");
   const showLoginPassword = ref(false);
@@ -30,20 +31,25 @@ export function useAdminAuth() {
   const isSettingNewPassword = ref(false);
 
   const checkExistingAuth = async (): Promise<boolean> => {
-    if (hasValidTokens()) {
-      // Try to refresh to validate tokens are still valid
-      const success = await refreshTokens();
-      if (success) {
-        isAuthenticated.value = true;
-        currentUser.value = getStoredUsername() ?? "";
-        isMasterUser.value = getStoredIsMaster();
-        return true;
+    isCheckingAuth.value = true;
+    try {
+      if (hasValidTokens()) {
+        // Try to refresh to validate tokens are still valid
+        const success = await refreshTokens();
+        if (success) {
+          isAuthenticated.value = true;
+          currentUser.value = getStoredUsername() ?? "";
+          isMasterUser.value = getStoredIsMaster();
+          return true;
+        }
       }
-    }
 
-    // Clear invalid tokens
-    clearTokens();
-    return false;
+      // Clear invalid tokens
+      clearTokens();
+      return false;
+    } finally {
+      isCheckingAuth.value = false;
+    }
   };
 
   const handleLogin = async (): Promise<boolean> => {
@@ -152,6 +158,7 @@ export function useAdminAuth() {
 
   return {
     isAuthenticated,
+    isCheckingAuth,
     username,
     password,
     showLoginPassword,

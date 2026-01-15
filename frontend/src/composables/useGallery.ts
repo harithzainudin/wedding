@@ -41,13 +41,16 @@ export function useGallery() {
     uploadProgress.value.forEach((state, fileId) => {
       // Extract filename from fileId (format: "filename-timestamp")
       const filename = fileId.replace(/-\d+$/, "");
-      uploads.push({
+      const upload: UploadProgress = {
         id: fileId,
         filename,
         progress: state.progress,
         status: state.status,
-        error: state.error,
-      });
+      };
+      if (state.error !== undefined) {
+        upload.error = state.error;
+      }
+      uploads.push(upload);
     });
     return uploads;
   });

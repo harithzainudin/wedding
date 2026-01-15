@@ -25,40 +25,40 @@ export interface TokenInfo {
 }
 
 export function storeTokens(info: TokenInfo): void {
-  sessionStorage.setItem(ACCESS_TOKEN_KEY, info.accessToken);
-  sessionStorage.setItem(REFRESH_TOKEN_KEY, info.refreshToken);
-  sessionStorage.setItem(
+  localStorage.setItem(ACCESS_TOKEN_KEY, info.accessToken);
+  localStorage.setItem(REFRESH_TOKEN_KEY, info.refreshToken);
+  localStorage.setItem(
     TOKEN_EXPIRY_KEY,
     String(Date.now() + info.expiresIn * 1000)
   );
-  sessionStorage.setItem(USERNAME_KEY, info.username);
-  sessionStorage.setItem(IS_MASTER_KEY, info.isMaster ? "true" : "false");
+  localStorage.setItem(USERNAME_KEY, info.username);
+  localStorage.setItem(IS_MASTER_KEY, info.isMaster ? "true" : "false");
 
   scheduleProactiveRefresh(info.expiresIn * 1000);
 }
 
 export function getAccessToken(): string | null {
-  return sessionStorage.getItem(ACCESS_TOKEN_KEY);
+  return localStorage.getItem(ACCESS_TOKEN_KEY);
 }
 
 export function getRefreshToken(): string | null {
-  return sessionStorage.getItem(REFRESH_TOKEN_KEY);
+  return localStorage.getItem(REFRESH_TOKEN_KEY);
 }
 
 export function getStoredUsername(): string | null {
-  return sessionStorage.getItem(USERNAME_KEY);
+  return localStorage.getItem(USERNAME_KEY);
 }
 
 export function getStoredIsMaster(): boolean {
-  return sessionStorage.getItem(IS_MASTER_KEY) === "true";
+  return localStorage.getItem(IS_MASTER_KEY) === "true";
 }
 
 export function clearTokens(): void {
-  sessionStorage.removeItem(ACCESS_TOKEN_KEY);
-  sessionStorage.removeItem(REFRESH_TOKEN_KEY);
-  sessionStorage.removeItem(TOKEN_EXPIRY_KEY);
-  sessionStorage.removeItem(USERNAME_KEY);
-  sessionStorage.removeItem(IS_MASTER_KEY);
+  localStorage.removeItem(ACCESS_TOKEN_KEY);
+  localStorage.removeItem(REFRESH_TOKEN_KEY);
+  localStorage.removeItem(TOKEN_EXPIRY_KEY);
+  localStorage.removeItem(USERNAME_KEY);
+  localStorage.removeItem(IS_MASTER_KEY);
 
   if (refreshTimer) {
     clearTimeout(refreshTimer);
@@ -67,7 +67,7 @@ export function clearTokens(): void {
 }
 
 export function isTokenExpiringSoon(): boolean {
-  const expiryStr = sessionStorage.getItem(TOKEN_EXPIRY_KEY);
+  const expiryStr = localStorage.getItem(TOKEN_EXPIRY_KEY);
   if (!expiryStr) return true;
 
   const expiry = parseInt(expiryStr, 10);
