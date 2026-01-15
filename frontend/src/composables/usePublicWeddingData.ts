@@ -1,5 +1,5 @@
-import { ref, onMounted } from "vue";
-import { getWeddingDetails, getSchedule as fetchScheduleApi, getContacts } from "@/services/api";
+import { ref } from "vue";
+import { getWeddingDetailsCached, getScheduleCached, getContactsCached } from "@/services/api";
 import { weddingConfig } from "@/config/wedding";
 import type { WeddingDetailsData, EventDisplayFormat, DisplayNameOrder } from "@/types/weddingDetails";
 import { DEFAULT_DISPLAY_FORMAT } from "@/types/weddingDetails";
@@ -26,9 +26,9 @@ interface LegacyScheduleItem {
 }
 
 export function usePublicWeddingData() {
-  // Fetch all public data from APIs
+  // Fetch all public data from APIs (uses caching to prevent duplicate calls)
   const fetchPublicData = async (): Promise<void> => {
-    if (hasLoaded.value) return; // Only fetch once
+    if (hasLoaded.value) return; // Only fetch once per session
 
     isLoading.value = true;
     isLoadingWeddingDetails.value = true;
@@ -36,8 +36,9 @@ export function usePublicWeddingData() {
     isLoadingContacts.value = true;
 
     try {
-      // Fetch all data in parallel but process each independently
-      const weddingPromise = getWeddingDetails().then((data) => {
+      // Fetch all data in parallel using cached API functions
+      // Cache deduplicates simultaneous requests automatically
+      const weddingPromise = getWeddingDetailsCached().then((data) => {
         weddingDetails.value = data;
       }).catch((err) => {
         console.error("Failed to fetch wedding details:", err);
@@ -45,7 +46,7 @@ export function usePublicWeddingData() {
         isLoadingWeddingDetails.value = false;
       });
 
-      const schedulePromise = fetchScheduleApi().then((data) => {
+      const schedulePromise = getScheduleCached().then((data) => {
         scheduleData.value = data;
       }).catch((err) => {
         console.error("Failed to fetch schedule:", err);
@@ -53,7 +54,7 @@ export function usePublicWeddingData() {
         isLoadingSchedule.value = false;
       });
 
-      const contactsPromise = getContacts().then((data) => {
+      const contactsPromise = getContactsCached().then((data) => {
         contactsData.value = data;
       }).catch((err) => {
         console.error("Failed to fetch contacts:", err);
@@ -222,11 +223,6 @@ export function usePublicWeddingData() {
       order: index,
     }));
   };
-
-  // Auto-fetch on mount
-  onMounted(() => {
-    fetchPublicData();
-  });
 
   return {
     isLoading,

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from "vue";
-import { listRsvps } from "@/services/api";
+import { listRsvpsCached } from "@/services/api";
 import { useLanguage } from "@/composables/useLanguage";
 import type { RsvpSubmission } from "@/types/rsvp";
 
@@ -29,7 +29,7 @@ const fetchWishes = async (): Promise<void> => {
   hasError.value = false;
 
   try {
-    const response = await listRsvps();
+    const response = await listRsvpsCached();
     wishes.value = response.rsvps;
   } catch {
     hasError.value = true;

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from "vue";
-import { listRsvps, listGalleryImages } from "@/services/api";
+import { listRsvpsAdminCached, listGalleryImagesAdminCached } from "@/services/api";
 
 type TabType = "dashboard" | "wedding" | "venue" | "schedule" | "gallery" | "contacts" | "rsvps" | "settings";
 
@@ -13,15 +13,15 @@ const rsvpStats = ref({ total: 0, attending: 0, notAttending: 0, totalGuests: 0 
 const galleryCount = ref(0);
 const isLoading = ref(true);
 
-const loadStats = async () => {
+const loadStats = async (forceRefresh = false) => {
   isLoading.value = true;
   try {
-    // Fetch RSVP stats
-    const rsvpData = await listRsvps();
+    // Fetch RSVP stats (cached unless force refresh)
+    const rsvpData = await listRsvpsAdminCached(forceRefresh);
     rsvpStats.value = rsvpData.summary;
 
-    // Fetch gallery count
-    const galleryData = await listGalleryImages();
+    // Fetch gallery count (cached unless force refresh)
+    const galleryData = await listGalleryImagesAdminCached(forceRefresh);
     galleryCount.value = galleryData.images.length;
   } catch (error) {
     console.error("Failed to load dashboard stats:", error);
@@ -140,7 +140,7 @@ onMounted(() => {
         <button
           type="button"
           class="px-4 py-2 font-body text-sm text-sage hover:text-sage-dark transition-colors cursor-pointer"
-          @click="loadStats"
+          @click="loadStats(true)"
         >
           Refresh Stats
         </button>

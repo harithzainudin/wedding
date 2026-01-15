@@ -48,6 +48,7 @@ import {
   isTokenExpiringSoon,
   notifyAuthExpired,
 } from "./tokenManager";
+import { cachedFetch, CACHE_KEYS, clearCache } from "@/utils/apiCache";
 
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3000";
 
@@ -433,3 +434,81 @@ export async function reorderMusicTracks(data: MusicReorderRequest): Promise<Mus
     body: JSON.stringify(data),
   });
 }
+
+// ============================================================================
+// Cached API Functions (for public pages - session-level caching)
+// ============================================================================
+
+/**
+ * Public gallery images fetch (no auth required)
+ * Used by GallerySection on the public page
+ */
+export async function listGalleryImagesPublic(): Promise<ListImagesResponse> {
+  const response = await fetch(`${API_URL}/images`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+
+  const json = (await response.json()) as ApiResponse<ListImagesResponse>;
+  return unwrapResponse(json);
+}
+
+/**
+ * Public RSVP list fetch (no auth required for guestbook wishes)
+ * Used by GuestbookSection on the public page
+ */
+export async function listRsvpsPublic(): Promise<RsvpListResponse> {
+  const response = await fetch(`${API_URL}/rsvp`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+
+  const json = (await response.json()) as ApiResponse<RsvpListResponse>;
+  return unwrapResponse(json);
+}
+
+// Cached versions of public GET endpoints
+
+export function getVenueCached(forceRefresh = false): Promise<VenueData> {
+  return cachedFetch(CACHE_KEYS.VENUE, getVenue, forceRefresh);
+}
+
+export function getWeddingDetailsCached(forceRefresh = false): Promise<WeddingDetailsData> {
+  return cachedFetch(CACHE_KEYS.WEDDING_DETAILS, getWeddingDetails, forceRefresh);
+}
+
+export function getScheduleCached(forceRefresh = false): Promise<ScheduleData> {
+  return cachedFetch(CACHE_KEYS.SCHEDULE, getSchedule, forceRefresh);
+}
+
+export function getContactsCached(forceRefresh = false): Promise<ContactsData> {
+  return cachedFetch(CACHE_KEYS.CONTACTS, getContacts, forceRefresh);
+}
+
+export function getMusicCached(forceRefresh = false): Promise<MusicResponse> {
+  return cachedFetch(CACHE_KEYS.MUSIC, getMusic, forceRefresh);
+}
+
+export function listGalleryImagesCached(forceRefresh = false): Promise<ListImagesResponse> {
+  return cachedFetch(CACHE_KEYS.GALLERY_IMAGES, listGalleryImagesPublic, forceRefresh);
+}
+
+export function listRsvpsCached(forceRefresh = false): Promise<RsvpListResponse> {
+  return cachedFetch(CACHE_KEYS.RSVPS, listRsvpsPublic, forceRefresh);
+}
+
+// Admin cached versions (authenticated)
+export function listRsvpsAdminCached(forceRefresh = false): Promise<RsvpListResponse> {
+  return cachedFetch(`${CACHE_KEYS.RSVPS}-admin`, () => listRsvps(), forceRefresh);
+}
+
+export function listGalleryImagesAdminCached(forceRefresh = false): Promise<ListImagesResponse> {
+  return cachedFetch(`${CACHE_KEYS.GALLERY_IMAGES}-admin`, listGalleryImages, forceRefresh);
+}
+
+// Re-export clearCache for components that need to invalidate cache
+export { clearCache };

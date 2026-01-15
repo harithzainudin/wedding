@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, watch, nextTick } from "vue";
 import { useLanguage } from "@/composables/useLanguage";
+import { listGalleryImagesCached } from "@/services/api";
 
 const { t } = useLanguage();
 
@@ -23,20 +24,13 @@ const visiblePhotos = computed(() => photos.value.slice(0, MAX_VISIBLE_PHOTOS));
 const hasMorePhotos = computed(() => photos.value.length > MAX_VISIBLE_PHOTOS);
 const fetchPublicGallery = async (): Promise<void> => {
   try {
-    const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3000";
-    const response = await fetch(`${API_URL}/images`);
-
-    if (response.ok) {
-      const result = await response.json();
-      // Handle new API response format (data is nested in result.data)
-      const data = result.data ?? result;
-      showGallery.value = data.showGallery ?? true;
-      if (data.images?.length > 0) {
-        photos.value = data.images.map((img: { url: string; filename: string }) => ({
-          src: img.url,
-          alt: img.filename,
-        }));
-      }
+    const data = await listGalleryImagesCached();
+    showGallery.value = data.settings?.showGallery ?? true;
+    if (data.images?.length > 0) {
+      photos.value = data.images.map((img) => ({
+        src: img.url,
+        alt: img.filename,
+      }));
     }
   } catch {
     // Photos remain empty on error

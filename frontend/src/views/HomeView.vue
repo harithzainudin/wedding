@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { onMounted } from "vue";
 import HeroSection from "@/components/sections/HeroSection.vue";
 import DetailsSection from "@/components/sections/DetailsSection.vue";
 import GallerySection from "@/components/sections/GallerySection.vue";
@@ -9,8 +10,16 @@ import GuestbookSection from "@/components/sections/GuestbookSection.vue";
 import RsvpSection from "@/components/sections/RsvpSection.vue";
 import StickyNavigation from "@/components/ui/StickyNavigation.vue";
 import { useDocumentTitle } from "@/composables/useDocumentTitle";
+import { usePublicWeddingData } from "@/composables/usePublicWeddingData";
 
 useDocumentTitle({ text: "Wedding Ceremony", position: "suffix" });
+
+// Fetch all public wedding data once at the top level
+const { fetchPublicData } = usePublicWeddingData();
+
+onMounted(() => {
+  fetchPublicData();
+});
 </script>
 
 <template>
