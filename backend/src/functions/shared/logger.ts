@@ -50,5 +50,6 @@ export function logError(context: LogContext, error: unknown): void {
     timestamp: new Date().toISOString(),
   };
 
-  console.error(JSON.stringify(logEntry));
+  // Pass object directly - Lambda's JSON log format will serialize it
+  console.error(logEntry);
 }

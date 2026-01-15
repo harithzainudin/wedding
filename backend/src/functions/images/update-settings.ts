@@ -14,7 +14,11 @@ import {
 } from "../shared/image-constants";
 
 const dynamoClient = new DynamoDBClient({});
-const docClient = DynamoDBDocumentClient.from(dynamoClient);
+const docClient = DynamoDBDocumentClient.from(dynamoClient, {
+  marshallOptions: {
+    removeUndefinedValues: true,
+  },
+});
 
 export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
   try {

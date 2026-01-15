@@ -9,7 +9,11 @@ import { logError } from "../shared/logger";
 import { validateConfirmUpload } from "../shared/image-validation";
 
 const dynamoClient = new DynamoDBClient({});
-const docClient = DynamoDBDocumentClient.from(dynamoClient);
+const docClient = DynamoDBDocumentClient.from(dynamoClient, {
+  marshallOptions: {
+    removeUndefinedValues: true,
+  },
+});
 const s3Client = new S3Client({});
 
 function padOrder(order: number): string {
