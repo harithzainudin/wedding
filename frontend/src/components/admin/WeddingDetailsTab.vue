@@ -6,15 +6,15 @@ import { DEFAULT_DISPLAY_FORMAT, DEFAULT_BISMILLAH_SETTINGS } from "@/types/wedd
 import BismillahCalligraphySelector from "@/components/admin/BismillahCalligraphySelector.vue";
 
 // Tooltip content for name order setting
-const nameOrderTooltip = `Adat Perkahwinan Melayu (Malay Wedding Custom)
+const nameOrderTooltip = `Malay Wedding Custom
 
-Secara tradisi, susunan nama mencerminkan pihak mana yang mengadakan majlis resepsi terlebih dahulu:
+Traditionally, the name order reflects which family hosts the main reception first:
 
-• Pengantin Perempuan Dahulu: Apabila majlis resepsi utama (bersanding) diadakan di rumah keluarga pengantin perempuan terlebih dahulu. Ini adalah susunan tradisional.
+• Bride First: When the main reception (bersanding) is held at the bride's family home first. This is the traditional arrangement.
 
-• Pengantin Lelaki Dahulu: Apabila pihak pengantin lelaki mengadakan majlis terlebih dahulu, atau untuk majlis bertandang di rumah pengantin lelaki.
+• Groom First: When the groom's family hosts the reception first, or for the bertandang ceremony at the groom's home.
 
-Pilih berdasarkan susunan majlis perkahwinan anda.`;
+Choose based on your wedding ceremony arrangement.`;
 
 const {
   weddingDetails,
@@ -549,7 +549,7 @@ onMounted(async () => {
                 Bride First
               </span>
               <span class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary">
-                Pengantin Perempuan Dahulu (Traditional)
+                Traditional arrangement
               </span>
             </div>
           </label>
@@ -571,7 +571,7 @@ onMounted(async () => {
                 Groom First
               </span>
               <span class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary">
-                Pengantin Lelaki Dahulu
+                Alternative arrangement
               </span>
             </div>
           </label>
