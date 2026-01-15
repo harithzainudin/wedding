@@ -1,5 +1,6 @@
 import { ref, computed } from "vue";
 import type { GalleryImage, GallerySettings } from "@/types/gallery";
+import type { UploadState, UploadProgress } from "@/types/upload";
 import {
   listGalleryImages,
   getPresignedUrl,
@@ -23,7 +24,8 @@ const settings = ref<GallerySettings>({
 });
 const isLoading = ref(false);
 const loadError = ref("");
-const uploadProgress = ref<Map<string, number>>(new Map());
+const uploadProgress = ref<Map<string, UploadState>>(new Map());
+const uploadControllers = ref<Map<string, AbortController>>(new Map());
 
 export function useGallery() {
   // Computed
@@ -32,6 +34,23 @@ export function useGallery() {
   const canUploadMore = computed(() => images.value.length < settings.value.maxImages);
 
   const remainingSlots = computed(() => settings.value.maxImages - images.value.length);
+
+  // Computed property to expose uploads as array for UI components
+  const activeUploads = computed<UploadProgress[]>(() => {
+    const uploads: UploadProgress[] = [];
+    uploadProgress.value.forEach((state, fileId) => {
+      // Extract filename from fileId (format: "filename-timestamp")
+      const filename = fileId.replace(/-\d+$/, "");
+      uploads.push({
+        id: fileId,
+        filename,
+        progress: state.progress,
+        status: state.status,
+        error: state.error,
+      });
+    });
+    return uploads;
+  });
 
   // Validate a file before upload
   const validateFile = (file: File): { valid: boolean; error?: string | undefined } => {
@@ -89,7 +108,9 @@ export function useGallery() {
     }
 
     const fileId = `${file.name}-${Date.now()}`;
-    uploadProgress.value.set(fileId, 0);
+    const abortController = new AbortController();
+    uploadControllers.value.set(fileId, abortController);
+    uploadProgress.value.set(fileId, { progress: 0, status: "uploading" });
 
     try {
       // Step 1: Get presigned URL
@@ -99,16 +120,27 @@ export function useGallery() {
         fileSize: file.size,
       });
 
-      uploadProgress.value.set(fileId, 30);
+      // Check if cancelled
+      if (abortController.signal.aborted) {
+        throw new DOMException("Upload cancelled", "AbortError");
+      }
+
+      uploadProgress.value.set(fileId, { progress: 30, status: "uploading" });
 
       // Step 2: Upload to S3
-      const uploadSuccess = await uploadToS3(presignedResponse.uploadUrl, file);
+      const uploadSuccess = await uploadToS3(presignedResponse.uploadUrl, file, abortController.signal);
       if (!uploadSuccess) {
-        uploadProgress.value.delete(fileId);
+        uploadProgress.value.set(fileId, {
+          progress: 30,
+          status: "error",
+          error: "Failed to upload file to storage",
+        });
+        uploadControllers.value.delete(fileId);
+        setTimeout(() => uploadProgress.value.delete(fileId), 5000);
         return { success: false, error: "Failed to upload file to storage" };
       }
 
-      uploadProgress.value.set(fileId, 70);
+      uploadProgress.value.set(fileId, { progress: 70, status: "uploading" });
 
       // Step 3: Confirm upload
       const confirmResponse = await confirmImageUpload({
@@ -118,7 +150,8 @@ export function useGallery() {
         mimeType: file.type,
       });
 
-      uploadProgress.value.set(fileId, 100);
+      uploadProgress.value.set(fileId, { progress: 100, status: "completed" });
+      uploadControllers.value.delete(fileId);
 
       // Add the new image to the list
       images.value.push({
@@ -135,13 +168,45 @@ export function useGallery() {
       // Clean up progress after a delay
       setTimeout(() => {
         uploadProgress.value.delete(fileId);
-      }, 1000);
+      }, 2000);
 
       return { success: true };
     } catch (err) {
-      uploadProgress.value.delete(fileId);
+      uploadControllers.value.delete(fileId);
+
+      // Handle abort error
+      if (err instanceof DOMException && err.name === "AbortError") {
+        uploadProgress.value.set(fileId, {
+          progress: uploadProgress.value.get(fileId)?.progress ?? 0,
+          status: "cancelled",
+          error: "Upload cancelled",
+        });
+        setTimeout(() => uploadProgress.value.delete(fileId), 3000);
+        return { success: false, error: "Upload cancelled" };
+      }
+
+      uploadProgress.value.set(fileId, {
+        progress: uploadProgress.value.get(fileId)?.progress ?? 0,
+        status: "error",
+        error: err instanceof Error ? err.message : "Upload failed",
+      });
+      setTimeout(() => uploadProgress.value.delete(fileId), 5000);
       return { success: false, error: err instanceof Error ? err.message : "Upload failed" };
     }
+  };
+
+  // Cancel an in-progress upload
+  const cancelUpload = (fileId: string): void => {
+    const controller = uploadControllers.value.get(fileId);
+    if (controller) {
+      controller.abort();
+    }
+  };
+
+  // Dismiss an upload from the progress list
+  const dismissUpload = (fileId: string): void => {
+    uploadProgress.value.delete(fileId);
+    uploadControllers.value.delete(fileId);
   };
 
   // Remove an image
@@ -202,10 +267,13 @@ export function useGallery() {
     isLoading,
     loadError,
     uploadProgress,
+    activeUploads,
     canUploadMore,
     remainingSlots,
     fetchImages,
     uploadImage,
+    cancelUpload,
+    dismissUpload,
     removeImage,
     updateOrder,
     updateSettings,

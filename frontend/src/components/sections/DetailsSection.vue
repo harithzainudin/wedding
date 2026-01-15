@@ -8,7 +8,7 @@ import type { EventDisplayPreset, EventDisplayCustomOptions } from "@/types/wedd
 
 const { t, currentLanguage } = useLanguage();
 const { venue } = useVenueConfig();
-const { getEventDate, getEventEndTime, getEventDisplayFormat, getDressCode, getHashtag } = usePublicWeddingData();
+const { getEventDate, getEventEndTime, getEventDisplayFormat, getDressCode, getHashtag, isLoadingWeddingDetails } = usePublicWeddingData();
 const { orderedCouple, orderedParents } = useNameOrder();
 
 const localeMap: Record<string, string> = {
@@ -238,12 +238,20 @@ const copyHashtag = async (): Promise<void> => {
 
         <!-- First Parents (based on display order) -->
         <div class="mb-3 sm:mb-4">
-          <p class="font-heading text-base sm:text-lg text-charcoal dark:text-dark-text">
-            {{ parents.first.father }}
-          </p>
-          <p class="font-heading text-base sm:text-lg text-charcoal dark:text-dark-text">
-            & {{ parents.first.mother }}
-          </p>
+          <template v-if="isLoadingWeddingDetails">
+            <div class="animate-pulse flex flex-col items-center space-y-2">
+              <div class="h-5 sm:h-6 w-48 sm:w-56 bg-charcoal/10 dark:bg-dark-text/10 rounded"></div>
+              <div class="h-5 sm:h-6 w-52 sm:w-60 bg-charcoal/10 dark:bg-dark-text/10 rounded"></div>
+            </div>
+          </template>
+          <template v-else>
+            <p class="font-heading text-base sm:text-lg text-charcoal dark:text-dark-text">
+              {{ parents.first.father }}
+            </p>
+            <p class="font-heading text-base sm:text-lg text-charcoal dark:text-dark-text">
+              & {{ parents.first.mother }}
+            </p>
+          </template>
         </div>
 
         <p class="font-body text-sm sm:text-base text-charcoal-light dark:text-dark-text-secondary mb-3 sm:mb-4">
@@ -252,12 +260,20 @@ const copyHashtag = async (): Promise<void> => {
 
         <!-- Second Parents (based on display order) -->
         <div class="mb-4 sm:mb-6">
-          <p class="font-heading text-base sm:text-lg text-charcoal dark:text-dark-text">
-            {{ parents.second.father }}
-          </p>
-          <p class="font-heading text-base sm:text-lg text-charcoal dark:text-dark-text">
-            & {{ parents.second.mother }}
-          </p>
+          <template v-if="isLoadingWeddingDetails">
+            <div class="animate-pulse flex flex-col items-center space-y-2">
+              <div class="h-5 sm:h-6 w-48 sm:w-56 bg-charcoal/10 dark:bg-dark-text/10 rounded"></div>
+              <div class="h-5 sm:h-6 w-52 sm:w-60 bg-charcoal/10 dark:bg-dark-text/10 rounded"></div>
+            </div>
+          </template>
+          <template v-else>
+            <p class="font-heading text-base sm:text-lg text-charcoal dark:text-dark-text">
+              {{ parents.second.father }}
+            </p>
+            <p class="font-heading text-base sm:text-lg text-charcoal dark:text-dark-text">
+              & {{ parents.second.mother }}
+            </p>
+          </template>
         </div>
 
         <p class="font-body text-xs sm:text-sm text-charcoal-light dark:text-dark-text-secondary leading-relaxed px-2">
@@ -267,15 +283,26 @@ const copyHashtag = async (): Promise<void> => {
 
       <!-- Couple Names -->
       <div class="mb-8 sm:mb-12">
-        <h2 class="font-heading text-2xl sm:text-3xl md:text-4xl text-sage-dark dark:text-sage-light mb-1 sm:mb-2 leading-tight">
-          {{ couple.first.fullName }}
-        </h2>
-        <p class="font-heading text-xl sm:text-2xl text-charcoal-light dark:text-dark-text-secondary mb-1 sm:mb-2">
-          &
-        </p>
-        <h2 class="font-heading text-2xl sm:text-3xl md:text-4xl text-sage-dark dark:text-sage-light leading-tight">
-          {{ couple.second.fullName }}
-        </h2>
+        <template v-if="isLoadingWeddingDetails">
+          <div class="animate-pulse flex flex-col items-center">
+            <div class="h-8 sm:h-9 md:h-10 w-56 sm:w-64 md:w-72 bg-sage/20 rounded mb-1 sm:mb-2"></div>
+            <p class="font-heading text-xl sm:text-2xl text-charcoal-light dark:text-dark-text-secondary mb-1 sm:mb-2">
+              &
+            </p>
+            <div class="h-8 sm:h-9 md:h-10 w-56 sm:w-64 md:w-72 bg-sage/20 rounded"></div>
+          </div>
+        </template>
+        <template v-else>
+          <h2 class="font-heading text-2xl sm:text-3xl md:text-4xl text-sage-dark dark:text-sage-light mb-1 sm:mb-2 leading-tight">
+            {{ couple.first.fullName }}
+          </h2>
+          <p class="font-heading text-xl sm:text-2xl text-charcoal-light dark:text-dark-text-secondary mb-1 sm:mb-2">
+            &
+          </p>
+          <h2 class="font-heading text-2xl sm:text-3xl md:text-4xl text-sage-dark dark:text-sage-light leading-tight">
+            {{ couple.second.fullName }}
+          </h2>
+        </template>
       </div>
 
       <!-- Divider -->
@@ -355,28 +382,42 @@ const copyHashtag = async (): Promise<void> => {
           <p class="font-body text-xs sm:text-sm uppercase tracking-wider text-charcoal-light dark:text-dark-text-secondary mb-1">
             {{ t.details.dressCode }}
           </p>
-          <p class="font-heading text-base sm:text-lg text-sage-dark dark:text-sage-light">
-            {{ dressCode }}
-          </p>
+          <template v-if="isLoadingWeddingDetails">
+            <div class="animate-pulse">
+              <div class="h-5 sm:h-6 w-32 sm:w-40 bg-sage/20 rounded mx-auto"></div>
+            </div>
+          </template>
+          <template v-else>
+            <p class="font-heading text-base sm:text-lg text-sage-dark dark:text-sage-light">
+              {{ dressCode }}
+            </p>
+          </template>
         </div>
 
         <div class="flex-1 p-3 sm:p-4 bg-white dark:bg-dark-bg-elevated rounded-lg">
           <p class="font-body text-xs sm:text-sm uppercase tracking-wider text-charcoal-light dark:text-dark-text-secondary mb-1">
             {{ t.details.shareYourMoments }}
           </p>
-          <button
-            type="button"
-            class="font-heading text-base sm:text-lg text-sage-dark dark:text-sage-light hover:text-sage cursor-pointer transition-colors"
-            @click="copyHashtag"
-          >
-            {{ hashtag }}
-          </button>
-          <p
-            v-if="copied"
-            class="font-body text-xs text-sage mt-1"
-          >
-            {{ t.details.copied }}
-          </p>
+          <template v-if="isLoadingWeddingDetails">
+            <div class="animate-pulse">
+              <div class="h-5 sm:h-6 w-36 sm:w-44 bg-sage/20 rounded mx-auto"></div>
+            </div>
+          </template>
+          <template v-else>
+            <button
+              type="button"
+              class="font-heading text-base sm:text-lg text-sage-dark dark:text-sage-light hover:text-sage cursor-pointer transition-colors"
+              @click="copyHashtag"
+            >
+              {{ hashtag }}
+            </button>
+            <p
+              v-if="copied"
+              class="font-body text-xs text-sage mt-1"
+            >
+              {{ t.details.copied }}
+            </p>
+          </template>
         </div>
       </div>
     </div>

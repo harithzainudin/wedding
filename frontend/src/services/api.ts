@@ -246,13 +246,14 @@ export async function getPresignedUrl(data: PresignedUrlRequest): Promise<Presig
   });
 }
 
-export async function uploadToS3(presignedUrl: string, file: File): Promise<boolean> {
+export async function uploadToS3(presignedUrl: string, file: File, signal?: AbortSignal): Promise<boolean> {
   const response = await fetch(presignedUrl, {
     method: "PUT",
     headers: {
       "Content-Type": file.type,
     },
     body: file,
+    signal,
   });
   return response.ok;
 }
@@ -403,13 +404,14 @@ export async function getMusicPresignedUrl(data: MusicPresignedUrlRequest): Prom
   });
 }
 
-export async function uploadMusicToS3(presignedUrl: string, file: File): Promise<boolean> {
+export async function uploadMusicToS3(presignedUrl: string, file: File, signal?: AbortSignal): Promise<boolean> {
   const response = await fetch(presignedUrl, {
     method: "PUT",
     headers: {
       "Content-Type": file.type,
     },
     body: file,
+    signal,
   });
   return response.ok;
 }

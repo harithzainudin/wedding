@@ -94,10 +94,10 @@ const openLink = (url: string) => {
             @click="openLink(wazeUrl)"
           >
             <svg class="w-4 h-4 text-sage" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M20.54 6.63c-.52-.93-1.2-1.76-2-2.47A9.48 9.48 0 0012 2C6.48 2 2 6.48 2 12c0 2.04.61 3.93 1.66 5.51L2 22l4.49-1.66C8.07 21.39 9.96 22 12 22c5.52 0 10-4.48 10-10 0-1.56-.36-3.04-1-4.37l-.46-1zm-8.54 12.37c-1.64 0-3.18-.45-4.49-1.24l-.32-.19-3.33 1.23 1.08-3.22-.21-.34a7.96 7.96 0 01-1.23-4.24c0-4.41 3.59-8 8-8s8 3.59 8 8-3.59 8-8 8z"/>
-              <circle cx="8.5" cy="10.5" r="1.5"/>
-              <circle cx="15.5" cy="10.5" r="1.5"/>
-              <path d="M12 16c1.5 0 2.75-.9 3.3-2.2H8.7c.55 1.3 1.8 2.2 3.3 2.2z"/>
+              <path d="M12 2C6.5 2 2 6.5 2 12c0 2.6 1 5 2.7 6.8-.2.7-.6 1.8-1.3 3.2 2.1-.5 3.7-1.1 4.7-1.5.9.3 2 .5 3.1.5h.8c5.5 0 10-4.5 10-10S17.5 2 12 2zm0 18c-.9 0-1.8-.1-2.6-.4l-.5-.2-.5.2c-.6.2-1.5.5-2.7.9.4-.8.7-1.5.8-2l.2-.6-.4-.5C5 15.8 4 13.9 4 12c0-4.4 3.6-8 8-8s8 3.6 8 8-3.6 8-8 8z"/>
+              <circle cx="8.5" cy="11" r="1.5"/>
+              <circle cx="15.5" cy="11" r="1.5"/>
+              <path d="M12 17c2 0 3.7-1.2 4.5-3h-9c.8 1.8 2.5 3 4.5 3z"/>
             </svg>
             <span class="font-body text-xs font-medium text-charcoal dark:text-dark-text">Waze</span>
             <svg class="w-3 h-3 text-charcoal-light dark:text-dark-text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">

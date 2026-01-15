@@ -4,6 +4,7 @@ import type {
   MusicSettings,
   MusicSettingsUpdateRequest,
 } from "@/types/music";
+import type { UploadState, UploadProgress } from "@/types/upload";
 import {
   getMusic,
   getMusicPresignedUrl,
@@ -39,7 +40,8 @@ const settings = ref<MusicSettings>({
 });
 const isLoading = ref(false);
 const loadError = ref("");
-const uploadProgress = ref<Map<string, number>>(new Map());
+const uploadProgress = ref<Map<string, UploadState>>(new Map());
+const uploadControllers = ref<Map<string, AbortController>>(new Map());
 
 export function useMusic() {
   // Computed
@@ -54,6 +56,23 @@ export function useMusic() {
       return tracks.value.find((t) => t.id === settings.value.selectedTrackId);
     }
     return null;
+  });
+
+  // Computed property to expose uploads as array for UI components
+  const activeUploads = computed<UploadProgress[]>(() => {
+    const uploads: UploadProgress[] = [];
+    uploadProgress.value.forEach((state, fileId) => {
+      // Extract filename from fileId (format: "filename-timestamp")
+      const filename = fileId.replace(/-\d+$/, "");
+      uploads.push({
+        id: fileId,
+        filename,
+        progress: state.progress,
+        status: state.status,
+        error: state.error,
+      });
+    });
+    return uploads;
   });
 
   // Validate a file before upload
@@ -131,12 +150,20 @@ export function useMusic() {
     }
 
     const fileId = `${file.name}-${Date.now()}`;
-    uploadProgress.value.set(fileId, 0);
+    const abortController = new AbortController();
+    uploadControllers.value.set(fileId, abortController);
+    uploadProgress.value.set(fileId, { progress: 0, status: "uploading" });
 
     try {
       // Get audio duration
       const duration = await getAudioDuration(file);
-      uploadProgress.value.set(fileId, 10);
+
+      // Check if cancelled
+      if (abortController.signal.aborted) {
+        throw new DOMException("Upload cancelled", "AbortError");
+      }
+
+      uploadProgress.value.set(fileId, { progress: 10, status: "uploading" });
 
       // Step 1: Get presigned URL
       const presignedRequest: {
@@ -158,16 +185,27 @@ export function useMusic() {
       }
       const presignedResponse = await getMusicPresignedUrl(presignedRequest);
 
-      uploadProgress.value.set(fileId, 30);
+      // Check if cancelled
+      if (abortController.signal.aborted) {
+        throw new DOMException("Upload cancelled", "AbortError");
+      }
+
+      uploadProgress.value.set(fileId, { progress: 30, status: "uploading" });
 
       // Step 2: Upload to S3
-      const uploadSuccess = await uploadMusicToS3(presignedResponse.uploadUrl, file);
+      const uploadSuccess = await uploadMusicToS3(presignedResponse.uploadUrl, file, abortController.signal);
       if (!uploadSuccess) {
-        uploadProgress.value.delete(fileId);
+        uploadProgress.value.set(fileId, {
+          progress: 30,
+          status: "error",
+          error: "Failed to upload file to storage",
+        });
+        uploadControllers.value.delete(fileId);
+        setTimeout(() => uploadProgress.value.delete(fileId), 5000);
         return { success: false, error: "Failed to upload file to storage" };
       }
 
-      uploadProgress.value.set(fileId, 70);
+      uploadProgress.value.set(fileId, { progress: 70, status: "uploading" });
 
       // Step 3: Confirm upload
       const confirmRequest: {
@@ -191,7 +229,8 @@ export function useMusic() {
       }
       const confirmResponse = await confirmMusicUpload(confirmRequest);
 
-      uploadProgress.value.set(fileId, 100);
+      uploadProgress.value.set(fileId, { progress: 100, status: "completed" });
+      uploadControllers.value.delete(fileId);
 
       // Add the new track to the list
       tracks.value.push({
@@ -212,13 +251,45 @@ export function useMusic() {
       // Clean up progress after a delay
       setTimeout(() => {
         uploadProgress.value.delete(fileId);
-      }, 1000);
+      }, 2000);
 
       return { success: true };
     } catch (err) {
-      uploadProgress.value.delete(fileId);
+      uploadControllers.value.delete(fileId);
+
+      // Handle abort error
+      if (err instanceof DOMException && err.name === "AbortError") {
+        uploadProgress.value.set(fileId, {
+          progress: uploadProgress.value.get(fileId)?.progress ?? 0,
+          status: "cancelled",
+          error: "Upload cancelled",
+        });
+        setTimeout(() => uploadProgress.value.delete(fileId), 3000);
+        return { success: false, error: "Upload cancelled" };
+      }
+
+      uploadProgress.value.set(fileId, {
+        progress: uploadProgress.value.get(fileId)?.progress ?? 0,
+        status: "error",
+        error: err instanceof Error ? err.message : "Upload failed",
+      });
+      setTimeout(() => uploadProgress.value.delete(fileId), 5000);
       return { success: false, error: err instanceof Error ? err.message : "Upload failed" };
     }
+  };
+
+  // Cancel an in-progress upload
+  const cancelUpload = (fileId: string): void => {
+    const controller = uploadControllers.value.get(fileId);
+    if (controller) {
+      controller.abort();
+    }
+  };
+
+  // Dismiss an upload from the progress list
+  const dismissUpload = (fileId: string): void => {
+    uploadProgress.value.delete(fileId);
+    uploadControllers.value.delete(fileId);
   };
 
   // Remove a track
@@ -291,12 +362,15 @@ export function useMusic() {
     isLoading,
     loadError,
     uploadProgress,
+    activeUploads,
     canUploadMore,
     remainingSlots,
     selectedTrack,
     // Methods
     fetchTracks,
     uploadTrack,
+    cancelUpload,
+    dismissUpload,
     removeTrack,
     updateOrder,
     saveSettings,

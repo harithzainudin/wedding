@@ -9,7 +9,7 @@ import { usePublicWeddingData } from "@/composables/usePublicWeddingData";
 import { useNameOrder } from "@/composables/useNameOrder";
 
 const { t } = useLanguage();
-const { getEventDate } = usePublicWeddingData();
+const { getEventDate, isLoadingWeddingDetails } = usePublicWeddingData();
 const { orderedCouple } = useNameOrder();
 
 const coupleNames = computed(() => ({
@@ -60,15 +60,28 @@ const weddingDate = computed(() => getEventDate());
 
       <!-- Couple Names - Stacked -->
       <div class="mb-6 sm:mb-8">
-        <h1 class="font-heading text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-semibold">
-          {{ coupleNames.first }}
-        </h1>
-        <p class="font-heading text-xl sm:text-2xl md:text-3xl my-1 sm:my-2 opacity-80">
-          &
-        </p>
-        <h1 class="font-heading text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-semibold">
-          {{ coupleNames.second }}
-        </h1>
+        <!-- Loading Skeleton -->
+        <template v-if="isLoadingWeddingDetails">
+          <div class="animate-pulse flex flex-col items-center">
+            <div class="h-9 sm:h-10 md:h-12 lg:h-14 w-40 sm:w-48 md:w-56 bg-white/20 rounded mb-1 sm:mb-2"></div>
+            <p class="font-heading text-xl sm:text-2xl md:text-3xl my-1 sm:my-2 opacity-80">
+              &
+            </p>
+            <div class="h-9 sm:h-10 md:h-12 lg:h-14 w-40 sm:w-48 md:w-56 bg-white/20 rounded"></div>
+          </div>
+        </template>
+        <!-- Actual Names -->
+        <template v-else>
+          <h1 class="font-heading text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-semibold">
+            {{ coupleNames.first }}
+          </h1>
+          <p class="font-heading text-xl sm:text-2xl md:text-3xl my-1 sm:my-2 opacity-80">
+            &
+          </p>
+          <h1 class="font-heading text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-semibold">
+            {{ coupleNames.second }}
+          </h1>
+        </template>
       </div>
 
       <!-- Countdown Timer -->

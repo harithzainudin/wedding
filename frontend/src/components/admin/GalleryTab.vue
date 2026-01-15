@@ -8,16 +8,20 @@ import GallerySettings from "./GallerySettings.vue";
 import DeleteConfirmModal from "./DeleteConfirmModal.vue";
 import HelpTooltip from "./HelpTooltip.vue";
 import GalleryHelpContent from "./GalleryHelpContent.vue";
+import UploadProgressBar from "./UploadProgressBar.vue";
 
 const {
   images,
   settings,
   isLoading,
   loadError,
+  activeUploads,
   canUploadMore,
   remainingSlots,
   fetchImages,
   uploadImage,
+  cancelUpload,
+  dismissUpload,
   removeImage,
   updateOrder,
   updateSettings,
@@ -199,6 +203,15 @@ onUnmounted(() => {
         </Teleport>
       </div>
     </div>
+
+    <!-- Upload Progress Bar -->
+    <UploadProgressBar
+      v-if="activeUploads.length > 0"
+      :uploads="activeUploads"
+      type="image"
+      @cancel="cancelUpload"
+      @dismiss="dismissUpload"
+    />
 
     <!-- Upload Errors -->
     <div v-if="uploadErrors.length > 0" class="space-y-2">

@@ -6,16 +6,20 @@ import MusicUploader from "./MusicUploader.vue";
 import MusicTrackList from "./MusicTrackList.vue";
 import MusicSettings from "./MusicSettings.vue";
 import DeleteConfirmModal from "./DeleteConfirmModal.vue";
+import UploadProgressBar from "./UploadProgressBar.vue";
 
 const {
   tracks,
   settings,
   isLoading,
   loadError,
+  activeUploads,
   canUploadMore,
   remainingSlots,
   fetchTracks,
   uploadTrack,
+  cancelUpload,
+  dismissUpload,
   removeTrack,
   updateOrder,
   saveSettings,
@@ -152,6 +156,15 @@ onUnmounted(() => {
         </button>
       </div>
     </div>
+
+    <!-- Upload Progress Bar -->
+    <UploadProgressBar
+      v-if="activeUploads.length > 0"
+      :uploads="activeUploads"
+      type="music"
+      @cancel="cancelUpload"
+      @dismiss="dismissUpload"
+    />
 
     <!-- Upload Errors -->
     <div v-if="uploadErrors.length > 0" class="space-y-2">
