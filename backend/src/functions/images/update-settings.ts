@@ -4,6 +4,7 @@ import { DynamoDBDocumentClient, PutCommand, GetCommand } from "@aws-sdk/lib-dyn
 import { Resource } from "sst";
 import { createSuccessResponse, createErrorResponse } from "../shared/response";
 import { requireAuth } from "../shared/auth";
+import { logError } from "../shared/logger";
 import { validateSettingsUpdate } from "../shared/image-validation";
 import {
   DEFAULT_MAX_FILE_SIZE,
@@ -16,28 +17,28 @@ const dynamoClient = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(dynamoClient);
 
 export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
-  const authResult = requireAuth(event);
-  if (!authResult.authenticated) {
-    return createErrorResponse(authResult.statusCode, authResult.error, context, "AUTH_ERROR");
-  }
-
-  if (!event.body) {
-    return createErrorResponse(400, "Missing request body", context, "MISSING_BODY");
-  }
-
-  let body: unknown;
   try {
-    body = JSON.parse(event.body);
-  } catch {
-    return createErrorResponse(400, "Invalid JSON body", context, "INVALID_JSON");
-  }
+    const authResult = requireAuth(event);
+    if (!authResult.authenticated) {
+      return createErrorResponse(authResult.statusCode, authResult.error, context, "AUTH_ERROR");
+    }
 
-  const validation = validateSettingsUpdate(body);
-  if (!validation.valid) {
-    return createErrorResponse(400, validation.error, context, "VALIDATION_ERROR");
-  }
+    if (!event.body) {
+      return createErrorResponse(400, "Missing request body", context, "MISSING_BODY");
+    }
 
-  try {
+    let body: unknown;
+    try {
+      body = JSON.parse(event.body);
+    } catch {
+      return createErrorResponse(400, "Invalid JSON body", context, "INVALID_JSON");
+    }
+
+    const validation = validateSettingsUpdate(body);
+    if (!validation.valid) {
+      return createErrorResponse(400, validation.error, context, "VALIDATION_ERROR");
+    }
+
     // Get current settings
     const currentResult = await docClient.send(
       new GetCommand({
@@ -74,11 +75,11 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
       updatedBy: newSettings.updatedBy,
     }, context);
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : "Unknown error";
-    console.error("Error updating settings:", {
+    logError({
+      endpoint: "PUT /images/settings",
+      operation: "updateImageSettings",
       requestId: context.awsRequestId,
-      error: errorMessage,
-    });
+    }, error);
     return createErrorResponse(500, "Failed to update settings", context, "DB_ERROR");
   }
 };

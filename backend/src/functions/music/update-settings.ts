@@ -4,34 +4,34 @@ import { DynamoDBDocumentClient, UpdateCommand } from "@aws-sdk/lib-dynamodb";
 import { Resource } from "sst";
 import { createSuccessResponse, createErrorResponse } from "../shared/response";
 import { requireAuth } from "../shared/auth";
+import { logError } from "../shared/logger";
 import { validateSettingsUpdate } from "../shared/music-validation";
 
 const dynamoClient = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(dynamoClient);
 
 export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
-  const authResult = requireAuth(event);
-  if (!authResult.authenticated) {
-    return createErrorResponse(authResult.statusCode, authResult.error, context, "AUTH_ERROR");
-  }
-
-  if (!event.body) {
-    return createErrorResponse(400, "Missing request body", context, "MISSING_BODY");
-  }
-
-  let body: unknown;
   try {
-    body = JSON.parse(event.body);
-  } catch {
-    return createErrorResponse(400, "Invalid JSON body", context, "INVALID_JSON");
-  }
+    const authResult = requireAuth(event);
+    if (!authResult.authenticated) {
+      return createErrorResponse(authResult.statusCode, authResult.error, context, "AUTH_ERROR");
+    }
 
-  const validation = validateSettingsUpdate(body);
-  if (!validation.valid) {
-    return createErrorResponse(400, validation.error, context, "VALIDATION_ERROR");
-  }
+    if (!event.body) {
+      return createErrorResponse(400, "Missing request body", context, "MISSING_BODY");
+    }
 
-  try {
+    let body: unknown;
+    try {
+      body = JSON.parse(event.body);
+    } catch {
+      return createErrorResponse(400, "Invalid JSON body", context, "INVALID_JSON");
+    }
+
+    const validation = validateSettingsUpdate(body);
+    if (!validation.valid) {
+      return createErrorResponse(400, validation.error, context, "VALIDATION_ERROR");
+    }
     // Build update expression dynamically
     const updateParts: string[] = [];
     const expressionValues: Record<string, unknown> = {};
@@ -98,11 +98,11 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
       message: "Music settings updated successfully",
     }, context);
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : "Unknown error";
-    console.error("Error updating music settings:", {
+    logError({
+      endpoint: "PUT /music/settings",
+      operation: "updateMusicSettings",
       requestId: context.awsRequestId,
-      error: errorMessage,
-    });
+    }, error);
     return createErrorResponse(500, "Failed to update music settings", context, "DB_ERROR");
   }
 };

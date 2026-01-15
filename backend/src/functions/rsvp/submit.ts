@@ -5,11 +5,14 @@ import { v4 as uuidv4 } from "uuid";
 import { Resource } from "sst";
 import { createSuccessResponse, createErrorResponse } from "../shared/response";
 import { validateRsvpInput } from "../shared/validation";
+import { logError } from "../shared/logger";
 
 const client = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(client);
 
 export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
+  let fullName: string | undefined;
+
   try {
     // Parse request body
     let body: unknown;
@@ -26,6 +29,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
     }
 
     const { data } = validation;
+    fullName = data.fullName;
 
     // Generate unique ID and timestamp
     const id = uuidv4();
@@ -61,11 +65,12 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
       submittedAt: timestamp,
     }, context);
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : "Unknown error";
-    console.error("Error submitting RSVP:", {
+    logError({
+      endpoint: "POST /rsvp",
+      operation: "submitRsvp",
       requestId: context.awsRequestId,
-      error: errorMessage,
-    });
+      input: { fullName },
+    }, error);
     return createErrorResponse(500, "Internal server error", context, "DB_ERROR");
   }
 };

@@ -1,7 +1,17 @@
 import { table } from "./database";
 
-const functionConfig = {
-  runtime: "nodejs22.x" as const,
+const functionConfig: Omit<sst.aws.FunctionArgs, "handler"> = {
+  runtime: "nodejs22.x",
+  transform: {
+    function: {
+      loggingConfig: {
+        logFormat: "JSON",
+      },
+    },
+    logGroup: (args) => {
+      args.retentionInDays = 1;
+    },
+  },
 };
 
 export const api = new sst.aws.ApiGatewayV2("WeddingApi", {

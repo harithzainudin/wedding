@@ -4,6 +4,7 @@ import { DynamoDBDocumentClient, PutCommand } from "@aws-sdk/lib-dynamodb";
 import { Resource } from "sst";
 import { createSuccessResponse, createErrorResponse } from "../shared/response";
 import { requireAuth } from "../shared/auth";
+import { logError } from "../shared/logger";
 import {
   validateVenueUpdate,
   generateGoogleMapsUrl,
@@ -73,11 +74,12 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
 
     return createSuccessResponse(200, responseData, context);
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : "Unknown error";
-    console.error("Error updating venue:", {
+    logError({
+      endpoint: "PUT /venue",
+      operation: "updateVenue",
       requestId: context.awsRequestId,
-      error: errorMessage,
-    });
+      input: { venueName: validation.data.venueName },
+    }, error);
     return createErrorResponse(500, "Failed to update venue data", context, "DB_ERROR");
   }
 };

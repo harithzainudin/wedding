@@ -5,23 +5,25 @@ import { S3Client, DeleteObjectCommand } from "@aws-sdk/client-s3";
 import { Resource } from "sst";
 import { createSuccessResponse, createErrorResponse } from "../shared/response";
 import { requireAuth } from "../shared/auth";
+import { logError } from "../shared/logger";
 
 const dynamoClient = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(dynamoClient);
 const s3Client = new S3Client({});
 
 export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
-  const authResult = requireAuth(event);
-  if (!authResult.authenticated) {
-    return createErrorResponse(authResult.statusCode, authResult.error, context, "AUTH_ERROR");
-  }
-
   const trackId = event.pathParameters?.id;
-  if (!trackId) {
-    return createErrorResponse(400, "Track ID is required", context, "VALIDATION_ERROR");
-  }
 
   try {
+    const authResult = requireAuth(event);
+    if (!authResult.authenticated) {
+      return createErrorResponse(authResult.statusCode, authResult.error, context, "AUTH_ERROR");
+    }
+
+    if (!trackId) {
+      return createErrorResponse(400, "Track ID is required", context, "VALIDATION_ERROR");
+    }
+
     // Get track metadata first
     const trackResult = await docClient.send(
       new GetCommand({
@@ -46,7 +48,12 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
           })
         );
       } catch (s3Error) {
-        console.error("Error deleting from S3:", s3Error);
+        logError({
+          endpoint: "DELETE /music/{id}",
+          operation: "deleteFromS3",
+          requestId: context.awsRequestId,
+          input: { trackId, s3Key },
+        }, s3Error);
         // Continue with DynamoDB deletion even if S3 fails
       }
     }
@@ -63,11 +70,12 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
       message: "Track deleted successfully",
     }, context);
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : "Unknown error";
-    console.error("Error deleting track:", {
+    logError({
+      endpoint: "DELETE /music/{id}",
+      operation: "deleteTrack",
       requestId: context.awsRequestId,
-      error: errorMessage,
-    });
+      input: { trackId },
+    }, error);
     return createErrorResponse(500, "Failed to delete track", context, "DB_ERROR");
   }
 };

@@ -3,6 +3,7 @@ import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient, GetCommand } from "@aws-sdk/lib-dynamodb";
 import { Resource } from "sst";
 import { createSuccessResponse, createErrorResponse } from "../shared/response";
+import { logError } from "../shared/logger";
 import { DEFAULT_CONTACTS, type ContactsData } from "../shared/contacts-validation";
 
 const dynamoClient = new DynamoDBClient({});
@@ -30,11 +31,11 @@ export const handler: APIGatewayProxyHandlerV2 = async (_event, context) => {
 
     return createSuccessResponse(200, contactsData, context);
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : "Unknown error";
-    console.error("Error fetching contacts:", {
+    logError({
+      endpoint: "GET /contacts",
+      operation: "fetchContacts",
       requestId: context.awsRequestId,
-      error: errorMessage,
-    });
+    }, error);
     return createErrorResponse(500, "Failed to fetch contacts", context, "DB_ERROR");
   }
 };

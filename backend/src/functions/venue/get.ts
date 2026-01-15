@@ -3,6 +3,7 @@ import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient, GetCommand } from "@aws-sdk/lib-dynamodb";
 import { Resource } from "sst";
 import { createSuccessResponse, createErrorResponse } from "../shared/response";
+import { logError } from "../shared/logger";
 import { DEFAULT_VENUE, type VenueData } from "../shared/venue-validation";
 
 const dynamoClient = new DynamoDBClient({});
@@ -35,11 +36,11 @@ export const handler: APIGatewayProxyHandlerV2 = async (_event, context) => {
 
     return createSuccessResponse(200, venueData, context);
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : "Unknown error";
-    console.error("Error fetching venue:", {
+    logError({
+      endpoint: "GET /venue",
+      operation: "fetchVenue",
       requestId: context.awsRequestId,
-      error: errorMessage,
-    });
+    }, error);
     return createErrorResponse(500, "Failed to fetch venue data", context, "DB_ERROR");
   }
 };

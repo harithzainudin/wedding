@@ -4,6 +4,7 @@ import { DynamoDBDocumentClient, PutCommand } from "@aws-sdk/lib-dynamodb";
 import { Resource } from "sst";
 import { createSuccessResponse, createErrorResponse } from "../shared/response";
 import { requireAuth } from "../shared/auth";
+import { logError } from "../shared/logger";
 import {
   validateWeddingDetailsUpdate,
   type WeddingDetailsData,
@@ -62,8 +63,6 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
       weddingItem.displayNameOrder = validation.data.displayNameOrder;
     }
 
-    console.log("Saving wedding item:", JSON.stringify(weddingItem, null, 2));
-
     await docClient.send(
       new PutCommand({
         TableName: Resource.AppDataTable.name,
@@ -87,14 +86,12 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
 
     return createSuccessResponse(200, responseData, context);
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : "Unknown error";
-    const errorStack = error instanceof Error ? error.stack : undefined;
-    console.error("Error updating wedding details:", {
+    logError({
+      endpoint: "PUT /wedding-details",
+      operation: "updateWeddingDetails",
       requestId: context.awsRequestId,
-      error: errorMessage,
-      stack: errorStack,
-      validationData: JSON.stringify(validation.data, null, 2),
-    });
+      input: { eventDate: validation.data.eventDate },
+    }, error);
     return createErrorResponse(500, "Failed to update wedding details", context, "DB_ERROR");
   }
 };

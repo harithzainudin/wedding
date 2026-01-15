@@ -3,6 +3,7 @@ import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient, GetCommand } from "@aws-sdk/lib-dynamodb";
 import { Resource } from "sst";
 import { createSuccessResponse, createErrorResponse } from "../shared/response";
+import { logError } from "../shared/logger";
 import { DEFAULT_SCHEDULE, type ScheduleData } from "../shared/schedule-validation";
 
 const dynamoClient = new DynamoDBClient({});
@@ -30,11 +31,11 @@ export const handler: APIGatewayProxyHandlerV2 = async (_event, context) => {
 
     return createSuccessResponse(200, scheduleData, context);
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : "Unknown error";
-    console.error("Error fetching schedule:", {
+    logError({
+      endpoint: "GET /schedule",
+      operation: "fetchSchedule",
       requestId: context.awsRequestId,
-      error: errorMessage,
-    });
+    }, error);
     return createErrorResponse(500, "Failed to fetch schedule", context, "DB_ERROR");
   }
 };

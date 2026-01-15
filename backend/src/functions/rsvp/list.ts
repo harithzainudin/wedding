@@ -8,6 +8,7 @@ import {
 import { Resource } from "sst";
 import { createSuccessResponse, createErrorResponse } from "../shared/response";
 import { requireAuth } from "../shared/auth";
+import { logError } from "../shared/logger";
 
 const client = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(client);
@@ -29,11 +30,9 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
   // Check authentication (optional - public can view wishes, admin gets full data)
   const authResult = requireAuth(event);
   const isAuthenticated = authResult.authenticated;
+  const status = event.queryStringParameters?.status;
 
   try {
-    // Get optional status filter from query params
-    const status = event.queryStringParameters?.status;
-
     let items: RsvpRecord[] = [];
 
     if (status && ["attending", "not_attending"].includes(status)) {
@@ -104,11 +103,12 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
       },
     }, context);
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : "Unknown error";
-    console.error("Error listing RSVPs:", {
+    logError({
+      endpoint: "GET /rsvp",
+      operation: "listRsvps",
       requestId: context.awsRequestId,
-      error: errorMessage,
-    });
+      input: { status, isAuthenticated },
+    }, error);
     return createErrorResponse(500, "Internal server error", context, "DB_ERROR");
   }
 };

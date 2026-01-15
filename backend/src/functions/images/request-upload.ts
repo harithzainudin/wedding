@@ -7,6 +7,7 @@ import { v4 as uuidv4 } from "uuid";
 import { Resource } from "sst";
 import { createSuccessResponse, createErrorResponse } from "../shared/response";
 import { requireAuth } from "../shared/auth";
+import { logError } from "../shared/logger";
 import { validateImageUpload } from "../shared/image-validation";
 import {
   DEFAULT_MAX_FILE_SIZE,
@@ -48,54 +49,68 @@ async function getCurrentImageCount(): Promise<number> {
 }
 
 export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
-  const authResult = requireAuth(event);
-  if (!authResult.authenticated) {
-    return createErrorResponse(authResult.statusCode, authResult.error, context, "AUTH_ERROR");
-  }
+  let mimeType: string | undefined;
+  let fileSize: number | undefined;
 
-  if (!event.body) {
-    return createErrorResponse(400, "Missing request body", context, "MISSING_BODY");
-  }
-
-  let body: unknown;
   try {
-    body = JSON.parse(event.body);
-  } catch {
-    return createErrorResponse(400, "Invalid JSON body", context, "INVALID_JSON");
+    const authResult = requireAuth(event);
+    if (!authResult.authenticated) {
+      return createErrorResponse(authResult.statusCode, authResult.error, context, "AUTH_ERROR");
+    }
+
+    if (!event.body) {
+      return createErrorResponse(400, "Missing request body", context, "MISSING_BODY");
+    }
+
+    let body: unknown;
+    try {
+      body = JSON.parse(event.body);
+    } catch {
+      return createErrorResponse(400, "Invalid JSON body", context, "INVALID_JSON");
+    }
+
+    // Get settings and validate
+    const settings = await getImageSettings();
+    const validation = validateImageUpload(body, settings);
+    if (!validation.valid) {
+      return createErrorResponse(400, validation.error, context, "VALIDATION_ERROR");
+    }
+
+    // Check max images limit
+    const currentCount = await getCurrentImageCount();
+    if (currentCount >= settings.maxImages) {
+      return createErrorResponse(400, `Maximum of ${settings.maxImages} images reached`, context, "LIMIT_EXCEEDED");
+    }
+
+    mimeType = validation.data.mimeType;
+    fileSize = validation.data.fileSize;
+    const imageId = uuidv4();
+    const extension = MIME_TO_EXTENSION[mimeType] ?? "";
+    const s3Key = `gallery/${imageId}${extension}`;
+
+    // Generate presigned URL (valid for 10 minutes)
+    const command = new PutObjectCommand({
+      Bucket: Resource.WeddingImageBucket.name,
+      Key: s3Key,
+      ContentType: mimeType,
+      ContentLength: fileSize,
+    });
+
+    const presignedUrl = await getSignedUrl(s3Client, command, { expiresIn: 600 });
+
+    return createSuccessResponse(200, {
+      uploadUrl: presignedUrl,
+      imageId,
+      s3Key,
+      expiresIn: 600,
+    }, context);
+  } catch (error) {
+    logError({
+      endpoint: "POST /images/presigned-url",
+      operation: "requestUpload",
+      requestId: context.awsRequestId,
+      input: { mimeType, fileSize },
+    }, error);
+    return createErrorResponse(500, "Internal server error", context, "INTERNAL_ERROR");
   }
-
-  // Get settings and validate
-  const settings = await getImageSettings();
-  const validation = validateImageUpload(body, settings);
-  if (!validation.valid) {
-    return createErrorResponse(400, validation.error, context, "VALIDATION_ERROR");
-  }
-
-  // Check max images limit
-  const currentCount = await getCurrentImageCount();
-  if (currentCount >= settings.maxImages) {
-    return createErrorResponse(400, `Maximum of ${settings.maxImages} images reached`, context, "LIMIT_EXCEEDED");
-  }
-
-  const { mimeType, fileSize } = validation.data;
-  const imageId = uuidv4();
-  const extension = MIME_TO_EXTENSION[mimeType] ?? "";
-  const s3Key = `gallery/${imageId}${extension}`;
-
-  // Generate presigned URL (valid for 10 minutes)
-  const command = new PutObjectCommand({
-    Bucket: Resource.WeddingImageBucket.name,
-    Key: s3Key,
-    ContentType: mimeType,
-    ContentLength: fileSize,
-  });
-
-  const presignedUrl = await getSignedUrl(s3Client, command, { expiresIn: 600 });
-
-  return createSuccessResponse(200, {
-    uploadUrl: presignedUrl,
-    imageId,
-    s3Key,
-    expiresIn: 600,
-  }, context);
 };

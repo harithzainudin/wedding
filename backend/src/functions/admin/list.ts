@@ -3,6 +3,7 @@ import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient, QueryCommand } from "@aws-sdk/lib-dynamodb";
 import { createSuccessResponse, createErrorResponse } from "../shared/response";
 import { requireAuth } from "../shared/auth";
+import { logError } from "../shared/logger";
 import { Resource } from "sst";
 
 const client = new DynamoDBClient({});
@@ -46,11 +47,11 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
       total: admins.length,
     }, context);
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : "Unknown error";
-    console.error("Error listing admin users:", {
+    logError({
+      endpoint: "GET /admin/users",
+      operation: "listAdmins",
       requestId: context.awsRequestId,
-      error: errorMessage,
-    });
+    }, error);
     return createErrorResponse(500, "Failed to list admin users", context, "DB_ERROR");
   }
 };

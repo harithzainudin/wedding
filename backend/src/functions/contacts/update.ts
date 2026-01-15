@@ -4,6 +4,7 @@ import { DynamoDBDocumentClient, PutCommand } from "@aws-sdk/lib-dynamodb";
 import { Resource } from "sst";
 import { createSuccessResponse, createErrorResponse } from "../shared/response";
 import { requireAuth } from "../shared/auth";
+import { logError } from "../shared/logger";
 import {
   validateContactsUpdate,
   type ContactsData,
@@ -60,11 +61,12 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
 
     return createSuccessResponse(200, responseData, context);
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : "Unknown error";
-    console.error("Error updating contacts:", {
+    logError({
+      endpoint: "PUT /contacts",
+      operation: "updateContacts",
       requestId: context.awsRequestId,
-      error: errorMessage,
-    });
+      input: { contactCount: validation.data.contacts?.length },
+    }, error);
     return createErrorResponse(500, "Failed to update contacts", context, "DB_ERROR");
   }
 };

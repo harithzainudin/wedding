@@ -3,6 +3,7 @@ import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient, GetCommand, QueryCommand } from "@aws-sdk/lib-dynamodb";
 import { Resource } from "sst";
 import { createSuccessResponse, createErrorResponse } from "../shared/response";
+import { logError } from "../shared/logger";
 import {
   DEFAULT_MAX_FILE_SIZE,
   DEFAULT_MAX_TRACKS,
@@ -109,11 +110,11 @@ export const handler: APIGatewayProxyHandlerV2 = async (_event, context) => {
       tracks,
     }, context);
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : "Unknown error";
-    console.error("Error getting music data:", {
+    logError({
+      endpoint: "GET /music",
+      operation: "getMusicData",
       requestId: context.awsRequestId,
-      error: errorMessage,
-    });
+    }, error);
     return createErrorResponse(500, "Failed to get music data", context, "DB_ERROR");
   }
 };

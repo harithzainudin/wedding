@@ -5,6 +5,7 @@ import { S3Client, HeadObjectCommand } from "@aws-sdk/client-s3";
 import { Resource } from "sst";
 import { createSuccessResponse, createErrorResponse } from "../shared/response";
 import { requireAuth } from "../shared/auth";
+import { logError } from "../shared/logger";
 import { validateConfirmUpload } from "../shared/image-validation";
 
 const dynamoClient = new DynamoDBClient({});
@@ -35,31 +36,38 @@ async function getNextOrder(): Promise<number> {
 }
 
 export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
-  const authResult = requireAuth(event);
-  if (!authResult.authenticated) {
-    return createErrorResponse(authResult.statusCode, authResult.error, context, "AUTH_ERROR");
-  }
+  let imageId: string | undefined;
+  let s3Key: string | undefined;
+  let filename: string | undefined;
 
-  if (!event.body) {
-    return createErrorResponse(400, "Missing request body", context, "MISSING_BODY");
-  }
-
-  let body: unknown;
   try {
-    body = JSON.parse(event.body);
-  } catch {
-    return createErrorResponse(400, "Invalid JSON body", context, "INVALID_JSON");
-  }
+    const authResult = requireAuth(event);
+    if (!authResult.authenticated) {
+      return createErrorResponse(authResult.statusCode, authResult.error, context, "AUTH_ERROR");
+    }
 
-  const validation = validateConfirmUpload(body);
-  if (!validation.valid) {
-    return createErrorResponse(400, validation.error, context, "VALIDATION_ERROR");
-  }
+    if (!event.body) {
+      return createErrorResponse(400, "Missing request body", context, "MISSING_BODY");
+    }
 
-  const { imageId, s3Key, filename, mimeType } = validation.data;
+    let body: unknown;
+    try {
+      body = JSON.parse(event.body);
+    } catch {
+      return createErrorResponse(400, "Invalid JSON body", context, "INVALID_JSON");
+    }
 
-  // Verify the file exists in S3
-  try {
+    const validation = validateConfirmUpload(body);
+    if (!validation.valid) {
+      return createErrorResponse(400, validation.error, context, "VALIDATION_ERROR");
+    }
+
+    imageId = validation.data.imageId;
+    s3Key = validation.data.s3Key;
+    filename = validation.data.filename;
+    const { mimeType } = validation.data;
+
+    // Verify the file exists in S3
     const headResult = await s3Client.send(
       new HeadObjectCommand({
         Bucket: Resource.WeddingImageBucket.name,
@@ -108,11 +116,12 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
       url: publicUrl,
     }, context);
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : "Unknown error";
-    console.error("Error confirming upload:", {
+    logError({
+      endpoint: "POST /images/confirm",
+      operation: "confirmUpload",
       requestId: context.awsRequestId,
-      error: errorMessage,
-    });
+      input: { imageId, s3Key, filename },
+    }, error);
     return createErrorResponse(400, "File not found in S3. Upload may have failed.", context, "S3_ERROR");
   }
 };

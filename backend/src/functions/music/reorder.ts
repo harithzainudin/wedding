@@ -4,36 +4,39 @@ import { DynamoDBDocumentClient, GetCommand, UpdateCommand } from "@aws-sdk/lib-
 import { Resource } from "sst";
 import { createSuccessResponse, createErrorResponse } from "../shared/response";
 import { requireAuth } from "../shared/auth";
+import { logError } from "../shared/logger";
 import { validateReorderRequest } from "../shared/music-validation";
 
 const dynamoClient = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(dynamoClient);
 
 export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
-  const authResult = requireAuth(event);
-  if (!authResult.authenticated) {
-    return createErrorResponse(authResult.statusCode, authResult.error, context, "AUTH_ERROR");
-  }
-
-  if (!event.body) {
-    return createErrorResponse(400, "Missing request body", context, "MISSING_BODY");
-  }
-
-  let body: unknown;
-  try {
-    body = JSON.parse(event.body);
-  } catch {
-    return createErrorResponse(400, "Invalid JSON body", context, "INVALID_JSON");
-  }
-
-  const validation = validateReorderRequest(body);
-  if (!validation.valid) {
-    return createErrorResponse(400, validation.error, context, "VALIDATION_ERROR");
-  }
-
-  const { trackIds } = validation.data;
+  let trackIds: string[] | undefined;
 
   try {
+    const authResult = requireAuth(event);
+    if (!authResult.authenticated) {
+      return createErrorResponse(authResult.statusCode, authResult.error, context, "AUTH_ERROR");
+    }
+
+    if (!event.body) {
+      return createErrorResponse(400, "Missing request body", context, "MISSING_BODY");
+    }
+
+    let body: unknown;
+    try {
+      body = JSON.parse(event.body);
+    } catch {
+      return createErrorResponse(400, "Invalid JSON body", context, "INVALID_JSON");
+    }
+
+    const validation = validateReorderRequest(body);
+    if (!validation.valid) {
+      return createErrorResponse(400, validation.error, context, "VALIDATION_ERROR");
+    }
+
+    trackIds = validation.data.trackIds;
+
     // Verify all tracks exist
     for (const trackId of trackIds) {
       const result = await docClient.send(
@@ -74,11 +77,12 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
       message: "Tracks reordered successfully",
     }, context);
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : "Unknown error";
-    console.error("Error reordering tracks:", {
+    logError({
+      endpoint: "PUT /music/reorder",
+      operation: "reorderTracks",
       requestId: context.awsRequestId,
-      error: errorMessage,
-    });
+      input: { trackCount: trackIds?.length },
+    }, error);
     return createErrorResponse(500, "Failed to reorder tracks", context, "DB_ERROR");
   }
 };
