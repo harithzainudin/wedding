@@ -48,6 +48,31 @@ export const DEFAULT_DISPLAY_FORMAT: EventDisplayFormat = {
   },
 };
 
+// Bismillah calligraphy types
+export type CalligraphyStyleId =
+  | "thuluth"
+  | "nastaliq"
+  | "diwani"
+  | "diwani-jali"
+  | "naskh"
+  | "ruqah"
+  | "kufi"
+  | "kufi-murabba"
+  | "maghribi"
+  | "tughra"
+  | "modern-simple"
+  | "classic-ornate";
+
+export interface BismillahCalligraphySettings {
+  selectedStyle: CalligraphyStyleId;
+  showTranslation: boolean;
+}
+
+export const DEFAULT_BISMILLAH_SETTINGS: BismillahCalligraphySettings = {
+  selectedStyle: "thuluth",
+  showTranslation: true,
+};
+
 export interface WeddingDetailsData {
   couple: {
     bride: CoupleInfo;
@@ -61,6 +86,7 @@ export interface WeddingDetailsData {
   eventEndTime?: string;
   eventDisplayFormat?: EventDisplayFormat;
   displayNameOrder?: DisplayNameOrder;
+  bismillahCalligraphy?: BismillahCalligraphySettings;
   dressCode: string;
   hashtag: string;
   qrCodeUrl: string;
@@ -81,6 +107,7 @@ export interface WeddingDetailsUpdateRequest {
   eventEndTime?: string;
   eventDisplayFormat?: EventDisplayFormat;
   displayNameOrder?: DisplayNameOrder;
+  bismillahCalligraphy?: BismillahCalligraphySettings;
   dressCode: string;
   hashtag: string;
   qrCodeUrl: string;

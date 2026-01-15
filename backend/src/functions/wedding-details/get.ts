@@ -30,6 +30,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (_event, context) => {
       eventEndTime: result.Item.eventEndTime,
       eventDisplayFormat: result.Item.eventDisplayFormat,
       displayNameOrder: result.Item.displayNameOrder,
+      bismillahCalligraphy: result.Item.bismillahCalligraphy,
       dressCode: result.Item.dressCode,
       hashtag: result.Item.hashtag,
       qrCodeUrl: result.Item.qrCodeUrl,

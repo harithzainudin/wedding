@@ -1,8 +1,8 @@
 import { ref } from "vue";
 import { getWeddingDetailsCached, getScheduleCached, getContactsCached } from "@/services/api";
 import { weddingConfig } from "@/config/wedding";
-import type { WeddingDetailsData, EventDisplayFormat, DisplayNameOrder } from "@/types/weddingDetails";
-import { DEFAULT_DISPLAY_FORMAT } from "@/types/weddingDetails";
+import type { WeddingDetailsData, EventDisplayFormat, DisplayNameOrder, BismillahCalligraphySettings } from "@/types/weddingDetails";
+import { DEFAULT_DISPLAY_FORMAT, DEFAULT_BISMILLAH_SETTINGS } from "@/types/weddingDetails";
 import type { ScheduleData, ScheduleItem } from "@/types/schedule";
 import type { ContactsData, ContactPerson } from "@/types/contacts";
 
@@ -224,6 +224,14 @@ export function usePublicWeddingData() {
     }));
   };
 
+  // Bismillah calligraphy settings with fallback
+  const getBismillahSettings = (): BismillahCalligraphySettings => {
+    if (weddingDetails.value?.bismillahCalligraphy) {
+      return weddingDetails.value.bismillahCalligraphy;
+    }
+    return DEFAULT_BISMILLAH_SETTINGS;
+  };
+
   return {
     isLoading,
     hasLoaded,
@@ -247,5 +255,6 @@ export function usePublicWeddingData() {
     getScheduleMultilingual,
     getContactsList,
     getContactsMultilingual,
+    getBismillahSettings,
   };
 }

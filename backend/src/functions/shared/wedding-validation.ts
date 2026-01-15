@@ -58,6 +58,46 @@ export const VALID_PRESETS: EventDisplayPreset[] = [
   "custom",
 ];
 
+// Bismillah calligraphy types
+export type CalligraphyStyleId =
+  | "thuluth"
+  | "nastaliq"
+  | "diwani"
+  | "diwani-jali"
+  | "naskh"
+  | "ruqah"
+  | "kufi"
+  | "kufi-murabba"
+  | "maghribi"
+  | "tughra"
+  | "modern-simple"
+  | "classic-ornate";
+
+export const VALID_CALLIGRAPHY_STYLES: CalligraphyStyleId[] = [
+  "thuluth",
+  "nastaliq",
+  "diwani",
+  "diwani-jali",
+  "naskh",
+  "ruqah",
+  "kufi",
+  "kufi-murabba",
+  "maghribi",
+  "tughra",
+  "modern-simple",
+  "classic-ornate",
+];
+
+export interface BismillahCalligraphySettings {
+  selectedStyle: CalligraphyStyleId;
+  showTranslation: boolean;
+}
+
+export const DEFAULT_BISMILLAH_SETTINGS: BismillahCalligraphySettings = {
+  selectedStyle: "thuluth",
+  showTranslation: true,
+};
+
 export interface WeddingDetailsData {
   couple: {
     bride: CoupleInfo;
@@ -71,6 +111,7 @@ export interface WeddingDetailsData {
   eventEndTime?: string; // ISO datetime string (end time)
   eventDisplayFormat?: EventDisplayFormat;
   displayNameOrder?: DisplayNameOrder;
+  bismillahCalligraphy?: BismillahCalligraphySettings;
   dressCode: string;
   hashtag: string;
   qrCodeUrl: string;
@@ -91,6 +132,7 @@ export interface WeddingDetailsUpdateRequest {
   eventEndTime?: string;
   eventDisplayFormat?: EventDisplayFormat;
   displayNameOrder?: DisplayNameOrder;
+  bismillahCalligraphy?: BismillahCalligraphySettings;
   dressCode: string;
   hashtag: string;
   qrCodeUrl: string;
@@ -300,6 +342,30 @@ export function validateWeddingDetailsUpdate(
     validatedDisplayNameOrder = body.displayNameOrder as DisplayNameOrder;
   }
 
+  // Validate bismillahCalligraphy (optional)
+  let validatedBismillahCalligraphy: BismillahCalligraphySettings | undefined;
+  if (body.bismillahCalligraphy !== undefined && body.bismillahCalligraphy !== null) {
+    if (typeof body.bismillahCalligraphy !== "object") {
+      return { valid: false, error: "Invalid bismillah calligraphy settings" };
+    }
+    const calligraphy = body.bismillahCalligraphy as Record<string, unknown>;
+
+    // Validate selectedStyle
+    if (!calligraphy.selectedStyle || VALID_CALLIGRAPHY_STYLES.indexOf(calligraphy.selectedStyle as CalligraphyStyleId) === -1) {
+      return { valid: false, error: "Invalid calligraphy style selected" };
+    }
+
+    // Validate showTranslation
+    if (typeof calligraphy.showTranslation !== "boolean") {
+      return { valid: false, error: "showTranslation must be a boolean" };
+    }
+
+    validatedBismillahCalligraphy = {
+      selectedStyle: calligraphy.selectedStyle as CalligraphyStyleId,
+      showTranslation: calligraphy.showTranslation,
+    };
+  }
+
   // Validate dressCode
   if (typeof body.dressCode !== "string" || !body.dressCode.trim()) {
     return { valid: false, error: "Dress code is required" };
@@ -339,6 +405,7 @@ export function validateWeddingDetailsUpdate(
       eventEndTime: validatedEndTime,
       eventDisplayFormat: validatedDisplayFormat,
       displayNameOrder: validatedDisplayNameOrder,
+      bismillahCalligraphy: validatedBismillahCalligraphy,
       dressCode: body.dressCode.trim(),
       hashtag: body.hashtag.trim(),
       qrCodeUrl: body.qrCodeUrl.trim(),
@@ -371,6 +438,7 @@ export const DEFAULT_WEDDING_DETAILS: WeddingDetailsData = {
   eventDate: "2026-12-12T11:00:00+08:00",
   eventEndTime: "2026-12-12T16:00:00+08:00",
   eventDisplayFormat: DEFAULT_DISPLAY_FORMAT,
+  bismillahCalligraphy: DEFAULT_BISMILLAH_SETTINGS,
   dressCode: "Pastel / Earthy Tones",
   hashtag: "#AisyahAhmadWedding",
   qrCodeUrl: "https://harithzainudin.github.io/wedding",

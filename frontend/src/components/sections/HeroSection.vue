@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, ref, watch, onMounted } from "vue";
 import CountdownTimer from "@/components/ui/CountdownTimer.vue";
 import MusicToggle from "@/components/ui/MusicToggle.vue";
 import LanguageToggle from "@/components/ui/LanguageToggle.vue";
@@ -7,9 +7,11 @@ import DarkModeToggle from "@/components/ui/DarkModeToggle.vue";
 import { useLanguage } from "@/composables/useLanguage";
 import { usePublicWeddingData } from "@/composables/usePublicWeddingData";
 import { useNameOrder } from "@/composables/useNameOrder";
+import { getCalligraphySvg } from "@/assets/calligraphy/bismillah";
+import { DEFAULT_BISMILLAH_SETTINGS } from "@/types/weddingDetails";
 
 const { t } = useLanguage();
-const { getEventDate, isLoadingWeddingDetails } = usePublicWeddingData();
+const { getEventDate, isLoadingWeddingDetails, getBismillahSettings } = usePublicWeddingData();
 const { orderedCouple } = useNameOrder();
 
 const coupleNames = computed(() => ({
@@ -18,6 +20,38 @@ const coupleNames = computed(() => ({
 }));
 
 const weddingDate = computed(() => getEventDate());
+
+// Bismillah calligraphy state
+const bismillahSvg = ref<string>("");
+const isLoadingCalligraphy = ref(true);
+const bismillahSettings = computed(() => getBismillahSettings());
+
+// Load calligraphy SVG
+const loadCalligraphy = async () => {
+  isLoadingCalligraphy.value = true;
+  try {
+    const styleId = bismillahSettings.value?.selectedStyle ?? DEFAULT_BISMILLAH_SETTINGS.selectedStyle;
+    bismillahSvg.value = await getCalligraphySvg(styleId);
+  } catch (error) {
+    console.error("Failed to load calligraphy:", error);
+    // Fallback to empty - will show text fallback in template
+    bismillahSvg.value = "";
+  } finally {
+    isLoadingCalligraphy.value = false;
+  }
+};
+
+// Watch for settings changes and reload
+watch(
+  () => bismillahSettings.value?.selectedStyle,
+  () => {
+    loadCalligraphy();
+  }
+);
+
+onMounted(() => {
+  loadCalligraphy();
+});
 </script>
 
 <template>
@@ -40,15 +74,40 @@ const weddingDate = computed(() => getEventDate());
     <div class="relative text-white w-full px-6 py-12">
       <!-- Bismillah Calligraphy -->
       <div class="mb-6 sm:mb-8">
-        <p
-          class="font-heading text-xl sm:text-2xl md:text-3xl mb-2 leading-relaxed"
-          dir="rtl"
-        >
-          بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ
-        </p>
-        <p class="font-body text-[10px] sm:text-xs md:text-sm opacity-80 leading-relaxed">
-          {{ t.hero.bismillahTranslation }}
-        </p>
+        <!-- Loading Skeleton -->
+        <div v-if="isLoadingCalligraphy" class="animate-pulse">
+          <div class="h-8 sm:h-10 md:h-12 bg-white/20 rounded max-w-xs sm:max-w-sm mx-auto mb-2"></div>
+          <div v-if="bismillahSettings?.showTranslation !== false" class="h-3 bg-white/10 rounded max-w-[200px] mx-auto"></div>
+        </div>
+        <!-- SVG Calligraphy -->
+        <template v-else-if="bismillahSvg">
+          <div
+            class="max-w-xs sm:max-w-sm md:max-w-md mx-auto text-white [&_svg]:w-full [&_svg]:h-auto"
+            dir="rtl"
+            v-html="bismillahSvg"
+          />
+          <p
+            v-if="bismillahSettings?.showTranslation !== false"
+            class="font-body text-[10px] sm:text-xs md:text-sm opacity-80 leading-relaxed mt-2"
+          >
+            {{ t.hero.bismillahTranslation }}
+          </p>
+        </template>
+        <!-- Fallback Text -->
+        <template v-else>
+          <p
+            class="font-heading text-xl sm:text-2xl md:text-3xl mb-2 leading-relaxed"
+            dir="rtl"
+          >
+            بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ
+          </p>
+          <p
+            v-if="bismillahSettings?.showTranslation !== false"
+            class="font-body text-[10px] sm:text-xs md:text-sm opacity-80 leading-relaxed"
+          >
+            {{ t.hero.bismillahTranslation }}
+          </p>
+        </template>
       </div>
 
       <!-- Wedding Announcement -->

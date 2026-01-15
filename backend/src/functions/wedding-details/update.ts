@@ -66,6 +66,9 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
     if (validation.data.displayNameOrder) {
       weddingItem.displayNameOrder = validation.data.displayNameOrder;
     }
+    if (validation.data.bismillahCalligraphy) {
+      weddingItem.bismillahCalligraphy = validation.data.bismillahCalligraphy;
+    }
 
     await docClient.send(
       new PutCommand({
@@ -81,6 +84,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
       eventEndTime: weddingItem.eventEndTime as string | undefined,
       eventDisplayFormat: weddingItem.eventDisplayFormat as WeddingDetailsData["eventDisplayFormat"],
       displayNameOrder: weddingItem.displayNameOrder as WeddingDetailsData["displayNameOrder"],
+      bismillahCalligraphy: weddingItem.bismillahCalligraphy as WeddingDetailsData["bismillahCalligraphy"],
       dressCode: weddingItem.dressCode as string,
       hashtag: weddingItem.hashtag as string,
       qrCodeUrl: weddingItem.qrCodeUrl as string,

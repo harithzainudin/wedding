@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from "vue";
 import { useWeddingDetails } from "@/composables/useWeddingDetails";
-import type { EventDisplayFormat, EventDisplayPreset, DisplayNameOrder } from "@/types/weddingDetails";
-import { DEFAULT_DISPLAY_FORMAT } from "@/types/weddingDetails";
+import type { EventDisplayFormat, EventDisplayPreset, DisplayNameOrder, BismillahCalligraphySettings } from "@/types/weddingDetails";
+import { DEFAULT_DISPLAY_FORMAT, DEFAULT_BISMILLAH_SETTINGS } from "@/types/weddingDetails";
+import BismillahCalligraphySelector from "@/components/admin/BismillahCalligraphySelector.vue";
 
 // Tooltip content for name order setting
 const nameOrderTooltip = `Adat Perkahwinan Melayu (Malay Wedding Custom)
@@ -38,6 +39,21 @@ const presetOptions: { value: EventDisplayPreset; label: string }[] = [
 // Toggle for custom options
 const showCustomOptions = ref(false);
 
+// Section visibility toggles (all expanded by default)
+const expandedSections = ref({
+  couple: true,
+  nameOrder: false,
+  calligraphy: false,
+  parents: false,
+  event: true,
+  displayFormat: false,
+  website: false,
+});
+
+const toggleSection = (section: keyof typeof expandedSections.value) => {
+  expandedSections.value[section] = !expandedSections.value[section];
+};
+
 // Local form state
 const formData = ref({
   couple: {
@@ -52,6 +68,7 @@ const formData = ref({
   eventEndTime: "",
   eventDisplayFormat: { ...DEFAULT_DISPLAY_FORMAT } as EventDisplayFormat,
   displayNameOrder: "bride_first" as DisplayNameOrder,
+  bismillahCalligraphy: { ...DEFAULT_BISMILLAH_SETTINGS } as BismillahCalligraphySettings,
   dressCode: "",
   hashtag: "",
   qrCodeUrl: "",
@@ -66,6 +83,7 @@ const hasChanges = computed(() => {
     eventEndTime: weddingDetails.value.eventEndTime ?? "",
     eventDisplayFormat: weddingDetails.value.eventDisplayFormat ?? DEFAULT_DISPLAY_FORMAT,
     displayNameOrder: weddingDetails.value.displayNameOrder ?? "bride_first",
+    bismillahCalligraphy: weddingDetails.value.bismillahCalligraphy ?? DEFAULT_BISMILLAH_SETTINGS,
     dressCode: weddingDetails.value.dressCode,
     hashtag: weddingDetails.value.hashtag,
     qrCodeUrl: weddingDetails.value.qrCodeUrl,
@@ -89,6 +107,9 @@ const syncFormData = () => {
       ? { ...weddingDetails.value.eventDisplayFormat, customOptions: { ...weddingDetails.value.eventDisplayFormat.customOptions } }
       : { ...DEFAULT_DISPLAY_FORMAT, customOptions: { ...DEFAULT_DISPLAY_FORMAT.customOptions } },
     displayNameOrder: weddingDetails.value.displayNameOrder ?? "bride_first",
+    bismillahCalligraphy: weddingDetails.value.bismillahCalligraphy
+      ? { ...weddingDetails.value.bismillahCalligraphy }
+      : { ...DEFAULT_BISMILLAH_SETTINGS },
     dressCode: weddingDetails.value.dressCode,
     hashtag: weddingDetails.value.hashtag,
     qrCodeUrl: weddingDetails.value.qrCodeUrl,
@@ -371,10 +392,35 @@ onMounted(async () => {
     <!-- Form Content -->
     <div v-else class="space-y-6">
       <!-- Couple Information -->
-      <div class="bg-white dark:bg-dark-bg-secondary rounded-lg border border-sand-dark dark:border-dark-border p-4 sm:p-6">
-        <h3 class="font-heading text-base font-medium text-charcoal dark:text-dark-text mb-4">
-          Couple Information
-        </h3>
+      <div
+        class="bg-white dark:bg-dark-bg-secondary rounded-lg border border-sand-dark dark:border-dark-border overflow-hidden transition-all"
+        :class="expandedSections.couple ? 'ring-2 ring-sage/30 border-sage/50' : 'hover:border-sage/30'"
+      >
+        <button
+          type="button"
+          class="w-full p-4 sm:p-6 flex items-center justify-between text-left transition-colors group cursor-pointer"
+          :class="expandedSections.couple ? 'bg-sage/5 dark:bg-sage/10' : 'hover:bg-sand/30 dark:hover:bg-dark-bg-elevated'"
+          @click="toggleSection('couple')"
+        >
+          <h3
+            class="font-heading text-base font-medium transition-colors"
+            :class="expandedSections.couple ? 'text-sage-dark dark:text-sage-light' : 'text-charcoal dark:text-dark-text group-hover:text-sage-dark dark:group-hover:text-sage-light'"
+          >
+            Couple Information
+          </h3>
+          <svg
+            class="w-5 h-5 transition-all"
+            :class="[
+              expandedSections.couple ? 'rotate-180 text-sage' : 'text-charcoal-light dark:text-dark-text-secondary group-hover:text-sage',
+            ]"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+        <div v-show="expandedSections.couple" class="px-4 sm:px-6 pb-4 sm:pb-6">
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
           <!-- Bride -->
           <div class="space-y-3">
@@ -434,29 +480,53 @@ onMounted(async () => {
             </div>
           </div>
         </div>
+        </div>
       </div>
 
       <!-- Name Display Order Setting -->
-      <div class="bg-white dark:bg-dark-bg-secondary rounded-lg border border-sand-dark dark:border-dark-border p-4 sm:p-6">
-        <div class="flex items-start gap-2 mb-4">
-          <h3 class="font-heading text-base font-medium text-charcoal dark:text-dark-text">
-            Name Display Order
-          </h3>
-          <!-- Tooltip -->
-          <div class="relative group">
-            <button
-              type="button"
-              class="w-5 h-5 rounded-full bg-sage/20 text-sage-dark dark:text-sage-light flex items-center justify-center text-xs font-medium hover:bg-sage/30 transition-colors"
-              aria-label="Information about name display order"
+      <div
+        class="bg-white dark:bg-dark-bg-secondary rounded-lg border border-sand-dark dark:border-dark-border transition-all"
+        :class="expandedSections.nameOrder ? 'ring-2 ring-sage/30 border-sage/50' : 'hover:border-sage/30'"
+      >
+        <button
+          type="button"
+          class="w-full p-4 sm:p-6 flex items-center justify-between text-left transition-colors group cursor-pointer rounded-t-lg"
+          :class="expandedSections.nameOrder ? 'bg-sage/5 dark:bg-sage/10' : 'hover:bg-sand/30 dark:hover:bg-dark-bg-elevated'"
+          @click="toggleSection('nameOrder')"
+        >
+          <div class="flex items-center gap-2">
+            <h3
+              class="font-heading text-base font-medium transition-colors"
+              :class="expandedSections.nameOrder ? 'text-sage-dark dark:text-sage-light' : 'text-charcoal dark:text-dark-text group-hover:text-sage-dark dark:group-hover:text-sage-light'"
             >
-              ?
-            </button>
-            <!-- Tooltip content - centered on mobile, left-aligned on desktop -->
-            <div class="absolute left-1/2 -translate-x-1/2 sm:left-0 sm:translate-x-0 top-full mt-2 w-[calc(100vw-2rem)] max-w-72 sm:max-w-80 sm:w-80 p-3 bg-charcoal dark:bg-dark-bg-elevated text-white text-xs rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 whitespace-pre-line max-h-64 overflow-y-auto">
-              {{ nameOrderTooltip }}
+              Name Display Order
+            </h3>
+            <!-- Tooltip -->
+            <div class="relative group/tooltip" @click.stop>
+              <span
+                class="w-5 h-5 rounded-full bg-sage/20 text-sage-dark dark:text-sage-light flex items-center justify-center text-xs font-medium hover:bg-sage/30 transition-colors cursor-help"
+              >
+                ?
+              </span>
+              <!-- Tooltip content -->
+              <div class="absolute left-0 top-full mt-2 w-72 sm:w-80 p-3 bg-charcoal dark:bg-dark-bg-elevated text-white text-xs rounded-lg shadow-lg opacity-0 invisible group-hover/tooltip:opacity-100 group-hover/tooltip:visible transition-all z-[100] whitespace-pre-line max-h-64 overflow-y-auto">
+                {{ nameOrderTooltip }}
+              </div>
             </div>
           </div>
-        </div>
+          <svg
+            class="w-5 h-5 transition-all"
+            :class="[
+              expandedSections.nameOrder ? 'rotate-180 text-sage' : 'text-charcoal-light dark:text-dark-text-secondary group-hover:text-sage',
+            ]"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+        <div v-show="expandedSections.nameOrder" class="px-4 sm:px-6 pb-4 sm:pb-6">
         <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary mb-4">
           Choose whether to display the bride or groom name first throughout the website.
         </p>
@@ -506,13 +576,82 @@ onMounted(async () => {
             </div>
           </label>
         </div>
+        </div>
+      </div>
+
+      <!-- Bismillah Calligraphy Section -->
+      <div
+        class="bg-white dark:bg-dark-bg-secondary rounded-lg border border-sand-dark dark:border-dark-border overflow-hidden transition-all"
+        :class="expandedSections.calligraphy ? 'ring-2 ring-sage/30 border-sage/50' : 'hover:border-sage/30'"
+      >
+        <button
+          type="button"
+          class="w-full p-4 sm:p-6 flex items-center justify-between text-left transition-colors group cursor-pointer"
+          :class="expandedSections.calligraphy ? 'bg-sage/5 dark:bg-sage/10' : 'hover:bg-sand/30 dark:hover:bg-dark-bg-elevated'"
+          @click="toggleSection('calligraphy')"
+        >
+          <div>
+            <h3
+              class="font-heading text-base font-medium transition-colors"
+              :class="expandedSections.calligraphy ? 'text-sage-dark dark:text-sage-light' : 'text-charcoal dark:text-dark-text group-hover:text-sage-dark dark:group-hover:text-sage-light'"
+            >
+              Bismillah Calligraphy
+            </h3>
+            <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary mt-1">
+              Choose the calligraphy style for the Bismillah displayed on the hero section
+            </p>
+          </div>
+          <svg
+            class="w-5 h-5 transition-all flex-shrink-0 ml-2"
+            :class="[
+              expandedSections.calligraphy ? 'rotate-180 text-sage' : 'text-charcoal-light dark:text-dark-text-secondary group-hover:text-sage',
+            ]"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+        <div v-show="expandedSections.calligraphy" class="px-4 sm:px-6 pb-4 sm:pb-6">
+          <BismillahCalligraphySelector
+            :settings="formData.bismillahCalligraphy"
+            :disabled="isSaving"
+            @update="formData.bismillahCalligraphy = $event"
+          />
+        </div>
       </div>
 
       <!-- Parents Information -->
-      <div class="bg-white dark:bg-dark-bg-secondary rounded-lg border border-sand-dark dark:border-dark-border p-4 sm:p-6">
-        <h3 class="font-heading text-base font-medium text-charcoal dark:text-dark-text mb-4">
-          Parents Information
-        </h3>
+      <div
+        class="bg-white dark:bg-dark-bg-secondary rounded-lg border border-sand-dark dark:border-dark-border overflow-hidden transition-all"
+        :class="expandedSections.parents ? 'ring-2 ring-sage/30 border-sage/50' : 'hover:border-sage/30'"
+      >
+        <button
+          type="button"
+          class="w-full p-4 sm:p-6 flex items-center justify-between text-left transition-colors group cursor-pointer"
+          :class="expandedSections.parents ? 'bg-sage/5 dark:bg-sage/10' : 'hover:bg-sand/30 dark:hover:bg-dark-bg-elevated'"
+          @click="toggleSection('parents')"
+        >
+          <h3
+            class="font-heading text-base font-medium transition-colors"
+            :class="expandedSections.parents ? 'text-sage-dark dark:text-sage-light' : 'text-charcoal dark:text-dark-text group-hover:text-sage-dark dark:group-hover:text-sage-light'"
+          >
+            Parents Information
+          </h3>
+          <svg
+            class="w-5 h-5 transition-all"
+            :class="[
+              expandedSections.parents ? 'rotate-180 text-sage' : 'text-charcoal-light dark:text-dark-text-secondary group-hover:text-sage',
+            ]"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+        <div v-show="expandedSections.parents" class="px-4 sm:px-6 pb-4 sm:pb-6">
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
           <!-- Bride's Parents -->
           <div class="space-y-3">
@@ -572,13 +711,39 @@ onMounted(async () => {
             </div>
           </div>
         </div>
+        </div>
       </div>
 
       <!-- Event Details -->
-      <div class="bg-white dark:bg-dark-bg-secondary rounded-lg border border-sand-dark dark:border-dark-border p-4 sm:p-6">
-        <h3 class="font-heading text-base font-medium text-charcoal dark:text-dark-text mb-4">
-          Event Details
-        </h3>
+      <div
+        class="bg-white dark:bg-dark-bg-secondary rounded-lg border border-sand-dark dark:border-dark-border overflow-hidden transition-all"
+        :class="expandedSections.event ? 'ring-2 ring-sage/30 border-sage/50' : 'hover:border-sage/30'"
+      >
+        <button
+          type="button"
+          class="w-full p-4 sm:p-6 flex items-center justify-between text-left transition-colors group cursor-pointer"
+          :class="expandedSections.event ? 'bg-sage/5 dark:bg-sage/10' : 'hover:bg-sand/30 dark:hover:bg-dark-bg-elevated'"
+          @click="toggleSection('event')"
+        >
+          <h3
+            class="font-heading text-base font-medium transition-colors"
+            :class="expandedSections.event ? 'text-sage-dark dark:text-sage-light' : 'text-charcoal dark:text-dark-text group-hover:text-sage-dark dark:group-hover:text-sage-light'"
+          >
+            Event Details
+          </h3>
+          <svg
+            class="w-5 h-5 transition-all"
+            :class="[
+              expandedSections.event ? 'rotate-180 text-sage' : 'text-charcoal-light dark:text-dark-text-secondary group-hover:text-sage',
+            ]"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+        <div v-show="expandedSections.event" class="px-4 sm:px-6 pb-4 sm:pb-6">
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
           <div>
             <label class="block font-body text-xs text-charcoal-light dark:text-dark-text-secondary mb-1">
@@ -615,16 +780,44 @@ onMounted(async () => {
             :disabled="isSaving"
           />
         </div>
+        </div>
       </div>
 
       <!-- Display Format Settings -->
-      <div class="bg-white dark:bg-dark-bg-secondary rounded-lg border border-sand-dark dark:border-dark-border p-4 sm:p-6">
-        <h3 class="font-heading text-base font-medium text-charcoal dark:text-dark-text mb-4">
-          Display Format Settings
-        </h3>
-        <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary mb-4">
-          Choose how the event date and time should appear on the public website.
-        </p>
+      <div
+        class="bg-white dark:bg-dark-bg-secondary rounded-lg border border-sand-dark dark:border-dark-border overflow-hidden transition-all"
+        :class="expandedSections.displayFormat ? 'ring-2 ring-sage/30 border-sage/50' : 'hover:border-sage/30'"
+      >
+        <button
+          type="button"
+          class="w-full p-4 sm:p-6 flex items-center justify-between text-left transition-colors group cursor-pointer"
+          :class="expandedSections.displayFormat ? 'bg-sage/5 dark:bg-sage/10' : 'hover:bg-sand/30 dark:hover:bg-dark-bg-elevated'"
+          @click="toggleSection('displayFormat')"
+        >
+          <div>
+            <h3
+              class="font-heading text-base font-medium transition-colors"
+              :class="expandedSections.displayFormat ? 'text-sage-dark dark:text-sage-light' : 'text-charcoal dark:text-dark-text group-hover:text-sage-dark dark:group-hover:text-sage-light'"
+            >
+              Display Format Settings
+            </h3>
+            <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary mt-1">
+              Choose how the event date and time should appear on the public website
+            </p>
+          </div>
+          <svg
+            class="w-5 h-5 transition-all flex-shrink-0 ml-2"
+            :class="[
+              expandedSections.displayFormat ? 'rotate-180 text-sage' : 'text-charcoal-light dark:text-dark-text-secondary group-hover:text-sage',
+            ]"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+        <div v-show="expandedSections.displayFormat" class="px-4 sm:px-6 pb-4 sm:pb-6">
 
         <!-- Preset Dropdown -->
         <div class="mb-4">
@@ -771,37 +964,64 @@ onMounted(async () => {
             </div>
           </div>
         </div>
+        </div>
       </div>
 
       <!-- Website Details -->
-      <div class="bg-white dark:bg-dark-bg-secondary rounded-lg border border-sand-dark dark:border-dark-border p-4 sm:p-6">
-        <h3 class="font-heading text-base font-medium text-charcoal dark:text-dark-text mb-4">
-          Website Details
-        </h3>
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label class="block font-body text-xs text-charcoal-light dark:text-dark-text-secondary mb-1">
-              Wedding Hashtag
-            </label>
-            <input
-              v-model="formData.hashtag"
-              type="text"
-              class="w-full px-3 py-2.5 font-body text-base border border-sand-dark dark:border-dark-border rounded-lg bg-sand dark:bg-dark-bg-elevated text-charcoal dark:text-dark-text focus:outline-none focus:border-sage"
-              placeholder="#YourWeddingHashtag"
-              :disabled="isSaving"
-            />
-          </div>
-          <div>
-            <label class="block font-body text-xs text-charcoal-light dark:text-dark-text-secondary mb-1">
-              QR Code URL
-            </label>
-            <input
-              v-model="formData.qrCodeUrl"
-              type="url"
-              class="w-full px-3 py-2.5 font-body text-base border border-sand-dark dark:border-dark-border rounded-lg bg-sand dark:bg-dark-bg-elevated text-charcoal dark:text-dark-text focus:outline-none focus:border-sage"
-              placeholder="https://your-wedding-site.com"
-              :disabled="isSaving"
-            />
+      <div
+        class="bg-white dark:bg-dark-bg-secondary rounded-lg border border-sand-dark dark:border-dark-border overflow-hidden transition-all"
+        :class="expandedSections.website ? 'ring-2 ring-sage/30 border-sage/50' : 'hover:border-sage/30'"
+      >
+        <button
+          type="button"
+          class="w-full p-4 sm:p-6 flex items-center justify-between text-left transition-colors group cursor-pointer"
+          :class="expandedSections.website ? 'bg-sage/5 dark:bg-sage/10' : 'hover:bg-sand/30 dark:hover:bg-dark-bg-elevated'"
+          @click="toggleSection('website')"
+        >
+          <h3
+            class="font-heading text-base font-medium transition-colors"
+            :class="expandedSections.website ? 'text-sage-dark dark:text-sage-light' : 'text-charcoal dark:text-dark-text group-hover:text-sage-dark dark:group-hover:text-sage-light'"
+          >
+            Website Details
+          </h3>
+          <svg
+            class="w-5 h-5 transition-all"
+            :class="[
+              expandedSections.website ? 'rotate-180 text-sage' : 'text-charcoal-light dark:text-dark-text-secondary group-hover:text-sage',
+            ]"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+        <div v-show="expandedSections.website" class="px-4 sm:px-6 pb-4 sm:pb-6">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block font-body text-xs text-charcoal-light dark:text-dark-text-secondary mb-1">
+                Wedding Hashtag
+              </label>
+              <input
+                v-model="formData.hashtag"
+                type="text"
+                class="w-full px-3 py-2.5 font-body text-base border border-sand-dark dark:border-dark-border rounded-lg bg-sand dark:bg-dark-bg-elevated text-charcoal dark:text-dark-text focus:outline-none focus:border-sage"
+                placeholder="#YourWeddingHashtag"
+                :disabled="isSaving"
+              />
+            </div>
+            <div>
+              <label class="block font-body text-xs text-charcoal-light dark:text-dark-text-secondary mb-1">
+                QR Code URL
+              </label>
+              <input
+                v-model="formData.qrCodeUrl"
+                type="url"
+                class="w-full px-3 py-2.5 font-body text-base border border-sand-dark dark:border-dark-border rounded-lg bg-sand dark:bg-dark-bg-elevated text-charcoal dark:text-dark-text focus:outline-none focus:border-sage"
+                placeholder="https://your-wedding-site.com"
+                :disabled="isSaving"
+              />
+            </div>
           </div>
         </div>
       </div>
