@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from "vue";
+import { ref, computed, onUnmounted } from "vue";
 import type { MusicTrack, PlayMode } from "@/types/music";
 
 const props = defineProps<{
@@ -80,6 +80,14 @@ const stopPreview = (): void => {
   audioElement.value?.pause();
   previewingId.value = null;
 };
+
+onUnmounted(() => {
+  if (audioElement.value) {
+    audioElement.value.pause();
+    audioElement.value = null;
+  }
+  previewingId.value = null;
+});
 </script>
 
 <template>
