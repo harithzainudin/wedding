@@ -18,7 +18,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (_event, context) => {
       new GetCommand({
         TableName: Resource.AppDataTable.name,
         Key: { pk: "SETTINGS", sk: "THEME" },
-      })
+      }),
     );
 
     if (!result.Item) {
@@ -41,8 +41,13 @@ export const handler: APIGatewayProxyHandlerV2 = async (_event, context) => {
         operation: "fetchTheme",
         requestId: context.awsRequestId,
       },
-      error
+      error,
     );
-    return createErrorResponse(500, "Failed to fetch theme settings", context, "DB_ERROR");
+    return createErrorResponse(
+      500,
+      "Failed to fetch theme settings",
+      context,
+      "DB_ERROR",
+    );
   }
 };

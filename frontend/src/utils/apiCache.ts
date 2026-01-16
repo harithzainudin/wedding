@@ -17,7 +17,7 @@ const inFlight = new Map<string, Promise<unknown>>();
 export async function cachedFetch<T>(
   key: string,
   fetcher: () => Promise<T>,
-  forceRefresh = false
+  forceRefresh = false,
 ): Promise<T> {
   // Return cached value if available and not forcing refresh
   if (!forceRefresh && cache.has(key)) {

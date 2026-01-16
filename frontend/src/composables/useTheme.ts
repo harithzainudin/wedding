@@ -6,7 +6,11 @@ import type {
   ThemeId,
   CustomThemeData,
 } from "@/types/theme";
-import { getThemeCached, updateTheme as updateThemeApi, clearCache } from "@/services/api";
+import {
+  getThemeCached,
+  updateTheme as updateThemeApi,
+  clearCache,
+} from "@/services/api";
 import { CACHE_KEYS } from "@/utils/apiCache";
 import {
   DEFAULT_THEMES,
@@ -55,7 +59,7 @@ function resolveTheme(settings: ThemeSettings): ResolvedTheme {
 export function useTheme() {
   // Computed resolved theme
   const resolvedTheme = computed<ResolvedTheme>(() =>
-    resolveTheme(themeSettings.value)
+    resolveTheme(themeSettings.value),
   );
 
   /**
@@ -95,7 +99,7 @@ export function useTheme() {
    * Update theme settings and apply to page
    */
   const saveTheme = async (
-    data: ThemeUpdateRequest
+    data: ThemeUpdateRequest,
   ): Promise<{ success: boolean; error?: string }> => {
     isSaving.value = true;
     error.value = null;
@@ -116,7 +120,8 @@ export function useTheme() {
 
       return { success: true };
     } catch (e) {
-      const errorMessage = e instanceof Error ? e.message : "Failed to save theme";
+      const errorMessage =
+        e instanceof Error ? e.message : "Failed to save theme";
       error.value = errorMessage;
       return { success: false, error: errorMessage };
     } finally {
@@ -127,7 +132,10 @@ export function useTheme() {
   /**
    * Apply a theme without saving (for preview)
    */
-  const previewTheme = (themeId: ThemeId, customTheme?: CustomThemeData): void => {
+  const previewTheme = (
+    themeId: ThemeId,
+    customTheme?: CustomThemeData,
+  ): void => {
     const previewSettings: ThemeSettings = {
       activeThemeId: themeId,
       customTheme: themeId === "custom" ? customTheme : undefined,

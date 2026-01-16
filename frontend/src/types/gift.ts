@@ -2,10 +2,21 @@ import type { Language } from "@/i18n/translations";
 
 export type MultilingualText = Record<Language, string>;
 export type GiftPriority = "high" | "medium" | "low";
-export type GiftCategory = "home" | "kitchen" | "electronics" | "experiences" | "other";
+export type GiftCategory =
+  | "home"
+  | "kitchen"
+  | "electronics"
+  | "experiences"
+  | "other";
 
 export const GIFT_PRIORITIES: GiftPriority[] = ["high", "medium", "low"];
-export const GIFT_CATEGORIES: GiftCategory[] = ["home", "kitchen", "electronics", "experiences", "other"];
+export const GIFT_CATEGORIES: GiftCategory[] = [
+  "home",
+  "kitchen",
+  "electronics",
+  "experiences",
+  "other",
+];
 
 export interface GiftItem {
   id: string;

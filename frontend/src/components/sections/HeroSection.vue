@@ -11,7 +11,8 @@ import { getCalligraphySvg } from "@/assets/calligraphy/bismillah";
 import { DEFAULT_BISMILLAH_SETTINGS } from "@/types/weddingDetails";
 
 const { t } = useLanguage();
-const { getEventDate, isLoadingWeddingDetails, getBismillahSettings } = usePublicWeddingData();
+const { getEventDate, isLoadingWeddingDetails, getBismillahSettings } =
+  usePublicWeddingData();
 const { orderedCouple } = useNameOrder();
 
 const coupleNames = computed(() => ({
@@ -30,7 +31,9 @@ const bismillahSettings = computed(() => getBismillahSettings());
 const loadCalligraphy = async () => {
   isLoadingCalligraphy.value = true;
   try {
-    const styleId = bismillahSettings.value?.selectedStyle ?? DEFAULT_BISMILLAH_SETTINGS.selectedStyle;
+    const styleId =
+      bismillahSettings.value?.selectedStyle ??
+      DEFAULT_BISMILLAH_SETTINGS.selectedStyle;
     bismillahSvg.value = await getCalligraphySvg(styleId);
   } catch (error) {
     console.error("Failed to load calligraphy:", error);
@@ -46,7 +49,7 @@ watch(
   () => bismillahSettings.value?.selectedStyle,
   () => {
     loadCalligraphy();
-  }
+  },
 );
 
 onMounted(() => {
@@ -76,8 +79,13 @@ onMounted(() => {
       <div class="mb-6 sm:mb-8">
         <!-- Loading Skeleton -->
         <div v-if="isLoadingCalligraphy" class="animate-pulse">
-          <div class="h-8 sm:h-10 md:h-12 bg-white/20 rounded max-w-xs sm:max-w-sm mx-auto mb-2"></div>
-          <div v-if="bismillahSettings?.showTranslation !== false" class="h-3 bg-white/10 rounded max-w-[200px] mx-auto"></div>
+          <div
+            class="h-8 sm:h-10 md:h-12 bg-white/20 rounded max-w-xs sm:max-w-sm mx-auto mb-2"
+          ></div>
+          <div
+            v-if="bismillahSettings?.showTranslation !== false"
+            class="h-3 bg-white/10 rounded max-w-[200px] mx-auto"
+          ></div>
         </div>
         <!-- SVG Calligraphy -->
         <template v-else-if="bismillahSvg">
@@ -88,10 +96,16 @@ onMounted(() => {
           />
           <div
             class="grid transition-all duration-300 ease-out"
-            :class="bismillahSettings?.showTranslation !== false ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'"
+            :class="
+              bismillahSettings?.showTranslation !== false
+                ? 'grid-rows-[1fr] opacity-100'
+                : 'grid-rows-[0fr] opacity-0'
+            "
           >
             <div class="overflow-hidden min-h-0">
-              <p class="font-body text-[10px] sm:text-xs md:text-sm opacity-80 leading-relaxed mt-2">
+              <p
+                class="font-body text-[10px] sm:text-xs md:text-sm opacity-80 leading-relaxed mt-2"
+              >
                 {{ t.hero.bismillahTranslation }}
               </p>
             </div>
@@ -107,10 +121,16 @@ onMounted(() => {
           </p>
           <div
             class="grid transition-all duration-300 ease-out"
-            :class="bismillahSettings?.showTranslation !== false ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'"
+            :class="
+              bismillahSettings?.showTranslation !== false
+                ? 'grid-rows-[1fr] opacity-100'
+                : 'grid-rows-[0fr] opacity-0'
+            "
           >
             <div class="overflow-hidden min-h-0">
-              <p class="font-body text-[10px] sm:text-xs md:text-sm opacity-80 leading-relaxed">
+              <p
+                class="font-body text-[10px] sm:text-xs md:text-sm opacity-80 leading-relaxed"
+              >
                 {{ t.hero.bismillahTranslation }}
               </p>
             </div>
@@ -130,22 +150,34 @@ onMounted(() => {
         <!-- Loading Skeleton -->
         <template v-if="isLoadingWeddingDetails">
           <div class="animate-pulse flex flex-col items-center">
-            <div class="h-9 sm:h-10 md:h-12 lg:h-14 w-40 sm:w-48 md:w-56 bg-white/20 rounded mb-1 sm:mb-2"></div>
-            <p class="font-heading text-xl sm:text-2xl md:text-3xl my-1 sm:my-2 opacity-80">
+            <div
+              class="h-9 sm:h-10 md:h-12 lg:h-14 w-40 sm:w-48 md:w-56 bg-white/20 rounded mb-1 sm:mb-2"
+            ></div>
+            <p
+              class="font-heading text-xl sm:text-2xl md:text-3xl my-1 sm:my-2 opacity-80"
+            >
               &
             </p>
-            <div class="h-9 sm:h-10 md:h-12 lg:h-14 w-40 sm:w-48 md:w-56 bg-white/20 rounded"></div>
+            <div
+              class="h-9 sm:h-10 md:h-12 lg:h-14 w-40 sm:w-48 md:w-56 bg-white/20 rounded"
+            ></div>
           </div>
         </template>
         <!-- Actual Names -->
         <template v-else>
-          <h1 class="font-heading text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-semibold">
+          <h1
+            class="font-heading text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-semibold"
+          >
             {{ coupleNames.first }}
           </h1>
-          <p class="font-heading text-xl sm:text-2xl md:text-3xl my-1 sm:my-2 opacity-80">
+          <p
+            class="font-heading text-xl sm:text-2xl md:text-3xl my-1 sm:my-2 opacity-80"
+          >
             &
           </p>
-          <h1 class="font-heading text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-semibold">
+          <h1
+            class="font-heading text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-semibold"
+          >
             {{ coupleNames.second }}
           </h1>
         </template>

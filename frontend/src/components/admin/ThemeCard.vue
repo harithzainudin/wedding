@@ -37,18 +37,32 @@ const handlePreview = (e: Event): void => {
       v-if="isSelected"
       class="absolute top-2 right-2 w-6 h-6 bg-sage rounded-full flex items-center justify-center"
     >
-      <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+      <svg
+        class="w-4 h-4 text-white"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M5 13l4 4L19 7"
+        />
       </svg>
     </div>
 
     <!-- Theme Name -->
-    <h4 class="font-heading text-base font-medium text-charcoal dark:text-dark-text mb-1 pr-8">
+    <h4
+      class="font-heading text-base font-medium text-charcoal dark:text-dark-text mb-1 pr-8"
+    >
       {{ theme.name }}
     </h4>
 
     <!-- Description -->
-    <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary mb-3">
+    <p
+      class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary mb-3"
+    >
       {{ theme.description }}
     </p>
 
@@ -99,9 +113,7 @@ const handlePreview = (e: Event): void => {
     <!-- Preview Button -->
     <button
       type="button"
-      class="w-full py-1.5 px-3 text-xs font-body font-medium rounded transition-colors
-             bg-sand dark:bg-dark-bg-secondary text-charcoal dark:text-dark-text
-             hover:bg-sand-dark dark:hover:bg-dark-bg-elevated cursor-pointer"
+      class="w-full py-1.5 px-3 text-xs font-body font-medium rounded transition-colors bg-sand dark:bg-dark-bg-secondary text-charcoal dark:text-dark-text hover:bg-sand-dark dark:hover:bg-dark-bg-elevated cursor-pointer"
       @click="handlePreview"
     >
       Preview

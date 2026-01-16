@@ -1,11 +1,18 @@
 import type { APIGatewayProxyHandlerV2 } from "aws-lambda";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocumentClient, PutCommand, GetCommand } from "@aws-sdk/lib-dynamodb";
+import {
+  DynamoDBDocumentClient,
+  PutCommand,
+  GetCommand,
+} from "@aws-sdk/lib-dynamodb";
 import { Resource } from "sst";
 import { createSuccessResponse, createErrorResponse } from "../shared/response";
 import { requireAuth } from "../shared/auth";
 import { logError } from "../shared/logger";
-import { validateGiftSettingsInput, GIFT_LIMITS } from "../shared/gift-validation";
+import {
+  validateGiftSettingsInput,
+  GIFT_LIMITS,
+} from "../shared/gift-validation";
 
 const client = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(client);
@@ -35,7 +42,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
         authResult.statusCode,
         authResult.error,
         context,
-        "AUTH_ERROR"
+        "AUTH_ERROR",
       );
     }
 
@@ -44,13 +51,23 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
     try {
       body = JSON.parse(event.body ?? "{}");
     } catch {
-      return createErrorResponse(400, "Invalid JSON in request body", context, "INVALID_JSON");
+      return createErrorResponse(
+        400,
+        "Invalid JSON in request body",
+        context,
+        "INVALID_JSON",
+      );
     }
 
     // Validate input
     const validation = validateGiftSettingsInput(body);
     if (!validation.valid) {
-      return createErrorResponse(400, validation.error, context, "VALIDATION_ERROR");
+      return createErrorResponse(
+        400,
+        validation.error,
+        context,
+        "VALIDATION_ERROR",
+      );
     }
 
     const { data } = validation;
@@ -60,15 +77,18 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
       new GetCommand({
         TableName: Resource.AppDataTable.name,
         Key: { pk: "SETTINGS", sk: "GIFTS" },
-      })
+      }),
     );
 
     const currentSettings: GiftSettings = currentResult.Item
       ? {
           enabled: currentResult.Item.enabled ?? DEFAULT_SETTINGS.enabled,
           maxItems: currentResult.Item.maxItems ?? DEFAULT_SETTINGS.maxItems,
-          maxFileSize: currentResult.Item.maxFileSize ?? DEFAULT_SETTINGS.maxFileSize,
-          allowedFormats: currentResult.Item.allowedFormats ?? DEFAULT_SETTINGS.allowedFormats,
+          maxFileSize:
+            currentResult.Item.maxFileSize ?? DEFAULT_SETTINGS.maxFileSize,
+          allowedFormats:
+            currentResult.Item.allowedFormats ??
+            DEFAULT_SETTINGS.allowedFormats,
         }
       : DEFAULT_SETTINGS;
 
@@ -90,23 +110,35 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
       new PutCommand({
         TableName: Resource.AppDataTable.name,
         Item: updatedSettings,
-      })
+      }),
     );
 
-    return createSuccessResponse(200, {
-      enabled: updatedSettings.enabled,
-      maxItems: updatedSettings.maxItems,
-      maxFileSize: updatedSettings.maxFileSize,
-      allowedFormats: updatedSettings.allowedFormats,
-      updatedAt: updatedSettings.updatedAt,
-      updatedBy: updatedSettings.updatedBy,
-    }, context);
+    return createSuccessResponse(
+      200,
+      {
+        enabled: updatedSettings.enabled,
+        maxItems: updatedSettings.maxItems,
+        maxFileSize: updatedSettings.maxFileSize,
+        allowedFormats: updatedSettings.allowedFormats,
+        updatedAt: updatedSettings.updatedAt,
+        updatedBy: updatedSettings.updatedBy,
+      },
+      context,
+    );
   } catch (error) {
-    logError({
-      endpoint: "PUT /gifts/settings",
-      operation: "updateGiftSettings",
-      requestId: context.awsRequestId,
-    }, error);
-    return createErrorResponse(500, "Internal server error", context, "DB_ERROR");
+    logError(
+      {
+        endpoint: "PUT /gifts/settings",
+        operation: "updateGiftSettings",
+        requestId: context.awsRequestId,
+      },
+      error,
+    );
+    return createErrorResponse(
+      500,
+      "Internal server error",
+      context,
+      "DB_ERROR",
+    );
   }
 };

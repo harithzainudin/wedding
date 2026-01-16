@@ -35,7 +35,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
         authResult.statusCode,
         authResult.error,
         context,
-        "AUTH_ERROR"
+        "AUTH_ERROR",
       );
     }
 
@@ -44,7 +44,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
       new GetCommand({
         TableName: Resource.AppDataTable.name,
         Key: { pk: "SETTINGS", sk: "GIFTS" },
-      })
+      }),
     );
 
     const settings: GiftSettings = result.Item
@@ -52,7 +52,8 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
           enabled: result.Item.enabled ?? DEFAULT_SETTINGS.enabled,
           maxItems: result.Item.maxItems ?? DEFAULT_SETTINGS.maxItems,
           maxFileSize: result.Item.maxFileSize ?? DEFAULT_SETTINGS.maxFileSize,
-          allowedFormats: result.Item.allowedFormats ?? DEFAULT_SETTINGS.allowedFormats,
+          allowedFormats:
+            result.Item.allowedFormats ?? DEFAULT_SETTINGS.allowedFormats,
           updatedAt: result.Item.updatedAt as string | undefined,
           updatedBy: result.Item.updatedBy as string | undefined,
         }
@@ -60,11 +61,19 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
 
     return createSuccessResponse(200, settings, context);
   } catch (error) {
-    logError({
-      endpoint: "GET /gifts/settings",
-      operation: "getGiftSettings",
-      requestId: context.awsRequestId,
-    }, error);
-    return createErrorResponse(500, "Internal server error", context, "DB_ERROR");
+    logError(
+      {
+        endpoint: "GET /gifts/settings",
+        operation: "getGiftSettings",
+        requestId: context.awsRequestId,
+      },
+      error,
+    );
+    return createErrorResponse(
+      500,
+      "Internal server error",
+      context,
+      "DB_ERROR",
+    );
   }
 };

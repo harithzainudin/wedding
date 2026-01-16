@@ -46,7 +46,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
             ":status": `STATUS#${status}`,
           },
           ScanIndexForward: false, // Most recent first
-        })
+        }),
       );
       items = (result.Items ?? []) as RsvpRecord[];
     } else {
@@ -58,7 +58,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
           ExpressionAttributeValues: {
             ":prefix": "RSVP#",
           },
-        })
+        }),
       );
       items = (result.Items ?? []) as RsvpRecord[];
     }
@@ -93,22 +93,34 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
     const attending = rsvps.filter((r) => r.isAttending);
     const totalGuests = attending.reduce((sum, r) => sum + r.numberOfGuests, 0);
 
-    return createSuccessResponse(200, {
-      rsvps,
-      summary: {
-        total: rsvps.length,
-        attending: attending.length,
-        notAttending: rsvps.length - attending.length,
-        totalGuests,
+    return createSuccessResponse(
+      200,
+      {
+        rsvps,
+        summary: {
+          total: rsvps.length,
+          attending: attending.length,
+          notAttending: rsvps.length - attending.length,
+          totalGuests,
+        },
       },
-    }, context);
+      context,
+    );
   } catch (error) {
-    logError({
-      endpoint: "GET /rsvp",
-      operation: "listRsvps",
-      requestId: context.awsRequestId,
-      input: { status, isAuthenticated },
-    }, error);
-    return createErrorResponse(500, "Internal server error", context, "DB_ERROR");
+    logError(
+      {
+        endpoint: "GET /rsvp",
+        operation: "listRsvps",
+        requestId: context.awsRequestId,
+        input: { status, isAuthenticated },
+      },
+      error,
+    );
+    return createErrorResponse(
+      500,
+      "Internal server error",
+      context,
+      "DB_ERROR",
+    );
   }
 };

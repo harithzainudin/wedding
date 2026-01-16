@@ -69,10 +69,13 @@ watch([showModal, editingContact], ([show, item]) => {
 });
 
 const saveModalForm = () => {
-  if (!modalForm.value.name.trim() || !modalForm.value.phoneNumber.trim()) return;
+  if (!modalForm.value.name.trim() || !modalForm.value.phoneNumber.trim())
+    return;
 
   if (editingContact.value) {
-    const index = localContacts.value.findIndex((c) => c.id === editingContact.value?.id);
+    const index = localContacts.value.findIndex(
+      (c) => c.id === editingContact.value?.id,
+    );
     const existing = localContacts.value[index];
     if (index !== -1 && existing) {
       localContacts.value[index] = {
@@ -107,10 +110,18 @@ onMounted(async () => {
 
 <template>
   <div class="max-w-4xl mx-auto">
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
+    <div
+      class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6"
+    >
       <div>
-        <h2 class="font-heading text-xl font-semibold text-charcoal dark:text-dark-text">Contacts</h2>
-        <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary mt-1">
+        <h2
+          class="font-heading text-xl font-semibold text-charcoal dark:text-dark-text"
+        >
+          Contacts
+        </h2>
+        <p
+          class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary mt-1"
+        >
           Manage contact people for guests to reach
         </p>
       </div>
@@ -119,20 +130,38 @@ onMounted(async () => {
         class="flex items-center justify-center gap-2 px-4 py-2 font-body text-sm text-white bg-sage rounded-lg hover:bg-sage-dark transition-colors cursor-pointer"
         @click="openModal()"
       >
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+        <svg
+          class="w-4 h-4"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M12 4v16m8-8H4"
+          />
         </svg>
         Add Contact
       </button>
     </div>
 
     <div v-if="isLoading" class="text-center py-12">
-      <div class="inline-block w-8 h-8 border-3 border-sage border-t-transparent rounded-full animate-spin" />
-      <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary mt-3">Loading contacts...</p>
+      <div
+        class="inline-block w-8 h-8 border-3 border-sage border-t-transparent rounded-full animate-spin"
+      />
+      <p
+        class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary mt-3"
+      >
+        Loading contacts...
+      </p>
     </div>
 
     <div v-else-if="loadError" class="text-center py-12">
-      <p class="font-body text-sm text-red-600 dark:text-red-400 mb-3">{{ loadError }}</p>
+      <p class="font-body text-sm text-red-600 dark:text-red-400 mb-3">
+        {{ loadError }}
+      </p>
       <button
         type="button"
         class="px-4 py-2 rounded-lg bg-sage text-white font-body text-sm hover:bg-sage-dark transition-colors"
@@ -147,7 +176,9 @@ onMounted(async () => {
         v-if="localContacts.length === 0"
         class="p-8 bg-white dark:bg-dark-bg-secondary rounded-lg border border-sand-dark dark:border-dark-border text-center"
       >
-        <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary">
+        <p
+          class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary"
+        >
           No contacts yet. Click "Add Contact" to create one.
         </p>
       </div>
@@ -164,17 +195,26 @@ onMounted(async () => {
         >
           <div class="flex items-start justify-between gap-3">
             <div class="flex-1 min-w-0">
-              <p class="font-heading text-base text-charcoal dark:text-dark-text font-medium truncate">
+              <p
+                class="font-heading text-base text-charcoal dark:text-dark-text font-medium truncate"
+              >
                 {{ contact.name }}
               </p>
-              <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary">
+              <p
+                class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary"
+              >
                 {{ contact.role.en || contact.role.ms }}
               </p>
               <a
                 :href="`tel:${contact.phoneNumber}`"
                 class="font-body text-sm text-sage hover:text-sage-dark inline-flex items-center gap-1 mt-1"
               >
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg
+                  class="w-3.5 h-3.5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
                   <path
                     stroke-linecap="round"
                     stroke-linejoin="round"
@@ -198,22 +238,54 @@ onMounted(async () => {
         </div>
       </TransitionGroup>
 
-      <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-2">
+      <div
+        class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-2"
+      >
         <div class="flex-1">
-          <div v-if="saveError" class="p-3 bg-red-50 dark:bg-red-900/20 rounded-lg">
-            <p class="font-body text-sm text-red-600 dark:text-red-400">{{ saveError }}</p>
+          <div
+            v-if="saveError"
+            class="p-3 bg-red-50 dark:bg-red-900/20 rounded-lg"
+          >
+            <p class="font-body text-sm text-red-600 dark:text-red-400">
+              {{ saveError }}
+            </p>
           </div>
-          <div v-if="saveSuccess" class="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
-            <p class="font-body text-sm text-green-600 dark:text-green-400 flex items-center gap-2">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+          <div
+            v-if="saveSuccess"
+            class="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg"
+          >
+            <p
+              class="font-body text-sm text-green-600 dark:text-green-400 flex items-center gap-2"
+            >
+              <svg
+                class="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M5 13l4 4L19 7"
+                />
               </svg>
               Contacts saved successfully!
             </p>
           </div>
-          <div v-if="hasChanges && !isSaving && !saveSuccess" class="p-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg">
-            <p class="font-body text-sm text-amber-700 dark:text-amber-400 flex items-center gap-2">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div
+            v-if="hasChanges && !isSaving && !saveSuccess"
+            class="p-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg"
+          >
+            <p
+              class="font-body text-sm text-amber-700 dark:text-amber-400 flex items-center gap-2"
+            >
+              <svg
+                class="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
                 <path
                   stroke-linecap="round"
                   stroke-linejoin="round"
@@ -245,8 +317,13 @@ onMounted(async () => {
         </div>
       </div>
 
-      <div v-if="contacts.updatedAt" class="p-3 bg-sand/30 dark:bg-dark-bg-elevated rounded-lg">
-        <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary">
+      <div
+        v-if="contacts.updatedAt"
+        class="p-3 bg-sand/30 dark:bg-dark-bg-elevated rounded-lg"
+      >
+        <p
+          class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary"
+        >
           Last updated: {{ new Date(contacts.updatedAt).toLocaleString() }}
           <span v-if="contacts.updatedBy"> by {{ contacts.updatedBy }}</span>
         </p>
@@ -261,7 +338,10 @@ onMounted(async () => {
       @submit="saveModalForm"
     >
       <div>
-        <label class="block font-body text-sm font-medium text-charcoal dark:text-dark-text mb-1">Name</label>
+        <label
+          class="block font-body text-sm font-medium text-charcoal dark:text-dark-text mb-1"
+          >Name</label
+        >
         <input
           v-model="modalForm.name"
           type="text"
@@ -271,7 +351,10 @@ onMounted(async () => {
         />
       </div>
       <div>
-        <label class="block font-body text-sm font-medium text-charcoal dark:text-dark-text mb-1">Phone Number</label>
+        <label
+          class="block font-body text-sm font-medium text-charcoal dark:text-dark-text mb-1"
+          >Phone Number</label
+        >
         <input
           v-model="modalForm.phoneNumber"
           type="tel"
@@ -280,7 +363,11 @@ onMounted(async () => {
           required
         />
       </div>
-      <MultilingualInput v-model="modalForm.role" label="Role" placeholder="e.g., Groom's Brother" />
+      <MultilingualInput
+        v-model="modalForm.role"
+        label="Role"
+        placeholder="e.g., Groom's Brother"
+      />
     </BaseFormModal>
 
     <ConfirmModal

@@ -33,7 +33,7 @@ function createMetadata(requestId: string): ResponseMetadata {
 export function createSuccessResponse<T>(
   statusCode: number,
   data: T,
-  context: Context
+  context: Context,
 ): APIGatewayProxyResultV2 {
   const response: SuccessResponse<T> = {
     success: true,
@@ -58,10 +58,11 @@ export function createErrorResponse(
   statusCode: number,
   message: string,
   contextOrCode?: Context | string,
-  errorCode?: string
+  errorCode?: string,
 ): APIGatewayProxyResultV2 {
   // Check if third argument is a Context object (has awsRequestId property)
-  const isContext = contextOrCode !== undefined &&
+  const isContext =
+    contextOrCode !== undefined &&
     typeof contextOrCode === "object" &&
     contextOrCode !== null &&
     "awsRequestId" in contextOrCode;
@@ -106,7 +107,7 @@ export function createErrorResponse(
  */
 export function createResponse<T>(
   statusCode: number,
-  body: T
+  body: T,
 ): APIGatewayProxyResultV2 {
   return {
     statusCode,

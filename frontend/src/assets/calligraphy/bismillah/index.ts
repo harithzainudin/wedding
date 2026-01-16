@@ -99,7 +99,10 @@ export const calligraphyOptions: CalligraphyOption[] = [
 ];
 
 // SVG imports mapping
-const svgImports: Record<CalligraphyStyleId, () => Promise<{ default: string }>> = {
+const svgImports: Record<
+  CalligraphyStyleId,
+  () => Promise<{ default: string }>
+> = {
   thuluth: () => import("./thuluth.svg?raw"),
   nastaliq: () => import("./nastaliq.svg?raw"),
   diwani: () => import("./diwani.svg?raw"),
@@ -115,7 +118,9 @@ const svgImports: Record<CalligraphyStyleId, () => Promise<{ default: string }>>
 };
 
 // Dynamic import function for SVGs
-export const getCalligraphySvg = async (id: CalligraphyStyleId): Promise<string> => {
+export const getCalligraphySvg = async (
+  id: CalligraphyStyleId,
+): Promise<string> => {
   try {
     const importFn = svgImports[id];
     if (!importFn) {
@@ -137,7 +142,9 @@ export const getCalligraphySvg = async (id: CalligraphyStyleId): Promise<string>
 };
 
 // Get calligraphy option by ID
-export const getCalligraphyOption = (id: CalligraphyStyleId): CalligraphyOption | undefined => {
+export const getCalligraphyOption = (
+  id: CalligraphyStyleId,
+): CalligraphyOption | undefined => {
   return calligraphyOptions.find((option) => option.id === id);
 };
 

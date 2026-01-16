@@ -1,6 +1,10 @@
 import type { APIGatewayProxyHandlerV2 } from "aws-lambda";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocumentClient, DeleteCommand, QueryCommand } from "@aws-sdk/lib-dynamodb";
+import {
+  DynamoDBDocumentClient,
+  DeleteCommand,
+  QueryCommand,
+} from "@aws-sdk/lib-dynamodb";
 import { createSuccessResponse, createErrorResponse } from "../shared/response";
 import { requireMaster } from "../shared/auth";
 import { logError } from "../shared/logger";
@@ -16,11 +20,21 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
     // Require master admin access
     const authResult = requireMaster(event);
     if (!authResult.authenticated) {
-      return createErrorResponse(authResult.statusCode, authResult.error, context, "AUTH_ERROR");
+      return createErrorResponse(
+        authResult.statusCode,
+        authResult.error,
+        context,
+        "AUTH_ERROR",
+      );
     }
 
     if (!username) {
-      return createErrorResponse(400, "Username is required", context, "VALIDATION_ERROR");
+      return createErrorResponse(
+        400,
+        "Username is required",
+        context,
+        "VALIDATION_ERROR",
+      );
     }
 
     const normalizedUsername = username.trim().toLowerCase();
@@ -35,11 +49,16 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
           ":pk": "ADMIN",
         },
         Select: "COUNT",
-      })
+      }),
     );
 
     if ((adminsResult.Count ?? 0) <= 1) {
-      return createErrorResponse(400, "Cannot delete the last admin user", context, "VALIDATION_ERROR");
+      return createErrorResponse(
+        400,
+        "Cannot delete the last admin user",
+        context,
+        "VALIDATION_ERROR",
+      );
     }
 
     // Delete the admin user
@@ -50,19 +69,31 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
           pk: `ADMIN#${normalizedUsername}`,
           sk: "PROFILE",
         },
-      })
+      }),
     );
 
-    return createSuccessResponse(200, {
-      message: `Admin user '${normalizedUsername}' deleted successfully`,
-    }, context);
+    return createSuccessResponse(
+      200,
+      {
+        message: `Admin user '${normalizedUsername}' deleted successfully`,
+      },
+      context,
+    );
   } catch (error) {
-    logError({
-      endpoint: "DELETE /admin/users/{username}",
-      operation: "deleteAdmin",
-      requestId: context.awsRequestId,
-      input: { username },
-    }, error);
-    return createErrorResponse(500, "Internal server error", context, "INTERNAL_ERROR");
+    logError(
+      {
+        endpoint: "DELETE /admin/users/{username}",
+        operation: "deleteAdmin",
+        requestId: context.awsRequestId,
+        input: { username },
+      },
+      error,
+    );
+    return createErrorResponse(
+      500,
+      "Internal server error",
+      context,
+      "INTERNAL_ERROR",
+    );
   }
 };

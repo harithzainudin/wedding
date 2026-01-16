@@ -46,46 +46,68 @@ onUnmounted(() => {
   <div class="flex items-center justify-center gap-1 sm:gap-3">
     <!-- Days -->
     <div class="flex flex-col items-center w-14 sm:w-16 md:w-20">
-      <span class="font-heading text-2xl sm:text-3xl md:text-4xl font-semibold leading-none">
+      <span
+        class="font-heading text-2xl sm:text-3xl md:text-4xl font-semibold leading-none"
+      >
         {{ formatNumber(timeLeft.days) }}
       </span>
-      <span class="font-body text-[8px] sm:text-[10px] md:text-xs uppercase tracking-wider mt-1 opacity-80">
+      <span
+        class="font-body text-[8px] sm:text-[10px] md:text-xs uppercase tracking-wider mt-1 opacity-80"
+      >
         Hari
       </span>
     </div>
 
-    <span class="text-lg sm:text-xl md:text-2xl font-light opacity-60 -mt-4">:</span>
+    <span class="text-lg sm:text-xl md:text-2xl font-light opacity-60 -mt-4"
+      >:</span
+    >
 
     <!-- Hours -->
     <div class="flex flex-col items-center w-14 sm:w-16 md:w-20">
-      <span class="font-heading text-2xl sm:text-3xl md:text-4xl font-semibold leading-none">
+      <span
+        class="font-heading text-2xl sm:text-3xl md:text-4xl font-semibold leading-none"
+      >
         {{ formatNumber(timeLeft.hours) }}
       </span>
-      <span class="font-body text-[8px] sm:text-[10px] md:text-xs uppercase tracking-wider mt-1 opacity-80">
+      <span
+        class="font-body text-[8px] sm:text-[10px] md:text-xs uppercase tracking-wider mt-1 opacity-80"
+      >
         Jam
       </span>
     </div>
 
-    <span class="text-lg sm:text-xl md:text-2xl font-light opacity-60 -mt-4">:</span>
+    <span class="text-lg sm:text-xl md:text-2xl font-light opacity-60 -mt-4"
+      >:</span
+    >
 
     <!-- Minutes -->
     <div class="flex flex-col items-center w-14 sm:w-16 md:w-20">
-      <span class="font-heading text-2xl sm:text-3xl md:text-4xl font-semibold leading-none">
+      <span
+        class="font-heading text-2xl sm:text-3xl md:text-4xl font-semibold leading-none"
+      >
         {{ formatNumber(timeLeft.minutes) }}
       </span>
-      <span class="font-body text-[8px] sm:text-[10px] md:text-xs uppercase tracking-wider mt-1 opacity-80">
+      <span
+        class="font-body text-[8px] sm:text-[10px] md:text-xs uppercase tracking-wider mt-1 opacity-80"
+      >
         Minit
       </span>
     </div>
 
-    <span class="text-lg sm:text-xl md:text-2xl font-light opacity-60 -mt-4">:</span>
+    <span class="text-lg sm:text-xl md:text-2xl font-light opacity-60 -mt-4"
+      >:</span
+    >
 
     <!-- Seconds -->
     <div class="flex flex-col items-center w-14 sm:w-16 md:w-20">
-      <span class="font-heading text-2xl sm:text-3xl md:text-4xl font-semibold leading-none">
+      <span
+        class="font-heading text-2xl sm:text-3xl md:text-4xl font-semibold leading-none"
+      >
         {{ formatNumber(timeLeft.seconds) }}
       </span>
-      <span class="font-body text-[8px] sm:text-[10px] md:text-xs uppercase tracking-wider mt-1 opacity-80">
+      <span
+        class="font-body text-[8px] sm:text-[10px] md:text-xs uppercase tracking-wider mt-1 opacity-80"
+      >
         Saat
       </span>
     </div>

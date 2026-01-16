@@ -1,6 +1,10 @@
 import type { APIGatewayProxyHandlerV2 } from "aws-lambda";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocumentClient, PutCommand, QueryCommand } from "@aws-sdk/lib-dynamodb";
+import {
+  DynamoDBDocumentClient,
+  PutCommand,
+  QueryCommand,
+} from "@aws-sdk/lib-dynamodb";
 import { S3Client, HeadObjectCommand } from "@aws-sdk/client-s3";
 import { Resource } from "sst";
 import { createSuccessResponse, createErrorResponse } from "../shared/response";
@@ -25,7 +29,7 @@ async function getNextOrder(): Promise<number> {
       ExpressionAttributeValues: { ":pk": "MUSIC_TRACKS" },
       ScanIndexForward: false, // descending order
       Limit: 1,
-    })
+    }),
   );
 
   const firstItem = result.Items?.[0];
@@ -43,23 +47,43 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
   try {
     const authResult = requireAuth(event);
     if (!authResult.authenticated) {
-      return createErrorResponse(authResult.statusCode, authResult.error, context, "AUTH_ERROR");
+      return createErrorResponse(
+        authResult.statusCode,
+        authResult.error,
+        context,
+        "AUTH_ERROR",
+      );
     }
 
     if (!event.body) {
-      return createErrorResponse(400, "Missing request body", context, "MISSING_BODY");
+      return createErrorResponse(
+        400,
+        "Missing request body",
+        context,
+        "MISSING_BODY",
+      );
     }
 
     let body: unknown;
     try {
       body = JSON.parse(event.body);
     } catch {
-      return createErrorResponse(400, "Invalid JSON body", context, "INVALID_JSON");
+      return createErrorResponse(
+        400,
+        "Invalid JSON body",
+        context,
+        "INVALID_JSON",
+      );
     }
 
     const validation = validateConfirmMusicUpload(body);
     if (!validation.valid) {
-      return createErrorResponse(400, validation.error, context, "VALIDATION_ERROR");
+      return createErrorResponse(
+        400,
+        validation.error,
+        context,
+        "VALIDATION_ERROR",
+      );
     }
 
     trackId = validation.data.trackId;
@@ -72,7 +96,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
       new HeadObjectCommand({
         Bucket: Resource.WeddingImageBucket.name,
         Key: s3Key,
-      })
+      }),
     );
 
     // Get next order number
@@ -106,29 +130,41 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
           uploadedAt: now,
           uploadedBy: authResult.user.username,
         },
-      })
+      }),
     );
 
-    return createSuccessResponse(200, {
-      id: trackId,
-      title,
-      artist,
-      duration,
-      filename,
-      url: `https://${bucketName}.s3.ap-southeast-5.amazonaws.com/${s3Key}`,
-      mimeType,
-      order,
-      source: "upload",
-      uploadedAt: now,
-      uploadedBy: authResult.user.username,
-    }, context);
+    return createSuccessResponse(
+      200,
+      {
+        id: trackId,
+        title,
+        artist,
+        duration,
+        filename,
+        url: `https://${bucketName}.s3.ap-southeast-5.amazonaws.com/${s3Key}`,
+        mimeType,
+        order,
+        source: "upload",
+        uploadedAt: now,
+        uploadedBy: authResult.user.username,
+      },
+      context,
+    );
   } catch (error) {
-    logError({
-      endpoint: "POST /music/confirm",
-      operation: "confirmMusicUpload",
-      requestId: context.awsRequestId,
-      input: { trackId, s3Key, title },
-    }, error);
-    return createErrorResponse(500, "Failed to confirm upload", context, "DB_ERROR");
+    logError(
+      {
+        endpoint: "POST /music/confirm",
+        operation: "confirmMusicUpload",
+        requestId: context.awsRequestId,
+        input: { trackId, s3Key, title },
+      },
+      error,
+    );
+    return createErrorResponse(
+      500,
+      "Failed to confirm upload",
+      context,
+      "DB_ERROR",
+    );
   }
 };

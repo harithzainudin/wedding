@@ -12,11 +12,17 @@ const props = withDefaults(
   {
     hideTitle: false,
     embedded: false,
-  }
+  },
 );
 
 const emit = defineEmits<{
-  update: [settings: { maxFileSize?: number; maxImages?: number; showGallery?: boolean }];
+  update: [
+    settings: {
+      maxFileSize?: number;
+      maxImages?: number;
+      showGallery?: boolean;
+    },
+  ];
 }>();
 
 const localMaxFileSize = ref(props.settings.maxFileSize);
@@ -31,7 +37,7 @@ watch(
     localMaxFileSize.value = newSettings.maxFileSize;
     localMaxImages.value = newSettings.maxImages;
     localShowGallery.value = newSettings.showGallery;
-  }
+  },
 );
 
 // File size options in bytes
@@ -60,7 +66,11 @@ const handleSave = async (): Promise<void> => {
 
   isSaving.value = true;
 
-  const updates: { maxFileSize?: number; maxImages?: number; showGallery?: boolean } = {};
+  const updates: {
+    maxFileSize?: number;
+    maxImages?: number;
+    showGallery?: boolean;
+  } = {};
   if (localMaxFileSize.value !== props.settings.maxFileSize) {
     updates.maxFileSize = localMaxFileSize.value;
   }
@@ -90,7 +100,11 @@ const formatLabels: Record<string, string> = {
 <template>
   <div
     class="space-y-4"
-    :class="embedded ? '' : 'p-4 bg-white dark:bg-dark-bg-secondary border border-sand-dark dark:border-dark-border rounded-xl'"
+    :class="
+      embedded
+        ? ''
+        : 'p-4 bg-white dark:bg-dark-bg-secondary border border-sand-dark dark:border-dark-border rounded-xl'
+    "
   >
     <h3
       v-if="!hideTitle"
@@ -100,12 +114,18 @@ const formatLabels: Record<string, string> = {
     </h3>
 
     <!-- Show Gallery Toggle -->
-    <div class="flex items-center justify-between py-3 px-4 bg-sand/50 dark:bg-dark-bg rounded-lg">
+    <div
+      class="flex items-center justify-between py-3 px-4 bg-sand/50 dark:bg-dark-bg rounded-lg"
+    >
       <div>
-        <label class="font-body text-sm font-medium text-charcoal dark:text-dark-text">
+        <label
+          class="font-body text-sm font-medium text-charcoal dark:text-dark-text"
+        >
           Show Gallery Section
         </label>
-        <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary mt-0.5">
+        <p
+          class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary mt-0.5"
+        >
           Display the photo gallery on the public website
         </p>
       </div>
@@ -114,7 +134,9 @@ const formatLabels: Record<string, string> = {
         role="switch"
         :aria-checked="localShowGallery"
         class="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-sage focus:ring-offset-2"
-        :class="localShowGallery ? 'bg-sage' : 'bg-gray-300 dark:bg-dark-border'"
+        :class="
+          localShowGallery ? 'bg-sage' : 'bg-gray-300 dark:bg-dark-border'
+        "
         @click="localShowGallery = !localShowGallery"
       >
         <span
@@ -127,14 +149,20 @@ const formatLabels: Record<string, string> = {
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
       <!-- Max File Size -->
       <div>
-        <label class="block font-body text-sm font-medium text-charcoal dark:text-dark-text mb-1">
+        <label
+          class="block font-body text-sm font-medium text-charcoal dark:text-dark-text mb-1"
+        >
           Max File Size
         </label>
         <select
           v-model="localMaxFileSize"
           class="w-full px-3 py-2.5 font-body text-base bg-white dark:bg-dark-bg border border-sand-dark dark:border-dark-border rounded-lg focus:ring-2 focus:ring-sage focus:border-sage text-charcoal dark:text-dark-text"
         >
-          <option v-for="option in fileSizeOptions" :key="option.value" :value="option.value">
+          <option
+            v-for="option in fileSizeOptions"
+            :key="option.value"
+            :value="option.value"
+          >
             {{ option.label }}
           </option>
         </select>
@@ -142,14 +170,20 @@ const formatLabels: Record<string, string> = {
 
       <!-- Max Images -->
       <div>
-        <label class="block font-body text-sm font-medium text-charcoal dark:text-dark-text mb-1">
+        <label
+          class="block font-body text-sm font-medium text-charcoal dark:text-dark-text mb-1"
+        >
           Max Number of Images
         </label>
         <select
           v-model="localMaxImages"
           class="w-full px-3 py-2.5 font-body text-base bg-white dark:bg-dark-bg border border-sand-dark dark:border-dark-border rounded-lg focus:ring-2 focus:ring-sage focus:border-sage text-charcoal dark:text-dark-text"
         >
-          <option v-for="option in maxImagesOptions" :key="option" :value="option">
+          <option
+            v-for="option in maxImagesOptions"
+            :key="option"
+            :value="option"
+          >
             {{ option }} images
           </option>
         </select>
@@ -158,7 +192,9 @@ const formatLabels: Record<string, string> = {
 
     <!-- Allowed Formats (read-only) -->
     <div>
-      <label class="block font-body text-sm font-medium text-charcoal dark:text-dark-text mb-1">
+      <label
+        class="block font-body text-sm font-medium text-charcoal dark:text-dark-text mb-1"
+      >
         Allowed Formats
       </label>
       <div class="flex flex-wrap gap-2">
@@ -173,7 +209,10 @@ const formatLabels: Record<string, string> = {
     </div>
 
     <!-- Last Updated -->
-    <div v-if="settings.updatedAt" class="text-xs font-body text-charcoal-light dark:text-dark-text-secondary">
+    <div
+      v-if="settings.updatedAt"
+      class="text-xs font-body text-charcoal-light dark:text-dark-text-secondary"
+    >
       Last updated: {{ new Date(settings.updatedAt).toLocaleString() }}
       <span v-if="settings.updatedBy"> by {{ settings.updatedBy }}</span>
     </div>

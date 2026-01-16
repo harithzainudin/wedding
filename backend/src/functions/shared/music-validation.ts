@@ -41,7 +41,7 @@ export interface MusicSettingsUpdate {
 
 export function validateMusicUpload(
   input: unknown,
-  settings: MusicSettings
+  settings: MusicSettings,
 ): { valid: true; data: MusicUploadRequest } | { valid: false; error: string } {
   if (typeof input !== "object" || input === null) {
     return { valid: false, error: "Invalid request body" };
@@ -103,15 +103,14 @@ export function validateMusicUpload(
       mimeType: body.mimeType,
       fileSize: body.fileSize,
       title: body.title.trim(),
-      artist:
-        typeof body.artist === "string" ? body.artist.trim() : undefined,
+      artist: typeof body.artist === "string" ? body.artist.trim() : undefined,
       duration: typeof body.duration === "number" ? body.duration : undefined,
     },
   };
 }
 
 export function validateConfirmMusicUpload(
-  input: unknown
+  input: unknown,
 ):
   | { valid: true; data: ConfirmMusicUploadRequest }
   | { valid: false; error: string } {
@@ -153,16 +152,17 @@ export function validateConfirmMusicUpload(
       filename: body.filename.trim(),
       mimeType: body.mimeType.trim(),
       title: body.title.trim(),
-      artist:
-        typeof body.artist === "string" ? body.artist.trim() : undefined,
+      artist: typeof body.artist === "string" ? body.artist.trim() : undefined,
       duration: body.duration,
     },
   };
 }
 
 export function validateReorderRequest(
-  input: unknown
-): { valid: true; data: { trackIds: string[] } } | { valid: false; error: string } {
+  input: unknown,
+):
+  | { valid: true; data: { trackIds: string[] } }
+  | { valid: false; error: string } {
   if (typeof input !== "object" || input === null) {
     return { valid: false, error: "Invalid request body" };
   }
@@ -188,7 +188,7 @@ export function validateReorderRequest(
 }
 
 export function validateSettingsUpdate(
-  input: unknown
+  input: unknown,
 ):
   | { valid: true; data: MusicSettingsUpdate }
   | { valid: false; error: string } {
@@ -249,8 +249,14 @@ export function validateSettingsUpdate(
 
   // Validate selectedTrackId (can be string or null)
   if (body.selectedTrackId !== undefined) {
-    if (body.selectedTrackId !== null && typeof body.selectedTrackId !== "string") {
-      return { valid: false, error: "selectedTrackId must be a string or null" };
+    if (
+      body.selectedTrackId !== null &&
+      typeof body.selectedTrackId !== "string"
+    ) {
+      return {
+        valid: false,
+        error: "selectedTrackId must be a string or null",
+      };
     }
     result.selectedTrackId = body.selectedTrackId;
   }

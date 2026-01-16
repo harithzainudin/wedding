@@ -21,12 +21,18 @@ interface LogContext {
   input?: Record<string, unknown>;
 }
 
-function sanitizeInput(input: Record<string, unknown>): Record<string, unknown> {
+function sanitizeInput(
+  input: Record<string, unknown>,
+): Record<string, unknown> {
   const sanitized: Record<string, unknown> = {};
   for (const [key, value] of Object.entries(input)) {
     if (SENSITIVE_FIELDS.has(key.toLowerCase())) {
       sanitized[key] = "[REDACTED]";
-    } else if (typeof value === "object" && value !== null && !Array.isArray(value)) {
+    } else if (
+      typeof value === "object" &&
+      value !== null &&
+      !Array.isArray(value)
+    ) {
       sanitized[key] = sanitizeInput(value as Record<string, unknown>);
     } else {
       sanitized[key] = value;

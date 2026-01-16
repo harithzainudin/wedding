@@ -20,23 +20,43 @@ const docClient = DynamoDBDocumentClient.from(dynamoClient, {
 export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
   const authResult = requireAuth(event);
   if (!authResult.authenticated) {
-    return createErrorResponse(authResult.statusCode, authResult.error, context, "AUTH_ERROR");
+    return createErrorResponse(
+      authResult.statusCode,
+      authResult.error,
+      context,
+      "AUTH_ERROR",
+    );
   }
 
   if (!event.body) {
-    return createErrorResponse(400, "Missing request body", context, "MISSING_BODY");
+    return createErrorResponse(
+      400,
+      "Missing request body",
+      context,
+      "MISSING_BODY",
+    );
   }
 
   let body: unknown;
   try {
     body = JSON.parse(event.body);
   } catch {
-    return createErrorResponse(400, "Invalid JSON body", context, "INVALID_JSON");
+    return createErrorResponse(
+      400,
+      "Invalid JSON body",
+      context,
+      "INVALID_JSON",
+    );
   }
 
   const validation = validateWeddingDetailsUpdate(body);
   if (!validation.valid) {
-    return createErrorResponse(400, validation.error, context, "VALIDATION_ERROR");
+    return createErrorResponse(
+      400,
+      validation.error,
+      context,
+      "VALIDATION_ERROR",
+    );
   }
 
   try {
@@ -77,18 +97,22 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
       new PutCommand({
         TableName: Resource.AppDataTable.name,
         Item: weddingItem,
-      })
+      }),
     );
 
     const responseData: WeddingDetailsData = {
       couple: weddingItem.couple as WeddingDetailsData["couple"],
       parents: weddingItem.parents as WeddingDetailsData["parents"],
-      parentsVisibility: weddingItem.parentsVisibility as WeddingDetailsData["parentsVisibility"],
+      parentsVisibility:
+        weddingItem.parentsVisibility as WeddingDetailsData["parentsVisibility"],
       eventDate: weddingItem.eventDate as string,
       eventEndTime: weddingItem.eventEndTime as string | undefined,
-      eventDisplayFormat: weddingItem.eventDisplayFormat as WeddingDetailsData["eventDisplayFormat"],
-      displayNameOrder: weddingItem.displayNameOrder as WeddingDetailsData["displayNameOrder"],
-      bismillahCalligraphy: weddingItem.bismillahCalligraphy as WeddingDetailsData["bismillahCalligraphy"],
+      eventDisplayFormat:
+        weddingItem.eventDisplayFormat as WeddingDetailsData["eventDisplayFormat"],
+      displayNameOrder:
+        weddingItem.displayNameOrder as WeddingDetailsData["displayNameOrder"],
+      bismillahCalligraphy:
+        weddingItem.bismillahCalligraphy as WeddingDetailsData["bismillahCalligraphy"],
       dressCode: weddingItem.dressCode as string,
       hashtag: weddingItem.hashtag as string,
       qrCodeUrl: weddingItem.qrCodeUrl as string,
@@ -98,12 +122,20 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
 
     return createSuccessResponse(200, responseData, context);
   } catch (error) {
-    logError({
-      endpoint: "PUT /wedding-details",
-      operation: "updateWeddingDetails",
-      requestId: context.awsRequestId,
-      input: { eventDate: validation.data.eventDate },
-    }, error);
-    return createErrorResponse(500, "Failed to update wedding details", context, "DB_ERROR");
+    logError(
+      {
+        endpoint: "PUT /wedding-details",
+        operation: "updateWeddingDetails",
+        requestId: context.awsRequestId,
+        input: { eventDate: validation.data.eventDate },
+      },
+      error,
+    );
+    return createErrorResponse(
+      500,
+      "Failed to update wedding details",
+      context,
+      "DB_ERROR",
+    );
   }
 };

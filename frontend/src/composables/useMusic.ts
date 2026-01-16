@@ -45,11 +45,17 @@ const uploadControllers = ref<Map<string, AbortController>>(new Map());
 
 export function useMusic() {
   // Computed
-  const sortedTracks = computed(() => [...tracks.value].sort((a, b) => a.order - b.order));
+  const sortedTracks = computed(() =>
+    [...tracks.value].sort((a, b) => a.order - b.order),
+  );
 
-  const canUploadMore = computed(() => tracks.value.length < settings.value.maxTracks);
+  const canUploadMore = computed(
+    () => tracks.value.length < settings.value.maxTracks,
+  );
 
-  const remainingSlots = computed(() => settings.value.maxTracks - tracks.value.length);
+  const remainingSlots = computed(
+    () => settings.value.maxTracks - tracks.value.length,
+  );
 
   const selectedTrack = computed(() => {
     if (settings.value.mode === "single" && settings.value.selectedTrackId) {
@@ -118,7 +124,8 @@ export function useMusic() {
       tracks.value = response.tracks;
       settings.value = response.settings;
     } catch (err) {
-      loadError.value = err instanceof Error ? err.message : "Failed to load music";
+      loadError.value =
+        err instanceof Error ? err.message : "Failed to load music";
     } finally {
       isLoading.value = false;
     }
@@ -145,7 +152,7 @@ export function useMusic() {
   const uploadTrack = async (
     file: File,
     title: string,
-    artist?: string
+    artist?: string,
   ): Promise<{ success: boolean; error?: string }> => {
     const validation = validateFile(file);
     if (!validation.valid) {
@@ -196,7 +203,11 @@ export function useMusic() {
       uploadProgress.value.set(fileId, { progress: 30, status: "uploading" });
 
       // Step 2: Upload to S3
-      const uploadSuccess = await uploadMusicToS3(presignedResponse.uploadUrl, file, abortController.signal);
+      const uploadSuccess = await uploadMusicToS3(
+        presignedResponse.uploadUrl,
+        file,
+        abortController.signal,
+      );
       if (!uploadSuccess) {
         uploadProgress.value.set(fileId, {
           progress: 30,
@@ -277,7 +288,10 @@ export function useMusic() {
         error: err instanceof Error ? err.message : "Upload failed",
       });
       setTimeout(() => uploadProgress.value.delete(fileId), 5000);
-      return { success: false, error: err instanceof Error ? err.message : "Upload failed" };
+      return {
+        success: false,
+        error: err instanceof Error ? err.message : "Upload failed",
+      };
     }
   };
 
@@ -296,7 +310,9 @@ export function useMusic() {
   };
 
   // Remove a track
-  const removeTrack = async (trackId: string): Promise<{ success: boolean; error?: string }> => {
+  const removeTrack = async (
+    trackId: string,
+  ): Promise<{ success: boolean; error?: string }> => {
     try {
       await deleteMusicTrack(trackId);
       tracks.value = tracks.value.filter((t) => t.id !== trackId);
@@ -306,12 +322,17 @@ export function useMusic() {
       }
       return { success: true };
     } catch (err) {
-      return { success: false, error: err instanceof Error ? err.message : "Failed to delete track" };
+      return {
+        success: false,
+        error: err instanceof Error ? err.message : "Failed to delete track",
+      };
     }
   };
 
   // Update track order
-  const updateOrder = async (newOrder: string[]): Promise<{ success: boolean; error?: string }> => {
+  const updateOrder = async (
+    newOrder: string[],
+  ): Promise<{ success: boolean; error?: string }> => {
     // Optimistically update the UI
     const previousTracks = [...tracks.value];
     tracks.value = newOrder
@@ -327,13 +348,16 @@ export function useMusic() {
     } catch (err) {
       // Revert on error
       tracks.value = previousTracks;
-      return { success: false, error: err instanceof Error ? err.message : "Failed to reorder tracks" };
+      return {
+        success: false,
+        error: err instanceof Error ? err.message : "Failed to reorder tracks",
+      };
     }
   };
 
   // Update settings
   const saveSettings = async (
-    newSettings: MusicSettingsUpdateRequest
+    newSettings: MusicSettingsUpdateRequest,
   ): Promise<{ success: boolean; error?: string }> => {
     try {
       await updateMusicSettings(newSettings);
@@ -341,7 +365,10 @@ export function useMusic() {
       Object.assign(settings.value, newSettings);
       return { success: true };
     } catch (err) {
-      return { success: false, error: err instanceof Error ? err.message : "Failed to update settings" };
+      return {
+        success: false,
+        error: err instanceof Error ? err.message : "Failed to update settings",
+      };
     }
   };
 

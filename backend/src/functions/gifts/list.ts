@@ -1,10 +1,18 @@
 import type { APIGatewayProxyHandlerV2 } from "aws-lambda";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocumentClient, QueryCommand, GetCommand } from "@aws-sdk/lib-dynamodb";
+import {
+  DynamoDBDocumentClient,
+  QueryCommand,
+  GetCommand,
+} from "@aws-sdk/lib-dynamodb";
 import { Resource } from "sst";
 import { createSuccessResponse, createErrorResponse } from "../shared/response";
 import { logError } from "../shared/logger";
-import type { MultilingualText, GiftCategory, GiftPriority } from "../shared/gift-validation";
+import type {
+  MultilingualText,
+  GiftCategory,
+  GiftPriority,
+} from "../shared/gift-validation";
 
 const client = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(client);
@@ -46,25 +54,32 @@ export const handler: APIGatewayProxyHandlerV2 = async (_event, context) => {
       new GetCommand({
         TableName: Resource.AppDataTable.name,
         Key: { pk: "SETTINGS", sk: "GIFTS" },
-      })
+      }),
     );
 
     const settings: GiftSettings = settingsResult.Item
       ? {
           enabled: settingsResult.Item.enabled ?? DEFAULT_SETTINGS.enabled,
           maxItems: settingsResult.Item.maxItems ?? DEFAULT_SETTINGS.maxItems,
-          maxFileSize: settingsResult.Item.maxFileSize ?? DEFAULT_SETTINGS.maxFileSize,
-          allowedFormats: settingsResult.Item.allowedFormats ?? DEFAULT_SETTINGS.allowedFormats,
+          maxFileSize:
+            settingsResult.Item.maxFileSize ?? DEFAULT_SETTINGS.maxFileSize,
+          allowedFormats:
+            settingsResult.Item.allowedFormats ??
+            DEFAULT_SETTINGS.allowedFormats,
         }
       : DEFAULT_SETTINGS;
 
     // If feature is disabled, return empty list for public users
     if (!settings.enabled) {
-      return createSuccessResponse(200, {
-        gifts: [],
-        total: 0,
-        enabled: false,
-      }, context);
+      return createSuccessResponse(
+        200,
+        {
+          gifts: [],
+          total: 0,
+          enabled: false,
+        },
+        context,
+      );
     }
 
     // Query all gifts using GSI
@@ -76,7 +91,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (_event, context) => {
         ExpressionAttributeValues: {
           ":pk": "GIFTS",
         },
-      })
+      }),
     );
 
     const gifts: GiftItem[] = (result.Items ?? [])
@@ -97,17 +112,29 @@ export const handler: APIGatewayProxyHandlerV2 = async (_event, context) => {
       }))
       .sort((a, b) => a.order - b.order);
 
-    return createSuccessResponse(200, {
-      gifts,
-      total: gifts.length,
-      enabled: true,
-    }, context);
+    return createSuccessResponse(
+      200,
+      {
+        gifts,
+        total: gifts.length,
+        enabled: true,
+      },
+      context,
+    );
   } catch (error) {
-    logError({
-      endpoint: "GET /gifts",
-      operation: "listGifts",
-      requestId: context.awsRequestId,
-    }, error);
-    return createErrorResponse(500, "Internal server error", context, "DB_ERROR");
+    logError(
+      {
+        endpoint: "GET /gifts",
+        operation: "listGifts",
+        requestId: context.awsRequestId,
+      },
+      error,
+    );
+    return createErrorResponse(
+      500,
+      "Internal server error",
+      context,
+      "DB_ERROR",
+    );
   }
 };

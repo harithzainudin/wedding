@@ -20,18 +20,33 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
 
   try {
     if (!event.body) {
-      return createErrorResponse(400, "Missing request body", context, "MISSING_BODY");
+      return createErrorResponse(
+        400,
+        "Missing request body",
+        context,
+        "MISSING_BODY",
+      );
     }
 
     let body: LoginRequest;
     try {
       body = JSON.parse(event.body) as LoginRequest;
     } catch {
-      return createErrorResponse(400, "Invalid JSON body", context, "INVALID_JSON");
+      return createErrorResponse(
+        400,
+        "Invalid JSON body",
+        context,
+        "INVALID_JSON",
+      );
     }
 
     if (!body.username || !body.password) {
-      return createErrorResponse(400, "Username and password are required", context, "VALIDATION_ERROR");
+      return createErrorResponse(
+        400,
+        "Username and password are required",
+        context,
+        "VALIDATION_ERROR",
+      );
     }
 
     username = body.username.trim().toLowerCase();
@@ -41,14 +56,18 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
     if (username === "master" && body.password === masterPassword) {
       const accessToken = generateAccessToken("master", true);
       const refreshToken = generateRefreshToken("master", true);
-      return createSuccessResponse(200, {
-        token: accessToken, // Legacy - for backward compatibility
-        accessToken,
-        refreshToken,
-        expiresIn: 15 * 60, // 15 minutes in seconds
-        username: "master",
-        isMaster: true,
-      }, context);
+      return createSuccessResponse(
+        200,
+        {
+          token: accessToken, // Legacy - for backward compatibility
+          accessToken,
+          refreshToken,
+          expiresIn: 15 * 60, // 15 minutes in seconds
+          username: "master",
+          isMaster: true,
+        },
+        context,
+      );
     }
 
     // Look up user in DynamoDB
@@ -59,11 +78,16 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
           pk: `ADMIN#${username}`,
           sk: "PROFILE",
         },
-      })
+      }),
     );
 
     if (!result.Item) {
-      return createErrorResponse(401, "Invalid username or password", context, "AUTH_ERROR");
+      return createErrorResponse(
+        401,
+        "Invalid username or password",
+        context,
+        "AUTH_ERROR",
+      );
     }
 
     // Verify password
@@ -71,7 +95,12 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
     const isValidPassword = await bcrypt.compare(body.password, passwordHash);
 
     if (!isValidPassword) {
-      return createErrorResponse(401, "Invalid username or password", context, "AUTH_ERROR");
+      return createErrorResponse(
+        401,
+        "Invalid username or password",
+        context,
+        "AUTH_ERROR",
+      );
     }
 
     // Generate tokens
@@ -81,22 +110,34 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
     // Check if user must change password
     const mustChangePassword = result.Item.mustChangePassword === true;
 
-    return createSuccessResponse(200, {
-      token: accessToken, // Legacy - for backward compatibility
-      accessToken,
-      refreshToken,
-      expiresIn: 15 * 60, // 15 minutes in seconds
-      username,
-      isMaster: false,
-      ...(mustChangePassword && { mustChangePassword: true }),
-    }, context);
+    return createSuccessResponse(
+      200,
+      {
+        token: accessToken, // Legacy - for backward compatibility
+        accessToken,
+        refreshToken,
+        expiresIn: 15 * 60, // 15 minutes in seconds
+        username,
+        isMaster: false,
+        ...(mustChangePassword && { mustChangePassword: true }),
+      },
+      context,
+    );
   } catch (error) {
-    logError({
-      endpoint: "POST /admin/login",
-      operation: "authenticate",
-      requestId: context.awsRequestId,
-      input: { username },
-    }, error);
-    return createErrorResponse(500, "Internal server error", context, "INTERNAL_ERROR");
+    logError(
+      {
+        endpoint: "POST /admin/login",
+        operation: "authenticate",
+        requestId: context.awsRequestId,
+        input: { username },
+      },
+      error,
+    );
+    return createErrorResponse(
+      500,
+      "Internal server error",
+      context,
+      "INTERNAL_ERROR",
+    );
   }
 };

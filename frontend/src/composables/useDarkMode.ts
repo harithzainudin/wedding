@@ -61,7 +61,7 @@ const initialize = (): void => {
     (newIsDark) => {
       applyThemeClass(newIsDark);
     },
-    { immediate: true }
+    { immediate: true },
   );
 };
 

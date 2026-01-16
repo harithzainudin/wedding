@@ -30,15 +30,31 @@ const emit = defineEmits<{
     class="fixed inset-0 bg-black/50 dark:bg-black/70 flex items-center justify-center z-50 px-4"
     @click.self="emit('close')"
   >
-    <div class="bg-white dark:bg-dark-bg-secondary rounded-xl p-6 max-w-md w-full shadow-xl">
+    <div
+      class="bg-white dark:bg-dark-bg-secondary rounded-xl p-6 max-w-md w-full shadow-xl"
+    >
       <div v-if="passwordChangeSuccess" class="text-center">
-        <div class="w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
-          <svg class="w-6 h-6 text-green-600 dark:text-green-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <div
+          class="w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-4"
+        >
+          <svg
+            class="w-6 h-6 text-green-600 dark:text-green-400"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
             <path d="M20 6L9 17l-5-5" />
           </svg>
         </div>
-        <h3 class="font-heading text-lg text-charcoal dark:text-dark-text mb-2">Password Changed</h3>
-        <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary">Your password has been updated successfully.</p>
+        <h3 class="font-heading text-lg text-charcoal dark:text-dark-text mb-2">
+          Password Changed
+        </h3>
+        <p
+          class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary"
+        >
+          Your password has been updated successfully.
+        </p>
       </div>
 
       <div v-else>
@@ -49,7 +65,13 @@ const emit = defineEmits<{
             class="text-charcoal-light hover:text-charcoal transition-colors cursor-pointer"
             @click="emit('close')"
           >
-            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <svg
+              class="w-5 h-5"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
               <line x1="18" y1="6" x2="6" y2="18" />
               <line x1="6" y1="6" x2="18" y2="18" />
             </svg>
@@ -58,7 +80,10 @@ const emit = defineEmits<{
 
         <form @submit.prevent="emit('submit')" class="space-y-4">
           <div>
-            <label for="currentPassword" class="block font-body text-sm font-medium text-charcoal mb-1">
+            <label
+              for="currentPassword"
+              class="block font-body text-sm font-medium text-charcoal mb-1"
+            >
               Current Password
             </label>
             <div class="relative">
@@ -69,18 +94,41 @@ const emit = defineEmits<{
                 class="w-full px-3 py-2.5 pr-10 font-body text-base border border-sand-dark rounded-lg bg-sand text-charcoal focus:outline-none focus:border-sage"
                 placeholder="Enter current password"
                 required
-                @input="emit('update:currentPassword', ($event.target as HTMLInputElement).value)"
+                @input="
+                  emit(
+                    'update:currentPassword',
+                    ($event.target as HTMLInputElement).value,
+                  )
+                "
               />
               <button
                 type="button"
                 class="absolute right-3 top-1/2 -translate-y-1/2 text-charcoal-light hover:text-charcoal transition-colors cursor-pointer"
-                @click="emit('update:showCurrentPassword', !showCurrentPassword)"
+                @click="
+                  emit('update:showCurrentPassword', !showCurrentPassword)
+                "
               >
-                <svg v-if="showCurrentPassword" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24" />
+                <svg
+                  v-if="showCurrentPassword"
+                  class="w-5 h-5"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path
+                    d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"
+                  />
                   <line x1="1" y1="1" x2="23" y2="23" />
                 </svg>
-                <svg v-else class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <svg
+                  v-else
+                  class="w-5 h-5"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
                   <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
                   <circle cx="12" cy="12" r="3" />
                 </svg>
@@ -89,7 +137,10 @@ const emit = defineEmits<{
           </div>
 
           <div>
-            <label for="newPassword" class="block font-body text-sm font-medium text-charcoal mb-1">
+            <label
+              for="newPassword"
+              class="block font-body text-sm font-medium text-charcoal mb-1"
+            >
               New Password
             </label>
             <div class="relative">
@@ -101,18 +152,39 @@ const emit = defineEmits<{
                 placeholder="Enter new password"
                 required
                 minlength="6"
-                @input="emit('update:newPassword', ($event.target as HTMLInputElement).value)"
+                @input="
+                  emit(
+                    'update:newPassword',
+                    ($event.target as HTMLInputElement).value,
+                  )
+                "
               />
               <button
                 type="button"
                 class="absolute right-3 top-1/2 -translate-y-1/2 text-charcoal-light hover:text-charcoal transition-colors cursor-pointer"
                 @click="emit('update:showNewPassword', !showNewPassword)"
               >
-                <svg v-if="showNewPassword" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24" />
+                <svg
+                  v-if="showNewPassword"
+                  class="w-5 h-5"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path
+                    d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"
+                  />
                   <line x1="1" y1="1" x2="23" y2="23" />
                 </svg>
-                <svg v-else class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <svg
+                  v-else
+                  class="w-5 h-5"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
                   <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
                   <circle cx="12" cy="12" r="3" />
                 </svg>
@@ -121,7 +193,10 @@ const emit = defineEmits<{
           </div>
 
           <div>
-            <label for="confirmNewPassword" class="block font-body text-sm font-medium text-charcoal mb-1">
+            <label
+              for="confirmNewPassword"
+              class="block font-body text-sm font-medium text-charcoal mb-1"
+            >
               Confirm New Password
             </label>
             <div class="relative">
@@ -133,18 +208,41 @@ const emit = defineEmits<{
                 placeholder="Confirm new password"
                 required
                 minlength="6"
-                @input="emit('update:confirmNewPassword', ($event.target as HTMLInputElement).value)"
+                @input="
+                  emit(
+                    'update:confirmNewPassword',
+                    ($event.target as HTMLInputElement).value,
+                  )
+                "
               />
               <button
                 type="button"
                 class="absolute right-3 top-1/2 -translate-y-1/2 text-charcoal-light hover:text-charcoal transition-colors cursor-pointer"
-                @click="emit('update:showConfirmNewPassword', !showConfirmNewPassword)"
+                @click="
+                  emit('update:showConfirmNewPassword', !showConfirmNewPassword)
+                "
               >
-                <svg v-if="showConfirmNewPassword" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24" />
+                <svg
+                  v-if="showConfirmNewPassword"
+                  class="w-5 h-5"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path
+                    d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"
+                  />
                   <line x1="1" y1="1" x2="23" y2="23" />
                 </svg>
-                <svg v-else class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <svg
+                  v-else
+                  class="w-5 h-5"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
                   <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
                   <circle cx="12" cy="12" r="3" />
                 </svg>

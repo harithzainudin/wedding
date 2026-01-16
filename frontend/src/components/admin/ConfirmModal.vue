@@ -17,18 +17,21 @@ const emit = defineEmits<{
 <template>
   <div class="fixed inset-0 z-50 flex items-center justify-center p-4">
     <!-- Backdrop -->
-    <div
-      class="absolute inset-0 bg-black/50"
-      @click="emit('cancel')"
-    ></div>
+    <div class="absolute inset-0 bg-black/50" @click="emit('cancel')"></div>
 
     <!-- Modal -->
-    <div class="relative bg-white dark:bg-dark-bg-secondary rounded-xl shadow-xl max-w-sm w-full p-6 space-y-4">
-      <h3 class="font-heading text-lg font-semibold text-charcoal dark:text-dark-text">
+    <div
+      class="relative bg-white dark:bg-dark-bg-secondary rounded-xl shadow-xl max-w-sm w-full p-6 space-y-4"
+    >
+      <h3
+        class="font-heading text-lg font-semibold text-charcoal dark:text-dark-text"
+      >
         {{ title }}
       </h3>
 
-      <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary">
+      <p
+        class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary"
+      >
         {{ message }}
       </p>
 

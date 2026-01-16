@@ -1,6 +1,10 @@
 import type { APIGatewayProxyHandlerV2 } from "aws-lambda";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocumentClient, GetCommand, PutCommand } from "@aws-sdk/lib-dynamodb";
+import {
+  DynamoDBDocumentClient,
+  GetCommand,
+  PutCommand,
+} from "@aws-sdk/lib-dynamodb";
 import { Resource } from "sst";
 import { createSuccessResponse, createErrorResponse } from "../shared/response";
 import { requireAuth } from "../shared/auth";
@@ -33,10 +37,12 @@ interface AdminRsvpInput {
   message?: string;
 }
 
-function validateAdminRsvpInput(input: unknown): {
-  valid: true;
-  data: AdminRsvpInput;
-} | { valid: false; error: string } {
+function validateAdminRsvpInput(input: unknown):
+  | {
+      valid: true;
+      data: AdminRsvpInput;
+    }
+  | { valid: false; error: string } {
   if (typeof input !== "object" || input === null) {
     return { valid: false, error: "Invalid request body" };
   }
@@ -99,7 +105,10 @@ function validateAdminRsvpInput(input: unknown): {
       return { valid: false, error: "Message must be a string" };
     }
     if (body.message.length > 500) {
-      return { valid: false, error: "Message must be less than 500 characters" };
+      return {
+        valid: false,
+        error: "Message must be less than 500 characters",
+      };
     }
   }
 
@@ -111,7 +120,8 @@ function validateAdminRsvpInput(input: unknown): {
       isAttending: body.isAttending,
       numberOfGuests: body.isAttending ? (body.numberOfGuests as number) : 0,
       phoneNumber: cleanPhone || undefined,
-      message: typeof body.message === "string" ? body.message.trim() : undefined,
+      message:
+        typeof body.message === "string" ? body.message.trim() : undefined,
     },
   };
 }
@@ -127,14 +137,19 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
         authResult.statusCode,
         authResult.error,
         context,
-        "AUTH_ERROR"
+        "AUTH_ERROR",
       );
     }
 
     // Extract ID from path parameters
     rsvpId = event.pathParameters?.id;
     if (!rsvpId) {
-      return createErrorResponse(400, "RSVP ID is required", context, "VALIDATION_ERROR");
+      return createErrorResponse(
+        400,
+        "RSVP ID is required",
+        context,
+        "VALIDATION_ERROR",
+      );
     }
 
     // Fetch existing record
@@ -145,7 +160,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
           pk: `RSVP#${rsvpId}`,
           sk: "METADATA",
         },
-      })
+      }),
     );
 
     if (!existingResult.Item) {
@@ -159,13 +174,23 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
     try {
       body = JSON.parse(event.body ?? "{}");
     } catch {
-      return createErrorResponse(400, "Invalid JSON in request body", context, "INVALID_JSON");
+      return createErrorResponse(
+        400,
+        "Invalid JSON in request body",
+        context,
+        "INVALID_JSON",
+      );
     }
 
     // Validate input
     const validation = validateAdminRsvpInput(body);
     if (!validation.valid) {
-      return createErrorResponse(400, validation.error, context, "VALIDATION_ERROR");
+      return createErrorResponse(
+        400,
+        validation.error,
+        context,
+        "VALIDATION_ERROR",
+      );
     }
 
     const { data } = validation;
@@ -197,20 +222,32 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
       new PutCommand({
         TableName: Resource.AppDataTable.name,
         Item: updatedItem,
-      })
+      }),
     );
 
-    return createSuccessResponse(200, {
-      id: rsvpId,
-      updatedAt: timestamp,
-    }, context);
+    return createSuccessResponse(
+      200,
+      {
+        id: rsvpId,
+        updatedAt: timestamp,
+      },
+      context,
+    );
   } catch (error) {
-    logError({
-      endpoint: "PUT /rsvp/{id}",
-      operation: "updateRsvp",
-      requestId: context.awsRequestId,
-      input: { rsvpId },
-    }, error);
-    return createErrorResponse(500, "Internal server error", context, "DB_ERROR");
+    logError(
+      {
+        endpoint: "PUT /rsvp/{id}",
+        operation: "updateRsvp",
+        requestId: context.awsRequestId,
+        input: { rsvpId },
+      },
+      error,
+    );
+    return createErrorResponse(
+      500,
+      "Internal server error",
+      context,
+      "DB_ERROR",
+    );
   }
 };

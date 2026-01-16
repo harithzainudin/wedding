@@ -19,7 +19,10 @@ export function useProfile(_getCurrentUser: () => string) {
       email.value = data.email ?? "";
       originalEmail.value = data.email ?? "";
     } catch (err) {
-      profileError.value = err instanceof Error ? err.message : "Failed to fetch profile. Please try again.";
+      profileError.value =
+        err instanceof Error
+          ? err.message
+          : "Failed to fetch profile. Please try again.";
     } finally {
       isLoadingProfile.value = false;
     }
@@ -47,7 +50,10 @@ export function useProfile(_getCurrentUser: () => string) {
       }, 2000);
       return true;
     } catch (err) {
-      profileError.value = err instanceof Error ? err.message : "Failed to update email. Please try again.";
+      profileError.value =
+        err instanceof Error
+          ? err.message
+          : "Failed to update email. Please try again.";
       return false;
     } finally {
       isSavingProfile.value = false;

@@ -1,11 +1,20 @@
 import type { APIGatewayProxyHandlerV2 } from "aws-lambda";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocumentClient, QueryCommand, GetCommand } from "@aws-sdk/lib-dynamodb";
+import {
+  DynamoDBDocumentClient,
+  QueryCommand,
+  GetCommand,
+} from "@aws-sdk/lib-dynamodb";
 import { Resource } from "sst";
 import { createSuccessResponse, createErrorResponse } from "../shared/response";
 import { requireAuth } from "../shared/auth";
 import { logError } from "../shared/logger";
-import { DEFAULT_MAX_FILE_SIZE, DEFAULT_MAX_IMAGES, DEFAULT_SHOW_GALLERY, ALLOWED_MIME_TYPES } from "../shared/image-constants";
+import {
+  DEFAULT_MAX_FILE_SIZE,
+  DEFAULT_MAX_IMAGES,
+  DEFAULT_SHOW_GALLERY,
+  ALLOWED_MIME_TYPES,
+} from "../shared/image-constants";
 
 const dynamoClient = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(dynamoClient);
@@ -27,7 +36,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
         KeyConditionExpression: "gsi1pk = :pk",
         ExpressionAttributeValues: { ":pk": "IMAGES" },
         ScanIndexForward: true, // Ascending order
-      })
+      }),
     );
 
     const images = (result.Items ?? []).map((item) => ({
@@ -46,41 +55,62 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
       new GetCommand({
         TableName: Resource.AppDataTable.name,
         Key: { pk: "SETTINGS", sk: "IMAGES" },
-      })
+      }),
     );
 
-    const showGallery = (settingsResult.Item?.showGallery as boolean) ?? DEFAULT_SHOW_GALLERY;
+    const showGallery =
+      (settingsResult.Item?.showGallery as boolean) ?? DEFAULT_SHOW_GALLERY;
 
     // If authenticated admin, include full settings info
     if (isAuthenticated) {
       const settings = {
-        maxFileSize: (settingsResult.Item?.maxFileSize as number) ?? DEFAULT_MAX_FILE_SIZE,
-        maxImages: (settingsResult.Item?.maxImages as number) ?? DEFAULT_MAX_IMAGES,
-        allowedFormats: (settingsResult.Item?.allowedFormats as string[]) ?? [...ALLOWED_MIME_TYPES],
+        maxFileSize:
+          (settingsResult.Item?.maxFileSize as number) ?? DEFAULT_MAX_FILE_SIZE,
+        maxImages:
+          (settingsResult.Item?.maxImages as number) ?? DEFAULT_MAX_IMAGES,
+        allowedFormats: (settingsResult.Item?.allowedFormats as string[]) ?? [
+          ...ALLOWED_MIME_TYPES,
+        ],
         showGallery,
       };
 
-      return createSuccessResponse(200, {
-        images,
-        total: images.length,
-        settings,
-        remainingSlots: settings.maxImages - images.length,
-      }, context);
+      return createSuccessResponse(
+        200,
+        {
+          images,
+          total: images.length,
+          settings,
+          remainingSlots: settings.maxImages - images.length,
+        },
+        context,
+      );
     }
 
     // Public response - images and showGallery flag
-    return createSuccessResponse(200, {
-      images,
-      total: images.length,
-      showGallery,
-    }, context);
+    return createSuccessResponse(
+      200,
+      {
+        images,
+        total: images.length,
+        showGallery,
+      },
+      context,
+    );
   } catch (error) {
-    logError({
-      endpoint: "GET /images",
-      operation: "listImages",
-      requestId: context.awsRequestId,
-      input: { isAuthenticated },
-    }, error);
-    return createErrorResponse(500, "Failed to list images", context, "DB_ERROR");
+    logError(
+      {
+        endpoint: "GET /images",
+        operation: "listImages",
+        requestId: context.awsRequestId,
+        input: { isAuthenticated },
+      },
+      error,
+    );
+    return createErrorResponse(
+      500,
+      "Failed to list images",
+      context,
+      "DB_ERROR",
+    );
   }
 };

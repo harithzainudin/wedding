@@ -15,14 +15,15 @@ const emit = defineEmits<{
 <template>
   <div class="fixed inset-0 z-50 flex items-center justify-center p-4">
     <!-- Backdrop -->
-    <div
-      class="absolute inset-0 bg-black/50"
-      @click="emit('cancel')"
-    ></div>
+    <div class="absolute inset-0 bg-black/50" @click="emit('cancel')"></div>
 
     <!-- Modal -->
-    <div class="relative bg-white dark:bg-dark-bg-secondary rounded-xl shadow-xl max-w-sm w-full p-6 space-y-4">
-      <h3 class="font-heading text-lg font-semibold text-charcoal dark:text-dark-text">
+    <div
+      class="relative bg-white dark:bg-dark-bg-secondary rounded-xl shadow-xl max-w-sm w-full p-6 space-y-4"
+    >
+      <h3
+        class="font-heading text-lg font-semibold text-charcoal dark:text-dark-text"
+      >
         Delete Image?
       </h3>
 
@@ -34,17 +35,24 @@ const emit = defineEmits<{
           class="w-20 h-20 object-cover rounded-lg"
         />
         <div class="flex-1 min-w-0">
-          <p class="font-body text-sm text-charcoal dark:text-dark-text truncate">
+          <p
+            class="font-body text-sm text-charcoal dark:text-dark-text truncate"
+          >
             {{ image.filename }}
           </p>
-          <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary">
+          <p
+            class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary"
+          >
             Uploaded {{ new Date(image.uploadedAt).toLocaleDateString() }}
           </p>
         </div>
       </div>
 
-      <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary">
-        This action cannot be undone. The image will be permanently deleted from the gallery.
+      <p
+        class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary"
+      >
+        This action cannot be undone. The image will be permanently deleted from
+        the gallery.
       </p>
 
       <!-- Actions -->

@@ -1,6 +1,9 @@
 import type { APIGatewayProxyHandlerV2 } from "aws-lambda";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocumentClient, TransactWriteCommand } from "@aws-sdk/lib-dynamodb";
+import {
+  DynamoDBDocumentClient,
+  TransactWriteCommand,
+} from "@aws-sdk/lib-dynamodb";
 import { Resource } from "sst";
 import { createSuccessResponse, createErrorResponse } from "../shared/response";
 import { requireAuth } from "../shared/auth";
@@ -13,10 +16,12 @@ interface ReorderRequest {
   giftIds: string[];
 }
 
-function validateReorderInput(input: unknown): {
-  valid: true;
-  data: ReorderRequest;
-} | { valid: false; error: string } {
+function validateReorderInput(input: unknown):
+  | {
+      valid: true;
+      data: ReorderRequest;
+    }
+  | { valid: false; error: string } {
   if (typeof input !== "object" || input === null) {
     return { valid: false, error: "Invalid request body" };
   }
@@ -64,7 +69,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
         authResult.statusCode,
         authResult.error,
         context,
-        "AUTH_ERROR"
+        "AUTH_ERROR",
       );
     }
 
@@ -73,13 +78,23 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
     try {
       body = JSON.parse(event.body ?? "{}");
     } catch {
-      return createErrorResponse(400, "Invalid JSON in request body", context, "INVALID_JSON");
+      return createErrorResponse(
+        400,
+        "Invalid JSON in request body",
+        context,
+        "INVALID_JSON",
+      );
     }
 
     // Validate input
     const validation = validateReorderInput(body);
     if (!validation.valid) {
-      return createErrorResponse(400, validation.error, context, "VALIDATION_ERROR");
+      return createErrorResponse(
+        400,
+        validation.error,
+        context,
+        "VALIDATION_ERROR",
+      );
     }
 
     const { data } = validation;
@@ -94,7 +109,8 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
           pk: `GIFT#${giftId}`,
           sk: "METADATA",
         },
-        UpdateExpression: "SET #order = :order, gsi1sk = :gsi1sk, updatedAt = :updatedAt, updatedBy = :updatedBy",
+        UpdateExpression:
+          "SET #order = :order, gsi1sk = :gsi1sk, updatedAt = :updatedAt, updatedBy = :updatedBy",
         ExpressionAttributeNames: {
           "#order": "order",
         },
@@ -114,25 +130,45 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
       await docClient.send(
         new TransactWriteCommand({
           TransactItems: batch,
-        })
+        }),
       );
     }
 
-    return createSuccessResponse(200, {
-      message: "Gifts reordered successfully",
-      count: data.giftIds.length,
-    }, context);
+    return createSuccessResponse(
+      200,
+      {
+        message: "Gifts reordered successfully",
+        count: data.giftIds.length,
+      },
+      context,
+    );
   } catch (error) {
     // Check for condition check failure (gift not found)
-    if (error instanceof Error && error.name === "TransactionCanceledException") {
-      return createErrorResponse(400, "One or more gift IDs not found", context, "NOT_FOUND");
+    if (
+      error instanceof Error &&
+      error.name === "TransactionCanceledException"
+    ) {
+      return createErrorResponse(
+        400,
+        "One or more gift IDs not found",
+        context,
+        "NOT_FOUND",
+      );
     }
 
-    logError({
-      endpoint: "PUT /gifts/reorder",
-      operation: "reorderGifts",
-      requestId: context.awsRequestId,
-    }, error);
-    return createErrorResponse(500, "Internal server error", context, "DB_ERROR");
+    logError(
+      {
+        endpoint: "PUT /gifts/reorder",
+        operation: "reorderGifts",
+        requestId: context.awsRequestId,
+      },
+      error,
+    );
+    return createErrorResponse(
+      500,
+      "Internal server error",
+      context,
+      "DB_ERROR",
+    );
   }
 };

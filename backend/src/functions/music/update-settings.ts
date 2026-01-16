@@ -18,23 +18,43 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
   try {
     const authResult = requireAuth(event);
     if (!authResult.authenticated) {
-      return createErrorResponse(authResult.statusCode, authResult.error, context, "AUTH_ERROR");
+      return createErrorResponse(
+        authResult.statusCode,
+        authResult.error,
+        context,
+        "AUTH_ERROR",
+      );
     }
 
     if (!event.body) {
-      return createErrorResponse(400, "Missing request body", context, "MISSING_BODY");
+      return createErrorResponse(
+        400,
+        "Missing request body",
+        context,
+        "MISSING_BODY",
+      );
     }
 
     let body: unknown;
     try {
       body = JSON.parse(event.body);
     } catch {
-      return createErrorResponse(400, "Invalid JSON body", context, "INVALID_JSON");
+      return createErrorResponse(
+        400,
+        "Invalid JSON body",
+        context,
+        "INVALID_JSON",
+      );
     }
 
     const validation = validateSettingsUpdate(body);
     if (!validation.valid) {
-      return createErrorResponse(400, validation.error, context, "VALIDATION_ERROR");
+      return createErrorResponse(
+        400,
+        validation.error,
+        context,
+        "VALIDATION_ERROR",
+      );
     }
     // Build update expression dynamically
     const updateParts: string[] = [];
@@ -95,18 +115,30 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
         ...(Object.keys(expressionNames).length > 0 && {
           ExpressionAttributeNames: expressionNames,
         }),
-      })
+      }),
     );
 
-    return createSuccessResponse(200, {
-      message: "Music settings updated successfully",
-    }, context);
+    return createSuccessResponse(
+      200,
+      {
+        message: "Music settings updated successfully",
+      },
+      context,
+    );
   } catch (error) {
-    logError({
-      endpoint: "PUT /music/settings",
-      operation: "updateMusicSettings",
-      requestId: context.awsRequestId,
-    }, error);
-    return createErrorResponse(500, "Failed to update music settings", context, "DB_ERROR");
+    logError(
+      {
+        endpoint: "PUT /music/settings",
+        operation: "updateMusicSettings",
+        requestId: context.awsRequestId,
+      },
+      error,
+    );
+    return createErrorResponse(
+      500,
+      "Failed to update music settings",
+      context,
+      "DB_ERROR",
+    );
   }
 };

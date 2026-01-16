@@ -1,12 +1,20 @@
 import type { APIGatewayProxyHandlerV2 } from "aws-lambda";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocumentClient, PutCommand, QueryCommand, GetCommand } from "@aws-sdk/lib-dynamodb";
+import {
+  DynamoDBDocumentClient,
+  PutCommand,
+  QueryCommand,
+  GetCommand,
+} from "@aws-sdk/lib-dynamodb";
 import { v4 as uuidv4 } from "uuid";
 import { Resource } from "sst";
 import { createSuccessResponse, createErrorResponse } from "../shared/response";
 import { requireAuth } from "../shared/auth";
 import { logError } from "../shared/logger";
-import { validateCreateGiftInput, GIFT_LIMITS } from "../shared/gift-validation";
+import {
+  validateCreateGiftInput,
+  GIFT_LIMITS,
+} from "../shared/gift-validation";
 
 const client = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(client);
@@ -22,7 +30,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
         authResult.statusCode,
         authResult.error,
         context,
-        "AUTH_ERROR"
+        "AUTH_ERROR",
       );
     }
 
@@ -31,13 +39,23 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
     try {
       body = JSON.parse(event.body ?? "{}");
     } catch {
-      return createErrorResponse(400, "Invalid JSON in request body", context, "INVALID_JSON");
+      return createErrorResponse(
+        400,
+        "Invalid JSON in request body",
+        context,
+        "INVALID_JSON",
+      );
     }
 
     // Validate input
     const validation = validateCreateGiftInput(body);
     if (!validation.valid) {
-      return createErrorResponse(400, validation.error, context, "VALIDATION_ERROR");
+      return createErrorResponse(
+        400,
+        validation.error,
+        context,
+        "VALIDATION_ERROR",
+      );
     }
 
     const { data } = validation;
@@ -48,7 +66,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
       new GetCommand({
         TableName: Resource.AppDataTable.name,
         Key: { pk: "SETTINGS", sk: "GIFTS" },
-      })
+      }),
     );
 
     const maxItems = settingsResult.Item?.maxItems ?? GIFT_LIMITS.maxItems;
@@ -63,12 +81,17 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
           ":pk": "GIFTS",
         },
         Select: "COUNT",
-      })
+      }),
     );
 
     const currentCount = countResult.Count ?? 0;
     if (currentCount >= maxItems) {
-      return createErrorResponse(400, `Maximum number of gifts (${maxItems}) reached`, context, "LIMIT_EXCEEDED");
+      return createErrorResponse(
+        400,
+        `Maximum number of gifts (${maxItems}) reached`,
+        context,
+        "LIMIT_EXCEEDED",
+      );
     }
 
     // Get the next order number
@@ -82,7 +105,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
         },
         ScanIndexForward: false,
         Limit: 1,
-      })
+      }),
     );
 
     const lastOrder = orderResult.Items?.[0]?.order ?? 0;
@@ -118,30 +141,42 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
       new PutCommand({
         TableName: Resource.AppDataTable.name,
         Item: giftItem,
-      })
+      }),
     );
 
-    return createSuccessResponse(201, {
-      id,
-      name: data.name,
-      description: data.description,
-      externalLink: data.externalLink,
-      priceRange: data.priceRange,
-      category: data.category,
-      priority: data.priority,
-      notes: data.notes,
-      quantityTotal: data.quantityTotal,
-      quantityReserved: 0,
-      order: newOrder,
-      createdAt: timestamp,
-    }, context);
+    return createSuccessResponse(
+      201,
+      {
+        id,
+        name: data.name,
+        description: data.description,
+        externalLink: data.externalLink,
+        priceRange: data.priceRange,
+        category: data.category,
+        priority: data.priority,
+        notes: data.notes,
+        quantityTotal: data.quantityTotal,
+        quantityReserved: 0,
+        order: newOrder,
+        createdAt: timestamp,
+      },
+      context,
+    );
   } catch (error) {
-    logError({
-      endpoint: "POST /gifts",
-      operation: "createGift",
-      requestId: context.awsRequestId,
-      input: { giftName },
-    }, error);
-    return createErrorResponse(500, "Internal server error", context, "DB_ERROR");
+    logError(
+      {
+        endpoint: "POST /gifts",
+        operation: "createGift",
+        requestId: context.awsRequestId,
+        input: { giftName },
+      },
+      error,
+    );
+    return createErrorResponse(
+      500,
+      "Internal server error",
+      context,
+      "DB_ERROR",
+    );
   }
 };

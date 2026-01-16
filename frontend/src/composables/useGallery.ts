@@ -12,7 +12,12 @@ import {
 } from "@/services/api";
 
 // Allowed MIME types
-const ALLOWED_MIME_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+const ALLOWED_MIME_TYPES = [
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "image/gif",
+];
 
 // Singleton state
 const images = ref<GalleryImage[]>([]);
@@ -29,11 +34,17 @@ const uploadControllers = ref<Map<string, AbortController>>(new Map());
 
 export function useGallery() {
   // Computed
-  const sortedImages = computed(() => [...images.value].sort((a, b) => a.order - b.order));
+  const sortedImages = computed(() =>
+    [...images.value].sort((a, b) => a.order - b.order),
+  );
 
-  const canUploadMore = computed(() => images.value.length < settings.value.maxImages);
+  const canUploadMore = computed(
+    () => images.value.length < settings.value.maxImages,
+  );
 
-  const remainingSlots = computed(() => settings.value.maxImages - images.value.length);
+  const remainingSlots = computed(
+    () => settings.value.maxImages - images.value.length,
+  );
 
   // Computed property to expose uploads as array for UI components
   const activeUploads = computed<UploadProgress[]>(() => {
@@ -56,7 +67,9 @@ export function useGallery() {
   });
 
   // Validate a file before upload
-  const validateFile = (file: File): { valid: boolean; error?: string | undefined } => {
+  const validateFile = (
+    file: File,
+  ): { valid: boolean; error?: string | undefined } => {
     // Check file type
     if (!ALLOWED_MIME_TYPES.includes(file.type)) {
       return {
@@ -97,14 +110,17 @@ export function useGallery() {
         settings.value = response.settings;
       }
     } catch (err) {
-      loadError.value = err instanceof Error ? err.message : "Failed to load images";
+      loadError.value =
+        err instanceof Error ? err.message : "Failed to load images";
     } finally {
       isLoading.value = false;
     }
   };
 
   // Upload a single image
-  const uploadImage = async (file: File): Promise<{ success: boolean; error?: string | undefined }> => {
+  const uploadImage = async (
+    file: File,
+  ): Promise<{ success: boolean; error?: string | undefined }> => {
     const validation = validateFile(file);
     if (!validation.valid) {
       return { success: false, error: validation.error };
@@ -131,7 +147,11 @@ export function useGallery() {
       uploadProgress.value.set(fileId, { progress: 30, status: "uploading" });
 
       // Step 2: Upload to S3
-      const uploadSuccess = await uploadToS3(presignedResponse.uploadUrl, file, abortController.signal);
+      const uploadSuccess = await uploadToS3(
+        presignedResponse.uploadUrl,
+        file,
+        abortController.signal,
+      );
       if (!uploadSuccess) {
         uploadProgress.value.set(fileId, {
           progress: 30,
@@ -194,7 +214,10 @@ export function useGallery() {
         error: err instanceof Error ? err.message : "Upload failed",
       });
       setTimeout(() => uploadProgress.value.delete(fileId), 5000);
-      return { success: false, error: err instanceof Error ? err.message : "Upload failed" };
+      return {
+        success: false,
+        error: err instanceof Error ? err.message : "Upload failed",
+      };
     }
   };
 
@@ -213,18 +236,25 @@ export function useGallery() {
   };
 
   // Remove an image
-  const removeImage = async (imageId: string): Promise<{ success: boolean; error?: string | undefined }> => {
+  const removeImage = async (
+    imageId: string,
+  ): Promise<{ success: boolean; error?: string | undefined }> => {
     try {
       await deleteGalleryImage(imageId);
       images.value = images.value.filter((img) => img.id !== imageId);
       return { success: true };
     } catch (err) {
-      return { success: false, error: err instanceof Error ? err.message : "Failed to delete image" };
+      return {
+        success: false,
+        error: err instanceof Error ? err.message : "Failed to delete image",
+      };
     }
   };
 
   // Update image order
-  const updateOrder = async (newOrder: string[]): Promise<{ success: boolean; error?: string | undefined }> => {
+  const updateOrder = async (
+    newOrder: string[],
+  ): Promise<{ success: boolean; error?: string | undefined }> => {
     // Optimistically update the UI
     const previousImages = [...images.value];
     images.value = newOrder
@@ -240,20 +270,27 @@ export function useGallery() {
     } catch (err) {
       // Revert on error
       images.value = previousImages;
-      return { success: false, error: err instanceof Error ? err.message : "Failed to reorder images" };
+      return {
+        success: false,
+        error: err instanceof Error ? err.message : "Failed to reorder images",
+      };
     }
   };
 
   // Update settings
-  const updateSettings = async (
-    newSettings: { maxFileSize?: number | undefined; maxImages?: number | undefined }
-  ): Promise<{ success: boolean; error?: string | undefined }> => {
+  const updateSettings = async (newSettings: {
+    maxFileSize?: number | undefined;
+    maxImages?: number | undefined;
+  }): Promise<{ success: boolean; error?: string | undefined }> => {
     try {
       const response = await updateGallerySettings(newSettings);
       settings.value = response;
       return { success: true };
     } catch (err) {
-      return { success: false, error: err instanceof Error ? err.message : "Failed to update settings" };
+      return {
+        success: false,
+        error: err instanceof Error ? err.message : "Failed to update settings",
+      };
     }
   };
 

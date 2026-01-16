@@ -6,7 +6,11 @@
   "scripts": {
     "dev": "vite",
     "build": "vue-tsc -b && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "type-check": "vue-tsc --noEmit",
+    "format": "prettier --write \"src/**/*.{ts,vue,js}\"",
+    "format:check": "prettier --check \"src/**/*.{ts,vue,js}\"",
+    "check": "vue-tsc --noEmit && prettier --check \"src/**/*.{ts,vue,js}\" && vite build"
   },
   "dependencies": {
     "leaflet": "^1.9.4",
@@ -22,6 +26,7 @@
     "@types/qrcode": "^1.5.6",
     "@vitejs/plugin-vue": "^6.0.1",
     "@vue/tsconfig": "^0.8.1",
+    "prettier": "^3.8.0",
     "tailwindcss": "^4.1.18",
     "typescript": "~5.9.3",
     "vite": "npm:rolldown-vite@7.2.5",

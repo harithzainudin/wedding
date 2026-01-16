@@ -1,7 +1,15 @@
 import type { APIGatewayProxyHandlerV2 } from "aws-lambda";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocumentClient, GetCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
-import { S3Client, HeadObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
+import {
+  DynamoDBDocumentClient,
+  GetCommand,
+  UpdateCommand,
+} from "@aws-sdk/lib-dynamodb";
+import {
+  S3Client,
+  HeadObjectCommand,
+  DeleteObjectCommand,
+} from "@aws-sdk/client-s3";
 import { Resource } from "sst";
 import { createSuccessResponse, createErrorResponse } from "../shared/response";
 import { requireAuth } from "../shared/auth";
@@ -23,8 +31,10 @@ interface ConfirmGiftUploadRequest {
 }
 
 function validateConfirmGiftUpload(
-  input: unknown
-): { valid: true; data: ConfirmGiftUploadRequest } | { valid: false; error: string } {
+  input: unknown,
+):
+  | { valid: true; data: ConfirmGiftUploadRequest }
+  | { valid: false; error: string } {
   if (typeof input !== "object" || input === null) {
     return { valid: false, error: "Invalid request body" };
   }
@@ -66,23 +76,43 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
   try {
     const authResult = requireAuth(event);
     if (!authResult.authenticated) {
-      return createErrorResponse(authResult.statusCode, authResult.error, context, "AUTH_ERROR");
+      return createErrorResponse(
+        authResult.statusCode,
+        authResult.error,
+        context,
+        "AUTH_ERROR",
+      );
     }
 
     if (!event.body) {
-      return createErrorResponse(400, "Missing request body", context, "MISSING_BODY");
+      return createErrorResponse(
+        400,
+        "Missing request body",
+        context,
+        "MISSING_BODY",
+      );
     }
 
     let body: unknown;
     try {
       body = JSON.parse(event.body);
     } catch {
-      return createErrorResponse(400, "Invalid JSON body", context, "INVALID_JSON");
+      return createErrorResponse(
+        400,
+        "Invalid JSON body",
+        context,
+        "INVALID_JSON",
+      );
     }
 
     const validation = validateConfirmGiftUpload(body);
     if (!validation.valid) {
-      return createErrorResponse(400, validation.error, context, "VALIDATION_ERROR");
+      return createErrorResponse(
+        400,
+        validation.error,
+        context,
+        "VALIDATION_ERROR",
+      );
     }
 
     giftId = validation.data.giftId;
@@ -95,7 +125,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
       new HeadObjectCommand({
         Bucket: Resource.WeddingImageBucket.name,
         Key: s3Key,
-      })
+      }),
     );
 
     const fileSize = headResult.ContentLength ?? 0;
@@ -105,11 +135,16 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
       new GetCommand({
         TableName: Resource.AppDataTable.name,
         Key: { pk: `GIFT#${giftId}`, sk: "METADATA" },
-      })
+      }),
     );
 
     if (!existingGiftResult.Item) {
-      return createErrorResponse(404, "Gift not found. Create the gift first before uploading an image.", context, "NOT_FOUND");
+      return createErrorResponse(
+        404,
+        "Gift not found. Create the gift first before uploading an image.",
+        context,
+        "NOT_FOUND",
+      );
     }
 
     const existingGift = existingGiftResult.Item;
@@ -121,7 +156,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
           new DeleteObjectCommand({
             Bucket: Resource.WeddingImageBucket.name,
             Key: existingGift.s3Key as string,
-          })
+          }),
         );
       } catch (deleteError) {
         // Log but don't fail - old image cleanup is best-effort
@@ -141,32 +176,45 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
       new UpdateCommand({
         TableName: Resource.AppDataTable.name,
         Key: { pk: `GIFT#${giftId}`, sk: "METADATA" },
-        UpdateExpression: "SET imageUrl = :imageUrl, s3Key = :s3Key, updatedAt = :updatedAt, updatedBy = :updatedBy",
+        UpdateExpression:
+          "SET imageUrl = :imageUrl, s3Key = :s3Key, updatedAt = :updatedAt, updatedBy = :updatedBy",
         ExpressionAttributeValues: {
           ":imageUrl": publicUrl,
           ":s3Key": s3Key,
           ":updatedAt": timestamp,
           ":updatedBy": authResult.user.username,
         },
-      })
+      }),
     );
 
-    return createSuccessResponse(200, {
-      giftId,
-      filename,
-      s3Key,
-      mimeType,
-      fileSize,
-      imageUrl: publicUrl,
-      updatedAt: timestamp,
-    }, context);
+    return createSuccessResponse(
+      200,
+      {
+        giftId,
+        filename,
+        s3Key,
+        mimeType,
+        fileSize,
+        imageUrl: publicUrl,
+        updatedAt: timestamp,
+      },
+      context,
+    );
   } catch (error) {
-    logError({
-      endpoint: "POST /gifts/confirm",
-      operation: "confirmGiftUpload",
-      requestId: context.awsRequestId,
-      input: { giftId, s3Key, filename },
-    }, error);
-    return createErrorResponse(400, "File not found in S3. Upload may have failed.", context, "S3_ERROR");
+    logError(
+      {
+        endpoint: "POST /gifts/confirm",
+        operation: "confirmGiftUpload",
+        requestId: context.awsRequestId,
+        input: { giftId, s3Key, filename },
+      },
+      error,
+    );
+    return createErrorResponse(
+      400,
+      "File not found in S3. Upload may have failed.",
+      context,
+      "S3_ERROR",
+    );
   }
 };

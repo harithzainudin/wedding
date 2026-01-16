@@ -1,6 +1,10 @@
 import type { APIGatewayProxyHandlerV2 } from "aws-lambda";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocumentClient, GetCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
+import {
+  DynamoDBDocumentClient,
+  GetCommand,
+  UpdateCommand,
+} from "@aws-sdk/lib-dynamodb";
 import { createSuccessResponse, createErrorResponse } from "../shared/response";
 import { requireAuth } from "../shared/auth";
 import { logError } from "../shared/logger";
@@ -23,31 +27,56 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
     // Require authentication
     const authResult = requireAuth(event);
     if (!authResult.authenticated) {
-      return createErrorResponse(authResult.statusCode, authResult.error, context, "AUTH_ERROR");
+      return createErrorResponse(
+        authResult.statusCode,
+        authResult.error,
+        context,
+        "AUTH_ERROR",
+      );
     }
 
     username = authResult.user.username;
 
     // Block master account from updating email
     if (username === "master") {
-      return createErrorResponse(403, "Master account email cannot be updated", context, "FORBIDDEN");
+      return createErrorResponse(
+        403,
+        "Master account email cannot be updated",
+        context,
+        "FORBIDDEN",
+      );
     }
 
     if (!event.body) {
-      return createErrorResponse(400, "Missing request body", context, "MISSING_BODY");
+      return createErrorResponse(
+        400,
+        "Missing request body",
+        context,
+        "MISSING_BODY",
+      );
     }
 
     let body: UpdateEmailRequest;
     try {
       body = JSON.parse(event.body) as UpdateEmailRequest;
     } catch {
-      return createErrorResponse(400, "Invalid JSON body", context, "INVALID_JSON");
+      return createErrorResponse(
+        400,
+        "Invalid JSON body",
+        context,
+        "INVALID_JSON",
+      );
     }
 
     // Validate email format (allow empty string to remove email)
     email = body.email?.trim() ?? "";
     if (email && !EMAIL_REGEX.test(email)) {
-      return createErrorResponse(400, "Invalid email format", context, "VALIDATION_ERROR");
+      return createErrorResponse(
+        400,
+        "Invalid email format",
+        context,
+        "VALIDATION_ERROR",
+      );
     }
 
     // Verify user exists
@@ -58,7 +87,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
           pk: `ADMIN#${username}`,
           sk: "PROFILE",
         },
-      })
+      }),
     );
 
     if (!result.Item) {
@@ -78,19 +107,33 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
           ":email": email || null,
           ":updatedAt": new Date().toISOString(),
         },
-      })
+      }),
     );
 
-    return createSuccessResponse(200, {
-      message: email ? "Email updated successfully" : "Email removed successfully",
-    }, context);
+    return createSuccessResponse(
+      200,
+      {
+        message: email
+          ? "Email updated successfully"
+          : "Email removed successfully",
+      },
+      context,
+    );
   } catch (error) {
-    logError({
-      endpoint: "PUT /admin/users/me/email",
-      operation: "updateEmail",
-      requestId: context.awsRequestId,
-      input: { username, email },
-    }, error);
-    return createErrorResponse(500, "Internal server error", context, "INTERNAL_ERROR");
+    logError(
+      {
+        endpoint: "PUT /admin/users/me/email",
+        operation: "updateEmail",
+        requestId: context.awsRequestId,
+        input: { username, email },
+      },
+      error,
+    );
+    return createErrorResponse(
+      500,
+      "Internal server error",
+      context,
+      "INTERNAL_ERROR",
+    );
   }
 };

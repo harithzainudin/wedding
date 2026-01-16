@@ -43,7 +43,10 @@ const handleFilesSelected = async (files: File[]): Promise<void> => {
   for (const file of files) {
     const result = await uploadImage(file);
     if (!result.success) {
-      uploadErrors.value.push({ file: file.name, error: result.error ?? "Upload failed" });
+      uploadErrors.value.push({
+        file: file.name,
+        error: result.error ?? "Upload failed",
+      });
     }
   }
 };
@@ -78,7 +81,10 @@ const handleDeleteCancel = (): void => {
   deleteConfirmId.value = null;
 };
 
-const handleSettingsUpdate = async (newSettings: { maxFileSize?: number | undefined; maxImages?: number | undefined }): Promise<void> => {
+const handleSettingsUpdate = async (newSettings: {
+  maxFileSize?: number | undefined;
+  maxImages?: number | undefined;
+}): Promise<void> => {
   const result = await updateSettings(newSettings);
   if (!result.success) {
     console.error("Settings update failed:", result.error);
@@ -119,10 +125,14 @@ onUnmounted(() => {
 <template>
   <div class="space-y-6">
     <!-- Header -->
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div
+      class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
+    >
       <div>
         <div class="flex items-center gap-2">
-          <h2 class="font-heading text-xl font-semibold text-charcoal dark:text-dark-text">
+          <h2
+            class="font-heading text-xl font-semibold text-charcoal dark:text-dark-text"
+          >
             Gallery Management
           </h2>
           <HelpTooltip title="Gallery Help">
@@ -133,7 +143,9 @@ onUnmounted(() => {
             />
           </HelpTooltip>
         </div>
-        <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary mt-1">
+        <p
+          class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary mt-1"
+        >
           {{ images.length }} / {{ settings.maxImages }} images
           <span v-if="canUploadMore" class="text-sage">
             ({{ remainingSlots }} slots remaining)
@@ -154,8 +166,18 @@ onUnmounted(() => {
             stroke="currentColor"
             viewBox="0 0 24 24"
           >
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
+            />
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+            />
           </svg>
           <span>Settings</span>
           <!-- Mobile: Chevron that rotates -->
@@ -166,18 +188,29 @@ onUnmounted(() => {
             stroke="currentColor"
             viewBox="0 0 24 24"
           >
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M19 9l-7 7-7-7"
+            />
           </svg>
         </button>
 
         <!-- Desktop: Popover | Mobile: Bottom Sheet -->
         <Teleport to="body">
           <Transition name="settings-panel">
-            <div v-if="showSettings" class="settings-container" @click.self="showSettings = false">
+            <div
+              v-if="showSettings"
+              class="settings-container"
+              @click.self="showSettings = false"
+            >
               <div class="settings-panel">
                 <!-- Mobile Header with Close -->
                 <div class="settings-mobile-header">
-                  <h3 class="font-heading text-lg font-medium text-charcoal dark:text-dark-text">
+                  <h3
+                    class="font-heading text-lg font-medium text-charcoal dark:text-dark-text"
+                  >
                     Gallery Settings
                   </h3>
                   <button
@@ -185,8 +218,18 @@ onUnmounted(() => {
                     class="p-2 -m-2 text-charcoal-light hover:text-charcoal dark:text-dark-text-secondary dark:hover:text-dark-text cursor-pointer"
                     @click="showSettings = false"
                   >
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    <svg
+                      class="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M6 18L18 6M6 6l12 12"
+                      />
                     </svg>
                   </button>
                 </div>
@@ -221,8 +264,18 @@ onUnmounted(() => {
         class="flex items-center justify-between p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg"
       >
         <div class="flex items-center gap-2">
-          <svg class="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          <svg
+            class="w-5 h-5 text-red-500"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
           </svg>
           <span class="font-body text-sm text-red-700 dark:text-red-300">
             <strong>{{ error.file }}:</strong> {{ error.error }}
@@ -233,8 +286,18 @@ onUnmounted(() => {
           class="p-1 text-red-500 hover:text-red-700 dark:hover:text-red-300 cursor-pointer"
           @click="dismissError(index)"
         >
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          <svg
+            class="w-4 h-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M6 18L18 6M6 6l12 12"
+            />
           </svg>
         </button>
       </div>
@@ -242,15 +305,21 @@ onUnmounted(() => {
 
     <!-- Loading State -->
     <div v-if="isLoading" class="text-center py-12">
-      <div class="inline-block w-8 h-8 border-3 border-sage border-t-transparent rounded-full animate-spin"></div>
-      <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary mt-3">
+      <div
+        class="inline-block w-8 h-8 border-3 border-sage border-t-transparent rounded-full animate-spin"
+      ></div>
+      <p
+        class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary mt-3"
+      >
         Loading gallery...
       </p>
     </div>
 
     <!-- Error State -->
     <div v-else-if="loadError" class="text-center py-12">
-      <p class="font-body text-sm text-red-600 dark:text-red-400">{{ loadError }}</p>
+      <p class="font-body text-sm text-red-600 dark:text-red-400">
+        {{ loadError }}
+      </p>
       <button
         type="button"
         class="mt-3 px-4 py-2 font-body text-sm text-sage border border-sage rounded-full hover:bg-sage hover:text-white transition-colors cursor-pointer"
@@ -271,23 +340,40 @@ onUnmounted(() => {
         @files-selected="handleFilesSelected"
       />
 
-      <div v-else class="p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg">
+      <div
+        v-else
+        class="p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg"
+      >
         <p class="font-body text-sm text-amber-700 dark:text-amber-300">
-          Maximum number of images ({{ settings.maxImages }}) reached. Delete some images to upload more.
+          Maximum number of images ({{ settings.maxImages }}) reached. Delete
+          some images to upload more.
         </p>
       </div>
 
       <!-- Empty State -->
-      <div v-if="images.length === 0" class="text-center py-12 bg-white dark:bg-dark-bg-secondary rounded-xl border border-sand-dark dark:border-dark-border">
-        <svg class="w-16 h-16 mx-auto text-charcoal-light/30 dark:text-dark-text-secondary/30 mb-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+      <div
+        v-if="images.length === 0"
+        class="text-center py-12 bg-white dark:bg-dark-bg-secondary rounded-xl border border-sand-dark dark:border-dark-border"
+      >
+        <svg
+          class="w-16 h-16 mx-auto text-charcoal-light/30 dark:text-dark-text-secondary/30 mb-4"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.5"
+        >
           <rect x="3" y="3" width="18" height="18" rx="2" />
           <circle cx="8.5" cy="8.5" r="1.5" />
           <path d="M21 15l-5-5L5 21" />
         </svg>
-        <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary">
+        <p
+          class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary"
+        >
           No images in gallery yet.
         </p>
-        <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary mt-2">
+        <p
+          class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary mt-2"
+        >
           Upload your first image to get started.
         </p>
       </div>

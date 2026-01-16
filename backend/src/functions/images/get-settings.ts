@@ -18,7 +18,12 @@ const docClient = DynamoDBDocumentClient.from(dynamoClient);
 export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
   const authResult = requireAuth(event);
   if (!authResult.authenticated) {
-    return createErrorResponse(authResult.statusCode, authResult.error, context, "AUTH_ERROR");
+    return createErrorResponse(
+      authResult.statusCode,
+      authResult.error,
+      context,
+      "AUTH_ERROR",
+    );
   }
 
   try {
@@ -26,25 +31,37 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
       new GetCommand({
         TableName: Resource.AppDataTable.name,
         Key: { pk: "SETTINGS", sk: "IMAGES" },
-      })
+      }),
     );
 
     const settings = {
-      maxFileSize: (result.Item?.maxFileSize as number) ?? DEFAULT_MAX_FILE_SIZE,
+      maxFileSize:
+        (result.Item?.maxFileSize as number) ?? DEFAULT_MAX_FILE_SIZE,
       maxImages: (result.Item?.maxImages as number) ?? DEFAULT_MAX_IMAGES,
-      allowedFormats: (result.Item?.allowedFormats as string[]) ?? [...ALLOWED_MIME_TYPES],
-      showGallery: (result.Item?.showGallery as boolean) ?? DEFAULT_SHOW_GALLERY,
+      allowedFormats: (result.Item?.allowedFormats as string[]) ?? [
+        ...ALLOWED_MIME_TYPES,
+      ],
+      showGallery:
+        (result.Item?.showGallery as boolean) ?? DEFAULT_SHOW_GALLERY,
       updatedAt: result.Item?.updatedAt as string | undefined,
       updatedBy: result.Item?.updatedBy as string | undefined,
     };
 
     return createSuccessResponse(200, settings, context);
   } catch (error) {
-    logError({
-      endpoint: "GET /images/settings",
-      operation: "getImageSettings",
-      requestId: context.awsRequestId,
-    }, error);
-    return createErrorResponse(500, "Failed to get settings", context, "DB_ERROR");
+    logError(
+      {
+        endpoint: "GET /images/settings",
+        operation: "getImageSettings",
+        requestId: context.awsRequestId,
+      },
+      error,
+    );
+    return createErrorResponse(
+      500,
+      "Failed to get settings",
+      context,
+      "DB_ERROR",
+    );
   }
 };

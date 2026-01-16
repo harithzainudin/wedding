@@ -1,6 +1,10 @@
 import type { APIGatewayProxyHandlerV2 } from "aws-lambda";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocumentClient, GetCommand, QueryCommand } from "@aws-sdk/lib-dynamodb";
+import {
+  DynamoDBDocumentClient,
+  GetCommand,
+  QueryCommand,
+} from "@aws-sdk/lib-dynamodb";
 import { Resource } from "sst";
 import { createSuccessResponse, createErrorResponse } from "../shared/response";
 import { logError } from "../shared/logger";
@@ -58,7 +62,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (_event, context) => {
       new GetCommand({
         TableName: Resource.AppDataTable.name,
         Key: { pk: "SETTINGS", sk: "MUSIC" },
-      })
+      }),
     );
 
     const settings: MusicSettings = {
@@ -68,10 +72,16 @@ export const handler: APIGatewayProxyHandlerV2 = async (_event, context) => {
       mode: (settingsResult.Item?.mode as string) ?? DEFAULT_MODE,
       shuffle: (settingsResult.Item?.shuffle as boolean) ?? DEFAULT_SHUFFLE,
       loop: (settingsResult.Item?.loop as boolean) ?? DEFAULT_LOOP,
-      selectedTrackId: settingsResult.Item?.selectedTrackId as string | undefined,
-      maxFileSize: (settingsResult.Item?.maxFileSize as number) ?? DEFAULT_MAX_FILE_SIZE,
-      maxTracks: (settingsResult.Item?.maxTracks as number) ?? DEFAULT_MAX_TRACKS,
-      allowedFormats: (settingsResult.Item?.allowedFormats as string[]) ?? [...ALLOWED_AUDIO_MIME_TYPES],
+      selectedTrackId: settingsResult.Item?.selectedTrackId as
+        | string
+        | undefined,
+      maxFileSize:
+        (settingsResult.Item?.maxFileSize as number) ?? DEFAULT_MAX_FILE_SIZE,
+      maxTracks:
+        (settingsResult.Item?.maxTracks as number) ?? DEFAULT_MAX_TRACKS,
+      allowedFormats: (settingsResult.Item?.allowedFormats as string[]) ?? [
+        ...ALLOWED_AUDIO_MIME_TYPES,
+      ],
       updatedAt: settingsResult.Item?.updatedAt as string | undefined,
       updatedBy: settingsResult.Item?.updatedBy as string | undefined,
     };
@@ -84,7 +94,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (_event, context) => {
         KeyConditionExpression: "gsi1pk = :pk",
         ExpressionAttributeValues: { ":pk": "MUSIC_TRACKS" },
         ScanIndexForward: true, // ascending order
-      })
+      }),
     );
 
     const bucketName = Resource.WeddingImageBucket.name;
@@ -105,16 +115,28 @@ export const handler: APIGatewayProxyHandlerV2 = async (_event, context) => {
       uploadedBy: item.uploadedBy as string,
     }));
 
-    return createSuccessResponse(200, {
-      settings,
-      tracks,
-    }, context);
+    return createSuccessResponse(
+      200,
+      {
+        settings,
+        tracks,
+      },
+      context,
+    );
   } catch (error) {
-    logError({
-      endpoint: "GET /music",
-      operation: "getMusicData",
-      requestId: context.awsRequestId,
-    }, error);
-    return createErrorResponse(500, "Failed to get music data", context, "DB_ERROR");
+    logError(
+      {
+        endpoint: "GET /music",
+        operation: "getMusicData",
+        requestId: context.awsRequestId,
+      },
+      error,
+    );
+    return createErrorResponse(
+      500,
+      "Failed to get music data",
+      context,
+      "DB_ERROR",
+    );
   }
 };

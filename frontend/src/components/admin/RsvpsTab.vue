@@ -88,30 +88,68 @@ onMounted(() => {
 <template>
   <div>
     <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
-      <div class="p-4 bg-white dark:bg-dark-bg-secondary rounded-xl shadow-sm dark:shadow-lg">
-        <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary">Total RSVPs</p>
-        <p class="font-heading text-2xl text-sage-dark dark:text-sage-light">{{ summary.total }}</p>
+      <div
+        class="p-4 bg-white dark:bg-dark-bg-secondary rounded-xl shadow-sm dark:shadow-lg"
+      >
+        <p
+          class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary"
+        >
+          Total RSVPs
+        </p>
+        <p class="font-heading text-2xl text-sage-dark dark:text-sage-light">
+          {{ summary.total }}
+        </p>
       </div>
-      <div class="p-4 bg-white dark:bg-dark-bg-secondary rounded-xl shadow-sm dark:shadow-lg">
-        <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary">Attending</p>
-        <p class="font-heading text-2xl text-green-600 dark:text-green-400">{{ summary.attending }}</p>
+      <div
+        class="p-4 bg-white dark:bg-dark-bg-secondary rounded-xl shadow-sm dark:shadow-lg"
+      >
+        <p
+          class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary"
+        >
+          Attending
+        </p>
+        <p class="font-heading text-2xl text-green-600 dark:text-green-400">
+          {{ summary.attending }}
+        </p>
       </div>
-      <div class="p-4 bg-white dark:bg-dark-bg-secondary rounded-xl shadow-sm dark:shadow-lg">
-        <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary">Not Attending</p>
-        <p class="font-heading text-2xl text-red-600 dark:text-red-400">{{ summary.notAttending }}</p>
+      <div
+        class="p-4 bg-white dark:bg-dark-bg-secondary rounded-xl shadow-sm dark:shadow-lg"
+      >
+        <p
+          class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary"
+        >
+          Not Attending
+        </p>
+        <p class="font-heading text-2xl text-red-600 dark:text-red-400">
+          {{ summary.notAttending }}
+        </p>
       </div>
-      <div class="p-4 bg-white dark:bg-dark-bg-secondary rounded-xl shadow-sm dark:shadow-lg">
-        <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary">Total Guests</p>
-        <p class="font-heading text-2xl text-sage-dark dark:text-sage-light">{{ summary.totalGuests }}</p>
+      <div
+        class="p-4 bg-white dark:bg-dark-bg-secondary rounded-xl shadow-sm dark:shadow-lg"
+      >
+        <p
+          class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary"
+        >
+          Total Guests
+        </p>
+        <p class="font-heading text-2xl text-sage-dark dark:text-sage-light">
+          {{ summary.totalGuests }}
+        </p>
       </div>
     </div>
 
-    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
+    <div
+      class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6"
+    >
       <div class="flex gap-2 flex-wrap">
         <button
           type="button"
           class="px-3 py-1.5 font-body text-sm rounded-full transition-colors cursor-pointer"
-          :class="filter === 'all' ? 'bg-sage text-white' : 'bg-white dark:bg-dark-bg-elevated text-charcoal dark:text-dark-text hover:bg-sand-dark dark:hover:bg-dark-border'"
+          :class="
+            filter === 'all'
+              ? 'bg-sage text-white'
+              : 'bg-white dark:bg-dark-bg-elevated text-charcoal dark:text-dark-text hover:bg-sand-dark dark:hover:bg-dark-border'
+          "
           @click="setFilter('all')"
         >
           All ({{ summary.total }})
@@ -119,7 +157,11 @@ onMounted(() => {
         <button
           type="button"
           class="px-3 py-1.5 font-body text-sm rounded-full transition-colors cursor-pointer"
-          :class="filter === 'attending' ? 'bg-green-600 text-white' : 'bg-white dark:bg-dark-bg-elevated text-charcoal dark:text-dark-text hover:bg-sand-dark dark:hover:bg-dark-border'"
+          :class="
+            filter === 'attending'
+              ? 'bg-green-600 text-white'
+              : 'bg-white dark:bg-dark-bg-elevated text-charcoal dark:text-dark-text hover:bg-sand-dark dark:hover:bg-dark-border'
+          "
           @click="setFilter('attending')"
         >
           Attending ({{ summary.attending }})
@@ -127,7 +169,11 @@ onMounted(() => {
         <button
           type="button"
           class="px-3 py-1.5 font-body text-sm rounded-full transition-colors cursor-pointer"
-          :class="filter === 'not_attending' ? 'bg-red-600 text-white' : 'bg-white dark:bg-dark-bg-elevated text-charcoal dark:text-dark-text hover:bg-sand-dark dark:hover:bg-dark-border'"
+          :class="
+            filter === 'not_attending'
+              ? 'bg-red-600 text-white'
+              : 'bg-white dark:bg-dark-bg-elevated text-charcoal dark:text-dark-text hover:bg-sand-dark dark:hover:bg-dark-border'
+          "
           @click="setFilter('not_attending')"
         >
           Not Attending ({{ summary.notAttending }})
@@ -140,7 +186,13 @@ onMounted(() => {
           class="flex items-center gap-2 px-4 py-2 font-body text-sm text-white bg-sage rounded-lg hover:bg-sage-dark transition-colors cursor-pointer"
           @click="openAddModal"
         >
-          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <svg
+            class="w-4 h-4"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
             <line x1="12" y1="5" x2="12" y2="19" />
             <line x1="5" y1="12" x2="19" y2="12" />
           </svg>
@@ -151,8 +203,16 @@ onMounted(() => {
           class="flex items-center gap-2 px-4 py-2 font-body text-sm text-sage border border-sage rounded-lg hover:bg-sage hover:text-white transition-colors cursor-pointer"
           @click="exportToCsv"
         >
-          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3" />
+          <svg
+            class="w-4 h-4"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path
+              d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"
+            />
           </svg>
           Export CSV
         </button>
@@ -160,12 +220,20 @@ onMounted(() => {
     </div>
 
     <div v-if="isLoading" class="text-center py-12">
-      <div class="inline-block w-8 h-8 border-3 border-sage border-t-transparent rounded-full animate-spin"></div>
-      <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary mt-3">Loading RSVPs...</p>
+      <div
+        class="inline-block w-8 h-8 border-3 border-sage border-t-transparent rounded-full animate-spin"
+      ></div>
+      <p
+        class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary mt-3"
+      >
+        Loading RSVPs...
+      </p>
     </div>
 
     <div v-else-if="loadError" class="text-center py-12">
-      <p class="font-body text-sm text-red-600 dark:text-red-400">{{ loadError }}</p>
+      <p class="font-body text-sm text-red-600 dark:text-red-400">
+        {{ loadError }}
+      </p>
       <button
         type="button"
         class="mt-3 px-4 py-2 font-body text-sm text-sage border border-sage rounded-full hover:bg-sage hover:text-white transition-colors cursor-pointer"
@@ -175,8 +243,15 @@ onMounted(() => {
       </button>
     </div>
 
-    <div v-else-if="filteredRsvps.length === 0" class="text-center py-12 bg-white dark:bg-dark-bg-secondary rounded-xl">
-      <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary">No RSVPs found.</p>
+    <div
+      v-else-if="filteredRsvps.length === 0"
+      class="text-center py-12 bg-white dark:bg-dark-bg-secondary rounded-xl"
+    >
+      <p
+        class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary"
+      >
+        No RSVPs found.
+      </p>
       <button
         type="button"
         class="mt-3 px-4 py-2 font-body text-sm text-sage border border-sage rounded-full hover:bg-sage hover:text-white transition-colors cursor-pointer"
@@ -192,7 +267,9 @@ onMounted(() => {
         :key="rsvp.id"
         class="p-4 bg-white dark:bg-dark-bg-secondary rounded-xl shadow-sm dark:shadow-lg"
       >
-        <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+        <div
+          class="flex flex-col sm:flex-row sm:items-start justify-between gap-3"
+        >
           <div class="flex-1">
             <div class="flex items-center gap-2 mb-1 flex-wrap">
               <p class="font-heading text-lg text-charcoal dark:text-dark-text">
@@ -200,7 +277,11 @@ onMounted(() => {
               </p>
               <span
                 class="px-2 py-0.5 text-xs font-medium rounded-full"
-                :class="rsvp.isAttending ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300' : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300'"
+                :class="
+                  rsvp.isAttending
+                    ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'
+                    : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300'
+                "
               >
                 {{ rsvp.isAttending ? "Attending" : "Not Attending" }}
               </span>
@@ -211,18 +292,29 @@ onMounted(() => {
                 Manual
               </span>
             </div>
-            <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary">
+            <p
+              class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary"
+            >
               <span v-if="rsvp.phoneNumber">{{ rsvp.phoneNumber }}</span>
               <span v-if="rsvp.phoneNumber && rsvp.isAttending"> &bull; </span>
-              <span v-if="rsvp.isAttending">{{ rsvp.numberOfGuests }} guest(s)</span>
-              <span v-if="!rsvp.phoneNumber && !rsvp.isAttending" class="italic">No phone provided</span>
+              <span v-if="rsvp.isAttending"
+                >{{ rsvp.numberOfGuests }} guest(s)</span
+              >
+              <span v-if="!rsvp.phoneNumber && !rsvp.isAttending" class="italic"
+                >No phone provided</span
+              >
             </p>
-            <p v-if="rsvp.message" class="font-body text-sm text-charcoal dark:text-dark-text mt-2 italic">
+            <p
+              v-if="rsvp.message"
+              class="font-body text-sm text-charcoal dark:text-dark-text mt-2 italic"
+            >
               "{{ rsvp.message }}"
             </p>
           </div>
           <div class="flex items-center gap-2">
-            <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary whitespace-nowrap">
+            <p
+              class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary whitespace-nowrap"
+            >
               {{ formatDate(rsvp.submittedAt) }}
             </p>
             <div class="flex gap-1">
@@ -232,9 +324,19 @@ onMounted(() => {
                 title="Edit"
                 @click="openEditModal(rsvp)"
               >
-                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" />
-                  <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" />
+                <svg
+                  class="w-4 h-4"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path
+                    d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"
+                  />
+                  <path
+                    d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"
+                  />
                 </svg>
               </button>
               <button
@@ -243,9 +345,17 @@ onMounted(() => {
                 title="Delete"
                 @click="openDeleteModal(rsvp)"
               >
-                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <svg
+                  class="w-4 h-4"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
                   <polyline points="3 6 5 6 21 6" />
-                  <path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" />
+                  <path
+                    d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"
+                  />
                 </svg>
               </button>
             </div>
@@ -307,7 +417,13 @@ onMounted(() => {
           v-if="operationError"
           class="fixed bottom-4 right-4 bg-red-600 text-white px-4 py-3 rounded-lg shadow-lg flex items-center gap-3 z-50"
         >
-          <svg class="w-5 h-5 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <svg
+            class="w-5 h-5 flex-shrink-0"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
             <circle cx="12" cy="12" r="10" />
             <line x1="15" y1="9" x2="9" y2="15" />
             <line x1="9" y1="9" x2="15" y2="15" />
@@ -318,7 +434,13 @@ onMounted(() => {
             class="ml-2 hover:opacity-80 transition-opacity cursor-pointer"
             @click="clearOperationError"
           >
-            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <svg
+              class="w-4 h-4"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
               <line x1="18" y1="6" x2="6" y2="18" />
               <line x1="6" y1="6" x2="18" y2="18" />
             </svg>

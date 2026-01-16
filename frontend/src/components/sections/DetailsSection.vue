@@ -4,11 +4,21 @@ import { useLanguage } from "@/composables/useLanguage";
 import { useVenueConfig } from "@/composables/useVenueConfig";
 import { usePublicWeddingData } from "@/composables/usePublicWeddingData";
 import { useNameOrder } from "@/composables/useNameOrder";
-import type { EventDisplayPreset, EventDisplayCustomOptions } from "@/types/weddingDetails";
+import type {
+  EventDisplayPreset,
+  EventDisplayCustomOptions,
+} from "@/types/weddingDetails";
 
 const { t, currentLanguage } = useLanguage();
 const { venue } = useVenueConfig();
-const { getEventDate, getEventEndTime, getEventDisplayFormat, getDressCode, getHashtag, isLoadingWeddingDetails } = usePublicWeddingData();
+const {
+  getEventDate,
+  getEventEndTime,
+  getEventDisplayFormat,
+  getDressCode,
+  getHashtag,
+  isLoadingWeddingDetails,
+} = usePublicWeddingData();
 const { orderedCouple, orderedParentsWithVisibility } = useNameOrder();
 
 const localeMap: Record<string, string> = {
@@ -27,16 +37,42 @@ const dressCode = computed(() => getDressCode());
 const hashtag = computed(() => getHashtag());
 
 // Get display options for a preset
-function getOptionsForPreset(preset: EventDisplayPreset): EventDisplayCustomOptions {
+function getOptionsForPreset(
+  preset: EventDisplayPreset,
+): EventDisplayCustomOptions {
   switch (preset) {
     case "date_time_range":
-      return { showDate: true, showStartTime: true, showEndTime: true, showDayOfWeek: true, timeFormat: "12h" };
+      return {
+        showDate: true,
+        showStartTime: true,
+        showEndTime: true,
+        showDayOfWeek: true,
+        timeFormat: "12h",
+      };
     case "date_start_only":
-      return { showDate: true, showStartTime: true, showEndTime: false, showDayOfWeek: true, timeFormat: "12h" };
+      return {
+        showDate: true,
+        showStartTime: true,
+        showEndTime: false,
+        showDayOfWeek: true,
+        timeFormat: "12h",
+      };
     case "date_only":
-      return { showDate: true, showStartTime: false, showEndTime: false, showDayOfWeek: true, timeFormat: "12h" };
+      return {
+        showDate: true,
+        showStartTime: false,
+        showEndTime: false,
+        showDayOfWeek: true,
+        timeFormat: "12h",
+      };
     case "full_details":
-      return { showDate: true, showStartTime: true, showEndTime: true, showDayOfWeek: true, timeFormat: "12h" };
+      return {
+        showDate: true,
+        showStartTime: true,
+        showEndTime: true,
+        showDayOfWeek: true,
+        timeFormat: "12h",
+      };
     case "custom":
     default:
       return displayFormat.value.customOptions;
@@ -46,17 +82,24 @@ function getOptionsForPreset(preset: EventDisplayPreset): EventDisplayCustomOpti
 // Get the effective display options
 const effectiveOptions = computed(() => {
   const format = displayFormat.value;
-  return format.preset === "custom" ? format.customOptions : getOptionsForPreset(format.preset);
+  return format.preset === "custom"
+    ? format.customOptions
+    : getOptionsForPreset(format.preset);
 });
 
 // Check if we should show date
 const shouldShowDate = computed(() => effectiveOptions.value.showDate);
 
 // Check if we should show time
-const shouldShowTime = computed(() => effectiveOptions.value.showStartTime || effectiveOptions.value.showEndTime);
+const shouldShowTime = computed(
+  () =>
+    effectiveOptions.value.showStartTime || effectiveOptions.value.showEndTime,
+);
 
 // Check if using full details format
-const isFullDetails = computed(() => displayFormat.value.preset === "full_details");
+const isFullDetails = computed(
+  () => displayFormat.value.preset === "full_details",
+);
 
 // Custom format parser - converts format strings like "DD/MM/YYYY" to formatted date
 function formatDateWithPattern(date: Date, pattern: string): string {
@@ -64,10 +107,10 @@ function formatDateWithPattern(date: Date, pattern: string): string {
 
   // Get localized month and day names
   const monthNames: string[] = Array.from({ length: 12 }, (_, i) =>
-    new Date(2000, i, 1).toLocaleDateString(locale, { month: "long" })
+    new Date(2000, i, 1).toLocaleDateString(locale, { month: "long" }),
   );
   const dayNames: string[] = Array.from({ length: 7 }, (_, i) =>
-    new Date(2000, 0, 2 + i).toLocaleDateString(locale, { weekday: "long" })
+    new Date(2000, 0, 2 + i).toLocaleDateString(locale, { weekday: "long" }),
   );
 
   const year = date.getFullYear();
@@ -133,10 +176,16 @@ const formattedTime = computed(() => {
 
   // Use custom time format if provided
   if (displayFormat.value.preset === "custom" && options.customTimeFormat) {
-    const startTimeStr = formatDateWithPattern(eventDate.value, options.customTimeFormat);
+    const startTimeStr = formatDateWithPattern(
+      eventDate.value,
+      options.customTimeFormat,
+    );
 
     if (options.showEndTime && eventEndTime.value) {
-      const endTimeStr = formatDateWithPattern(eventEndTime.value, options.customTimeFormat);
+      const endTimeStr = formatDateWithPattern(
+        eventEndTime.value,
+        options.customTimeFormat,
+      );
       return `${startTimeStr} - ${endTimeStr}`;
     }
 
@@ -153,7 +202,10 @@ const formattedTime = computed(() => {
 
   // If showing end time and we have one
   if (options.showEndTime && eventEndTime.value) {
-    const endTimeStr = eventEndTime.value.toLocaleTimeString(locale, timeOptions);
+    const endTimeStr = eventEndTime.value.toLocaleTimeString(
+      locale,
+      timeOptions,
+    );
     return `${startTimeStr} - ${endTimeStr}`;
   }
 
@@ -224,15 +276,21 @@ const copyHashtag = async (): Promise<void> => {
 </script>
 
 <template>
-  <section class="py-12 sm:py-16 px-4 sm:px-6 bg-sand dark:bg-dark-bg transition-colors duration-300">
+  <section
+    class="py-12 sm:py-16 px-4 sm:px-6 bg-sand dark:bg-dark-bg transition-colors duration-300"
+  >
     <div class="max-w-xl mx-auto text-center">
       <!-- Formal Invitation -->
       <div class="mb-8 sm:mb-12">
-        <p class="font-heading text-lg sm:text-xl text-sage-dark dark:text-sage-light mb-4 sm:mb-6">
+        <p
+          class="font-heading text-lg sm:text-xl text-sage-dark dark:text-sage-light mb-4 sm:mb-6"
+        >
           {{ t.details.greeting }}
         </p>
 
-        <p class="font-body text-sm sm:text-base text-charcoal-light dark:text-dark-text-secondary leading-relaxed mb-4 sm:mb-6">
+        <p
+          class="font-body text-sm sm:text-base text-charcoal-light dark:text-dark-text-secondary leading-relaxed mb-4 sm:mb-6"
+        >
           {{ t.details.withGratitude }}
         </p>
 
@@ -242,15 +300,23 @@ const copyHashtag = async (): Promise<void> => {
           <div v-if="parentsInfo.firstVisible" class="mb-3 sm:mb-4">
             <template v-if="isLoadingWeddingDetails">
               <div class="animate-pulse flex flex-col items-center space-y-2">
-                <div class="h-5 sm:h-6 w-48 sm:w-56 bg-charcoal/10 dark:bg-dark-text/10 rounded"></div>
-                <div class="h-5 sm:h-6 w-52 sm:w-60 bg-charcoal/10 dark:bg-dark-text/10 rounded"></div>
+                <div
+                  class="h-5 sm:h-6 w-48 sm:w-56 bg-charcoal/10 dark:bg-dark-text/10 rounded"
+                ></div>
+                <div
+                  class="h-5 sm:h-6 w-52 sm:w-60 bg-charcoal/10 dark:bg-dark-text/10 rounded"
+                ></div>
               </div>
             </template>
             <template v-else>
-              <p class="font-heading text-base sm:text-lg text-charcoal dark:text-dark-text">
+              <p
+                class="font-heading text-base sm:text-lg text-charcoal dark:text-dark-text"
+              >
                 {{ parentsInfo.first.father }}
               </p>
-              <p class="font-heading text-base sm:text-lg text-charcoal dark:text-dark-text">
+              <p
+                class="font-heading text-base sm:text-lg text-charcoal dark:text-dark-text"
+              >
                 & {{ parentsInfo.first.mother }}
               </p>
             </template>
@@ -268,22 +334,32 @@ const copyHashtag = async (): Promise<void> => {
           <div v-if="parentsInfo.secondVisible" class="mb-4 sm:mb-6">
             <template v-if="isLoadingWeddingDetails">
               <div class="animate-pulse flex flex-col items-center space-y-2">
-                <div class="h-5 sm:h-6 w-48 sm:w-56 bg-charcoal/10 dark:bg-dark-text/10 rounded"></div>
-                <div class="h-5 sm:h-6 w-52 sm:w-60 bg-charcoal/10 dark:bg-dark-text/10 rounded"></div>
+                <div
+                  class="h-5 sm:h-6 w-48 sm:w-56 bg-charcoal/10 dark:bg-dark-text/10 rounded"
+                ></div>
+                <div
+                  class="h-5 sm:h-6 w-52 sm:w-60 bg-charcoal/10 dark:bg-dark-text/10 rounded"
+                ></div>
               </div>
             </template>
             <template v-else>
-              <p class="font-heading text-base sm:text-lg text-charcoal dark:text-dark-text">
+              <p
+                class="font-heading text-base sm:text-lg text-charcoal dark:text-dark-text"
+              >
                 {{ parentsInfo.second.father }}
               </p>
-              <p class="font-heading text-base sm:text-lg text-charcoal dark:text-dark-text">
+              <p
+                class="font-heading text-base sm:text-lg text-charcoal dark:text-dark-text"
+              >
                 & {{ parentsInfo.second.mother }}
               </p>
             </template>
           </div>
         </template>
 
-        <p class="font-body text-xs sm:text-sm text-charcoal-light dark:text-dark-text-secondary leading-relaxed px-2">
+        <p
+          class="font-body text-xs sm:text-sm text-charcoal-light dark:text-dark-text-secondary leading-relaxed px-2"
+        >
           {{ t.details.invitation }}
         </p>
       </div>
@@ -292,28 +368,42 @@ const copyHashtag = async (): Promise<void> => {
       <div class="mb-8 sm:mb-12">
         <template v-if="isLoadingWeddingDetails">
           <div class="animate-pulse flex flex-col items-center">
-            <div class="h-8 sm:h-9 md:h-10 w-56 sm:w-64 md:w-72 bg-sage/20 rounded mb-1 sm:mb-2"></div>
-            <p class="font-heading text-xl sm:text-2xl text-charcoal-light dark:text-dark-text-secondary mb-1 sm:mb-2">
+            <div
+              class="h-8 sm:h-9 md:h-10 w-56 sm:w-64 md:w-72 bg-sage/20 rounded mb-1 sm:mb-2"
+            ></div>
+            <p
+              class="font-heading text-xl sm:text-2xl text-charcoal-light dark:text-dark-text-secondary mb-1 sm:mb-2"
+            >
               &
             </p>
-            <div class="h-8 sm:h-9 md:h-10 w-56 sm:w-64 md:w-72 bg-sage/20 rounded"></div>
+            <div
+              class="h-8 sm:h-9 md:h-10 w-56 sm:w-64 md:w-72 bg-sage/20 rounded"
+            ></div>
           </div>
         </template>
         <template v-else>
-          <h2 class="font-heading text-2xl sm:text-3xl md:text-4xl text-sage-dark dark:text-sage-light mb-1 sm:mb-2 leading-tight">
+          <h2
+            class="font-heading text-2xl sm:text-3xl md:text-4xl text-sage-dark dark:text-sage-light mb-1 sm:mb-2 leading-tight"
+          >
             {{ couple.first.fullName }}
           </h2>
-          <p class="font-heading text-xl sm:text-2xl text-charcoal-light dark:text-dark-text-secondary mb-1 sm:mb-2">
+          <p
+            class="font-heading text-xl sm:text-2xl text-charcoal-light dark:text-dark-text-secondary mb-1 sm:mb-2"
+          >
             &
           </p>
-          <h2 class="font-heading text-2xl sm:text-3xl md:text-4xl text-sage-dark dark:text-sage-light leading-tight">
+          <h2
+            class="font-heading text-2xl sm:text-3xl md:text-4xl text-sage-dark dark:text-sage-light leading-tight"
+          >
             {{ couple.second.fullName }}
           </h2>
         </template>
       </div>
 
       <!-- Divider -->
-      <div class="flex items-center justify-center gap-3 sm:gap-4 mb-8 sm:mb-12">
+      <div
+        class="flex items-center justify-center gap-3 sm:gap-4 mb-8 sm:mb-12"
+      >
         <div class="h-px w-12 sm:w-16 bg-sage/30"></div>
         <div class="w-2 h-2 rounded-full bg-sage/50"></div>
         <div class="h-px w-12 sm:w-16 bg-sage/30"></div>
@@ -322,47 +412,69 @@ const copyHashtag = async (): Promise<void> => {
       <!-- Event Details -->
       <div class="space-y-4 sm:space-y-5">
         <div v-if="shouldShowDate">
-          <p class="font-body text-xs sm:text-sm uppercase tracking-wider text-charcoal-light dark:text-dark-text-secondary mb-1">
+          <p
+            class="font-body text-xs sm:text-sm uppercase tracking-wider text-charcoal-light dark:text-dark-text-secondary mb-1"
+          >
             {{ t.details.date }}
           </p>
-          <p class="font-heading text-lg sm:text-xl text-charcoal dark:text-dark-text">
+          <p
+            class="font-heading text-lg sm:text-xl text-charcoal dark:text-dark-text"
+          >
             {{ formattedDate }}
           </p>
         </div>
 
         <!-- Standard time display (for date_time_range, date_start_only presets) -->
         <div v-if="shouldShowTime && !isFullDetails">
-          <p class="font-body text-xs sm:text-sm uppercase tracking-wider text-charcoal-light dark:text-dark-text-secondary mb-1">
+          <p
+            class="font-body text-xs sm:text-sm uppercase tracking-wider text-charcoal-light dark:text-dark-text-secondary mb-1"
+          >
             {{ t.details.time }}
           </p>
-          <p class="font-heading text-lg sm:text-xl text-charcoal dark:text-dark-text">
+          <p
+            class="font-heading text-lg sm:text-xl text-charcoal dark:text-dark-text"
+          >
             {{ formattedTime }}
           </p>
         </div>
 
         <!-- Full details format (separate start/end times) -->
         <div v-if="shouldShowTime && isFullDetails">
-          <p class="font-body text-xs sm:text-sm uppercase tracking-wider text-charcoal-light dark:text-dark-text-secondary mb-1">
+          <p
+            class="font-body text-xs sm:text-sm uppercase tracking-wider text-charcoal-light dark:text-dark-text-secondary mb-1"
+          >
             {{ t.details.time }}
           </p>
           <div class="space-y-1">
-            <p v-if="formattedStartTime" class="font-heading text-lg sm:text-xl text-charcoal dark:text-dark-text">
+            <p
+              v-if="formattedStartTime"
+              class="font-heading text-lg sm:text-xl text-charcoal dark:text-dark-text"
+            >
               Starts: {{ formattedStartTime }}
             </p>
-            <p v-if="formattedEndTime" class="font-heading text-lg sm:text-xl text-charcoal dark:text-dark-text">
+            <p
+              v-if="formattedEndTime"
+              class="font-heading text-lg sm:text-xl text-charcoal dark:text-dark-text"
+            >
               Ends: {{ formattedEndTime }}
             </p>
           </div>
         </div>
 
         <div>
-          <p class="font-body text-xs sm:text-sm uppercase tracking-wider text-charcoal-light dark:text-dark-text-secondary mb-1">
+          <p
+            class="font-body text-xs sm:text-sm uppercase tracking-wider text-charcoal-light dark:text-dark-text-secondary mb-1"
+          >
             {{ t.details.venue }}
           </p>
-          <p class="font-heading text-lg sm:text-xl text-charcoal dark:text-dark-text mb-1">
+          <p
+            class="font-heading text-lg sm:text-xl text-charcoal dark:text-dark-text mb-1"
+          >
             {{ venue.venueName }}
           </p>
-          <p class="font-body text-xs sm:text-sm text-charcoal-light dark:text-dark-text-secondary px-4">
+          <p
+            class="font-body text-xs sm:text-sm text-charcoal-light dark:text-dark-text-secondary px-4"
+          >
             {{ venue.address }}
           </p>
         </div>
@@ -373,10 +485,18 @@ const copyHashtag = async (): Promise<void> => {
           class="mt-2 p-3 sm:p-4 bg-white/50 dark:bg-dark-bg-elevated/50 rounded-lg"
         >
           <div class="flex items-start gap-2 justify-center">
-            <svg class="w-4 h-4 sm:w-5 sm:h-5 text-sage flex-shrink-0 mt-0.5" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M13 3H6v18h4v-6h3c3.31 0 6-2.69 6-6s-2.69-6-6-6zm.2 8H10V7h3.2c1.1 0 2 .9 2 2s-.9 2-2 2z"/>
+            <svg
+              class="w-4 h-4 sm:w-5 sm:h-5 text-sage flex-shrink-0 mt-0.5"
+              viewBox="0 0 24 24"
+              fill="currentColor"
+            >
+              <path
+                d="M13 3H6v18h4v-6h3c3.31 0 6-2.69 6-6s-2.69-6-6-6zm.2 8H10V7h3.2c1.1 0 2 .9 2 2s-.9 2-2 2z"
+              />
             </svg>
-            <p class="font-body text-xs sm:text-sm text-charcoal-light dark:text-dark-text-secondary text-left">
+            <p
+              class="font-body text-xs sm:text-sm text-charcoal-light dark:text-dark-text-secondary text-left"
+            >
               {{ venue.parkingInfo }}
             </p>
           </div>
@@ -385,29 +505,43 @@ const copyHashtag = async (): Promise<void> => {
 
       <!-- Dress Code & Hashtag -->
       <div class="mt-6 sm:mt-8 flex flex-col sm:flex-row gap-3 sm:gap-4">
-        <div class="flex-1 p-3 sm:p-4 bg-white dark:bg-dark-bg-elevated rounded-lg">
-          <p class="font-body text-xs sm:text-sm uppercase tracking-wider text-charcoal-light dark:text-dark-text-secondary mb-1">
+        <div
+          class="flex-1 p-3 sm:p-4 bg-white dark:bg-dark-bg-elevated rounded-lg"
+        >
+          <p
+            class="font-body text-xs sm:text-sm uppercase tracking-wider text-charcoal-light dark:text-dark-text-secondary mb-1"
+          >
             {{ t.details.dressCode }}
           </p>
           <template v-if="isLoadingWeddingDetails">
             <div class="animate-pulse">
-              <div class="h-5 sm:h-6 w-32 sm:w-40 bg-sage/20 rounded mx-auto"></div>
+              <div
+                class="h-5 sm:h-6 w-32 sm:w-40 bg-sage/20 rounded mx-auto"
+              ></div>
             </div>
           </template>
           <template v-else>
-            <p class="font-heading text-base sm:text-lg text-sage-dark dark:text-sage-light">
+            <p
+              class="font-heading text-base sm:text-lg text-sage-dark dark:text-sage-light"
+            >
               {{ dressCode }}
             </p>
           </template>
         </div>
 
-        <div class="flex-1 p-3 sm:p-4 bg-white dark:bg-dark-bg-elevated rounded-lg">
-          <p class="font-body text-xs sm:text-sm uppercase tracking-wider text-charcoal-light dark:text-dark-text-secondary mb-1">
+        <div
+          class="flex-1 p-3 sm:p-4 bg-white dark:bg-dark-bg-elevated rounded-lg"
+        >
+          <p
+            class="font-body text-xs sm:text-sm uppercase tracking-wider text-charcoal-light dark:text-dark-text-secondary mb-1"
+          >
             {{ t.details.shareYourMoments }}
           </p>
           <template v-if="isLoadingWeddingDetails">
             <div class="animate-pulse">
-              <div class="h-5 sm:h-6 w-36 sm:w-44 bg-sage/20 rounded mx-auto"></div>
+              <div
+                class="h-5 sm:h-6 w-36 sm:w-44 bg-sage/20 rounded mx-auto"
+              ></div>
             </div>
           </template>
           <template v-else>
@@ -418,10 +552,7 @@ const copyHashtag = async (): Promise<void> => {
             >
               {{ hashtag }}
             </button>
-            <p
-              v-if="copied"
-              class="font-body text-xs text-sage mt-1"
-            >
+            <p v-if="copied" class="font-body text-xs text-sage mt-1">
               {{ t.details.copied }}
             </p>
           </template>

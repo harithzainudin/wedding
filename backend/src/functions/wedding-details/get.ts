@@ -4,7 +4,10 @@ import { DynamoDBDocumentClient, GetCommand } from "@aws-sdk/lib-dynamodb";
 import { Resource } from "sst";
 import { createSuccessResponse, createErrorResponse } from "../shared/response";
 import { logError } from "../shared/logger";
-import { DEFAULT_WEDDING_DETAILS, type WeddingDetailsData } from "../shared/wedding-validation";
+import {
+  DEFAULT_WEDDING_DETAILS,
+  type WeddingDetailsData,
+} from "../shared/wedding-validation";
 
 const dynamoClient = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(dynamoClient);
@@ -15,7 +18,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (_event, context) => {
       new GetCommand({
         TableName: Resource.AppDataTable.name,
         Key: { pk: "SETTINGS", sk: "WEDDING" },
-      })
+      }),
     );
 
     if (!result.Item) {
@@ -41,11 +44,19 @@ export const handler: APIGatewayProxyHandlerV2 = async (_event, context) => {
 
     return createSuccessResponse(200, weddingData, context);
   } catch (error) {
-    logError({
-      endpoint: "GET /wedding-details",
-      operation: "fetchWeddingDetails",
-      requestId: context.awsRequestId,
-    }, error);
-    return createErrorResponse(500, "Failed to fetch wedding details", context, "DB_ERROR");
+    logError(
+      {
+        endpoint: "GET /wedding-details",
+        operation: "fetchWeddingDetails",
+        requestId: context.awsRequestId,
+      },
+      error,
+    );
+    return createErrorResponse(
+      500,
+      "Failed to fetch wedding details",
+      context,
+      "DB_ERROR",
+    );
   }
 };

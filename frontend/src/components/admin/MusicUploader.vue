@@ -37,7 +37,7 @@ const handleDrop = (e: DragEvent): void => {
   isDragging.value = false;
 
   const files = Array.from(e.dataTransfer?.files ?? []).filter((f) =>
-    ALLOWED_MIME_TYPES.includes(f.type)
+    ALLOWED_MIME_TYPES.includes(f.type),
   );
 
   if (files.length > 0) {
@@ -85,7 +85,7 @@ const uploadAll = (): void => {
         result.artist = p.artist;
       }
       return result;
-    })
+    }),
   );
 
   pendingFiles.value = [];
@@ -133,16 +133,21 @@ const openFilePicker = (): void => {
       </svg>
 
       <p class="font-body text-sm text-charcoal dark:text-dark-text mb-1">
-        <span class="text-sage font-medium">Click to upload</span> or drag and drop
+        <span class="text-sage font-medium">Click to upload</span> or drag and
+        drop
       </p>
-      <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary">
+      <p
+        class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary"
+      >
         MP3, M4A, WAV, OGG up to {{ formatFileSize(maxFileSize) }}
       </p>
     </div>
 
     <!-- Pending Files -->
     <div v-if="pendingFiles.length > 0" class="space-y-4">
-      <h3 class="font-heading text-sm font-medium text-charcoal dark:text-dark-text">
+      <h3
+        class="font-heading text-sm font-medium text-charcoal dark:text-dark-text"
+      >
         Files to upload ({{ pendingFiles.length }})
       </h3>
 
@@ -155,7 +160,9 @@ const openFilePicker = (): void => {
           <div class="flex items-start gap-4">
             <div class="flex-1 space-y-3">
               <div>
-                <label class="block font-body text-xs text-charcoal-light dark:text-dark-text-secondary mb-1">
+                <label
+                  class="block font-body text-xs text-charcoal-light dark:text-dark-text-secondary mb-1"
+                >
                   Title *
                 </label>
                 <input
@@ -166,7 +173,9 @@ const openFilePicker = (): void => {
                 />
               </div>
               <div>
-                <label class="block font-body text-xs text-charcoal-light dark:text-dark-text-secondary mb-1">
+                <label
+                  class="block font-body text-xs text-charcoal-light dark:text-dark-text-secondary mb-1"
+                >
                   Artist (optional)
                 </label>
                 <input
@@ -176,7 +185,9 @@ const openFilePicker = (): void => {
                   placeholder="Artist name"
                 />
               </div>
-              <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary">
+              <p
+                class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary"
+              >
                 {{ pending.file.name }}
               </p>
             </div>
@@ -185,8 +196,18 @@ const openFilePicker = (): void => {
               class="p-2 text-charcoal-light hover:text-red-500 dark:text-dark-text-secondary dark:hover:text-red-400 cursor-pointer"
               @click="removePendingFile(index)"
             >
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              <svg
+                class="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M6 18L18 6M6 6l12 12"
+                />
               </svg>
             </button>
           </div>
@@ -199,7 +220,9 @@ const openFilePicker = (): void => {
         :disabled="pendingFiles.some((p) => !p.title.trim())"
         @click="uploadAll"
       >
-        Upload {{ pendingFiles.length }} track{{ pendingFiles.length > 1 ? "s" : "" }}
+        Upload {{ pendingFiles.length }} track{{
+          pendingFiles.length > 1 ? "s" : ""
+        }}
       </button>
     </div>
   </div>

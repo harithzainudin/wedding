@@ -23,7 +23,7 @@ export interface VenueUpdateRequest {
 }
 
 export function validateVenueUpdate(
-  input: unknown
+  input: unknown,
 ): { valid: true; data: VenueUpdateRequest } | { valid: false; error: string } {
   if (typeof input !== "object" || input === null) {
     return { valid: false, error: "Invalid request body" };
@@ -54,10 +54,16 @@ export function validateVenueUpdate(
 
   const coords = body.coordinates as Record<string, unknown>;
   if (typeof coords.lat !== "number" || coords.lat < -90 || coords.lat > 90) {
-    return { valid: false, error: "Latitude must be a number between -90 and 90" };
+    return {
+      valid: false,
+      error: "Latitude must be a number between -90 and 90",
+    };
   }
   if (typeof coords.lng !== "number" || coords.lng < -180 || coords.lng > 180) {
-    return { valid: false, error: "Longitude must be a number between -180 and 180" };
+    return {
+      valid: false,
+      error: "Longitude must be a number between -180 and 180",
+    };
   }
 
   // Validate parkingInfo (optional)
@@ -67,7 +73,10 @@ export function validateVenueUpdate(
       return { valid: false, error: "Parking info must be a string" };
     }
     if (body.parkingInfo.length > 500) {
-      return { valid: false, error: "Parking info must be 500 characters or less" };
+      return {
+        valid: false,
+        error: "Parking info must be 500 characters or less",
+      };
     }
     parkingInfo = body.parkingInfo.trim() || undefined;
   }
@@ -97,12 +106,15 @@ export function generateWazeUrl(lat: number, lng: number): string {
 // Default venue data (fallback when no data exists in DB)
 export const DEFAULT_VENUE: VenueData = {
   venueName: "Dewan Seri Endon",
-  address: "Persiaran Mahameru, Presint 10, 62502 Putrajaya, Wilayah Persekutuan Putrajaya",
+  address:
+    "Persiaran Mahameru, Presint 10, 62502 Putrajaya, Wilayah Persekutuan Putrajaya",
   coordinates: {
     lat: 2.9264,
     lng: 101.6964,
   },
-  parkingInfo: "Parking percuma disediakan di kawasan hadapan dewan. Sila ikut papan tanda ke tempat letak kereta.",
-  googleMapsUrl: "https://www.google.com/maps/search/?api=1&query=2.9264,101.6964",
+  parkingInfo:
+    "Parking percuma disediakan di kawasan hadapan dewan. Sila ikut papan tanda ke tempat letak kereta.",
+  googleMapsUrl:
+    "https://www.google.com/maps/search/?api=1&query=2.9264,101.6964",
   wazeUrl: "https://waze.com/ul?ll=2.9264,101.6964&navigate=yes",
 };

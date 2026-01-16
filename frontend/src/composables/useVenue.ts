@@ -5,13 +5,16 @@ import { getVenue, updateVenue as apiUpdateVenue } from "@/services/api";
 // Default venue data (matches backend defaults)
 const DEFAULT_VENUE: VenueData = {
   venueName: "Dewan Seri Endon",
-  address: "Persiaran Mahameru, Presint 10, 62502 Putrajaya, Wilayah Persekutuan Putrajaya",
+  address:
+    "Persiaran Mahameru, Presint 10, 62502 Putrajaya, Wilayah Persekutuan Putrajaya",
   coordinates: {
     lat: 2.9264,
     lng: 101.6964,
   },
-  parkingInfo: "Parking percuma disediakan di kawasan hadapan dewan. Sila ikut papan tanda ke tempat letak kereta.",
-  googleMapsUrl: "https://www.google.com/maps/search/?api=1&query=2.9264,101.6964",
+  parkingInfo:
+    "Parking percuma disediakan di kawasan hadapan dewan. Sila ikut papan tanda ke tempat letak kereta.",
+  googleMapsUrl:
+    "https://www.google.com/maps/search/?api=1&query=2.9264,101.6964",
   wazeUrl: "https://waze.com/ul?ll=2.9264,101.6964&navigate=yes",
 };
 
@@ -33,14 +36,17 @@ export function useVenue() {
       const data = await getVenue();
       venue.value = data;
     } catch (err) {
-      loadError.value = err instanceof Error ? err.message : "Failed to load venue data";
+      loadError.value =
+        err instanceof Error ? err.message : "Failed to load venue data";
     } finally {
       isLoading.value = false;
     }
   };
 
   // Update venue data
-  const updateVenue = async (updateData: VenueUpdateRequest): Promise<{ success: boolean; error?: string }> => {
+  const updateVenue = async (
+    updateData: VenueUpdateRequest,
+  ): Promise<{ success: boolean; error?: string }> => {
     isSaving.value = true;
     saveError.value = "";
     saveSuccess.value = false;
@@ -55,7 +61,8 @@ export function useVenue() {
       }, 3000);
       return { success: true };
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : "Failed to update venue";
+      const errorMessage =
+        err instanceof Error ? err.message : "Failed to update venue";
       saveError.value = errorMessage;
       return { success: false, error: errorMessage };
     } finally {

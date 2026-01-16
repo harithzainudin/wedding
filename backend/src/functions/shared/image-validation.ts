@@ -21,7 +21,7 @@ export interface ConfirmUploadRequest {
 
 export function validateImageUpload(
   input: unknown,
-  settings: ImageSettings
+  settings: ImageSettings,
 ): { valid: true; data: ImageUploadRequest } | { valid: false; error: string } {
   if (typeof input !== "object" || input === null) {
     return { valid: false, error: "Invalid request body" };
@@ -67,8 +67,10 @@ export function validateImageUpload(
 }
 
 export function validateConfirmUpload(
-  input: unknown
-): { valid: true; data: ConfirmUploadRequest } | { valid: false; error: string } {
+  input: unknown,
+):
+  | { valid: true; data: ConfirmUploadRequest }
+  | { valid: false; error: string } {
   if (typeof input !== "object" || input === null) {
     return { valid: false, error: "Invalid request body" };
   }
@@ -103,8 +105,10 @@ export function validateConfirmUpload(
 }
 
 export function validateReorderRequest(
-  input: unknown
-): { valid: true; data: { imageIds: string[] } } | { valid: false; error: string } {
+  input: unknown,
+):
+  | { valid: true; data: { imageIds: string[] } }
+  | { valid: false; error: string } {
   if (typeof input !== "object" || input === null) {
     return { valid: false, error: "Invalid request body" };
   }
@@ -130,14 +134,23 @@ export function validateReorderRequest(
 }
 
 export function validateSettingsUpdate(
-  input: unknown
-): { valid: true; data: { maxFileSize?: number; maxImages?: number; showGallery?: boolean } } | { valid: false; error: string } {
+  input: unknown,
+):
+  | {
+      valid: true;
+      data: { maxFileSize?: number; maxImages?: number; showGallery?: boolean };
+    }
+  | { valid: false; error: string } {
   if (typeof input !== "object" || input === null) {
     return { valid: false, error: "Invalid request body" };
   }
 
   const body = input as Record<string, unknown>;
-  const result: { maxFileSize?: number; maxImages?: number; showGallery?: boolean } = {};
+  const result: {
+    maxFileSize?: number;
+    maxImages?: number;
+    showGallery?: boolean;
+  } = {};
 
   // Validate maxFileSize (1MB to 50MB)
   if (body.maxFileSize !== undefined) {
@@ -146,7 +159,10 @@ export function validateSettingsUpdate(
       body.maxFileSize < 1024 * 1024 ||
       body.maxFileSize > 50 * 1024 * 1024
     ) {
-      return { valid: false, error: "maxFileSize must be between 1MB and 50MB" };
+      return {
+        valid: false,
+        error: "maxFileSize must be between 1MB and 50MB",
+      };
     }
     result.maxFileSize = body.maxFileSize;
   }
@@ -171,7 +187,11 @@ export function validateSettingsUpdate(
     result.showGallery = body.showGallery;
   }
 
-  if (result.maxFileSize === undefined && result.maxImages === undefined && result.showGallery === undefined) {
+  if (
+    result.maxFileSize === undefined &&
+    result.maxImages === undefined &&
+    result.showGallery === undefined
+  ) {
     return { valid: false, error: "At least one setting must be provided" };
   }
 

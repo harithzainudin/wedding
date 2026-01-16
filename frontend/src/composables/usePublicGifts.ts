@@ -14,10 +14,12 @@ const reserveSuccess = ref(false);
 
 export function usePublicGifts() {
   // Computed
-  const sortedGifts = computed(() => [...gifts.value].sort((a, b) => a.order - b.order));
+  const sortedGifts = computed(() =>
+    [...gifts.value].sort((a, b) => a.order - b.order),
+  );
 
   const availableGifts = computed(() =>
-    sortedGifts.value.filter((g) => g.quantityReserved < g.quantityTotal)
+    sortedGifts.value.filter((g) => g.quantityReserved < g.quantityTotal),
   );
 
   const hasGifts = computed(() => gifts.value.length > 0);
@@ -39,7 +41,9 @@ export function usePublicGifts() {
 
   // Get gifts by priority
   const highPriorityGifts = computed(() =>
-    sortedGifts.value.filter((g) => g.priority === "high" && g.quantityReserved < g.quantityTotal)
+    sortedGifts.value.filter(
+      (g) => g.priority === "high" && g.quantityReserved < g.quantityTotal,
+    ),
   );
 
   // Fetch gifts
@@ -52,7 +56,8 @@ export function usePublicGifts() {
       gifts.value = response.gifts;
       isEnabled.value = response.enabled;
     } catch (err) {
-      loadError.value = err instanceof Error ? err.message : "Failed to load wishlist";
+      loadError.value =
+        err instanceof Error ? err.message : "Failed to load wishlist";
     } finally {
       isLoading.value = false;
     }
@@ -61,7 +66,7 @@ export function usePublicGifts() {
   // Reserve a gift
   const reserveGiftItem = async (
     giftId: string,
-    data: ReserveGiftRequest
+    data: ReserveGiftRequest,
   ): Promise<{ success: boolean; error?: string }> => {
     isReserving.value = true;
     reserveError.value = "";
@@ -82,7 +87,8 @@ export function usePublicGifts() {
       reserveSuccess.value = true;
       return { success: true };
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : "Failed to reserve gift";
+      const errorMessage =
+        err instanceof Error ? err.message : "Failed to reserve gift";
       reserveError.value = errorMessage;
       return { success: false, error: errorMessage };
     } finally {

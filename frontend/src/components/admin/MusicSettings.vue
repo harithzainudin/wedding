@@ -32,12 +32,12 @@ watch(
       volume: newSettings.volume,
     };
   },
-  { deep: true }
+  { deep: true },
 );
 
 const updateSetting = <K extends keyof typeof localSettings.value>(
   key: K,
-  value: (typeof localSettings.value)[K]
+  value: (typeof localSettings.value)[K],
 ): void => {
   localSettings.value[key] = value;
   emit("update", { [key]: value });
@@ -53,17 +53,23 @@ const volumePercentage = (vol: number): string => {
     <!-- Enable Music -->
     <div class="flex items-center justify-between">
       <div>
-        <p class="font-body text-sm font-medium text-charcoal dark:text-dark-text">
+        <p
+          class="font-body text-sm font-medium text-charcoal dark:text-dark-text"
+        >
           Enable Music
         </p>
-        <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary">
+        <p
+          class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary"
+        >
           Show music player on the public site
         </p>
       </div>
       <button
         type="button"
         class="relative w-12 h-6 rounded-full transition-colors cursor-pointer"
-        :class="localSettings.enabled ? 'bg-sage' : 'bg-sand-dark dark:bg-dark-border'"
+        :class="
+          localSettings.enabled ? 'bg-sage' : 'bg-sand-dark dark:bg-dark-border'
+        "
         @click="updateSetting('enabled', !localSettings.enabled)"
       >
         <span
@@ -76,17 +82,25 @@ const volumePercentage = (vol: number): string => {
     <!-- Autoplay -->
     <div class="flex items-center justify-between">
       <div>
-        <p class="font-body text-sm font-medium text-charcoal dark:text-dark-text">
+        <p
+          class="font-body text-sm font-medium text-charcoal dark:text-dark-text"
+        >
           Autoplay
         </p>
-        <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary">
+        <p
+          class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary"
+        >
           Try to play music automatically when page loads
         </p>
       </div>
       <button
         type="button"
         class="relative w-12 h-6 rounded-full transition-colors cursor-pointer"
-        :class="localSettings.autoplay ? 'bg-sage' : 'bg-sand-dark dark:bg-dark-border'"
+        :class="
+          localSettings.autoplay
+            ? 'bg-sage'
+            : 'bg-sand-dark dark:bg-dark-border'
+        "
         @click="updateSetting('autoplay', !localSettings.autoplay)"
       >
         <span
@@ -98,7 +112,9 @@ const volumePercentage = (vol: number): string => {
 
     <!-- Play Mode -->
     <div>
-      <p class="font-body text-sm font-medium text-charcoal dark:text-dark-text mb-2">
+      <p
+        class="font-body text-sm font-medium text-charcoal dark:text-dark-text mb-2"
+      >
         Play Mode
       </p>
       <div class="flex gap-2">
@@ -127,25 +143,40 @@ const volumePercentage = (vol: number): string => {
           Playlist
         </button>
       </div>
-      <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary mt-1">
-        {{ localSettings.mode === 'single' ? 'Play selected track only' : 'Play all tracks in order' }}
+      <p
+        class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary mt-1"
+      >
+        {{
+          localSettings.mode === "single"
+            ? "Play selected track only"
+            : "Play all tracks in order"
+        }}
       </p>
     </div>
 
     <!-- Shuffle (Playlist mode only) -->
-    <div v-if="localSettings.mode === 'playlist'" class="flex items-center justify-between">
+    <div
+      v-if="localSettings.mode === 'playlist'"
+      class="flex items-center justify-between"
+    >
       <div>
-        <p class="font-body text-sm font-medium text-charcoal dark:text-dark-text">
+        <p
+          class="font-body text-sm font-medium text-charcoal dark:text-dark-text"
+        >
           Shuffle
         </p>
-        <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary">
+        <p
+          class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary"
+        >
           Randomize track order
         </p>
       </div>
       <button
         type="button"
         class="relative w-12 h-6 rounded-full transition-colors cursor-pointer"
-        :class="localSettings.shuffle ? 'bg-sage' : 'bg-sand-dark dark:bg-dark-border'"
+        :class="
+          localSettings.shuffle ? 'bg-sage' : 'bg-sand-dark dark:bg-dark-border'
+        "
         @click="updateSetting('shuffle', !localSettings.shuffle)"
       >
         <span
@@ -158,17 +189,27 @@ const volumePercentage = (vol: number): string => {
     <!-- Loop -->
     <div class="flex items-center justify-between">
       <div>
-        <p class="font-body text-sm font-medium text-charcoal dark:text-dark-text">
+        <p
+          class="font-body text-sm font-medium text-charcoal dark:text-dark-text"
+        >
           Loop
         </p>
-        <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary">
-          {{ localSettings.mode === 'single' ? 'Repeat track continuously' : 'Repeat playlist when finished' }}
+        <p
+          class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary"
+        >
+          {{
+            localSettings.mode === "single"
+              ? "Repeat track continuously"
+              : "Repeat playlist when finished"
+          }}
         </p>
       </div>
       <button
         type="button"
         class="relative w-12 h-6 rounded-full transition-colors cursor-pointer"
-        :class="localSettings.loop ? 'bg-sage' : 'bg-sand-dark dark:bg-dark-border'"
+        :class="
+          localSettings.loop ? 'bg-sage' : 'bg-sand-dark dark:bg-dark-border'
+        "
         @click="updateSetting('loop', !localSettings.loop)"
       >
         <span
@@ -181,7 +222,9 @@ const volumePercentage = (vol: number): string => {
     <!-- Default Volume -->
     <div>
       <div class="flex items-center justify-between mb-2">
-        <p class="font-body text-sm font-medium text-charcoal dark:text-dark-text">
+        <p
+          class="font-body text-sm font-medium text-charcoal dark:text-dark-text"
+        >
           Default Volume
         </p>
         <span class="font-body text-sm text-sage">
@@ -195,20 +238,35 @@ const volumePercentage = (vol: number): string => {
         step="0.05"
         :value="localSettings.volume"
         class="w-full h-2 bg-sand dark:bg-dark-bg rounded-full appearance-none cursor-pointer"
-        @input="(e) => updateSetting('volume', parseFloat((e.target as HTMLInputElement).value))"
+        @input="
+          (e) =>
+            updateSetting(
+              'volume',
+              parseFloat((e.target as HTMLInputElement).value),
+            )
+        "
       />
       <div class="flex justify-between mt-1">
-        <span class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary">0%</span>
-        <span class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary">100%</span>
+        <span
+          class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary"
+          >0%</span
+        >
+        <span
+          class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary"
+          >100%</span
+        >
       </div>
     </div>
 
     <!-- Info -->
-    <div class="p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+    <div
+      class="p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg"
+    >
       <p class="font-body text-xs text-blue-700 dark:text-blue-300">
-        <strong>Note:</strong> Most browsers block autoplay until user interaction.
-        Even with autoplay enabled, music may not start automatically on first visit.
-        Visitors can always click the music button to start playing.
+        <strong>Note:</strong> Most browsers block autoplay until user
+        interaction. Even with autoplay enabled, music may not start
+        automatically on first visit. Visitors can always click the music button
+        to start playing.
       </p>
     </div>
   </div>

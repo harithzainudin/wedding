@@ -55,18 +55,32 @@ const uploadControllers = ref<Map<string, AbortController>>(new Map());
 
 export function useGifts() {
   // Computed
-  const sortedGifts = computed(() => [...gifts.value].sort((a, b) => a.order - b.order));
+  const sortedGifts = computed(() =>
+    [...gifts.value].sort((a, b) => a.order - b.order),
+  );
 
-  const canAddMore = computed(() => gifts.value.length < settings.value.maxItems);
+  const canAddMore = computed(
+    () => gifts.value.length < settings.value.maxItems,
+  );
 
-  const remainingSlots = computed(() => settings.value.maxItems - gifts.value.length);
+  const remainingSlots = computed(
+    () => settings.value.maxItems - gifts.value.length,
+  );
 
   const summary = computed(() => {
     const total = gifts.value.length;
-    const totalQuantity = gifts.value.reduce((sum, g) => sum + g.quantityTotal, 0);
-    const reservedQuantity = gifts.value.reduce((sum, g) => sum + g.quantityReserved, 0);
+    const totalQuantity = gifts.value.reduce(
+      (sum, g) => sum + g.quantityTotal,
+      0,
+    );
+    const reservedQuantity = gifts.value.reduce(
+      (sum, g) => sum + g.quantityReserved,
+      0,
+    );
     const availableQuantity = totalQuantity - reservedQuantity;
-    const fullyReserved = gifts.value.filter((g) => g.quantityReserved >= g.quantityTotal).length;
+    const fullyReserved = gifts.value.filter(
+      (g) => g.quantityReserved >= g.quantityTotal,
+    ).length;
 
     return {
       total,
@@ -126,7 +140,8 @@ export function useGifts() {
       const response = await listGifts();
       gifts.value = response.gifts;
     } catch (err) {
-      loadError.value = err instanceof Error ? err.message : "Failed to load gifts";
+      loadError.value =
+        err instanceof Error ? err.message : "Failed to load gifts";
     } finally {
       isLoading.value = false;
     }
@@ -163,7 +178,7 @@ export function useGifts() {
 
   // Create a new gift
   const createGiftItem = async (
-    data: CreateGiftRequest
+    data: CreateGiftRequest,
   ): Promise<{ success: boolean; giftId?: string; error?: string }> => {
     isCreating.value = true;
     operationError.value = "";
@@ -190,7 +205,8 @@ export function useGifts() {
       gifts.value.push(newGift);
       return { success: true, giftId: response.id };
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : "Failed to create gift";
+      const errorMessage =
+        err instanceof Error ? err.message : "Failed to create gift";
       operationError.value = errorMessage;
       return { success: false, error: errorMessage };
     } finally {
@@ -201,7 +217,7 @@ export function useGifts() {
   // Update an existing gift
   const updateGiftItem = async (
     id: string,
-    data: UpdateGiftRequest
+    data: UpdateGiftRequest,
   ): Promise<{ success: boolean; error?: string }> => {
     isUpdating.value = true;
     operationError.value = "";
@@ -215,7 +231,8 @@ export function useGifts() {
       }
       return { success: true };
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : "Failed to update gift";
+      const errorMessage =
+        err instanceof Error ? err.message : "Failed to update gift";
       operationError.value = errorMessage;
       return { success: false, error: errorMessage };
     } finally {
@@ -224,7 +241,9 @@ export function useGifts() {
   };
 
   // Delete a gift
-  const deleteGiftItem = async (id: string): Promise<{ success: boolean; error?: string }> => {
+  const deleteGiftItem = async (
+    id: string,
+  ): Promise<{ success: boolean; error?: string }> => {
     isDeleting.value = true;
     operationError.value = "";
 
@@ -234,7 +253,8 @@ export function useGifts() {
       gifts.value = gifts.value.filter((g) => g.id !== id);
       return { success: true };
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : "Failed to delete gift";
+      const errorMessage =
+        err instanceof Error ? err.message : "Failed to delete gift";
       operationError.value = errorMessage;
       return { success: false, error: errorMessage };
     } finally {
@@ -243,7 +263,9 @@ export function useGifts() {
   };
 
   // Reorder gifts
-  const reorderGiftItems = async (giftIds: string[]): Promise<{ success: boolean; error?: string }> => {
+  const reorderGiftItems = async (
+    giftIds: string[],
+  ): Promise<{ success: boolean; error?: string }> => {
     isReordering.value = true;
     operationError.value = "";
 
@@ -258,7 +280,8 @@ export function useGifts() {
       });
       return { success: true };
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : "Failed to reorder gifts";
+      const errorMessage =
+        err instanceof Error ? err.message : "Failed to reorder gifts";
       operationError.value = errorMessage;
       return { success: false, error: errorMessage };
     } finally {
@@ -269,7 +292,7 @@ export function useGifts() {
   // Upload gift image
   const uploadGiftImage = async (
     giftId: string,
-    file: File
+    file: File,
   ): Promise<{ success: boolean; imageUrl?: string; error?: string }> => {
     const validation = validateFile(file);
     if (!validation.valid) {
@@ -297,7 +320,11 @@ export function useGifts() {
       uploadProgress.value.set(fileId, { progress: 30, status: "uploading" });
 
       // Step 2: Upload to S3
-      const uploadSuccess = await uploadToS3(presignedResponse.uploadUrl, file, abortController.signal);
+      const uploadSuccess = await uploadToS3(
+        presignedResponse.uploadUrl,
+        file,
+        abortController.signal,
+      );
       if (!uploadSuccess) {
         uploadProgress.value.set(fileId, {
           progress: 30,
@@ -334,14 +361,26 @@ export function useGifts() {
       return { success: true, imageUrl: confirmResponse.imageUrl };
     } catch (err) {
       if (err instanceof DOMException && err.name === "AbortError") {
-        uploadProgress.value.set(fileId, { progress: 0, status: "error", error: "Upload cancelled" });
+        uploadProgress.value.set(fileId, {
+          progress: 0,
+          status: "error",
+          error: "Upload cancelled",
+        });
       } else {
-        const errorMessage = err instanceof Error ? err.message : "Upload failed";
-        uploadProgress.value.set(fileId, { progress: 0, status: "error", error: errorMessage });
+        const errorMessage =
+          err instanceof Error ? err.message : "Upload failed";
+        uploadProgress.value.set(fileId, {
+          progress: 0,
+          status: "error",
+          error: errorMessage,
+        });
       }
       uploadControllers.value.delete(fileId);
       setTimeout(() => uploadProgress.value.delete(fileId), 5000);
-      return { success: false, error: err instanceof Error ? err.message : "Upload failed" };
+      return {
+        success: false,
+        error: err instanceof Error ? err.message : "Upload failed",
+      };
     }
   };
 
@@ -356,19 +395,25 @@ export function useGifts() {
 
   // Update settings
   const updateSettings = async (
-    data: Partial<GiftSettings>
+    data: Partial<GiftSettings>,
   ): Promise<{ success: boolean; error?: string }> => {
     try {
       const response = await updateGiftSettings(data);
       settings.value = response;
       return { success: true };
     } catch (err) {
-      return { success: false, error: err instanceof Error ? err.message : "Failed to update settings" };
+      return {
+        success: false,
+        error: err instanceof Error ? err.message : "Failed to update settings",
+      };
     }
   };
 
   // Toggle enabled
-  const toggleEnabled = async (): Promise<{ success: boolean; error?: string }> => {
+  const toggleEnabled = async (): Promise<{
+    success: boolean;
+    error?: string;
+  }> => {
     return updateSettings({ enabled: !settings.value.enabled });
   };
 

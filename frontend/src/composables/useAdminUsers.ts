@@ -1,5 +1,10 @@
 import { ref } from "vue";
-import { listAdminUsers, createAdminUser, deleteAdminUser, forceResetPassword } from "@/services/api";
+import {
+  listAdminUsers,
+  createAdminUser,
+  deleteAdminUser,
+  forceResetPassword,
+} from "@/services/api";
 import type { AdminUser } from "@/types/admin";
 
 export interface CreateAdminResult {
@@ -54,7 +59,12 @@ export function useAdminUsers(getCurrentUser: () => string) {
     isCreating.value = true;
 
     try {
-      const request: { username: string; password: string; email?: string; createdBy: string } = {
+      const request: {
+        username: string;
+        password: string;
+        email?: string;
+        createdBy: string;
+      } = {
         username: newAdminUsername.value,
         password: newAdminPassword.value,
         createdBy: getCurrentUser(),
@@ -75,7 +85,10 @@ export function useAdminUsers(getCurrentUser: () => string) {
         emailError: data.emailError,
       };
     } catch (err) {
-      createError.value = err instanceof Error ? err.message : "Failed to create admin user. Please try again.";
+      createError.value =
+        err instanceof Error
+          ? err.message
+          : "Failed to create admin user. Please try again.";
       return null;
     } finally {
       isCreating.value = false;
@@ -91,14 +104,20 @@ export function useAdminUsers(getCurrentUser: () => string) {
       await fetchAdminUsers();
       return true;
     } catch (err) {
-      alert(err instanceof Error ? err.message : "Failed to delete admin user. Please try again.");
+      alert(
+        err instanceof Error
+          ? err.message
+          : "Failed to delete admin user. Please try again.",
+      );
       return false;
     } finally {
       isDeleting.value = false;
     }
   };
 
-  const handleForceResetPassword = async (adminUsername: string): Promise<ForceResetPasswordResult | null> => {
+  const handleForceResetPassword = async (
+    adminUsername: string,
+  ): Promise<ForceResetPasswordResult | null> => {
     resetError.value = "";
     isResetting.value = true;
 
@@ -112,7 +131,10 @@ export function useAdminUsers(getCurrentUser: () => string) {
         emailError: data.emailError,
       };
     } catch (err) {
-      resetError.value = err instanceof Error ? err.message : "Failed to reset password. Please try again.";
+      resetError.value =
+        err instanceof Error
+          ? err.message
+          : "Failed to reset password. Please try again.";
       return null;
     } finally {
       isResetting.value = false;

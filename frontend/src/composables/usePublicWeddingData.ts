@@ -1,8 +1,22 @@
 import { ref } from "vue";
-import { getWeddingDetailsCached, getScheduleCached, getContactsCached } from "@/services/api";
+import {
+  getWeddingDetailsCached,
+  getScheduleCached,
+  getContactsCached,
+} from "@/services/api";
 import { weddingConfig } from "@/config/wedding";
-import type { WeddingDetailsData, EventDisplayFormat, DisplayNameOrder, BismillahCalligraphySettings, ParentsVisibilitySettings } from "@/types/weddingDetails";
-import { DEFAULT_DISPLAY_FORMAT, DEFAULT_BISMILLAH_SETTINGS, DEFAULT_PARENTS_VISIBILITY } from "@/types/weddingDetails";
+import type {
+  WeddingDetailsData,
+  EventDisplayFormat,
+  DisplayNameOrder,
+  BismillahCalligraphySettings,
+  ParentsVisibilitySettings,
+} from "@/types/weddingDetails";
+import {
+  DEFAULT_DISPLAY_FORMAT,
+  DEFAULT_BISMILLAH_SETTINGS,
+  DEFAULT_PARENTS_VISIBILITY,
+} from "@/types/weddingDetails";
 import type { ScheduleData, ScheduleItem } from "@/types/schedule";
 import type { ContactsData, ContactPerson } from "@/types/contacts";
 
@@ -38,29 +52,38 @@ export function usePublicWeddingData() {
     try {
       // Fetch all data in parallel using cached API functions
       // Cache deduplicates simultaneous requests automatically
-      const weddingPromise = getWeddingDetailsCached().then((data) => {
-        weddingDetails.value = data;
-      }).catch((err) => {
-        console.error("Failed to fetch wedding details:", err);
-      }).finally(() => {
-        isLoadingWeddingDetails.value = false;
-      });
+      const weddingPromise = getWeddingDetailsCached()
+        .then((data) => {
+          weddingDetails.value = data;
+        })
+        .catch((err) => {
+          console.error("Failed to fetch wedding details:", err);
+        })
+        .finally(() => {
+          isLoadingWeddingDetails.value = false;
+        });
 
-      const schedulePromise = getScheduleCached().then((data) => {
-        scheduleData.value = data;
-      }).catch((err) => {
-        console.error("Failed to fetch schedule:", err);
-      }).finally(() => {
-        isLoadingSchedule.value = false;
-      });
+      const schedulePromise = getScheduleCached()
+        .then((data) => {
+          scheduleData.value = data;
+        })
+        .catch((err) => {
+          console.error("Failed to fetch schedule:", err);
+        })
+        .finally(() => {
+          isLoadingSchedule.value = false;
+        });
 
-      const contactsPromise = getContactsCached().then((data) => {
-        contactsData.value = data;
-      }).catch((err) => {
-        console.error("Failed to fetch contacts:", err);
-      }).finally(() => {
-        isLoadingContacts.value = false;
-      });
+      const contactsPromise = getContactsCached()
+        .then((data) => {
+          contactsData.value = data;
+        })
+        .catch((err) => {
+          console.error("Failed to fetch contacts:", err);
+        })
+        .finally(() => {
+          isLoadingContacts.value = false;
+        });
 
       // Wait for all to complete
       await Promise.all([weddingPromise, schedulePromise, contactsPromise]);
@@ -193,8 +216,15 @@ export function usePublicWeddingData() {
   };
 
   // Contacts with fallback
-  const getContactsList = (): Array<{ name: string; role: string; phone: string }> => {
-    if (contactsData.value?.contacts && contactsData.value.contacts.length > 0) {
+  const getContactsList = (): Array<{
+    name: string;
+    role: string;
+    phone: string;
+  }> => {
+    if (
+      contactsData.value?.contacts &&
+      contactsData.value.contacts.length > 0
+    ) {
       return contactsData.value.contacts.map((contact: ContactPerson) => ({
         name: contact.name,
         role: contact.role.ms, // Default to Malay for backward compatibility
@@ -206,7 +236,10 @@ export function usePublicWeddingData() {
 
   // Contacts with multilingual support
   const getContactsMultilingual = (): ContactPerson[] => {
-    if (contactsData.value?.contacts && contactsData.value.contacts.length > 0) {
+    if (
+      contactsData.value?.contacts &&
+      contactsData.value.contacts.length > 0
+    ) {
       return contactsData.value.contacts;
     }
     // Convert legacy config to multilingual format

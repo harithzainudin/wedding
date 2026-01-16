@@ -30,25 +30,64 @@ export function injectThemeVariables(theme: ResolvedTheme): void {
   const root = document.documentElement;
 
   // Light mode colors
-  root.style.setProperty(THEME_CSS_VARIABLES.primary, theme.colors.light.primary);
-  root.style.setProperty(THEME_CSS_VARIABLES.primaryLight, theme.colors.light.primaryLight);
-  root.style.setProperty(THEME_CSS_VARIABLES.primaryDark, theme.colors.light.primaryDark);
-  root.style.setProperty(THEME_CSS_VARIABLES.secondary, theme.colors.light.secondary);
-  root.style.setProperty(THEME_CSS_VARIABLES.secondaryDark, theme.colors.light.secondaryDark);
+  root.style.setProperty(
+    THEME_CSS_VARIABLES.primary,
+    theme.colors.light.primary,
+  );
+  root.style.setProperty(
+    THEME_CSS_VARIABLES.primaryLight,
+    theme.colors.light.primaryLight,
+  );
+  root.style.setProperty(
+    THEME_CSS_VARIABLES.primaryDark,
+    theme.colors.light.primaryDark,
+  );
+  root.style.setProperty(
+    THEME_CSS_VARIABLES.secondary,
+    theme.colors.light.secondary,
+  );
+  root.style.setProperty(
+    THEME_CSS_VARIABLES.secondaryDark,
+    theme.colors.light.secondaryDark,
+  );
   root.style.setProperty(THEME_CSS_VARIABLES.text, theme.colors.light.text);
-  root.style.setProperty(THEME_CSS_VARIABLES.textLight, theme.colors.light.textLight);
-  root.style.setProperty(THEME_CSS_VARIABLES.background, theme.colors.light.background);
+  root.style.setProperty(
+    THEME_CSS_VARIABLES.textLight,
+    theme.colors.light.textLight,
+  );
+  root.style.setProperty(
+    THEME_CSS_VARIABLES.background,
+    theme.colors.light.background,
+  );
 
   // Dark mode colors
-  root.style.setProperty(THEME_CSS_VARIABLES.darkBg, theme.colors.dark.background);
-  root.style.setProperty(THEME_CSS_VARIABLES.darkBgSecondary, theme.colors.dark.backgroundSecondary);
-  root.style.setProperty(THEME_CSS_VARIABLES.darkBgElevated, theme.colors.dark.backgroundElevated);
-  root.style.setProperty(THEME_CSS_VARIABLES.darkBorder, theme.colors.dark.border);
+  root.style.setProperty(
+    THEME_CSS_VARIABLES.darkBg,
+    theme.colors.dark.background,
+  );
+  root.style.setProperty(
+    THEME_CSS_VARIABLES.darkBgSecondary,
+    theme.colors.dark.backgroundSecondary,
+  );
+  root.style.setProperty(
+    THEME_CSS_VARIABLES.darkBgElevated,
+    theme.colors.dark.backgroundElevated,
+  );
+  root.style.setProperty(
+    THEME_CSS_VARIABLES.darkBorder,
+    theme.colors.dark.border,
+  );
   root.style.setProperty(THEME_CSS_VARIABLES.darkText, theme.colors.dark.text);
-  root.style.setProperty(THEME_CSS_VARIABLES.darkTextSecondary, theme.colors.dark.textSecondary);
+  root.style.setProperty(
+    THEME_CSS_VARIABLES.darkTextSecondary,
+    theme.colors.dark.textSecondary,
+  );
 
   // Fonts
-  root.style.setProperty(THEME_CSS_VARIABLES.fontHeading, `"${theme.fonts.heading}"`);
+  root.style.setProperty(
+    THEME_CSS_VARIABLES.fontHeading,
+    `"${theme.fonts.heading}"`,
+  );
   root.style.setProperty(THEME_CSS_VARIABLES.fontBody, `"${theme.fonts.body}"`);
 }
 
@@ -69,13 +108,17 @@ export function removeThemeVariables(): void {
  */
 export function loadGoogleFonts(fontUrl: string): void {
   // Remove existing dynamic font link if present
-  const existingLink = document.querySelector('link[data-theme-fonts="dynamic"]');
+  const existingLink = document.querySelector(
+    'link[data-theme-fonts="dynamic"]',
+  );
   if (existingLink) {
     existingLink.remove();
   }
 
   // Don't add if it's the same as the static font (default theme)
-  const staticFontLink = document.querySelector('link[href*="fonts.googleapis.com"]');
+  const staticFontLink = document.querySelector(
+    'link[href*="fonts.googleapis.com"]',
+  );
   if (staticFontLink && staticFontLink.getAttribute("href") === fontUrl) {
     return;
   }

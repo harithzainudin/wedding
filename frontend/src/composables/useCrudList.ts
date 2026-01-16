@@ -32,7 +32,7 @@ export interface UseCrudListReturn<T extends BaseItem> {
 }
 
 export function useCrudList<T extends BaseItem, TData>(
-  options: UseCrudListOptions<T, TData>
+  options: UseCrudListOptions<T, TData>,
 ): UseCrudListReturn<T> {
   const { sourceData, getItems, cloneItem, updateFn } = options;
 
@@ -43,11 +43,16 @@ export function useCrudList<T extends BaseItem, TData>(
   const itemToDelete = ref<T | null>(null) as Ref<T | null>;
 
   const hasChanges = computed(() => {
-    return JSON.stringify(localItems.value) !== JSON.stringify(getItems(sourceData.value));
+    return (
+      JSON.stringify(localItems.value) !==
+      JSON.stringify(getItems(sourceData.value))
+    );
   });
 
   const syncLocalItems = () => {
-    localItems.value = getItems(sourceData.value).map((item) => cloneItem(item));
+    localItems.value = getItems(sourceData.value).map((item) =>
+      cloneItem(item),
+    );
   };
 
   const openModal = (item?: T) => {
@@ -67,7 +72,9 @@ export function useCrudList<T extends BaseItem, TData>(
 
   const deleteItem = () => {
     if (!itemToDelete.value) return;
-    localItems.value = localItems.value.filter((i) => i.id !== itemToDelete.value?.id);
+    localItems.value = localItems.value.filter(
+      (i) => i.id !== itemToDelete.value?.id,
+    );
     localItems.value.forEach((item, index) => {
       item.order = index;
     });

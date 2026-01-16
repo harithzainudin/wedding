@@ -1,6 +1,10 @@
 import type { APIGatewayProxyHandlerV2 } from "aws-lambda";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocumentClient, GetCommand, DeleteCommand } from "@aws-sdk/lib-dynamodb";
+import {
+  DynamoDBDocumentClient,
+  GetCommand,
+  DeleteCommand,
+} from "@aws-sdk/lib-dynamodb";
 import { S3Client, DeleteObjectCommand } from "@aws-sdk/client-s3";
 import { Resource } from "sst";
 import { createSuccessResponse, createErrorResponse } from "../shared/response";
@@ -17,11 +21,21 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
   try {
     const authResult = requireAuth(event);
     if (!authResult.authenticated) {
-      return createErrorResponse(authResult.statusCode, authResult.error, context, "AUTH_ERROR");
+      return createErrorResponse(
+        authResult.statusCode,
+        authResult.error,
+        context,
+        "AUTH_ERROR",
+      );
     }
 
     if (!trackId) {
-      return createErrorResponse(400, "Track ID is required", context, "VALIDATION_ERROR");
+      return createErrorResponse(
+        400,
+        "Track ID is required",
+        context,
+        "VALIDATION_ERROR",
+      );
     }
 
     // Get track metadata first
@@ -29,7 +43,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
       new GetCommand({
         TableName: Resource.AppDataTable.name,
         Key: { pk: `MUSIC#${trackId}`, sk: "METADATA" },
-      })
+      }),
     );
 
     if (!trackResult.Item) {
@@ -45,15 +59,18 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
           new DeleteObjectCommand({
             Bucket: Resource.WeddingImageBucket.name,
             Key: s3Key,
-          })
+          }),
         );
       } catch (s3Error) {
-        logError({
-          endpoint: "DELETE /music/{id}",
-          operation: "deleteFromS3",
-          requestId: context.awsRequestId,
-          input: { trackId, s3Key },
-        }, s3Error);
+        logError(
+          {
+            endpoint: "DELETE /music/{id}",
+            operation: "deleteFromS3",
+            requestId: context.awsRequestId,
+            input: { trackId, s3Key },
+          },
+          s3Error,
+        );
         // Continue with DynamoDB deletion even if S3 fails
       }
     }
@@ -63,19 +80,31 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
       new DeleteCommand({
         TableName: Resource.AppDataTable.name,
         Key: { pk: `MUSIC#${trackId}`, sk: "METADATA" },
-      })
+      }),
     );
 
-    return createSuccessResponse(200, {
-      message: "Track deleted successfully",
-    }, context);
+    return createSuccessResponse(
+      200,
+      {
+        message: "Track deleted successfully",
+      },
+      context,
+    );
   } catch (error) {
-    logError({
-      endpoint: "DELETE /music/{id}",
-      operation: "deleteTrack",
-      requestId: context.awsRequestId,
-      input: { trackId },
-    }, error);
-    return createErrorResponse(500, "Failed to delete track", context, "DB_ERROR");
+    logError(
+      {
+        endpoint: "DELETE /music/{id}",
+        operation: "deleteTrack",
+        requestId: context.awsRequestId,
+        input: { trackId },
+      },
+      error,
+    );
+    return createErrorResponse(
+      500,
+      "Failed to delete track",
+      context,
+      "DB_ERROR",
+    );
   }
 };

@@ -57,7 +57,10 @@ export function useAdminAuth() {
     isLoggingIn.value = true;
 
     try {
-      const response = await adminLogin({ username: username.value, password: password.value });
+      const response = await adminLogin({
+        username: username.value,
+        password: password.value,
+      });
 
       // Support both new (accessToken/refreshToken) and legacy (token) responses
       const accessToken = response.accessToken ?? response.token;
@@ -84,7 +87,10 @@ export function useAdminAuth() {
         return false;
       }
     } catch (error) {
-      loginError.value = error instanceof Error ? error.message : "Failed to login. Please try again.";
+      loginError.value =
+        error instanceof Error
+          ? error.message
+          : "Failed to login. Please try again.";
       return false;
     } finally {
       isLoggingIn.value = false;
@@ -118,7 +124,8 @@ export function useAdminAuth() {
     }
 
     if (newPasswordForChange.value.length < 6) {
-      forcedPasswordChangeError.value = "Password must be at least 6 characters";
+      forcedPasswordChangeError.value =
+        "Password must be at least 6 characters";
       return false;
     }
 
@@ -136,7 +143,10 @@ export function useAdminAuth() {
       resetForcedPasswordChangeForm();
       return true;
     } catch (error) {
-      forcedPasswordChangeError.value = error instanceof Error ? error.message : "Failed to set new password. Please try again.";
+      forcedPasswordChangeError.value =
+        error instanceof Error
+          ? error.message
+          : "Failed to set new password. Please try again.";
       return false;
     } finally {
       isSettingNewPassword.value = false;

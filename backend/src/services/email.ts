@@ -25,7 +25,11 @@ export interface EmailResult {
  * Generate the beautiful HTML email template
  * Uses earthy/minimalist wedding theme with sage and sand colors
  */
-function generateWelcomeEmailHtml(username: string, password: string, loginUrl: string): string {
+function generateWelcomeEmailHtml(
+  username: string,
+  password: string,
+  loginUrl: string,
+): string {
   return `
 <!DOCTYPE html>
 <html lang="en">
@@ -140,7 +144,11 @@ function generateWelcomeEmailHtml(username: string, password: string, loginUrl: 
 /**
  * Generate plain text version of the email
  */
-function generateWelcomeEmailText(username: string, password: string, loginUrl: string): string {
+function generateWelcomeEmailText(
+  username: string,
+  password: string,
+  loginUrl: string,
+): string {
   return `
 Welcome to Wedding Admin Portal
 ================================
@@ -167,7 +175,11 @@ Please do not reply to this email.
 /**
  * Generate the HTML email template for password reset
  */
-function generatePasswordResetEmailHtml(username: string, temporaryPassword: string, loginUrl: string): string {
+function generatePasswordResetEmailHtml(
+  username: string,
+  temporaryPassword: string,
+  loginUrl: string,
+): string {
   return `
 <!DOCTYPE html>
 <html lang="en">
@@ -284,7 +296,11 @@ function generatePasswordResetEmailHtml(username: string, temporaryPassword: str
 /**
  * Generate plain text version of the password reset email
  */
-function generatePasswordResetEmailText(username: string, temporaryPassword: string, loginUrl: string): string {
+function generatePasswordResetEmailText(
+  username: string,
+  temporaryPassword: string,
+  loginUrl: string,
+): string {
   return `
 Password Reset - Wedding Admin Portal
 =====================================
@@ -312,7 +328,9 @@ Please do not reply to this email.
  * Send welcome email to newly created admin user
  * Returns success status - failures should not prevent user creation
  */
-export async function sendWelcomeEmail(params: SendWelcomeEmailParams): Promise<EmailResult> {
+export async function sendWelcomeEmail(
+  params: SendWelcomeEmailParams,
+): Promise<EmailResult> {
   const { recipientEmail, username, password } = params;
 
   // Get configuration from SST secrets
@@ -326,15 +344,23 @@ export async function sendWelcomeEmail(params: SendWelcomeEmailParams): Promise<
     // Set API key
     apiInstance.setApiKey(
       brevo.TransactionalEmailsApiApiKeys.apiKey,
-      Resource.BrevoApiKey.value
+      Resource.BrevoApiKey.value,
     );
 
     // Prepare the email
     const sendSmtpEmail = new brevo.SendSmtpEmail();
 
     sendSmtpEmail.subject = "Wedding Admin Portal - Your Login Credentials";
-    sendSmtpEmail.htmlContent = generateWelcomeEmailHtml(username, password, adminLoginUrl);
-    sendSmtpEmail.textContent = generateWelcomeEmailText(username, password, adminLoginUrl);
+    sendSmtpEmail.htmlContent = generateWelcomeEmailHtml(
+      username,
+      password,
+      adminLoginUrl,
+    );
+    sendSmtpEmail.textContent = generateWelcomeEmailText(
+      username,
+      password,
+      adminLoginUrl,
+    );
 
     sendSmtpEmail.sender = {
       name: SENDER_NAME,
@@ -359,7 +385,8 @@ export async function sendWelcomeEmail(params: SendWelcomeEmailParams): Promise<
     console.error("Failed to send welcome email:", error);
 
     // Extract error message
-    const errorMessage = error instanceof Error ? error.message : "Unknown email error";
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown email error";
 
     return {
       success: false,
@@ -372,7 +399,9 @@ export async function sendWelcomeEmail(params: SendWelcomeEmailParams): Promise<
  * Send password reset email to admin user
  * Returns success status - failures should not prevent password reset
  */
-export async function sendPasswordResetEmail(params: SendPasswordResetEmailParams): Promise<EmailResult> {
+export async function sendPasswordResetEmail(
+  params: SendPasswordResetEmailParams,
+): Promise<EmailResult> {
   const { recipientEmail, username, temporaryPassword } = params;
 
   // Get configuration from SST secrets
@@ -386,15 +415,23 @@ export async function sendPasswordResetEmail(params: SendPasswordResetEmailParam
     // Set API key
     apiInstance.setApiKey(
       brevo.TransactionalEmailsApiApiKeys.apiKey,
-      Resource.BrevoApiKey.value
+      Resource.BrevoApiKey.value,
     );
 
     // Prepare the email
     const sendSmtpEmail = new brevo.SendSmtpEmail();
 
     sendSmtpEmail.subject = "Wedding Admin Portal - Password Reset";
-    sendSmtpEmail.htmlContent = generatePasswordResetEmailHtml(username, temporaryPassword, adminLoginUrl);
-    sendSmtpEmail.textContent = generatePasswordResetEmailText(username, temporaryPassword, adminLoginUrl);
+    sendSmtpEmail.htmlContent = generatePasswordResetEmailHtml(
+      username,
+      temporaryPassword,
+      adminLoginUrl,
+    );
+    sendSmtpEmail.textContent = generatePasswordResetEmailText(
+      username,
+      temporaryPassword,
+      adminLoginUrl,
+    );
 
     sendSmtpEmail.sender = {
       name: SENDER_NAME,
@@ -419,7 +456,8 @@ export async function sendPasswordResetEmail(params: SendPasswordResetEmailParam
     console.error("Failed to send password reset email:", error);
 
     // Extract error message
-    const errorMessage = error instanceof Error ? error.message : "Unknown email error";
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown email error";
 
     return {
       success: false,

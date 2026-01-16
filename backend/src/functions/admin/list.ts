@@ -19,7 +19,12 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
   // Require authentication
   const authResult = requireAuth(event);
   if (!authResult.authenticated) {
-    return createErrorResponse(authResult.statusCode, authResult.error, context, "AUTH_ERROR");
+    return createErrorResponse(
+      authResult.statusCode,
+      authResult.error,
+      context,
+      "AUTH_ERROR",
+    );
   }
 
   try {
@@ -33,7 +38,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
           ":pk": "ADMIN",
         },
         ScanIndexForward: false, // Most recent first
-      })
+      }),
     );
 
     const admins: AdminUser[] = (result.Items ?? []).map((item) => ({
@@ -42,16 +47,28 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
       createdBy: item.createdBy as string,
     }));
 
-    return createSuccessResponse(200, {
-      admins,
-      total: admins.length,
-    }, context);
+    return createSuccessResponse(
+      200,
+      {
+        admins,
+        total: admins.length,
+      },
+      context,
+    );
   } catch (error) {
-    logError({
-      endpoint: "GET /admin/users",
-      operation: "listAdmins",
-      requestId: context.awsRequestId,
-    }, error);
-    return createErrorResponse(500, "Failed to list admin users", context, "DB_ERROR");
+    logError(
+      {
+        endpoint: "GET /admin/users",
+        operation: "listAdmins",
+        requestId: context.awsRequestId,
+      },
+      error,
+    );
+    return createErrorResponse(
+      500,
+      "Failed to list admin users",
+      context,
+      "DB_ERROR",
+    );
   }
 };

@@ -47,7 +47,10 @@ export function generateToken(username: string, isMaster: boolean): string {
   return `${payloadStr}.${signature}`;
 }
 
-export function generateAccessToken(username: string, isMaster: boolean): string {
+export function generateAccessToken(
+  username: string,
+  isMaster: boolean,
+): string {
   const payload: TokenPayload = {
     username,
     isMaster,
@@ -59,7 +62,10 @@ export function generateAccessToken(username: string, isMaster: boolean): string
   return `${payloadStr}.${signature}`;
 }
 
-export function generateRefreshToken(username: string, isMaster: boolean): string {
+export function generateRefreshToken(
+  username: string,
+  isMaster: boolean,
+): string {
   const payload: TokenPayload = {
     username,
     isMaster,
@@ -73,7 +79,7 @@ export function generateRefreshToken(username: string, isMaster: boolean): strin
 
 export function validateToken(
   token: string,
-  expectedType: TokenType = "access"
+  expectedType: TokenType = "access",
 ): AuthResult {
   const parts = token.split(".");
   if (parts.length !== 2) {

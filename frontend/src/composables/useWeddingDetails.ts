@@ -1,7 +1,17 @@
 import { ref } from "vue";
-import type { WeddingDetailsData, WeddingDetailsUpdateRequest } from "@/types/weddingDetails";
-import { DEFAULT_DISPLAY_FORMAT, DEFAULT_BISMILLAH_SETTINGS, DEFAULT_PARENTS_VISIBILITY } from "@/types/weddingDetails";
-import { getWeddingDetails, updateWeddingDetails as apiUpdateWeddingDetails } from "@/services/api";
+import type {
+  WeddingDetailsData,
+  WeddingDetailsUpdateRequest,
+} from "@/types/weddingDetails";
+import {
+  DEFAULT_DISPLAY_FORMAT,
+  DEFAULT_BISMILLAH_SETTINGS,
+  DEFAULT_PARENTS_VISIBILITY,
+} from "@/types/weddingDetails";
+import {
+  getWeddingDetails,
+  updateWeddingDetails as apiUpdateWeddingDetails,
+} from "@/services/api";
 
 // Default wedding details data (matches backend defaults)
 const DEFAULT_WEDDING_DETAILS: WeddingDetailsData = {
@@ -53,14 +63,17 @@ export function useWeddingDetails() {
       const data = await getWeddingDetails();
       weddingDetails.value = data;
     } catch (err) {
-      loadError.value = err instanceof Error ? err.message : "Failed to load wedding details";
+      loadError.value =
+        err instanceof Error ? err.message : "Failed to load wedding details";
     } finally {
       isLoading.value = false;
     }
   };
 
   // Update wedding details
-  const updateWeddingDetails = async (updateData: WeddingDetailsUpdateRequest): Promise<{ success: boolean; error?: string }> => {
+  const updateWeddingDetails = async (
+    updateData: WeddingDetailsUpdateRequest,
+  ): Promise<{ success: boolean; error?: string }> => {
     isSaving.value = true;
     saveError.value = "";
     saveSuccess.value = false;
@@ -75,7 +88,8 @@ export function useWeddingDetails() {
       }, 3000);
       return { success: true };
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : "Failed to update wedding details";
+      const errorMessage =
+        err instanceof Error ? err.message : "Failed to update wedding details";
       saveError.value = errorMessage;
       return { success: false, error: errorMessage };
     } finally {

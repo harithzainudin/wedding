@@ -16,7 +16,11 @@ export function usePasswordChange(getCurrentUser: () => string) {
   const handleChangePassword = async (): Promise<boolean> => {
     passwordChangeError.value = "";
 
-    if (!currentPasswordInput.value || !newPasswordInput.value || !confirmNewPasswordInput.value) {
+    if (
+      !currentPasswordInput.value ||
+      !newPasswordInput.value ||
+      !confirmNewPasswordInput.value
+    ) {
       passwordChangeError.value = "All fields are required";
       return false;
     }
@@ -32,7 +36,8 @@ export function usePasswordChange(getCurrentUser: () => string) {
     }
 
     if (currentPasswordInput.value === newPasswordInput.value) {
-      passwordChangeError.value = "New password must be different from current password";
+      passwordChangeError.value =
+        "New password must be different from current password";
       return false;
     }
 
@@ -55,7 +60,10 @@ export function usePasswordChange(getCurrentUser: () => string) {
       }, 2000);
       return true;
     } catch (err) {
-      passwordChangeError.value = err instanceof Error ? err.message : "Failed to change password. Please try again.";
+      passwordChangeError.value =
+        err instanceof Error
+          ? err.message
+          : "Failed to change password. Please try again.";
       return false;
     } finally {
       isChangingPassword.value = false;

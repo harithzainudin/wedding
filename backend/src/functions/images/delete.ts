@@ -1,6 +1,10 @@
 import type { APIGatewayProxyHandlerV2 } from "aws-lambda";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocumentClient, GetCommand, DeleteCommand } from "@aws-sdk/lib-dynamodb";
+import {
+  DynamoDBDocumentClient,
+  GetCommand,
+  DeleteCommand,
+} from "@aws-sdk/lib-dynamodb";
 import { S3Client, DeleteObjectCommand } from "@aws-sdk/client-s3";
 import { Resource } from "sst";
 import { createSuccessResponse, createErrorResponse } from "../shared/response";
@@ -17,11 +21,21 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
   try {
     const authResult = requireAuth(event);
     if (!authResult.authenticated) {
-      return createErrorResponse(authResult.statusCode, authResult.error, context, "AUTH_ERROR");
+      return createErrorResponse(
+        authResult.statusCode,
+        authResult.error,
+        context,
+        "AUTH_ERROR",
+      );
     }
 
     if (!imageId) {
-      return createErrorResponse(400, "Image ID is required", context, "VALIDATION_ERROR");
+      return createErrorResponse(
+        400,
+        "Image ID is required",
+        context,
+        "VALIDATION_ERROR",
+      );
     }
 
     // Get the image record
@@ -29,7 +43,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
       new GetCommand({
         TableName: Resource.AppDataTable.name,
         Key: { pk: `IMAGE#${imageId}`, sk: "METADATA" },
-      })
+      }),
     );
 
     if (!getResult.Item) {
@@ -44,15 +58,18 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
         new DeleteObjectCommand({
           Bucket: Resource.WeddingImageBucket.name,
           Key: s3Key,
-        })
+        }),
       );
     } catch (s3Error) {
-      logError({
-        endpoint: "DELETE /images/{id}",
-        operation: "deleteFromS3",
-        requestId: context.awsRequestId,
-        input: { imageId, s3Key },
-      }, s3Error);
+      logError(
+        {
+          endpoint: "DELETE /images/{id}",
+          operation: "deleteFromS3",
+          requestId: context.awsRequestId,
+          input: { imageId, s3Key },
+        },
+        s3Error,
+      );
       // Continue to delete DB record even if S3 fails
     }
 
@@ -61,19 +78,31 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
       new DeleteCommand({
         TableName: Resource.AppDataTable.name,
         Key: { pk: `IMAGE#${imageId}`, sk: "METADATA" },
-      })
+      }),
     );
 
-    return createSuccessResponse(200, {
-      message: "Image deleted successfully",
-    }, context);
+    return createSuccessResponse(
+      200,
+      {
+        message: "Image deleted successfully",
+      },
+      context,
+    );
   } catch (error) {
-    logError({
-      endpoint: "DELETE /images/{id}",
-      operation: "deleteImage",
-      requestId: context.awsRequestId,
-      input: { imageId },
-    }, error);
-    return createErrorResponse(500, "Internal server error", context, "INTERNAL_ERROR");
+    logError(
+      {
+        endpoint: "DELETE /images/{id}",
+        operation: "deleteImage",
+        requestId: context.awsRequestId,
+        input: { imageId },
+      },
+      error,
+    );
+    return createErrorResponse(
+      500,
+      "Internal server error",
+      context,
+      "INTERNAL_ERROR",
+    );
   }
 };

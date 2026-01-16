@@ -1,6 +1,10 @@
 import type { APIGatewayProxyHandlerV2 } from "aws-lambda";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocumentClient, QueryCommand, BatchGetCommand } from "@aws-sdk/lib-dynamodb";
+import {
+  DynamoDBDocumentClient,
+  QueryCommand,
+  BatchGetCommand,
+} from "@aws-sdk/lib-dynamodb";
 import { Resource } from "sst";
 import { createSuccessResponse, createErrorResponse } from "../shared/response";
 import { requireAuth } from "../shared/auth";
@@ -31,7 +35,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
         authResult.statusCode,
         authResult.error,
         context,
-        "AUTH_ERROR"
+        "AUTH_ERROR",
       );
     }
 
@@ -50,7 +54,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
             ":pk": `GIFT#${giftIdFilter}`,
             ":skPrefix": "RESERVATION#",
           },
-        })
+        }),
       );
 
       // Get the gift details
@@ -62,11 +66,16 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
             ":pk": `GIFT#${giftIdFilter}`,
             ":sk": "METADATA",
           },
-        })
+        }),
       );
 
       const gift = giftResult.Items?.[0];
-      const giftName = (gift?.name as MultilingualText) ?? { ms: "", en: "", zh: "", ta: "" };
+      const giftName = (gift?.name as MultilingualText) ?? {
+        ms: "",
+        en: "",
+        zh: "",
+        ta: "",
+      };
 
       reservations = (result.Items ?? []).map((item) => ({
         id: item.id as string,
@@ -90,13 +99,15 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
             ":pk": "RESERVATIONS",
           },
           ScanIndexForward: false, // Most recent first
-        })
+        }),
       );
 
       const reservationItems = result.Items ?? [];
 
       // Get unique gift IDs
-      const giftIds = [...new Set(reservationItems.map((item) => item.giftId as string))];
+      const giftIds = [
+        ...new Set(reservationItems.map((item) => item.giftId as string)),
+      ];
 
       // Batch get gift details
       let giftMap: Record<string, MultilingualText> = {};
@@ -114,10 +125,11 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
                   })),
                 },
               },
-            })
+            }),
           );
 
-          const gifts = batchResult.Responses?.[Resource.AppDataTable.name] ?? [];
+          const gifts =
+            batchResult.Responses?.[Resource.AppDataTable.name] ?? [];
           for (const gift of gifts) {
             giftMap[gift.id as string] = gift.name as MultilingualText;
           }
@@ -127,7 +139,12 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
       reservations = reservationItems.map((item) => ({
         id: item.id as string,
         giftId: item.giftId as string,
-        giftName: giftMap[item.giftId as string] ?? { ms: "", en: "", zh: "", ta: "" },
+        giftName: giftMap[item.giftId as string] ?? {
+          ms: "",
+          en: "",
+          zh: "",
+          ta: "",
+        },
         guestName: item.guestName as string,
         guestPhone: item.guestPhone as string,
         rsvpId: (item.rsvpId as string) || undefined,
@@ -138,27 +155,42 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
     }
 
     // Sort by reservedAt (most recent first)
-    reservations.sort((a, b) => new Date(b.reservedAt).getTime() - new Date(a.reservedAt).getTime());
+    reservations.sort(
+      (a, b) =>
+        new Date(b.reservedAt).getTime() - new Date(a.reservedAt).getTime(),
+    );
 
     // Calculate summary
     const totalReservations = reservations.length;
     const totalQuantity = reservations.reduce((sum, r) => sum + r.quantity, 0);
     const uniqueGuests = new Set(reservations.map((r) => r.guestPhone)).size;
 
-    return createSuccessResponse(200, {
-      reservations,
-      summary: {
-        totalReservations,
-        totalQuantity,
-        uniqueGuests,
+    return createSuccessResponse(
+      200,
+      {
+        reservations,
+        summary: {
+          totalReservations,
+          totalQuantity,
+          uniqueGuests,
+        },
       },
-    }, context);
+      context,
+    );
   } catch (error) {
-    logError({
-      endpoint: "GET /gifts/reservations",
-      operation: "listReservations",
-      requestId: context.awsRequestId,
-    }, error);
-    return createErrorResponse(500, "Internal server error", context, "DB_ERROR");
+    logError(
+      {
+        endpoint: "GET /gifts/reservations",
+        operation: "listReservations",
+        requestId: context.awsRequestId,
+      },
+      error,
+    );
+    return createErrorResponse(
+      500,
+      "Internal server error",
+      context,
+      "DB_ERROR",
+    );
   }
 };

@@ -137,7 +137,8 @@ export const translations: Record<Language, Translations> = {
   // Bahasa Melayu
   ms: {
     hero: {
-      bismillahTranslation: "Dengan Nama Allah Yang Maha Pemurah Lagi Maha Penyayang",
+      bismillahTranslation:
+        "Dengan Nama Allah Yang Maha Pemurah Lagi Maha Penyayang",
       weddingOf: "Walimatulurus",
     },
     details: {
@@ -159,7 +160,8 @@ export const translations: Record<Language, Translations> = {
     contact: {
       title: "Hubungi Kami",
       subtitle: "Ada pertanyaan? Hubungi kami melalui WhatsApp",
-      whatsappMessage: "Assalamualaikum, saya ingin bertanya mengenai majlis perkahwinan {couple}.",
+      whatsappMessage:
+        "Assalamualaikum, saya ingin bertanya mengenai majlis perkahwinan {couple}.",
     },
     qrCode: {
       title: "Kongsi Jemputan",
@@ -212,7 +214,8 @@ export const translations: Record<Language, Translations> = {
     },
     wishlist: {
       title: "Senarai Hadiah",
-      subtitle: "Jika anda ingin memberkati kami dengan hadiah, berikut adalah beberapa idea. Kehadiran anda adalah hadiah terbaik!",
+      subtitle:
+        "Jika anda ingin memberkati kami dengan hadiah, berikut adalah beberapa idea. Kehadiran anda adalah hadiah terbaik!",
       loading: "Memuatkan senarai...",
       errorLoading: "Gagal memuatkan senarai. Sila cuba lagi.",
       noItems: "Tiada hadiah dalam senarai buat masa ini.",
@@ -230,7 +233,8 @@ export const translations: Record<Language, Translations> = {
       submitting: "Menghantar...",
       thankYou: "Terima Kasih!",
       reservationReceived: "Tempahan anda telah diterima.",
-      footerNote: "Anda bebas memberi sebarang hadiah dari hati - senarai ini hanya untuk mengelakkan pertindihan!",
+      footerNote:
+        "Anda bebas memberi sebarang hadiah dari hati - senarai ini hanya untuk mengelakkan pertindihan!",
       categories: {
         all: "Semua",
         home: "Rumah",
@@ -255,7 +259,8 @@ export const translations: Record<Language, Translations> = {
   // English
   en: {
     hero: {
-      bismillahTranslation: "In the Name of Allah, the Most Gracious, the Most Merciful",
+      bismillahTranslation:
+        "In the Name of Allah, the Most Gracious, the Most Merciful",
       weddingOf: "The Wedding of",
     },
     details: {
@@ -277,7 +282,8 @@ export const translations: Record<Language, Translations> = {
     contact: {
       title: "Contact Us",
       subtitle: "Have questions? Reach us via WhatsApp",
-      whatsappMessage: "Hello, I would like to inquire about {couple}'s wedding.",
+      whatsappMessage:
+        "Hello, I would like to inquire about {couple}'s wedding.",
     },
     qrCode: {
       title: "Share Invitation",
@@ -330,7 +336,8 @@ export const translations: Record<Language, Translations> = {
     },
     wishlist: {
       title: "Gift Wishlist",
-      subtitle: "If you'd like to bless us with a gift, here are some ideas. Your presence is the greatest gift!",
+      subtitle:
+        "If you'd like to bless us with a gift, here are some ideas. Your presence is the greatest gift!",
       loading: "Loading wishlist...",
       errorLoading: "Failed to load wishlist. Please try again.",
       noItems: "No gifts in the wishlist at the moment.",
@@ -348,7 +355,8 @@ export const translations: Record<Language, Translations> = {
       submitting: "Submitting...",
       thankYou: "Thank You!",
       reservationReceived: "Your reservation has been received.",
-      footerNote: "Feel free to give any gift from the heart - this list is just to help avoid duplicates!",
+      footerNote:
+        "Feel free to give any gift from the heart - this list is just to help avoid duplicates!",
       categories: {
         all: "All",
         home: "Home",
@@ -395,7 +403,8 @@ export const translations: Record<Language, Translations> = {
     contact: {
       title: "联系我们",
       subtitle: "有疑问？请通过WhatsApp联系我们",
-      whatsappMessage: "Hello, I would like to inquire about {couple}'s wedding.",
+      whatsappMessage:
+        "Hello, I would like to inquire about {couple}'s wedding.",
     },
     qrCode: {
       title: "分享邀请函",
@@ -490,7 +499,8 @@ export const translations: Record<Language, Translations> = {
   // Tamil
   ta: {
     hero: {
-      bismillahTranslation: "அருளாளனும் அன்புடையோனுமாகிய அல்லாஹ்வின் திருப்பெயரால்",
+      bismillahTranslation:
+        "அருளாளனும் அன்புடையோனுமாகிய அல்லாஹ்வின் திருப்பெயரால்",
       weddingOf: "திருமண விழா",
     },
     details: {
@@ -512,7 +522,8 @@ export const translations: Record<Language, Translations> = {
     contact: {
       title: "எங்களை தொடர்பு கொள்ள",
       subtitle: "கேள்விகள் உள்ளதா? WhatsApp மூலம் தொடர்பு கொள்ளவும்",
-      whatsappMessage: "Hello, I would like to inquire about {couple}'s wedding.",
+      whatsappMessage:
+        "Hello, I would like to inquire about {couple}'s wedding.",
     },
     qrCode: {
       title: "அழைப்பிதழைப் பகிரவும்",
@@ -565,7 +576,8 @@ export const translations: Record<Language, Translations> = {
     },
     wishlist: {
       title: "பரிசு பட்டியல்",
-      subtitle: "எங்களுக்கு பரிசு கொடுக்க விரும்பினால், இங்கே சில யோசனைகள். உங்கள் வருகையே சிறந்த பரிசு!",
+      subtitle:
+        "எங்களுக்கு பரிசு கொடுக்க விரும்பினால், இங்கே சில யோசனைகள். உங்கள் வருகையே சிறந்த பரிசு!",
       loading: "பட்டியலை ஏற்றுகிறது...",
       errorLoading: "பட்டியலை ஏற்ற முடியவில்லை. மீண்டும் முயற்சிக்கவும்.",
       noItems: "தற்போது பட்டியலில் பரிசுகள் இல்லை.",
@@ -583,7 +595,8 @@ export const translations: Record<Language, Translations> = {
       submitting: "சமர்ப்பிக்கிறது...",
       thankYou: "நன்றி!",
       reservationReceived: "உங்கள் முன்பதிவு பெறப்பட்டது.",
-      footerNote: "இதயத்திலிருந்து எந்த பரிசும் கொடுக்கலாம் - இப்பட்டியல் நகல்களை தவிர்க்க மட்டுமே!",
+      footerNote:
+        "இதயத்திலிருந்து எந்த பரிசும் கொடுக்கலாம் - இப்பட்டியல் நகல்களை தவிர்க்க மட்டுமே!",
       categories: {
         all: "அனைத்தும்",
         home: "வீடு",

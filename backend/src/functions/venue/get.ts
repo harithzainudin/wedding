@@ -15,7 +15,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (_event, context) => {
       new GetCommand({
         TableName: Resource.AppDataTable.name,
         Key: { pk: "SETTINGS", sk: "VENUE" },
-      })
+      }),
     );
 
     if (!result.Item) {
@@ -36,11 +36,19 @@ export const handler: APIGatewayProxyHandlerV2 = async (_event, context) => {
 
     return createSuccessResponse(200, venueData, context);
   } catch (error) {
-    logError({
-      endpoint: "GET /venue",
-      operation: "fetchVenue",
-      requestId: context.awsRequestId,
-    }, error);
-    return createErrorResponse(500, "Failed to fetch venue data", context, "DB_ERROR");
+    logError(
+      {
+        endpoint: "GET /venue",
+        operation: "fetchVenue",
+        requestId: context.awsRequestId,
+      },
+      error,
+    );
+    return createErrorResponse(
+      500,
+      "Failed to fetch venue data",
+      context,
+      "DB_ERROR",
+    );
   }
 };

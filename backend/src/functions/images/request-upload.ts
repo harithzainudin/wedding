@@ -1,6 +1,10 @@
 import type { APIGatewayProxyHandlerV2 } from "aws-lambda";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocumentClient, GetCommand, QueryCommand } from "@aws-sdk/lib-dynamodb";
+import {
+  DynamoDBDocumentClient,
+  GetCommand,
+  QueryCommand,
+} from "@aws-sdk/lib-dynamodb";
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { v4 as uuidv4 } from "uuid";
@@ -25,13 +29,15 @@ async function getImageSettings() {
     new GetCommand({
       TableName: Resource.AppDataTable.name,
       Key: { pk: "SETTINGS", sk: "IMAGES" },
-    })
+    }),
   );
 
   return {
     maxFileSize: (result.Item?.maxFileSize as number) ?? DEFAULT_MAX_FILE_SIZE,
     maxImages: (result.Item?.maxImages as number) ?? DEFAULT_MAX_IMAGES,
-    allowedFormats: (result.Item?.allowedFormats as string[]) ?? [...ALLOWED_MIME_TYPES],
+    allowedFormats: (result.Item?.allowedFormats as string[]) ?? [
+      ...ALLOWED_MIME_TYPES,
+    ],
   };
 }
 
@@ -43,7 +49,7 @@ async function getCurrentImageCount(): Promise<number> {
       KeyConditionExpression: "gsi1pk = :pk",
       ExpressionAttributeValues: { ":pk": "IMAGES" },
       Select: "COUNT",
-    })
+    }),
   );
   return result.Count ?? 0;
 }
@@ -55,31 +61,56 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
   try {
     const authResult = requireAuth(event);
     if (!authResult.authenticated) {
-      return createErrorResponse(authResult.statusCode, authResult.error, context, "AUTH_ERROR");
+      return createErrorResponse(
+        authResult.statusCode,
+        authResult.error,
+        context,
+        "AUTH_ERROR",
+      );
     }
 
     if (!event.body) {
-      return createErrorResponse(400, "Missing request body", context, "MISSING_BODY");
+      return createErrorResponse(
+        400,
+        "Missing request body",
+        context,
+        "MISSING_BODY",
+      );
     }
 
     let body: unknown;
     try {
       body = JSON.parse(event.body);
     } catch {
-      return createErrorResponse(400, "Invalid JSON body", context, "INVALID_JSON");
+      return createErrorResponse(
+        400,
+        "Invalid JSON body",
+        context,
+        "INVALID_JSON",
+      );
     }
 
     // Get settings and validate
     const settings = await getImageSettings();
     const validation = validateImageUpload(body, settings);
     if (!validation.valid) {
-      return createErrorResponse(400, validation.error, context, "VALIDATION_ERROR");
+      return createErrorResponse(
+        400,
+        validation.error,
+        context,
+        "VALIDATION_ERROR",
+      );
     }
 
     // Check max images limit
     const currentCount = await getCurrentImageCount();
     if (currentCount >= settings.maxImages) {
-      return createErrorResponse(400, `Maximum of ${settings.maxImages} images reached`, context, "LIMIT_EXCEEDED");
+      return createErrorResponse(
+        400,
+        `Maximum of ${settings.maxImages} images reached`,
+        context,
+        "LIMIT_EXCEEDED",
+      );
     }
 
     mimeType = validation.data.mimeType;
@@ -96,21 +127,35 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
       ContentLength: fileSize,
     });
 
-    const presignedUrl = await getSignedUrl(s3Client, command, { expiresIn: 600 });
-
-    return createSuccessResponse(200, {
-      uploadUrl: presignedUrl,
-      imageId,
-      s3Key,
+    const presignedUrl = await getSignedUrl(s3Client, command, {
       expiresIn: 600,
-    }, context);
+    });
+
+    return createSuccessResponse(
+      200,
+      {
+        uploadUrl: presignedUrl,
+        imageId,
+        s3Key,
+        expiresIn: 600,
+      },
+      context,
+    );
   } catch (error) {
-    logError({
-      endpoint: "POST /images/presigned-url",
-      operation: "requestUpload",
-      requestId: context.awsRequestId,
-      input: { mimeType, fileSize },
-    }, error);
-    return createErrorResponse(500, "Internal server error", context, "INTERNAL_ERROR");
+    logError(
+      {
+        endpoint: "POST /images/presigned-url",
+        operation: "requestUpload",
+        requestId: context.awsRequestId,
+        input: { mimeType, fileSize },
+      },
+      error,
+    );
+    return createErrorResponse(
+      500,
+      "Internal server error",
+      context,
+      "INTERNAL_ERROR",
+    );
   }
 };

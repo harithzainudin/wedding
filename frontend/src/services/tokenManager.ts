@@ -29,7 +29,7 @@ export function storeTokens(info: TokenInfo): void {
   localStorage.setItem(REFRESH_TOKEN_KEY, info.refreshToken);
   localStorage.setItem(
     TOKEN_EXPIRY_KEY,
-    String(Date.now() + info.expiresIn * 1000)
+    String(Date.now() + info.expiresIn * 1000),
   );
   localStorage.setItem(USERNAME_KEY, info.username);
   localStorage.setItem(IS_MASTER_KEY, info.isMaster ? "true" : "false");

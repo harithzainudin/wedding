@@ -14,7 +14,9 @@ useDocumentTitle({ text: "RSVP", position: "prefix" });
 </script>
 
 <template>
-  <main class="min-h-screen bg-sand dark:bg-dark-bg transition-colors duration-300">
+  <main
+    class="min-h-screen bg-sand dark:bg-dark-bg transition-colors duration-300"
+  >
     <!-- Header -->
     <header class="relative py-8 px-6 text-center">
       <!-- Controls -->
@@ -41,7 +43,9 @@ useDocumentTitle({ text: "RSVP", position: "prefix" });
     <RsvpSection />
 
     <!-- Back Link -->
-    <div class="text-center pb-8 bg-white dark:bg-dark-bg-secondary transition-colors duration-300">
+    <div
+      class="text-center pb-8 bg-white dark:bg-dark-bg-secondary transition-colors duration-300"
+    >
       <RouterLink
         to="/"
         class="inline-flex items-center gap-2 font-body text-sage hover:text-sage-dark dark:hover:text-sage-light transition-colors"

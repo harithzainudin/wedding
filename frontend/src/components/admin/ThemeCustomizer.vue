@@ -1,6 +1,10 @@
 <script setup lang="ts">
 import { ref, watch, computed } from "vue";
-import type { CustomThemeData, ThemeColors, ThemeDarkColors } from "@/types/theme";
+import type {
+  CustomThemeData,
+  ThemeColors,
+  ThemeDarkColors,
+} from "@/types/theme";
 import { FONT_PRESETS, DEFAULT_THEMES } from "@/constants/themes";
 
 const props = defineProps<{
@@ -24,7 +28,9 @@ const getDefaultCustomTheme = (): CustomThemeData => {
   };
 };
 
-const localTheme = ref<CustomThemeData>(props.customTheme ?? getDefaultCustomTheme());
+const localTheme = ref<CustomThemeData>(
+  props.customTheme ?? getDefaultCustomTheme(),
+);
 
 // Watch for external changes
 watch(
@@ -34,7 +40,7 @@ watch(
       localTheme.value = { ...newTheme };
     }
   },
-  { deep: true }
+  { deep: true },
 );
 
 // Emit updates when local theme changes
@@ -63,7 +69,7 @@ const selectedFontPreset = computed(() => {
   return FONT_PRESETS.findIndex(
     (p) =>
       p.heading === localTheme.value.fonts.heading &&
-      p.body === localTheme.value.fonts.body
+      p.body === localTheme.value.fonts.body,
   );
 });
 
@@ -91,24 +97,68 @@ const toggleSection = (section: keyof typeof expandedSections.value): void => {
 };
 
 // Color field definitions
-const lightColorFields: { key: keyof ThemeColors; label: string; description: string }[] = [
+const lightColorFields: {
+  key: keyof ThemeColors;
+  label: string;
+  description: string;
+}[] = [
   { key: "primary", label: "Primary", description: "Main accent color" },
-  { key: "primaryLight", label: "Primary Light", description: "Lighter variant of primary" },
-  { key: "primaryDark", label: "Primary Dark", description: "Darker variant of primary" },
-  { key: "secondary", label: "Secondary", description: "Background and card color" },
-  { key: "secondaryDark", label: "Secondary Dark", description: "Darker secondary" },
+  {
+    key: "primaryLight",
+    label: "Primary Light",
+    description: "Lighter variant of primary",
+  },
+  {
+    key: "primaryDark",
+    label: "Primary Dark",
+    description: "Darker variant of primary",
+  },
+  {
+    key: "secondary",
+    label: "Secondary",
+    description: "Background and card color",
+  },
+  {
+    key: "secondaryDark",
+    label: "Secondary Dark",
+    description: "Darker secondary",
+  },
   { key: "text", label: "Text", description: "Primary text color" },
-  { key: "textLight", label: "Text Light", description: "Secondary text color" },
+  {
+    key: "textLight",
+    label: "Text Light",
+    description: "Secondary text color",
+  },
   { key: "background", label: "Background", description: "Page background" },
 ];
 
-const darkColorFields: { key: keyof ThemeDarkColors; label: string; description: string }[] = [
-  { key: "background", label: "Background", description: "Main dark background" },
-  { key: "backgroundSecondary", label: "Background Secondary", description: "Card background" },
-  { key: "backgroundElevated", label: "Background Elevated", description: "Modal/popup background" },
+const darkColorFields: {
+  key: keyof ThemeDarkColors;
+  label: string;
+  description: string;
+}[] = [
+  {
+    key: "background",
+    label: "Background",
+    description: "Main dark background",
+  },
+  {
+    key: "backgroundSecondary",
+    label: "Background Secondary",
+    description: "Card background",
+  },
+  {
+    key: "backgroundElevated",
+    label: "Background Elevated",
+    description: "Modal/popup background",
+  },
   { key: "border", label: "Border", description: "Border color" },
   { key: "text", label: "Text", description: "Primary text in dark mode" },
-  { key: "textSecondary", label: "Text Secondary", description: "Secondary text in dark mode" },
+  {
+    key: "textSecondary",
+    label: "Text Secondary",
+    description: "Secondary text in dark mode",
+  },
 ];
 </script>
 
@@ -116,30 +166,33 @@ const darkColorFields: { key: keyof ThemeDarkColors; label: string; description:
   <div class="space-y-4">
     <!-- Theme Name -->
     <div>
-      <label class="block font-body text-sm font-medium text-charcoal dark:text-dark-text mb-1">
+      <label
+        class="block font-body text-sm font-medium text-charcoal dark:text-dark-text mb-1"
+      >
         Theme Name
       </label>
       <input
         type="text"
         :value="localTheme.name"
         @input="updateName(($event.target as HTMLInputElement).value)"
-        class="w-full px-3 py-2 font-body text-sm border border-sand-dark dark:border-dark-border
-               rounded-lg bg-white dark:bg-dark-bg-secondary text-charcoal dark:text-dark-text
-               focus:border-sage focus:outline-none"
+        class="w-full px-3 py-2 font-body text-sm border border-sand-dark dark:border-dark-border rounded-lg bg-white dark:bg-dark-bg-secondary text-charcoal dark:text-dark-text focus:border-sage focus:outline-none"
         placeholder="My Custom Theme"
         maxlength="50"
       />
     </div>
 
     <!-- Light Mode Colors Section -->
-    <div class="border border-sand-dark dark:border-dark-border rounded-lg overflow-hidden">
+    <div
+      class="border border-sand-dark dark:border-dark-border rounded-lg overflow-hidden"
+    >
       <button
         type="button"
-        class="w-full flex items-center justify-between px-4 py-3 bg-sand/50 dark:bg-dark-bg-secondary
-               text-left cursor-pointer hover:bg-sand dark:hover:bg-dark-bg-elevated transition-colors"
+        class="w-full flex items-center justify-between px-4 py-3 bg-sand/50 dark:bg-dark-bg-secondary text-left cursor-pointer hover:bg-sand dark:hover:bg-dark-bg-elevated transition-colors"
         @click="toggleSection('lightColors')"
       >
-        <span class="font-body text-sm font-medium text-charcoal dark:text-dark-text">
+        <span
+          class="font-body text-sm font-medium text-charcoal dark:text-dark-text"
+        >
           Light Mode Colors
         </span>
         <svg
@@ -149,7 +202,12 @@ const darkColorFields: { key: keyof ThemeDarkColors; label: string; description:
           stroke="currentColor"
           viewBox="0 0 24 24"
         >
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M19 9l-7 7-7-7"
+          />
         </svg>
       </button>
       <div v-show="expandedSections.lightColors" class="p-4 space-y-3">
@@ -161,21 +219,34 @@ const darkColorFields: { key: keyof ThemeDarkColors; label: string; description:
           <input
             type="color"
             :value="localTheme.colors.light[field.key]"
-            @input="updateLightColor(field.key, ($event.target as HTMLInputElement).value)"
+            @input="
+              updateLightColor(
+                field.key,
+                ($event.target as HTMLInputElement).value,
+              )
+            "
             class="w-10 h-10 rounded cursor-pointer border border-sand-dark dark:border-dark-border"
           />
           <div class="flex-1">
-            <p class="font-body text-sm text-charcoal dark:text-dark-text">{{ field.label }}</p>
-            <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary">
+            <p class="font-body text-sm text-charcoal dark:text-dark-text">
+              {{ field.label }}
+            </p>
+            <p
+              class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary"
+            >
               {{ field.description }}
             </p>
           </div>
           <input
             type="text"
             :value="localTheme.colors.light[field.key]"
-            @input="updateLightColor(field.key, ($event.target as HTMLInputElement).value)"
-            class="w-24 px-2 py-1 font-body text-xs border border-sand-dark dark:border-dark-border
-                   rounded bg-white dark:bg-dark-bg text-charcoal dark:text-dark-text uppercase"
+            @input="
+              updateLightColor(
+                field.key,
+                ($event.target as HTMLInputElement).value,
+              )
+            "
+            class="w-24 px-2 py-1 font-body text-xs border border-sand-dark dark:border-dark-border rounded bg-white dark:bg-dark-bg text-charcoal dark:text-dark-text uppercase"
             maxlength="7"
           />
         </div>
@@ -183,14 +254,17 @@ const darkColorFields: { key: keyof ThemeDarkColors; label: string; description:
     </div>
 
     <!-- Dark Mode Colors Section -->
-    <div class="border border-sand-dark dark:border-dark-border rounded-lg overflow-hidden">
+    <div
+      class="border border-sand-dark dark:border-dark-border rounded-lg overflow-hidden"
+    >
       <button
         type="button"
-        class="w-full flex items-center justify-between px-4 py-3 bg-sand/50 dark:bg-dark-bg-secondary
-               text-left cursor-pointer hover:bg-sand dark:hover:bg-dark-bg-elevated transition-colors"
+        class="w-full flex items-center justify-between px-4 py-3 bg-sand/50 dark:bg-dark-bg-secondary text-left cursor-pointer hover:bg-sand dark:hover:bg-dark-bg-elevated transition-colors"
         @click="toggleSection('darkColors')"
       >
-        <span class="font-body text-sm font-medium text-charcoal dark:text-dark-text">
+        <span
+          class="font-body text-sm font-medium text-charcoal dark:text-dark-text"
+        >
           Dark Mode Colors
         </span>
         <svg
@@ -200,7 +274,12 @@ const darkColorFields: { key: keyof ThemeDarkColors; label: string; description:
           stroke="currentColor"
           viewBox="0 0 24 24"
         >
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M19 9l-7 7-7-7"
+          />
         </svg>
       </button>
       <div v-show="expandedSections.darkColors" class="p-4 space-y-3">
@@ -212,21 +291,34 @@ const darkColorFields: { key: keyof ThemeDarkColors; label: string; description:
           <input
             type="color"
             :value="localTheme.colors.dark[field.key]"
-            @input="updateDarkColor(field.key, ($event.target as HTMLInputElement).value)"
+            @input="
+              updateDarkColor(
+                field.key,
+                ($event.target as HTMLInputElement).value,
+              )
+            "
             class="w-10 h-10 rounded cursor-pointer border border-sand-dark dark:border-dark-border"
           />
           <div class="flex-1">
-            <p class="font-body text-sm text-charcoal dark:text-dark-text">{{ field.label }}</p>
-            <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary">
+            <p class="font-body text-sm text-charcoal dark:text-dark-text">
+              {{ field.label }}
+            </p>
+            <p
+              class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary"
+            >
               {{ field.description }}
             </p>
           </div>
           <input
             type="text"
             :value="localTheme.colors.dark[field.key]"
-            @input="updateDarkColor(field.key, ($event.target as HTMLInputElement).value)"
-            class="w-24 px-2 py-1 font-body text-xs border border-sand-dark dark:border-dark-border
-                   rounded bg-white dark:bg-dark-bg text-charcoal dark:text-dark-text uppercase"
+            @input="
+              updateDarkColor(
+                field.key,
+                ($event.target as HTMLInputElement).value,
+              )
+            "
+            class="w-24 px-2 py-1 font-body text-xs border border-sand-dark dark:border-dark-border rounded bg-white dark:bg-dark-bg text-charcoal dark:text-dark-text uppercase"
             maxlength="7"
           />
         </div>
@@ -234,14 +326,17 @@ const darkColorFields: { key: keyof ThemeDarkColors; label: string; description:
     </div>
 
     <!-- Fonts Section -->
-    <div class="border border-sand-dark dark:border-dark-border rounded-lg overflow-hidden">
+    <div
+      class="border border-sand-dark dark:border-dark-border rounded-lg overflow-hidden"
+    >
       <button
         type="button"
-        class="w-full flex items-center justify-between px-4 py-3 bg-sand/50 dark:bg-dark-bg-secondary
-               text-left cursor-pointer hover:bg-sand dark:hover:bg-dark-bg-elevated transition-colors"
+        class="w-full flex items-center justify-between px-4 py-3 bg-sand/50 dark:bg-dark-bg-secondary text-left cursor-pointer hover:bg-sand dark:hover:bg-dark-bg-elevated transition-colors"
         @click="toggleSection('fonts')"
       >
-        <span class="font-body text-sm font-medium text-charcoal dark:text-dark-text">
+        <span
+          class="font-body text-sm font-medium text-charcoal dark:text-dark-text"
+        >
           Fonts
         </span>
         <svg
@@ -251,11 +346,18 @@ const darkColorFields: { key: keyof ThemeDarkColors; label: string; description:
           stroke="currentColor"
           viewBox="0 0 24 24"
         >
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M19 9l-7 7-7-7"
+          />
         </svg>
       </button>
       <div v-show="expandedSections.fonts" class="p-4 space-y-4">
-        <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary">
+        <p
+          class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary"
+        >
           Select a font pairing preset:
         </p>
         <div class="grid grid-cols-2 gap-2">
@@ -288,11 +390,14 @@ const darkColorFields: { key: keyof ThemeDarkColors; label: string; description:
 
         <!-- Current Font Display -->
         <div class="mt-4 p-3 bg-sand/50 dark:bg-dark-bg-secondary rounded-lg">
-          <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary mb-2">
+          <p
+            class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary mb-2"
+          >
             Current selection:
           </p>
           <p class="text-charcoal dark:text-dark-text">
-            <span class="font-medium">Heading:</span> {{ localTheme.fonts.heading }}
+            <span class="font-medium">Heading:</span>
+            {{ localTheme.fonts.heading }}
           </p>
           <p class="text-charcoal dark:text-dark-text">
             <span class="font-medium">Body:</span> {{ localTheme.fonts.body }}

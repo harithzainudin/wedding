@@ -23,7 +23,12 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
     // Require authentication
     const authResult = requireAuth(event);
     if (!authResult.authenticated) {
-      return createErrorResponse(authResult.statusCode, authResult.error, context, "AUTH_ERROR");
+      return createErrorResponse(
+        authResult.statusCode,
+        authResult.error,
+        context,
+        "AUTH_ERROR",
+      );
     }
 
     username = authResult.user.username;
@@ -46,11 +51,16 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
           pk: `ADMIN#${username}`,
           sk: "PROFILE",
         },
-      })
+      }),
     );
 
     if (!result.Item) {
-      return createErrorResponse(404, "Profile not found", context, "NOT_FOUND");
+      return createErrorResponse(
+        404,
+        "Profile not found",
+        context,
+        "NOT_FOUND",
+      );
     }
 
     const profile: AdminProfile = {
@@ -62,12 +72,20 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
 
     return createSuccessResponse(200, profile, context);
   } catch (error) {
-    logError({
-      endpoint: "GET /admin/users/me",
-      operation: "getProfile",
-      requestId: context.awsRequestId,
-      input: { username },
-    }, error);
-    return createErrorResponse(500, "Internal server error", context, "INTERNAL_ERROR");
+    logError(
+      {
+        endpoint: "GET /admin/users/me",
+        operation: "getProfile",
+        requestId: context.awsRequestId,
+        input: { username },
+      },
+      error,
+    );
+    return createErrorResponse(
+      500,
+      "Internal server error",
+      context,
+      "INTERNAL_ERROR",
+    );
   }
 };

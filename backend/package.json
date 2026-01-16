@@ -7,7 +7,11 @@
     "build": "sst build",
     "deploy:prod": "sst deploy --stage prod",
     "deploy": "sst deploy",
-    "remove": "sst remove"
+    "remove": "sst remove",
+    "type-check": "tsc --noEmit",
+    "format": "prettier --write \"src/**/*.ts\" \"infra/**/*.ts\"",
+    "format:check": "prettier --check \"src/**/*.ts\" \"infra/**/*.ts\"",
+    "check": "tsc --noEmit && prettier --check \"src/**/*.ts\" \"infra/**/*.ts\""
   },
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.964.0",
@@ -21,6 +25,7 @@
   "devDependencies": {
     "@types/aws-lambda": "^8.10.147",
     "@types/bcryptjs": "^3.0.0",
+    "prettier": "^3.8.0",
     "sst": "^3.17.25",
     "typescript": "~5.9.3"
   },

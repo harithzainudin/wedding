@@ -1,6 +1,13 @@
 import { ref } from "vue";
-import type { ContactsData, ContactPerson, ContactsUpdateRequest } from "@/types/contacts";
-import { getContacts, updateContacts as apiUpdateContacts } from "@/services/api";
+import type {
+  ContactsData,
+  ContactPerson,
+  ContactsUpdateRequest,
+} from "@/types/contacts";
+import {
+  getContacts,
+  updateContacts as apiUpdateContacts,
+} from "@/services/api";
 
 // Default contacts data (matches backend defaults)
 const DEFAULT_CONTACTS: ContactsData = {
@@ -50,14 +57,17 @@ export function useContacts() {
       const data = await getContacts();
       contacts.value = data;
     } catch (err) {
-      loadError.value = err instanceof Error ? err.message : "Failed to load contacts";
+      loadError.value =
+        err instanceof Error ? err.message : "Failed to load contacts";
     } finally {
       isLoading.value = false;
     }
   };
 
   // Update contacts
-  const updateContacts = async (contactsList: ContactPerson[]): Promise<{ success: boolean; error?: string }> => {
+  const updateContacts = async (
+    contactsList: ContactPerson[],
+  ): Promise<{ success: boolean; error?: string }> => {
     isSaving.value = true;
     saveError.value = "";
     saveSuccess.value = false;
@@ -73,7 +83,8 @@ export function useContacts() {
       }, 3000);
       return { success: true };
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : "Failed to update contacts";
+      const errorMessage =
+        err instanceof Error ? err.message : "Failed to update contacts";
       saveError.value = errorMessage;
       return { success: false, error: errorMessage };
     } finally {
@@ -88,7 +99,10 @@ export function useContacts() {
 
   // Reset to defaults (for form reset)
   const resetToDefaults = (): void => {
-    contacts.value = { ...DEFAULT_CONTACTS, contacts: [...DEFAULT_CONTACTS.contacts] };
+    contacts.value = {
+      ...DEFAULT_CONTACTS,
+      contacts: [...DEFAULT_CONTACTS.contacts],
+    };
   };
 
   return {

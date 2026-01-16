@@ -19,13 +19,23 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
     try {
       body = JSON.parse(event.body ?? "{}");
     } catch {
-      return createErrorResponse(400, "Invalid JSON in request body", context, "INVALID_JSON");
+      return createErrorResponse(
+        400,
+        "Invalid JSON in request body",
+        context,
+        "INVALID_JSON",
+      );
     }
 
     // Validate input
     const validation = validateRsvpInput(body);
     if (!validation.valid) {
-      return createErrorResponse(400, validation.error, context, "VALIDATION_ERROR");
+      return createErrorResponse(
+        400,
+        validation.error,
+        context,
+        "VALIDATION_ERROR",
+      );
     }
 
     const { data } = validation;
@@ -57,20 +67,32 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
       new PutCommand({
         TableName: Resource.AppDataTable.name,
         Item: rsvpItem,
-      })
+      }),
     );
 
-    return createSuccessResponse(201, {
-      id,
-      submittedAt: timestamp,
-    }, context);
+    return createSuccessResponse(
+      201,
+      {
+        id,
+        submittedAt: timestamp,
+      },
+      context,
+    );
   } catch (error) {
-    logError({
-      endpoint: "POST /rsvp",
-      operation: "submitRsvp",
-      requestId: context.awsRequestId,
-      input: { fullName },
-    }, error);
-    return createErrorResponse(500, "Internal server error", context, "DB_ERROR");
+    logError(
+      {
+        endpoint: "POST /rsvp",
+        operation: "submitRsvp",
+        requestId: context.awsRequestId,
+        input: { fullName },
+      },
+      error,
+    );
+    return createErrorResponse(
+      500,
+      "Internal server error",
+      context,
+      "DB_ERROR",
+    );
   }
 };

@@ -24,23 +24,43 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
   try {
     const authResult = requireAuth(event);
     if (!authResult.authenticated) {
-      return createErrorResponse(authResult.statusCode, authResult.error, context, "AUTH_ERROR");
+      return createErrorResponse(
+        authResult.statusCode,
+        authResult.error,
+        context,
+        "AUTH_ERROR",
+      );
     }
 
     if (!event.body) {
-      return createErrorResponse(400, "Missing request body", context, "MISSING_BODY");
+      return createErrorResponse(
+        400,
+        "Missing request body",
+        context,
+        "MISSING_BODY",
+      );
     }
 
     let body: unknown;
     try {
       body = JSON.parse(event.body);
     } catch {
-      return createErrorResponse(400, "Invalid JSON body", context, "INVALID_JSON");
+      return createErrorResponse(
+        400,
+        "Invalid JSON body",
+        context,
+        "INVALID_JSON",
+      );
     }
 
     const validation = validateReorderRequest(body);
     if (!validation.valid) {
-      return createErrorResponse(400, validation.error, context, "VALIDATION_ERROR");
+      return createErrorResponse(
+        400,
+        validation.error,
+        context,
+        "VALIDATION_ERROR",
+      );
     }
 
     imageIds = validation.data.imageIds;
@@ -52,22 +72,34 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
         IndexName: "byStatus",
         KeyConditionExpression: "gsi1pk = :pk",
         ExpressionAttributeValues: { ":pk": "IMAGES" },
-      })
+      }),
     );
 
     const existingImages = queryResult.Items ?? [];
-    const existingIds = new Set(existingImages.map((item) => item.id as string));
+    const existingIds = new Set(
+      existingImages.map((item) => item.id as string),
+    );
 
     // Validate all provided IDs exist
     for (const id of imageIds) {
       if (!existingIds.has(id)) {
-        return createErrorResponse(400, `Image with ID ${id} not found`, context, "NOT_FOUND");
+        return createErrorResponse(
+          400,
+          `Image with ID ${id} not found`,
+          context,
+          "NOT_FOUND",
+        );
       }
     }
 
     // Ensure all images are included
     if (imageIds.length !== existingImages.length) {
-      return createErrorResponse(400, "All image IDs must be included in the reorder request", context, "VALIDATION_ERROR");
+      return createErrorResponse(
+        400,
+        "All image IDs must be included in the reorder request",
+        context,
+        "VALIDATION_ERROR",
+      );
     }
 
     // Build transaction to update all orders atomically
@@ -84,19 +116,33 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
       },
     }));
 
-    await docClient.send(new TransactWriteCommand({ TransactItems: transactItems }));
+    await docClient.send(
+      new TransactWriteCommand({ TransactItems: transactItems }),
+    );
 
-    return createSuccessResponse(200, {
-      message: "Images reordered successfully",
-      newOrder: imageIds,
-    }, context);
+    return createSuccessResponse(
+      200,
+      {
+        message: "Images reordered successfully",
+        newOrder: imageIds,
+      },
+      context,
+    );
   } catch (error) {
-    logError({
-      endpoint: "PUT /images/reorder",
-      operation: "reorderImages",
-      requestId: context.awsRequestId,
-      input: { imageCount: imageIds?.length },
-    }, error);
-    return createErrorResponse(500, "Failed to reorder images", context, "DB_ERROR");
+    logError(
+      {
+        endpoint: "PUT /images/reorder",
+        operation: "reorderImages",
+        requestId: context.awsRequestId,
+        input: { imageCount: imageIds?.length },
+      },
+      error,
+    );
+    return createErrorResponse(
+      500,
+      "Failed to reorder images",
+      context,
+      "DB_ERROR",
+    );
   }
 };

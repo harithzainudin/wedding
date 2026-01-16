@@ -18,20 +18,26 @@ const emit = defineEmits<{
 const localImages = computed({
   get: () => [...props.images],
   set: (value: GalleryImage[]) => {
-    emit("reorder", value.map((img) => img.id));
-  }
+    emit(
+      "reorder",
+      value.map((img) => img.id),
+    );
+  },
 });
 
 // Detect if device supports touch (mobile/tablet)
 const isTouchDevice = ref(false);
 if (typeof window !== "undefined") {
-  isTouchDevice.value = "ontouchstart" in window || navigator.maxTouchPoints > 0;
+  isTouchDevice.value =
+    "ontouchstart" in window || navigator.maxTouchPoints > 0;
 }
 
 // Modal state for mobile repositioning
 const selectedImageIndex = ref<number | null>(null);
 const selectedImage = computed(() =>
-  selectedImageIndex.value !== null ? props.images[selectedImageIndex.value] : null
+  selectedImageIndex.value !== null
+    ? props.images[selectedImageIndex.value]
+    : null,
 );
 
 // Lightbox state
@@ -76,7 +82,10 @@ const handleMoveImage = (newPosition: number): void => {
   const movedImage = newOrder.splice(currentIndex, 1)[0];
   if (movedImage) {
     newOrder.splice(targetIndex, 0, movedImage);
-    emit("reorder", newOrder.map((img) => img.id));
+    emit(
+      "reorder",
+      newOrder.map((img) => img.id),
+    );
   }
   selectedImageIndex.value = null;
 };
@@ -122,10 +131,16 @@ onUnmounted(() => {
 <template>
   <div>
     <!-- Instructions -->
-    <p v-if="isTouchDevice" class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary mb-3">
+    <p
+      v-if="isTouchDevice"
+      class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary mb-3"
+    >
       Tap an image to move or view it.
     </p>
-    <p v-else class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary mb-3">
+    <p
+      v-else
+      class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary mb-3"
+    >
       Drag images to reorder them.
     </p>
 
@@ -180,8 +195,18 @@ onUnmounted(() => {
           class="absolute top-4 right-4 p-2 bg-black/50 text-white/90 hover:text-white hover:bg-black/70 rounded-full transition-colors cursor-pointer z-10"
           @click="closeLightbox"
         >
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          <svg
+            class="w-6 h-6"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M6 18L18 6M6 6l12 12"
+            />
           </svg>
         </button>
 
@@ -206,7 +231,9 @@ onUnmounted(() => {
 
 .lightbox-enter-active .lightbox-image,
 .lightbox-leave-active .lightbox-image {
-  transition: transform 0.25s ease, opacity 0.25s ease;
+  transition:
+    transform 0.25s ease,
+    opacity 0.25s ease;
 }
 
 .lightbox-enter-from,

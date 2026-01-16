@@ -7,7 +7,15 @@ import { DEFAULT_THEMES, PRESET_THEME_IDS } from "@/constants/themes";
 import ThemeCard from "./ThemeCard.vue";
 import ThemeCustomizer from "./ThemeCustomizer.vue";
 
-const { themeSettings, isLoading, isSaving, error, loadTheme, saveTheme, restoreTheme } = useTheme();
+const {
+  themeSettings,
+  isLoading,
+  isSaving,
+  error,
+  loadTheme,
+  saveTheme,
+  restoreTheme,
+} = useTheme();
 const { isPreviewMode, startPreview, endPreview } = useThemePreview();
 
 // Local state
@@ -19,7 +27,7 @@ const saveSuccess = ref(false);
 
 // Get preset themes as array
 const presetThemes = computed<ThemeDefinition[]>(() =>
-  PRESET_THEME_IDS.map((id) => DEFAULT_THEMES[id])
+  PRESET_THEME_IDS.map((id) => DEFAULT_THEMES[id]),
 );
 
 // Check if there are unsaved changes
@@ -32,7 +40,9 @@ const hasChanges = computed(() => {
   if (selectedThemeId.value === "custom" && customThemeData.value) {
     if (!savedCustom) return true;
     // Deep compare custom themes
-    return JSON.stringify(customThemeData.value) !== JSON.stringify(savedCustom);
+    return (
+      JSON.stringify(customThemeData.value) !== JSON.stringify(savedCustom)
+    );
   }
 
   return false;
@@ -55,7 +65,7 @@ watch(
       customThemeData.value = newSettings.customTheme;
     }
   },
-  { deep: true }
+  { deep: true },
 );
 
 // Select a preset theme
@@ -75,18 +85,38 @@ const selectTheme = (themeId: ThemeId): void => {
         fonts: { ...DEFAULT_THEMES["earthy-minimalist"].fonts },
       };
     }
-    startPreview("custom", customThemeData.value, themeSettings.value.activeThemeId, themeSettings.value.customTheme);
+    startPreview(
+      "custom",
+      customThemeData.value,
+      themeSettings.value.activeThemeId,
+      themeSettings.value.customTheme,
+    );
   } else {
-    startPreview(themeId, undefined, themeSettings.value.activeThemeId, themeSettings.value.customTheme);
+    startPreview(
+      themeId,
+      undefined,
+      themeSettings.value.activeThemeId,
+      themeSettings.value.customTheme,
+    );
   }
 };
 
 // Preview a theme without selecting
 const previewTheme = (themeId: ThemeId): void => {
   if (themeId === "custom") {
-    startPreview("custom", customThemeData.value, themeSettings.value.activeThemeId, themeSettings.value.customTheme);
+    startPreview(
+      "custom",
+      customThemeData.value,
+      themeSettings.value.activeThemeId,
+      themeSettings.value.customTheme,
+    );
   } else {
-    startPreview(themeId, undefined, themeSettings.value.activeThemeId, themeSettings.value.customTheme);
+    startPreview(
+      themeId,
+      undefined,
+      themeSettings.value.activeThemeId,
+      themeSettings.value.customTheme,
+    );
   }
 };
 
@@ -98,7 +128,12 @@ const handleCustomThemeUpdate = (theme: CustomThemeData): void => {
 
   // Update preview in real-time
   if (selectedThemeId.value === "custom") {
-    startPreview("custom", theme, themeSettings.value.activeThemeId, themeSettings.value.customTheme);
+    startPreview(
+      "custom",
+      theme,
+      themeSettings.value.activeThemeId,
+      themeSettings.value.customTheme,
+    );
   }
 };
 
@@ -122,7 +157,8 @@ const handleSave = async (): Promise<void> => {
 
   const result = await saveTheme({
     activeThemeId: selectedThemeId.value,
-    customTheme: selectedThemeId.value === "custom" ? customThemeData.value : undefined,
+    customTheme:
+      selectedThemeId.value === "custom" ? customThemeData.value : undefined,
   });
 
   if (result.success) {
@@ -151,17 +187,24 @@ const toggleCustomizer = (): void => {
   <div class="space-y-6">
     <!-- Header -->
     <div>
-      <h2 class="font-heading text-xl font-medium text-charcoal dark:text-dark-text mb-1">
+      <h2
+        class="font-heading text-xl font-medium text-charcoal dark:text-dark-text mb-1"
+      >
         Theme Settings
       </h2>
-      <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary">
-        Choose a theme for your wedding website. Changes will be reflected on the public site.
+      <p
+        class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary"
+      >
+        Choose a theme for your wedding website. Changes will be reflected on
+        the public site.
       </p>
     </div>
 
     <!-- Loading State -->
     <div v-if="isLoading" class="flex items-center justify-center py-12">
-      <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-sage"></div>
+      <div
+        class="animate-spin rounded-full h-8 w-8 border-b-2 border-sage"
+      ></div>
     </div>
 
     <template v-else>
@@ -175,9 +218,7 @@ const toggleCustomizer = (): void => {
         </p>
         <button
           type="button"
-          class="px-3 py-1 font-body text-sm font-medium bg-amber-100 dark:bg-amber-800
-                 text-amber-700 dark:text-amber-200 rounded hover:bg-amber-200
-                 dark:hover:bg-amber-700 transition-colors cursor-pointer"
+          class="px-3 py-1 font-body text-sm font-medium bg-amber-100 dark:bg-amber-800 text-amber-700 dark:text-amber-200 rounded hover:bg-amber-200 dark:hover:bg-amber-700 transition-colors cursor-pointer"
           @click="cancelChanges"
         >
           Cancel Preview
@@ -186,7 +227,9 @@ const toggleCustomizer = (): void => {
 
       <!-- Preset Themes Grid -->
       <div>
-        <h3 class="font-body text-sm font-medium text-charcoal dark:text-dark-text mb-3">
+        <h3
+          class="font-body text-sm font-medium text-charcoal dark:text-dark-text mb-3"
+        >
           Preset Themes
         </h3>
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -202,12 +245,15 @@ const toggleCustomizer = (): void => {
       </div>
 
       <!-- Custom Theme Section -->
-      <div class="border border-sand-dark dark:border-dark-border rounded-lg overflow-hidden">
+      <div
+        class="border border-sand-dark dark:border-dark-border rounded-lg overflow-hidden"
+      >
         <button
           type="button"
-          class="w-full flex items-center justify-between px-4 py-4 bg-sand/30 dark:bg-dark-bg-secondary
-                 text-left cursor-pointer hover:bg-sand/50 dark:hover:bg-dark-bg-elevated transition-colors"
-          :class="{ 'bg-sage/10 dark:bg-sage/20': selectedThemeId === 'custom' }"
+          class="w-full flex items-center justify-between px-4 py-4 bg-sand/30 dark:bg-dark-bg-secondary text-left cursor-pointer hover:bg-sand/50 dark:hover:bg-dark-bg-elevated transition-colors"
+          :class="{
+            'bg-sage/10 dark:bg-sage/20': selectedThemeId === 'custom',
+          }"
           @click="toggleCustomizer"
         >
           <div class="flex items-center gap-3">
@@ -216,8 +262,18 @@ const toggleCustomizer = (): void => {
               v-if="selectedThemeId === 'custom'"
               class="w-6 h-6 bg-sage rounded-full flex items-center justify-center flex-shrink-0"
             >
-              <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+              <svg
+                class="w-4 h-4 text-white"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M5 13l4 4L19 7"
+                />
               </svg>
             </div>
             <div
@@ -225,27 +281,41 @@ const toggleCustomizer = (): void => {
               class="w-6 h-6 border-2 border-sand-dark dark:border-dark-border rounded-full flex-shrink-0"
             />
             <div>
-              <span class="font-heading text-base font-medium text-charcoal dark:text-dark-text">
+              <span
+                class="font-heading text-base font-medium text-charcoal dark:text-dark-text"
+              >
                 Custom Theme
               </span>
-              <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary">
+              <p
+                class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary"
+              >
                 Create your own color scheme and font pairing
               </p>
             </div>
           </div>
           <svg
             class="w-5 h-5 text-charcoal-light dark:text-dark-text-secondary transition-transform"
-            :class="{ 'rotate-180': showCustomizer && selectedThemeId === 'custom' }"
+            :class="{
+              'rotate-180': showCustomizer && selectedThemeId === 'custom',
+            }"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
           >
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M19 9l-7 7-7-7"
+            />
           </svg>
         </button>
 
         <!-- Custom Theme Editor -->
-        <div v-show="showCustomizer && selectedThemeId === 'custom'" class="p-4 border-t border-sand-dark dark:border-dark-border">
+        <div
+          v-show="showCustomizer && selectedThemeId === 'custom'"
+          class="p-4 border-t border-sand-dark dark:border-dark-border"
+        >
           <ThemeCustomizer
             :custom-theme="customThemeData"
             @update="handleCustomThemeUpdate"
@@ -274,28 +344,38 @@ const toggleCustomizer = (): void => {
       </div>
 
       <!-- Action Buttons -->
-      <div class="flex justify-end gap-3 pt-4 border-t border-sand-dark dark:border-dark-border">
+      <div
+        class="flex justify-end gap-3 pt-4 border-t border-sand-dark dark:border-dark-border"
+      >
         <button
           v-if="hasChanges"
           type="button"
-          class="px-4 py-2 font-body text-sm font-medium bg-sand dark:bg-dark-bg-secondary
-                 text-charcoal dark:text-dark-text rounded-lg
-                 hover:bg-sand-dark dark:hover:bg-dark-bg-elevated transition-colors cursor-pointer"
+          class="px-4 py-2 font-body text-sm font-medium bg-sand dark:bg-dark-bg-secondary text-charcoal dark:text-dark-text rounded-lg hover:bg-sand-dark dark:hover:bg-dark-bg-elevated transition-colors cursor-pointer"
           @click="cancelChanges"
         >
           Cancel
         </button>
         <button
           type="button"
-          class="px-4 py-2 font-body text-sm font-medium bg-sage text-white rounded-lg
-                 hover:bg-sage-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+          class="px-4 py-2 font-body text-sm font-medium bg-sage text-white rounded-lg hover:bg-sage-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
           :disabled="!hasChanges || isSaving"
           @click="handleSave"
         >
           <span v-if="isSaving" class="flex items-center gap-2">
             <svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
-              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
-              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+              <circle
+                class="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                stroke-width="4"
+              />
+              <path
+                class="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+              />
             </svg>
             Saving...
           </span>
@@ -305,9 +385,13 @@ const toggleCustomizer = (): void => {
 
       <!-- Last Updated Info -->
       <div v-if="themeSettings.updatedAt" class="text-right">
-        <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary">
+        <p
+          class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary"
+        >
           Last updated: {{ new Date(themeSettings.updatedAt).toLocaleString() }}
-          <span v-if="themeSettings.updatedBy">by {{ themeSettings.updatedBy }}</span>
+          <span v-if="themeSettings.updatedBy"
+            >by {{ themeSettings.updatedBy }}</span
+          >
         </p>
       </div>
     </template>

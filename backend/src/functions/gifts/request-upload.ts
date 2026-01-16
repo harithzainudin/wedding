@@ -1,6 +1,10 @@
 import type { APIGatewayProxyHandlerV2 } from "aws-lambda";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocumentClient, GetCommand, QueryCommand } from "@aws-sdk/lib-dynamodb";
+import {
+  DynamoDBDocumentClient,
+  GetCommand,
+  QueryCommand,
+} from "@aws-sdk/lib-dynamodb";
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { v4 as uuidv4 } from "uuid";
@@ -30,7 +34,7 @@ interface GiftUploadRequest {
 function validateGiftImageUpload(
   input: unknown,
   maxFileSize: number,
-  allowedFormats: string[]
+  allowedFormats: string[],
 ): { valid: true; data: GiftUploadRequest } | { valid: false; error: string } {
   if (typeof input !== "object" || input === null) {
     return { valid: false, error: "Invalid request body" };
@@ -78,7 +82,10 @@ function validateGiftImageUpload(
       filename: body.filename.trim(),
       mimeType: body.mimeType,
       fileSize: body.fileSize,
-      giftId: typeof body.giftId === "string" && body.giftId.trim() ? body.giftId.trim() : undefined,
+      giftId:
+        typeof body.giftId === "string" && body.giftId.trim()
+          ? body.giftId.trim()
+          : undefined,
     },
   };
 }
@@ -88,13 +95,15 @@ async function getGiftSettings() {
     new GetCommand({
       TableName: Resource.AppDataTable.name,
       Key: { pk: "SETTINGS", sk: "GIFTS" },
-    })
+    }),
   );
 
   return {
-    maxFileSize: (result.Item?.maxFileSize as number) ?? GIFT_LIMITS.maxFileSize,
+    maxFileSize:
+      (result.Item?.maxFileSize as number) ?? GIFT_LIMITS.maxFileSize,
     maxItems: (result.Item?.maxItems as number) ?? GIFT_LIMITS.maxItems,
-    allowedFormats: (result.Item?.allowedFormats as string[]) ?? GIFT_LIMITS.allowedFormats,
+    allowedFormats:
+      (result.Item?.allowedFormats as string[]) ?? GIFT_LIMITS.allowedFormats,
   };
 }
 
@@ -106,7 +115,7 @@ async function getCurrentGiftCount(): Promise<number> {
       KeyConditionExpression: "gsi1pk = :pk",
       ExpressionAttributeValues: { ":pk": "GIFTS" },
       Select: "COUNT",
-    })
+    }),
   );
   return result.Count ?? 0;
 }
@@ -118,32 +127,61 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
   try {
     const authResult = requireAuth(event);
     if (!authResult.authenticated) {
-      return createErrorResponse(authResult.statusCode, authResult.error, context, "AUTH_ERROR");
+      return createErrorResponse(
+        authResult.statusCode,
+        authResult.error,
+        context,
+        "AUTH_ERROR",
+      );
     }
 
     if (!event.body) {
-      return createErrorResponse(400, "Missing request body", context, "MISSING_BODY");
+      return createErrorResponse(
+        400,
+        "Missing request body",
+        context,
+        "MISSING_BODY",
+      );
     }
 
     let body: unknown;
     try {
       body = JSON.parse(event.body);
     } catch {
-      return createErrorResponse(400, "Invalid JSON body", context, "INVALID_JSON");
+      return createErrorResponse(
+        400,
+        "Invalid JSON body",
+        context,
+        "INVALID_JSON",
+      );
     }
 
     // Get settings and validate
     const settings = await getGiftSettings();
-    const validation = validateGiftImageUpload(body, settings.maxFileSize, settings.allowedFormats);
+    const validation = validateGiftImageUpload(
+      body,
+      settings.maxFileSize,
+      settings.allowedFormats,
+    );
     if (!validation.valid) {
-      return createErrorResponse(400, validation.error, context, "VALIDATION_ERROR");
+      return createErrorResponse(
+        400,
+        validation.error,
+        context,
+        "VALIDATION_ERROR",
+      );
     }
 
     // If no giftId provided, check max gifts limit (for new gift creation)
     if (!validation.data.giftId) {
       const currentCount = await getCurrentGiftCount();
       if (currentCount >= settings.maxItems) {
-        return createErrorResponse(400, `Maximum of ${settings.maxItems} gifts reached`, context, "LIMIT_EXCEEDED");
+        return createErrorResponse(
+          400,
+          `Maximum of ${settings.maxItems} gifts reached`,
+          context,
+          "LIMIT_EXCEEDED",
+        );
       }
     }
 
@@ -161,21 +199,35 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
       ContentLength: fileSize,
     });
 
-    const presignedUrl = await getSignedUrl(s3Client, command, { expiresIn: 600 });
-
-    return createSuccessResponse(200, {
-      uploadUrl: presignedUrl,
-      giftId,
-      s3Key,
+    const presignedUrl = await getSignedUrl(s3Client, command, {
       expiresIn: 600,
-    }, context);
+    });
+
+    return createSuccessResponse(
+      200,
+      {
+        uploadUrl: presignedUrl,
+        giftId,
+        s3Key,
+        expiresIn: 600,
+      },
+      context,
+    );
   } catch (error) {
-    logError({
-      endpoint: "POST /gifts/presigned-url",
-      operation: "requestGiftUpload",
-      requestId: context.awsRequestId,
-      input: { mimeType, fileSize },
-    }, error);
-    return createErrorResponse(500, "Internal server error", context, "INTERNAL_ERROR");
+    logError(
+      {
+        endpoint: "POST /gifts/presigned-url",
+        operation: "requestGiftUpload",
+        requestId: context.awsRequestId,
+        input: { mimeType, fileSize },
+      },
+      error,
+    );
+    return createErrorResponse(
+      500,
+      "Internal server error",
+      context,
+      "INTERNAL_ERROR",
+    );
   }
 };

@@ -1,5 +1,10 @@
 import { ref, computed } from "vue";
-import { translations, languageNames, type Language, type Translations } from "@/i18n/translations";
+import {
+  translations,
+  languageNames,
+  type Language,
+  type Translations,
+} from "@/i18n/translations";
 
 const STORAGE_KEY = "wedding-language";
 
@@ -7,7 +12,10 @@ const STORAGE_KEY = "wedding-language";
 const getInitialLanguage = (): Language => {
   if (typeof window === "undefined") return "ms";
   const stored = localStorage.getItem(STORAGE_KEY);
-  if (stored && (stored === "ms" || stored === "en" || stored === "zh" || stored === "ta")) {
+  if (
+    stored &&
+    (stored === "ms" || stored === "en" || stored === "zh" || stored === "ta")
+  ) {
     return stored;
   }
   return "ms";
@@ -34,7 +42,9 @@ export function useLanguage() {
     }
   };
 
-  const currentLanguageName = computed(() => languageNames[currentLanguage.value]);
+  const currentLanguageName = computed(
+    () => languageNames[currentLanguage.value],
+  );
 
   return {
     currentLanguage,

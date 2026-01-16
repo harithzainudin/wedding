@@ -1,6 +1,12 @@
 import type { APIGatewayProxyHandlerV2 } from "aws-lambda";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocumentClient, GetCommand, DeleteCommand, QueryCommand, BatchWriteCommand } from "@aws-sdk/lib-dynamodb";
+import {
+  DynamoDBDocumentClient,
+  GetCommand,
+  DeleteCommand,
+  QueryCommand,
+  BatchWriteCommand,
+} from "@aws-sdk/lib-dynamodb";
 import { S3Client, DeleteObjectCommand } from "@aws-sdk/client-s3";
 import { Resource } from "sst";
 import { createSuccessResponse, createErrorResponse } from "../shared/response";
@@ -22,14 +28,19 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
         authResult.statusCode,
         authResult.error,
         context,
-        "AUTH_ERROR"
+        "AUTH_ERROR",
       );
     }
 
     // Get gift ID from path
     giftId = event.pathParameters?.id;
     if (!giftId) {
-      return createErrorResponse(400, "Gift ID is required", context, "MISSING_ID");
+      return createErrorResponse(
+        400,
+        "Gift ID is required",
+        context,
+        "MISSING_ID",
+      );
     }
 
     // Get the gift to check if it exists and get S3 key
@@ -37,7 +48,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
       new GetCommand({
         TableName: Resource.AppDataTable.name,
         Key: { pk: `GIFT#${giftId}`, sk: "METADATA" },
-      })
+      }),
     );
 
     if (!existingResult.Item) {
@@ -53,7 +64,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
           new DeleteObjectCommand({
             Bucket: Resource.WeddingImageBucket.name,
             Key: gift.s3Key as string,
-          })
+          }),
         );
       } catch (s3Error) {
         // Log but don't fail - the S3 object might already be deleted
@@ -70,7 +81,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
           ":pk": `GIFT#${giftId}`,
           ":skPrefix": "RESERVATION#",
         },
-      })
+      }),
     );
 
     // Delete all reservations in batch
@@ -93,7 +104,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
             RequestItems: {
               [Resource.AppDataTable.name]: batch,
             },
-          })
+          }),
         );
       }
     }
@@ -103,21 +114,33 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
       new DeleteCommand({
         TableName: Resource.AppDataTable.name,
         Key: { pk: `GIFT#${giftId}`, sk: "METADATA" },
-      })
+      }),
     );
 
-    return createSuccessResponse(200, {
-      message: "Gift deleted successfully",
-      id: giftId,
-      reservationsDeleted: reservations.length,
-    }, context);
+    return createSuccessResponse(
+      200,
+      {
+        message: "Gift deleted successfully",
+        id: giftId,
+        reservationsDeleted: reservations.length,
+      },
+      context,
+    );
   } catch (error) {
-    logError({
-      endpoint: "DELETE /gifts/{id}",
-      operation: "deleteGift",
-      requestId: context.awsRequestId,
-      input: { giftId },
-    }, error);
-    return createErrorResponse(500, "Internal server error", context, "DB_ERROR");
+    logError(
+      {
+        endpoint: "DELETE /gifts/{id}",
+        operation: "deleteGift",
+        requestId: context.awsRequestId,
+        input: { giftId },
+      },
+      error,
+    );
+    return createErrorResponse(
+      500,
+      "Internal server error",
+      context,
+      "DB_ERROR",
+    );
   }
 };

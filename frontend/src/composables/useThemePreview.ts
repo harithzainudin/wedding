@@ -1,6 +1,10 @@
 import { ref, readonly } from "vue";
 import type { ResolvedTheme, ThemeId, CustomThemeData } from "@/types/theme";
-import { DEFAULT_THEMES, isPresetThemeId, DEFAULT_THEME_ID } from "@/constants/themes";
+import {
+  DEFAULT_THEMES,
+  isPresetThemeId,
+  DEFAULT_THEME_ID,
+} from "@/constants/themes";
 import { applyTheme } from "@/utils/themeInjector";
 
 // Singleton state for preview mode
@@ -22,7 +26,7 @@ export function useThemePreview() {
     themeId: ThemeId,
     customTheme?: CustomThemeData,
     currentThemeId?: ThemeId,
-    currentCustomTheme?: CustomThemeData
+    currentCustomTheme?: CustomThemeData,
   ): void => {
     // Save current theme state if provided
     if (currentThemeId) {
@@ -86,7 +90,10 @@ export function useThemePreview() {
    * Update the preview theme without ending preview mode
    * Useful for real-time preview while adjusting custom colors
    */
-  const updatePreview = (themeId: ThemeId, customTheme?: CustomThemeData): void => {
+  const updatePreview = (
+    themeId: ThemeId,
+    customTheme?: CustomThemeData,
+  ): void => {
     if (!isPreviewMode.value) {
       // Start preview mode if not already in it
       startPreview(themeId, customTheme);
@@ -117,7 +124,10 @@ export function useThemePreview() {
    * Set the saved theme state
    * Call this when the saved theme changes (e.g., after loading from API)
    */
-  const setSavedTheme = (themeId: ThemeId, customTheme?: CustomThemeData): void => {
+  const setSavedTheme = (
+    themeId: ThemeId,
+    customTheme?: CustomThemeData,
+  ): void => {
     savedThemeId.value = themeId;
     savedCustomTheme.value = customTheme;
   };

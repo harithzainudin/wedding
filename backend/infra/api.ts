@@ -43,7 +43,7 @@ export function addAdminRoutes(
   brevoApiKey: sst.Secret,
   senderEmail: sst.Secret,
   adminLoginUrl: sst.Secret,
-  tokenSecret: sst.Secret
+  tokenSecret: sst.Secret,
 ) {
   // POST /admin/login - Admin login
   api.route("POST /admin/login", {
@@ -150,7 +150,7 @@ export function addRsvpAuthRoutes(tokenSecret: sst.Secret) {
 // Function to add image management routes
 export function addImageRoutes(
   tokenSecret: sst.Secret,
-  imageBucket: sst.aws.Bucket
+  imageBucket: sst.aws.Bucket,
 ) {
   // POST /images/presigned-url - Request presigned URL for upload
   api.route("POST /images/presigned-url", {
@@ -290,7 +290,7 @@ export function addThemeRoutes(tokenSecret: sst.Secret) {
 // Function to add gift registry routes
 export function addGiftRoutes(
   tokenSecret: sst.Secret,
-  imageBucket: sst.aws.Bucket
+  imageBucket: sst.aws.Bucket,
 ) {
   // GET /gifts - Public: list all gifts
   api.route("GET /gifts", {
@@ -373,7 +373,7 @@ export function addGiftRoutes(
 // Function to add music management routes
 export function addMusicRoutes(
   tokenSecret: sst.Secret,
-  imageBucket: sst.aws.Bucket
+  imageBucket: sst.aws.Bucket,
 ) {
   // GET /music - Public endpoint to fetch music settings and tracks
   api.route("GET /music", {

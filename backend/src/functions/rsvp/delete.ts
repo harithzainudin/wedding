@@ -1,6 +1,10 @@
 import type { APIGatewayProxyHandlerV2 } from "aws-lambda";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocumentClient, GetCommand, DeleteCommand } from "@aws-sdk/lib-dynamodb";
+import {
+  DynamoDBDocumentClient,
+  GetCommand,
+  DeleteCommand,
+} from "@aws-sdk/lib-dynamodb";
 import { Resource } from "sst";
 import { createSuccessResponse, createErrorResponse } from "../shared/response";
 import { requireAuth } from "../shared/auth";
@@ -20,14 +24,19 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
         authResult.statusCode,
         authResult.error,
         context,
-        "AUTH_ERROR"
+        "AUTH_ERROR",
       );
     }
 
     // Extract ID from path parameters
     rsvpId = event.pathParameters?.id;
     if (!rsvpId) {
-      return createErrorResponse(400, "RSVP ID is required", context, "VALIDATION_ERROR");
+      return createErrorResponse(
+        400,
+        "RSVP ID is required",
+        context,
+        "VALIDATION_ERROR",
+      );
     }
 
     // Verify the record exists
@@ -38,7 +47,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
           pk: `RSVP#${rsvpId}`,
           sk: "METADATA",
         },
-      })
+      }),
     );
 
     if (!existingResult.Item) {
@@ -53,19 +62,31 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
           pk: `RSVP#${rsvpId}`,
           sk: "METADATA",
         },
-      })
+      }),
     );
 
-    return createSuccessResponse(200, {
-      message: "RSVP deleted successfully",
-    }, context);
+    return createSuccessResponse(
+      200,
+      {
+        message: "RSVP deleted successfully",
+      },
+      context,
+    );
   } catch (error) {
-    logError({
-      endpoint: "DELETE /rsvp/{id}",
-      operation: "deleteRsvp",
-      requestId: context.awsRequestId,
-      input: { rsvpId },
-    }, error);
-    return createErrorResponse(500, "Internal server error", context, "DB_ERROR");
+    logError(
+      {
+        endpoint: "DELETE /rsvp/{id}",
+        operation: "deleteRsvp",
+        requestId: context.awsRequestId,
+        input: { rsvpId },
+      },
+      error,
+    );
+    return createErrorResponse(
+      500,
+      "Internal server error",
+      context,
+      "DB_ERROR",
+    );
   }
 };

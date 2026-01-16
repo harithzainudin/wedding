@@ -24,7 +24,10 @@ export const DEFAULT_PARENTS_VISIBILITY: ParentsVisibilitySettings = {
 // Display name order - determines whether bride or groom name appears first
 export type DisplayNameOrder = "bride_first" | "groom_first";
 
-export const VALID_DISPLAY_NAME_ORDERS: DisplayNameOrder[] = ["bride_first", "groom_first"];
+export const VALID_DISPLAY_NAME_ORDERS: DisplayNameOrder[] = [
+  "bride_first",
+  "groom_first",
+];
 
 // Display format types
 export type EventDisplayPreset =
@@ -153,7 +156,7 @@ export interface WeddingDetailsUpdateRequest {
 
 function validateCoupleInfo(
   info: unknown,
-  label: string
+  label: string,
 ): { valid: true; data: CoupleInfo } | { valid: false; error: string } {
   if (typeof info !== "object" || info === null) {
     return { valid: false, error: `${label} info is required` };
@@ -165,14 +168,20 @@ function validateCoupleInfo(
     return { valid: false, error: `${label} full name is required` };
   }
   if (obj.fullName.length > 100) {
-    return { valid: false, error: `${label} full name must be 100 characters or less` };
+    return {
+      valid: false,
+      error: `${label} full name must be 100 characters or less`,
+    };
   }
 
   if (typeof obj.nickname !== "string" || !obj.nickname.trim()) {
     return { valid: false, error: `${label} nickname is required` };
   }
   if (obj.nickname.length > 50) {
-    return { valid: false, error: `${label} nickname must be 50 characters or less` };
+    return {
+      valid: false,
+      error: `${label} nickname must be 50 characters or less`,
+    };
   }
 
   return {
@@ -186,7 +195,7 @@ function validateCoupleInfo(
 
 function validateParentsInfo(
   info: unknown,
-  label: string
+  label: string,
 ): { valid: true; data: ParentsInfo } | { valid: false; error: string } {
   if (typeof info !== "object" || info === null) {
     return { valid: false, error: `${label} parents info is required` };
@@ -198,14 +207,20 @@ function validateParentsInfo(
     return { valid: false, error: `${label}'s father name is required` };
   }
   if (obj.father.length > 100) {
-    return { valid: false, error: `${label}'s father name must be 100 characters or less` };
+    return {
+      valid: false,
+      error: `${label}'s father name must be 100 characters or less`,
+    };
   }
 
   if (typeof obj.mother !== "string" || !obj.mother.trim()) {
     return { valid: false, error: `${label}'s mother name is required` };
   }
   if (obj.mother.length > 100) {
-    return { valid: false, error: `${label}'s mother name must be 100 characters or less` };
+    return {
+      valid: false,
+      error: `${label}'s mother name must be 100 characters or less`,
+    };
   }
 
   return {
@@ -218,8 +233,10 @@ function validateParentsInfo(
 }
 
 export function validateWeddingDetailsUpdate(
-  input: unknown
-): { valid: true; data: WeddingDetailsUpdateRequest } | { valid: false; error: string } {
+  input: unknown,
+):
+  | { valid: true; data: WeddingDetailsUpdateRequest }
+  | { valid: false; error: string } {
   if (typeof input !== "object" || input === null) {
     return { valid: false, error: "Invalid request body" };
   }
@@ -247,10 +264,12 @@ export function validateWeddingDetailsUpdate(
   const parents = body.parents as Record<string, unknown>;
 
   const brideParentsResult = validateParentsInfo(parents.bride, "Bride");
-  if (!brideParentsResult.valid) return { valid: false, error: brideParentsResult.error };
+  if (!brideParentsResult.valid)
+    return { valid: false, error: brideParentsResult.error };
 
   const groomParentsResult = validateParentsInfo(parents.groom, "Groom");
-  if (!groomParentsResult.valid) return { valid: false, error: groomParentsResult.error };
+  if (!groomParentsResult.valid)
+    return { valid: false, error: groomParentsResult.error };
 
   // Validate eventDate
   if (typeof body.eventDate !== "string" || !body.eventDate.trim()) {
@@ -265,7 +284,11 @@ export function validateWeddingDetailsUpdate(
 
   // Validate eventEndTime (optional)
   let validatedEndTime: string | undefined;
-  if (body.eventEndTime !== undefined && body.eventEndTime !== null && body.eventEndTime !== "") {
+  if (
+    body.eventEndTime !== undefined &&
+    body.eventEndTime !== null &&
+    body.eventEndTime !== ""
+  ) {
     if (typeof body.eventEndTime !== "string") {
       return { valid: false, error: "Invalid event end time format" };
     }
@@ -282,30 +305,44 @@ export function validateWeddingDetailsUpdate(
 
   // Validate eventDisplayFormat (optional)
   let validatedDisplayFormat: EventDisplayFormat | undefined;
-  if (body.eventDisplayFormat !== undefined && body.eventDisplayFormat !== null) {
+  if (
+    body.eventDisplayFormat !== undefined &&
+    body.eventDisplayFormat !== null
+  ) {
     if (typeof body.eventDisplayFormat !== "object") {
       return { valid: false, error: "Invalid display format" };
     }
     const format = body.eventDisplayFormat as Record<string, unknown>;
 
     // Validate preset
-    if (!format.preset || VALID_PRESETS.indexOf(format.preset as EventDisplayPreset) === -1) {
+    if (
+      !format.preset ||
+      VALID_PRESETS.indexOf(format.preset as EventDisplayPreset) === -1
+    ) {
       return { valid: false, error: "Invalid display format preset" };
     }
 
     // Validate customOptions if provided
     if (format.customOptions !== undefined) {
-      if (typeof format.customOptions !== "object" || format.customOptions === null) {
+      if (
+        typeof format.customOptions !== "object" ||
+        format.customOptions === null
+      ) {
         return { valid: false, error: "Invalid custom options" };
       }
       const options = format.customOptions as Record<string, unknown>;
 
       // Validate boolean fields
-      if (typeof options.showDate !== "boolean" ||
-          typeof options.showStartTime !== "boolean" ||
-          typeof options.showEndTime !== "boolean" ||
-          typeof options.showDayOfWeek !== "boolean") {
-        return { valid: false, error: "Custom options must have valid boolean values" };
+      if (
+        typeof options.showDate !== "boolean" ||
+        typeof options.showStartTime !== "boolean" ||
+        typeof options.showEndTime !== "boolean" ||
+        typeof options.showDayOfWeek !== "boolean"
+      ) {
+        return {
+          valid: false,
+          error: "Custom options must have valid boolean values",
+        };
       }
 
       // Validate timeFormat
@@ -314,14 +351,36 @@ export function validateWeddingDetailsUpdate(
       }
 
       // Validate optional custom format strings (max 50 chars each)
-      if (options.customDateFormat !== undefined && options.customDateFormat !== null && options.customDateFormat !== "") {
-        if (typeof options.customDateFormat !== "string" || options.customDateFormat.length > 50) {
-          return { valid: false, error: "Custom date format must be a string of 50 characters or less" };
+      if (
+        options.customDateFormat !== undefined &&
+        options.customDateFormat !== null &&
+        options.customDateFormat !== ""
+      ) {
+        if (
+          typeof options.customDateFormat !== "string" ||
+          options.customDateFormat.length > 50
+        ) {
+          return {
+            valid: false,
+            error:
+              "Custom date format must be a string of 50 characters or less",
+          };
         }
       }
-      if (options.customTimeFormat !== undefined && options.customTimeFormat !== null && options.customTimeFormat !== "") {
-        if (typeof options.customTimeFormat !== "string" || options.customTimeFormat.length > 50) {
-          return { valid: false, error: "Custom time format must be a string of 50 characters or less" };
+      if (
+        options.customTimeFormat !== undefined &&
+        options.customTimeFormat !== null &&
+        options.customTimeFormat !== ""
+      ) {
+        if (
+          typeof options.customTimeFormat !== "string" ||
+          options.customTimeFormat.length > 50
+        ) {
+          return {
+            valid: false,
+            error:
+              "Custom time format must be a string of 50 characters or less",
+          };
         }
       }
 
@@ -333,8 +392,14 @@ export function validateWeddingDetailsUpdate(
           showEndTime: options.showEndTime,
           showDayOfWeek: options.showDayOfWeek,
           timeFormat: options.timeFormat,
-          customDateFormat: typeof options.customDateFormat === "string" ? options.customDateFormat : undefined,
-          customTimeFormat: typeof options.customTimeFormat === "string" ? options.customTimeFormat : undefined,
+          customDateFormat:
+            typeof options.customDateFormat === "string"
+              ? options.customDateFormat
+              : undefined,
+          customTimeFormat:
+            typeof options.customTimeFormat === "string"
+              ? options.customTimeFormat
+              : undefined,
         },
       };
     } else {
@@ -348,23 +413,42 @@ export function validateWeddingDetailsUpdate(
 
   // Validate displayNameOrder (optional)
   let validatedDisplayNameOrder: DisplayNameOrder | undefined;
-  if (body.displayNameOrder !== undefined && body.displayNameOrder !== null && body.displayNameOrder !== "") {
-    if (VALID_DISPLAY_NAME_ORDERS.indexOf(body.displayNameOrder as DisplayNameOrder) === -1) {
-      return { valid: false, error: "Display name order must be 'bride_first' or 'groom_first'" };
+  if (
+    body.displayNameOrder !== undefined &&
+    body.displayNameOrder !== null &&
+    body.displayNameOrder !== ""
+  ) {
+    if (
+      VALID_DISPLAY_NAME_ORDERS.indexOf(
+        body.displayNameOrder as DisplayNameOrder,
+      ) === -1
+    ) {
+      return {
+        valid: false,
+        error: "Display name order must be 'bride_first' or 'groom_first'",
+      };
     }
     validatedDisplayNameOrder = body.displayNameOrder as DisplayNameOrder;
   }
 
   // Validate bismillahCalligraphy (optional)
   let validatedBismillahCalligraphy: BismillahCalligraphySettings | undefined;
-  if (body.bismillahCalligraphy !== undefined && body.bismillahCalligraphy !== null) {
+  if (
+    body.bismillahCalligraphy !== undefined &&
+    body.bismillahCalligraphy !== null
+  ) {
     if (typeof body.bismillahCalligraphy !== "object") {
       return { valid: false, error: "Invalid bismillah calligraphy settings" };
     }
     const calligraphy = body.bismillahCalligraphy as Record<string, unknown>;
 
     // Validate selectedStyle
-    if (!calligraphy.selectedStyle || VALID_CALLIGRAPHY_STYLES.indexOf(calligraphy.selectedStyle as CalligraphyStyleId) === -1) {
+    if (
+      !calligraphy.selectedStyle ||
+      VALID_CALLIGRAPHY_STYLES.indexOf(
+        calligraphy.selectedStyle as CalligraphyStyleId,
+      ) === -1
+    ) {
       return { valid: false, error: "Invalid calligraphy style selected" };
     }
 
@@ -422,7 +506,10 @@ export function validateWeddingDetailsUpdate(
     return { valid: false, error: "QR code URL is required" };
   }
   if (body.qrCodeUrl.length > 500) {
-    return { valid: false, error: "QR code URL must be 500 characters or less" };
+    return {
+      valid: false,
+      error: "QR code URL must be 500 characters or less",
+    };
   }
 
   return {

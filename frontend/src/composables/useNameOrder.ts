@@ -1,6 +1,10 @@
 import { computed } from "vue";
 import { usePublicWeddingData } from "./usePublicWeddingData";
-import type { CoupleInfo, ParentsInfo, DisplayNameOrder } from "@/types/weddingDetails";
+import type {
+  CoupleInfo,
+  ParentsInfo,
+  DisplayNameOrder,
+} from "@/types/weddingDetails";
 
 export interface OrderedCouple {
   first: CoupleInfo;
@@ -31,7 +35,12 @@ export interface OrderedParentsWithVisibility extends OrderedParents {
  * Alternative: Groom first (when wedding is at groom's side first / bertandang)
  */
 export function useNameOrder() {
-  const { getCoupleNames, getParents, getDisplayNameOrder, getParentsVisibility } = usePublicWeddingData();
+  const {
+    getCoupleNames,
+    getParents,
+    getDisplayNameOrder,
+    getParentsVisibility,
+  } = usePublicWeddingData();
 
   // Get the display order setting (defaults to bride_first)
   const displayOrder = computed<DisplayNameOrder>(() => getDisplayNameOrder());
@@ -63,25 +72,31 @@ export function useNameOrder() {
   });
 
   // Returns parents info in display order with visibility information
-  const orderedParentsWithVisibility = computed<OrderedParentsWithVisibility>(() => {
-    const parents = getParents();
-    const visibility = getParentsVisibility();
-    const isBrideFirst = displayOrder.value === "bride_first";
+  const orderedParentsWithVisibility = computed<OrderedParentsWithVisibility>(
+    () => {
+      const parents = getParents();
+      const visibility = getParentsVisibility();
+      const isBrideFirst = displayOrder.value === "bride_first";
 
-    const firstVisible = isBrideFirst ? visibility.showBrideParents : visibility.showGroomParents;
-    const secondVisible = isBrideFirst ? visibility.showGroomParents : visibility.showBrideParents;
+      const firstVisible = isBrideFirst
+        ? visibility.showBrideParents
+        : visibility.showGroomParents;
+      const secondVisible = isBrideFirst
+        ? visibility.showGroomParents
+        : visibility.showBrideParents;
 
-    return {
-      first: isBrideFirst ? parents.bride : parents.groom,
-      second: isBrideFirst ? parents.groom : parents.bride,
-      firstLabel: isBrideFirst ? "bride" : "groom",
-      secondLabel: isBrideFirst ? "groom" : "bride",
-      firstVisible,
-      secondVisible,
-      showAny: firstVisible || secondVisible,
-      showBoth: firstVisible && secondVisible,
-    };
-  });
+      return {
+        first: isBrideFirst ? parents.bride : parents.groom,
+        second: isBrideFirst ? parents.groom : parents.bride,
+        firstLabel: isBrideFirst ? "bride" : "groom",
+        secondLabel: isBrideFirst ? "groom" : "bride",
+        firstVisible,
+        secondVisible,
+        showAny: firstVisible || secondVisible,
+        showBoth: firstVisible && secondVisible,
+      };
+    },
+  );
 
   // Returns formatted name string using nicknames (e.g., "Aisyah & Ahmad")
   const getOrderedNicknamesString = (separator = " & "): string => {

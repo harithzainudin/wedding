@@ -22,10 +22,12 @@ const VALID_TITLES = [
 
 export type HonorificTitle = (typeof VALID_TITLES)[number];
 
-export function validateRsvpInput(input: unknown): {
-  valid: true;
-  data: RsvpInput;
-} | { valid: false; error: string } {
+export function validateRsvpInput(input: unknown):
+  | {
+      valid: true;
+      data: RsvpInput;
+    }
+  | { valid: false; error: string } {
   if (typeof input !== "object" || input === null) {
     return { valid: false, error: "Invalid request body" };
   }
@@ -85,7 +87,10 @@ export function validateRsvpInput(input: unknown): {
       return { valid: false, error: "Message must be a string" };
     }
     if (body.message.length > 500) {
-      return { valid: false, error: "Message must be less than 500 characters" };
+      return {
+        valid: false,
+        error: "Message must be less than 500 characters",
+      };
     }
   }
 
@@ -97,7 +102,8 @@ export function validateRsvpInput(input: unknown): {
       isAttending: body.isAttending,
       numberOfGuests: body.isAttending ? (body.numberOfGuests as number) : 0,
       phoneNumber: cleanPhone,
-      message: typeof body.message === "string" ? body.message.trim() : undefined,
+      message:
+        typeof body.message === "string" ? body.message.trim() : undefined,
     },
   };
 }

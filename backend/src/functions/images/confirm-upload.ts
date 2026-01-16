@@ -1,6 +1,10 @@
 import type { APIGatewayProxyHandlerV2 } from "aws-lambda";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocumentClient, PutCommand, QueryCommand } from "@aws-sdk/lib-dynamodb";
+import {
+  DynamoDBDocumentClient,
+  PutCommand,
+  QueryCommand,
+} from "@aws-sdk/lib-dynamodb";
 import { S3Client, HeadObjectCommand } from "@aws-sdk/client-s3";
 import { Resource } from "sst";
 import { createSuccessResponse, createErrorResponse } from "../shared/response";
@@ -29,7 +33,7 @@ async function getNextOrder(): Promise<number> {
       ExpressionAttributeValues: { ":pk": "IMAGES" },
       ScanIndexForward: false,
       Limit: 1,
-    })
+    }),
   );
 
   if (result.Items && result.Items.length > 0) {
@@ -47,23 +51,43 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
   try {
     const authResult = requireAuth(event);
     if (!authResult.authenticated) {
-      return createErrorResponse(authResult.statusCode, authResult.error, context, "AUTH_ERROR");
+      return createErrorResponse(
+        authResult.statusCode,
+        authResult.error,
+        context,
+        "AUTH_ERROR",
+      );
     }
 
     if (!event.body) {
-      return createErrorResponse(400, "Missing request body", context, "MISSING_BODY");
+      return createErrorResponse(
+        400,
+        "Missing request body",
+        context,
+        "MISSING_BODY",
+      );
     }
 
     let body: unknown;
     try {
       body = JSON.parse(event.body);
     } catch {
-      return createErrorResponse(400, "Invalid JSON body", context, "INVALID_JSON");
+      return createErrorResponse(
+        400,
+        "Invalid JSON body",
+        context,
+        "INVALID_JSON",
+      );
     }
 
     const validation = validateConfirmUpload(body);
     if (!validation.valid) {
-      return createErrorResponse(400, validation.error, context, "VALIDATION_ERROR");
+      return createErrorResponse(
+        400,
+        validation.error,
+        context,
+        "VALIDATION_ERROR",
+      );
     }
 
     imageId = validation.data.imageId;
@@ -76,7 +100,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
       new HeadObjectCommand({
         Bucket: Resource.WeddingImageBucket.name,
         Key: s3Key,
-      })
+      }),
     );
 
     const fileSize = headResult.ContentLength ?? 0;
@@ -101,7 +125,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
           uploadedAt: now,
           uploadedBy: authResult.user.username,
         },
-      })
+      }),
     );
 
     // Construct the public URL for the image
@@ -109,23 +133,35 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
     const region = process.env.AWS_REGION ?? "ap-southeast-5";
     const publicUrl = `https://${bucketName}.s3.${region}.amazonaws.com/${s3Key}`;
 
-    return createSuccessResponse(201, {
-      id: imageId,
-      filename,
-      s3Key,
-      mimeType,
-      fileSize,
-      order,
-      uploadedAt: now,
-      url: publicUrl,
-    }, context);
+    return createSuccessResponse(
+      201,
+      {
+        id: imageId,
+        filename,
+        s3Key,
+        mimeType,
+        fileSize,
+        order,
+        uploadedAt: now,
+        url: publicUrl,
+      },
+      context,
+    );
   } catch (error) {
-    logError({
-      endpoint: "POST /images/confirm",
-      operation: "confirmUpload",
-      requestId: context.awsRequestId,
-      input: { imageId, s3Key, filename },
-    }, error);
-    return createErrorResponse(400, "File not found in S3. Upload may have failed.", context, "S3_ERROR");
+    logError(
+      {
+        endpoint: "POST /images/confirm",
+        operation: "confirmUpload",
+        requestId: context.awsRequestId,
+        input: { imageId, s3Key, filename },
+      },
+      error,
+    );
+    return createErrorResponse(
+      400,
+      "File not found in S3. Upload may have failed.",
+      context,
+      "S3_ERROR",
+    );
   }
 };

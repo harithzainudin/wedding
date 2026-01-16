@@ -4,7 +4,10 @@ import { DynamoDBDocumentClient, GetCommand } from "@aws-sdk/lib-dynamodb";
 import { Resource } from "sst";
 import { createSuccessResponse, createErrorResponse } from "../shared/response";
 import { logError } from "../shared/logger";
-import { DEFAULT_SCHEDULE, type ScheduleData } from "../shared/schedule-validation";
+import {
+  DEFAULT_SCHEDULE,
+  type ScheduleData,
+} from "../shared/schedule-validation";
 
 const dynamoClient = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(dynamoClient);
@@ -15,7 +18,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (_event, context) => {
       new GetCommand({
         TableName: Resource.AppDataTable.name,
         Key: { pk: "SCHEDULE", sk: "ITEMS" },
-      })
+      }),
     );
 
     if (!result.Item) {
@@ -31,11 +34,19 @@ export const handler: APIGatewayProxyHandlerV2 = async (_event, context) => {
 
     return createSuccessResponse(200, scheduleData, context);
   } catch (error) {
-    logError({
-      endpoint: "GET /schedule",
-      operation: "fetchSchedule",
-      requestId: context.awsRequestId,
-    }, error);
-    return createErrorResponse(500, "Failed to fetch schedule", context, "DB_ERROR");
+    logError(
+      {
+        endpoint: "GET /schedule",
+        operation: "fetchSchedule",
+        requestId: context.awsRequestId,
+      },
+      error,
+    );
+    return createErrorResponse(
+      500,
+      "Failed to fetch schedule",
+      context,
+      "DB_ERROR",
+    );
   }
 };

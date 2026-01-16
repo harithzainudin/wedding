@@ -40,7 +40,9 @@ const emit = defineEmits<{
             class="bg-white dark:bg-dark-bg-secondary rounded-xl p-6 max-w-md w-full max-h-[90vh] overflow-y-auto shadow-xl"
           >
             <div class="flex items-center justify-between mb-4">
-              <h3 class="font-heading text-lg text-charcoal dark:text-dark-text">
+              <h3
+                class="font-heading text-lg text-charcoal dark:text-dark-text"
+              >
                 {{ title }}
               </h3>
               <button
@@ -48,7 +50,13 @@ const emit = defineEmits<{
                 class="text-charcoal-light hover:text-charcoal dark:text-dark-text-secondary dark:hover:text-dark-text transition-colors cursor-pointer"
                 @click="emit('close')"
               >
-                <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <svg
+                  class="w-5 h-5"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
                   <line x1="18" y1="6" x2="6" y2="18" />
                   <line x1="6" y1="6" x2="18" y2="18" />
                 </svg>

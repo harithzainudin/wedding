@@ -26,7 +26,7 @@ export interface ScheduleUpdateRequest {
 
 function validateMultilingualText(
   text: unknown,
-  label: string
+  label: string,
 ): { valid: true; data: MultilingualText } | { valid: false; error: string } {
   if (typeof text !== "object" || text === null) {
     return { valid: false, error: `${label} is required` };
@@ -43,7 +43,10 @@ function validateMultilingualText(
       return { valid: false, error: `${label} ${lang} is required` };
     }
     if (obj[lang].length > 200) {
-      return { valid: false, error: `${label} ${lang} must be 200 characters or less` };
+      return {
+        valid: false,
+        error: `${label} ${lang} must be 200 characters or less`,
+      };
     }
     result[lang] = (obj[lang] as string).trim();
   }
@@ -56,7 +59,7 @@ function validateMultilingualText(
 
 function validateScheduleItem(
   item: unknown,
-  index: number
+  index: number,
 ): { valid: true; data: ScheduleItem } | { valid: false; error: string } {
   if (typeof item !== "object" || item === null) {
     return { valid: false, error: `Schedule item ${index + 1} is invalid` };
@@ -71,19 +74,35 @@ function validateScheduleItem(
 
   // Validate time
   if (typeof obj.time !== "string" || !obj.time.trim()) {
-    return { valid: false, error: `Schedule item ${index + 1} time is required` };
+    return {
+      valid: false,
+      error: `Schedule item ${index + 1} time is required`,
+    };
   }
   if (obj.time.length > 20) {
-    return { valid: false, error: `Schedule item ${index + 1} time must be 20 characters or less` };
+    return {
+      valid: false,
+      error: `Schedule item ${index + 1} time must be 20 characters or less`,
+    };
   }
 
   // Validate title
-  const titleResult = validateMultilingualText(obj.title, `Schedule item ${index + 1} title`);
+  const titleResult = validateMultilingualText(
+    obj.title,
+    `Schedule item ${index + 1} title`,
+  );
   if (!titleResult.valid) return { valid: false, error: titleResult.error };
 
   // Validate order
-  if (typeof obj.order !== "number" || !Number.isInteger(obj.order) || obj.order < 0) {
-    return { valid: false, error: `Schedule item ${index + 1} order must be a non-negative integer` };
+  if (
+    typeof obj.order !== "number" ||
+    !Number.isInteger(obj.order) ||
+    obj.order < 0
+  ) {
+    return {
+      valid: false,
+      error: `Schedule item ${index + 1} order must be a non-negative integer`,
+    };
   }
 
   return {
@@ -98,8 +117,10 @@ function validateScheduleItem(
 }
 
 export function validateScheduleUpdate(
-  input: unknown
-): { valid: true; data: ScheduleUpdateRequest } | { valid: false; error: string } {
+  input: unknown,
+):
+  | { valid: true; data: ScheduleUpdateRequest }
+  | { valid: false; error: string } {
   if (typeof input !== "object" || input === null) {
     return { valid: false, error: "Invalid request body" };
   }

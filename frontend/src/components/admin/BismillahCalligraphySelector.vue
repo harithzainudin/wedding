@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from "vue";
-import type { CalligraphyStyleId, BismillahCalligraphySettings } from "@/types/weddingDetails";
+import type {
+  CalligraphyStyleId,
+  BismillahCalligraphySettings,
+} from "@/types/weddingDetails";
 import {
   calligraphyOptions,
   getCalligraphySvg,
@@ -30,7 +33,7 @@ watch(
     selectedStyle.value = newSettings.selectedStyle;
     showTranslation.value = newSettings.showTranslation;
   },
-  { deep: true }
+  { deep: true },
 );
 
 // Group by category for display
@@ -83,10 +86,17 @@ const emitUpdate = () => {
 <template>
   <div class="space-y-4">
     <!-- Sticky Preview Section -->
-    <div class="sticky top-0 z-10 bg-white dark:bg-dark-bg-secondary -mx-4 sm:-mx-6 px-4 sm:px-6 pt-2 pb-4">
-      <div class="bg-sage-dark dark:bg-sage-dark/80 rounded-xl p-4 sm:p-6 text-center">
+    <div
+      class="sticky top-0 z-10 bg-white dark:bg-dark-bg-secondary -mx-4 sm:-mx-6 px-4 sm:px-6 pt-2 pb-4"
+    >
+      <div
+        class="bg-sage-dark dark:bg-sage-dark/80 rounded-xl p-4 sm:p-6 text-center"
+      >
         <!-- Loading State -->
-        <div v-if="isLoadingSvgs" class="animate-pulse h-16 sm:h-20 flex items-center justify-center">
+        <div
+          v-if="isLoadingSvgs"
+          class="animate-pulse h-16 sm:h-20 flex items-center justify-center"
+        >
           <div class="h-8 sm:h-10 bg-white/20 rounded w-full max-w-sm"></div>
         </div>
         <!-- SVG Preview - Fixed height container to prevent jittering -->
@@ -98,7 +108,11 @@ const emitUpdate = () => {
           />
           <div
             class="grid transition-all duration-300 ease-out"
-            :class="showTranslation ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'"
+            :class="
+              showTranslation
+                ? 'grid-rows-[1fr] opacity-100'
+                : 'grid-rows-[0fr] opacity-0'
+            "
           >
             <div class="overflow-hidden min-h-0">
               <p class="text-white/80 text-[10px] sm:text-xs mt-1 font-body">
@@ -109,23 +123,35 @@ const emitUpdate = () => {
           <!-- Preview indicator - always reserve space to prevent jittering -->
           <p
             class="text-[10px] mt-1 font-body h-4 transition-opacity"
-            :class="previewStyle && previewStyle !== selectedStyle ? 'text-white/60' : 'opacity-0'"
+            :class="
+              previewStyle && previewStyle !== selectedStyle
+                ? 'text-white/60'
+                : 'opacity-0'
+            "
           >
-            {{ previewStyle && previewStyle !== selectedStyle
-              ? `Previewing: ${calligraphyOptions.find((o) => o.id === previewStyle)?.name}`
-              : 'Selected' }}
+            {{
+              previewStyle && previewStyle !== selectedStyle
+                ? `Previewing: ${calligraphyOptions.find((o) => o.id === previewStyle)?.name}`
+                : "Selected"
+            }}
           </p>
         </div>
       </div>
     </div>
 
     <!-- Translation Toggle -->
-    <div class="flex items-center justify-between py-3 px-4 bg-sand/50 dark:bg-dark-bg-elevated rounded-lg">
+    <div
+      class="flex items-center justify-between py-3 px-4 bg-sand/50 dark:bg-dark-bg-elevated rounded-lg"
+    >
       <div>
-        <label class="font-body text-sm font-medium text-charcoal dark:text-dark-text">
+        <label
+          class="font-body text-sm font-medium text-charcoal dark:text-dark-text"
+        >
           Show Translation
         </label>
-        <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary mt-0.5">
+        <p
+          class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary mt-0.5"
+        >
           Display English translation below calligraphy
         </p>
       </div>
@@ -151,7 +177,9 @@ const emitUpdate = () => {
     <!-- Style Selection Grid -->
     <div v-if="isLoadingSvgs" class="space-y-4">
       <div v-for="i in 3" :key="i" class="space-y-3">
-        <div class="h-4 w-32 bg-sand dark:bg-dark-bg-elevated rounded animate-pulse"></div>
+        <div
+          class="h-4 w-32 bg-sand dark:bg-dark-bg-elevated rounded animate-pulse"
+        ></div>
         <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
           <div
             v-for="j in 4"
@@ -162,8 +190,15 @@ const emitUpdate = () => {
       </div>
     </div>
 
-    <div v-else v-for="(options, category) in groupedOptions" :key="category" class="space-y-3">
-      <h4 class="font-heading text-sm font-medium text-charcoal dark:text-dark-text">
+    <div
+      v-else
+      v-for="(options, category) in groupedOptions"
+      :key="category"
+      class="space-y-3"
+    >
+      <h4
+        class="font-heading text-sm font-medium text-charcoal dark:text-dark-text"
+      >
         {{ categoryLabels[category] }}
       </h4>
       <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
@@ -191,10 +226,14 @@ const emitUpdate = () => {
           />
           <!-- Label -->
           <div class="mt-2 text-center">
-            <p class="font-body text-xs sm:text-sm text-charcoal dark:text-dark-text font-medium">
+            <p
+              class="font-body text-xs sm:text-sm text-charcoal dark:text-dark-text font-medium"
+            >
               {{ option.name }}
             </p>
-            <p class="font-body text-[10px] text-charcoal-light dark:text-dark-text-secondary">
+            <p
+              class="font-body text-[10px] text-charcoal-light dark:text-dark-text-secondary"
+            >
               {{ option.nameArabic }}
             </p>
           </div>

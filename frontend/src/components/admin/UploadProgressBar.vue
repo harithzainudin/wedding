@@ -12,7 +12,9 @@ const emit = defineEmits<{
   dismiss: [id: string];
 }>();
 
-const activeUploads = computed(() => props.uploads.filter((u) => u.status === "uploading"));
+const activeUploads = computed(() =>
+  props.uploads.filter((u) => u.status === "uploading"),
+);
 
 const getProgressLabel = (progress: number): string => {
   if (progress <= 10) return "Preparing...";
@@ -42,9 +44,13 @@ const getStatusLabel = (upload: UploadProgress): string => {
   <div v-if="uploads.length > 0" class="space-y-2">
     <!-- Section Header -->
     <div class="flex items-center justify-between">
-      <h4 class="font-body text-xs font-medium text-charcoal-light dark:text-dark-text-secondary uppercase tracking-wider">
+      <h4
+        class="font-body text-xs font-medium text-charcoal-light dark:text-dark-text-secondary uppercase tracking-wider"
+      >
         {{ activeUploads.length > 0 ? "Uploading" : "Upload Complete" }}
-        <span v-if="activeUploads.length > 0">({{ activeUploads.length }})</span>
+        <span v-if="activeUploads.length > 0"
+          >({{ activeUploads.length }})</span
+        >
       </h4>
     </div>
 
@@ -76,20 +82,47 @@ const getStatusLabel = (upload: UploadProgress): string => {
               ]"
             >
               <!-- Spinner for uploading -->
-              <div v-if="upload.status === 'uploading'" class="w-4 h-4 border-2 border-sage border-t-transparent rounded-full animate-spin" />
+              <div
+                v-if="upload.status === 'uploading'"
+                class="w-4 h-4 border-2 border-sage border-t-transparent rounded-full animate-spin"
+              />
               <!-- Checkmark for completed -->
-              <svg v-else-if="upload.status === 'completed'" class="w-4 h-4 text-sage" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+              <svg
+                v-else-if="upload.status === 'completed'"
+                class="w-4 h-4 text-sage"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M5 13l4 4L19 7"
+                />
               </svg>
               <!-- X for error/cancelled -->
-              <svg v-else class="w-4 h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              <svg
+                v-else
+                class="w-4 h-4 text-red-500"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M6 18L18 6M6 6l12 12"
+                />
               </svg>
             </div>
 
             <!-- File Info -->
             <div class="flex-1 min-w-0">
-              <p class="font-body text-sm text-charcoal dark:text-dark-text truncate">
+              <p
+                class="font-body text-sm text-charcoal dark:text-dark-text truncate"
+              >
                 {{ upload.filename }}
               </p>
               <p
@@ -107,7 +140,10 @@ const getStatusLabel = (upload: UploadProgress): string => {
             <!-- Progress Percentage / Action Buttons -->
             <div class="flex-shrink-0 flex items-center gap-2">
               <!-- Progress percentage for uploading -->
-              <span v-if="upload.status === 'uploading'" class="font-body text-sm font-medium text-sage">
+              <span
+                v-if="upload.status === 'uploading'"
+                class="font-body text-sm font-medium text-sage"
+              >
                 {{ upload.progress }}%
               </span>
               <!-- Cancel button for uploading -->
@@ -118,8 +154,18 @@ const getStatusLabel = (upload: UploadProgress): string => {
                 title="Cancel upload"
                 @click="emit('cancel', upload.id)"
               >
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                <svg
+                  class="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M6 18L18 6M6 6l12 12"
+                  />
                 </svg>
               </button>
               <!-- Dismiss button for completed/error/cancelled -->
@@ -130,16 +176,32 @@ const getStatusLabel = (upload: UploadProgress): string => {
                 title="Dismiss"
                 @click="emit('dismiss', upload.id)"
               >
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                <svg
+                  class="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M6 18L18 6M6 6l12 12"
+                  />
                 </svg>
               </button>
             </div>
           </div>
 
           <!-- Progress Bar -->
-          <div v-if="upload.status === 'uploading'" class="mt-2 h-1.5 bg-sand-dark dark:bg-dark-border rounded-full overflow-hidden">
-            <div class="h-full bg-sage rounded-full transition-all duration-500 ease-out" :style="{ width: `${upload.progress}%` }" />
+          <div
+            v-if="upload.status === 'uploading'"
+            class="mt-2 h-1.5 bg-sand-dark dark:bg-dark-border rounded-full overflow-hidden"
+          >
+            <div
+              class="h-full bg-sage rounded-full transition-all duration-500 ease-out"
+              :style="{ width: `${upload.progress}%` }"
+            />
           </div>
         </div>
       </div>

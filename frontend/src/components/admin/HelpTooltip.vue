@@ -50,7 +50,13 @@ onUnmounted(() => {
       :aria-label="isOpen ? 'Close help' : 'Open help'"
       @click.stop="toggleTooltip"
     >
-      <svg class="w-5 h-5 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <svg
+        class="w-5 h-5 flex-shrink-0"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+      >
         <circle cx="12" cy="12" r="10" />
         <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
         <circle cx="12" cy="17" r="1" fill="currentColor" />
@@ -88,10 +94,15 @@ onUnmounted(() => {
         class="fixed sm:absolute inset-x-4 sm:inset-x-auto sm:left-0 bottom-4 sm:bottom-auto sm:top-full sm:mt-2 sm:w-80 bg-white dark:bg-dark-bg-secondary rounded-xl shadow-lg border border-sand-dark dark:border-dark-border p-4 z-50"
       >
         <!-- Arrow pointer - hidden on mobile -->
-        <div class="hidden sm:block absolute -top-2 left-4 w-4 h-4 bg-white dark:bg-dark-bg-secondary border-l border-t border-sand-dark dark:border-dark-border transform rotate-45" />
+        <div
+          class="hidden sm:block absolute -top-2 left-4 w-4 h-4 bg-white dark:bg-dark-bg-secondary border-l border-t border-sand-dark dark:border-dark-border transform rotate-45"
+        />
 
         <!-- Optional title -->
-        <h4 v-if="title" class="font-heading text-base font-medium text-charcoal dark:text-dark-text mb-3">
+        <h4
+          v-if="title"
+          class="font-heading text-base font-medium text-charcoal dark:text-dark-text mb-3"
+        >
           {{ title }}
         </h4>
 

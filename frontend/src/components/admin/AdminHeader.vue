@@ -18,8 +18,14 @@ const emit = defineEmits<{
 <template>
   <div class="flex items-center justify-between mb-6">
     <div>
-      <h1 class="font-heading text-2xl sm:text-3xl text-sage-dark dark:text-sage-light">Admin Dashboard</h1>
-      <p class="hidden sm:block font-body text-sm text-charcoal-light dark:text-dark-text-secondary mt-1">
+      <h1
+        class="font-heading text-2xl sm:text-3xl text-sage-dark dark:text-sage-light"
+      >
+        Admin Dashboard
+      </h1>
+      <p
+        class="hidden sm:block font-body text-sm text-charcoal-light dark:text-dark-text-secondary mt-1"
+      >
         Manage your wedding website content
       </p>
     </div>
@@ -33,7 +39,13 @@ const emit = defineEmits<{
         class="flex items-center gap-2 px-3 py-2 text-sm font-body text-white bg-sage hover:bg-sage-dark rounded-lg transition-colors"
         title="View Live Site"
       >
-        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <svg
+          class="w-4 h-4"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
           <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6" />
           <polyline points="15,3 21,3 21,9" />
           <line x1="10" y1="14" x2="21" y2="3" />
@@ -57,7 +69,13 @@ const emit = defineEmits<{
       aria-label="Open menu"
       @click="emit('openMobileMenu')"
     >
-      <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <svg
+        class="w-6 h-6"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+      >
         <line x1="3" y1="6" x2="21" y2="6" />
         <line x1="3" y1="12" x2="21" y2="12" />
         <line x1="3" y1="18" x2="21" y2="18" />

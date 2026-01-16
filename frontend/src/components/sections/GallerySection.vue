@@ -91,7 +91,11 @@ const scrollToActiveThumbnail = (): void => {
     const isOutsideRight = thumbnailRect.right > containerRect.right;
 
     if (isOutsideLeft || isOutsideRight) {
-      activeThumbnail.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
+      activeThumbnail.scrollIntoView({
+        behavior: "smooth",
+        inline: "center",
+        block: "nearest",
+      });
     }
   }
 };
@@ -103,17 +107,19 @@ watch(selectedIndex, () => {
 const goToPrevious = (): void => {
   if (selectedIndex.value === null) return;
   slideDirection.value = "right";
-  selectedIndex.value = selectedIndex.value === 0
-    ? photos.value.length - 1
-    : selectedIndex.value - 1;
+  selectedIndex.value =
+    selectedIndex.value === 0
+      ? photos.value.length - 1
+      : selectedIndex.value - 1;
 };
 
 const goToNext = (): void => {
   if (selectedIndex.value === null) return;
   slideDirection.value = "left";
-  selectedIndex.value = selectedIndex.value === photos.value.length - 1
-    ? 0
-    : selectedIndex.value + 1;
+  selectedIndex.value =
+    selectedIndex.value === photos.value.length - 1
+      ? 0
+      : selectedIndex.value + 1;
 };
 
 const handleKeydown = (event: KeyboardEvent): void => {
@@ -179,12 +185,19 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <section v-if="showGallery && photos.length > 0" class="py-12 sm:py-16 px-4 sm:px-6 bg-sand dark:bg-dark-bg transition-colors duration-300">
+  <section
+    v-if="showGallery && photos.length > 0"
+    class="py-12 sm:py-16 px-4 sm:px-6 bg-sand dark:bg-dark-bg transition-colors duration-300"
+  >
     <div class="max-w-4xl mx-auto">
-      <h2 class="font-heading text-xl sm:text-2xl md:text-3xl text-center text-sage-dark dark:text-sage-light mb-2">
+      <h2
+        class="font-heading text-xl sm:text-2xl md:text-3xl text-center text-sage-dark dark:text-sage-light mb-2"
+      >
         {{ t.gallery.title }}
       </h2>
-      <p class="font-body text-sm sm:text-base text-center text-charcoal-light dark:text-dark-text-secondary mb-6 sm:mb-8">
+      <p
+        class="font-body text-sm sm:text-base text-center text-charcoal-light dark:text-dark-text-secondary mb-6 sm:mb-8"
+      >
         {{ t.gallery.subtitle }}
       </p>
 
@@ -211,7 +224,13 @@ onUnmounted(() => {
           class="inline-flex items-center gap-2 px-6 py-3 font-body text-sm font-medium text-sage-dark dark:text-sage-light border-2 border-sage dark:border-sage-light rounded-full hover:bg-sage hover:text-white dark:hover:bg-sage-light dark:hover:text-dark-bg transition-colors focus:outline-none focus:ring-2 focus:ring-sage focus:ring-offset-2"
           @click="openLightbox(0)"
         >
-          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <svg
+            class="w-5 h-5"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
             <rect x="3" y="3" width="7" height="7" rx="1" />
             <rect x="14" y="3" width="7" height="7" rx="1" />
             <rect x="3" y="14" width="7" height="7" rx="1" />
@@ -227,9 +246,15 @@ onUnmounted(() => {
         <div
           v-if="isLightboxOpen"
           class="fixed inset-0 z-[100] bg-black/95 flex flex-col"
-          @click.self="lightboxMode === 'single' ? closeLightbox() : (lightboxMode = 'single')"
+          @click.self="
+            lightboxMode === 'single'
+              ? closeLightbox()
+              : (lightboxMode = 'single')
+          "
         >
-          <div class="flex-shrink-0 flex items-center justify-between p-3 sm:p-4">
+          <div
+            class="flex-shrink-0 flex items-center justify-between p-3 sm:p-4"
+          >
             <p class="font-body text-sm text-white/80">
               {{ photoCounter }}
             </p>
@@ -238,11 +263,21 @@ onUnmounted(() => {
               <button
                 type="button"
                 class="p-2 text-white/80 hover:text-white transition-colors rounded-lg"
-                :class="lightboxMode === 'grid' ? 'bg-white/20' : 'hover:bg-white/10'"
-                :aria-label="lightboxMode === 'grid' ? t.gallery.close : t.gallery.viewAll"
+                :class="
+                  lightboxMode === 'grid' ? 'bg-white/20' : 'hover:bg-white/10'
+                "
+                :aria-label="
+                  lightboxMode === 'grid' ? t.gallery.close : t.gallery.viewAll
+                "
                 @click="toggleLightboxMode"
               >
-                <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <svg
+                  class="w-6 h-6"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
                   <rect x="3" y="3" width="7" height="7" rx="1" />
                   <rect x="14" y="3" width="7" height="7" rx="1" />
                   <rect x="3" y="14" width="7" height="7" rx="1" />
@@ -256,7 +291,13 @@ onUnmounted(() => {
                 :aria-label="t.gallery.close"
                 @click="closeLightbox"
               >
-                <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <svg
+                  class="w-6 h-6"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
                   <path d="M18 6L6 18M6 6l12 12" />
                 </svg>
               </button>
@@ -273,7 +314,13 @@ onUnmounted(() => {
               :aria-label="t.gallery.previous"
               @click="goToPrevious"
             >
-              <svg class="w-8 h-8 sm:w-10 sm:h-10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <svg
+                class="w-8 h-8 sm:w-10 sm:h-10"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
                 <path d="M15 18l-6-6 6-6" />
               </svg>
             </button>
@@ -284,7 +331,13 @@ onUnmounted(() => {
               :aria-label="t.gallery.next"
               @click="goToNext"
             >
-              <svg class="w-8 h-8 sm:w-10 sm:h-10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <svg
+                class="w-8 h-8 sm:w-10 sm:h-10"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
                 <path d="M9 18l6-6-6-6" />
               </svg>
             </button>
@@ -295,7 +348,10 @@ onUnmounted(() => {
               @touchmove="handleTouchMove"
               @touchend="handleTouchEnd"
             >
-              <Transition :name="slideDirection === 'left' ? 'slide-left' : 'slide-right'" mode="out-in">
+              <Transition
+                :name="slideDirection === 'left' ? 'slide-left' : 'slide-right'"
+                mode="out-in"
+              >
                 <img
                   v-if="currentPhoto"
                   :key="selectedIndex ?? 0"
@@ -308,17 +364,20 @@ onUnmounted(() => {
             </div>
           </div>
 
-          <div
-            v-else
-            class="flex-1 overflow-y-auto p-4"
-          >
-            <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2">
+          <div v-else class="flex-1 overflow-y-auto p-4">
+            <div
+              class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2"
+            >
               <button
                 v-for="(photo, index) in photos"
                 :key="photo.src"
                 type="button"
                 class="aspect-square overflow-hidden rounded-lg transition-all"
-                :class="index === selectedIndex ? 'ring-2 ring-white ring-offset-2 ring-offset-black' : 'opacity-70 hover:opacity-100'"
+                :class="
+                  index === selectedIndex
+                    ? 'ring-2 ring-white ring-offset-2 ring-offset-black'
+                    : 'opacity-70 hover:opacity-100'
+                "
                 @click="jumpToPhoto(index)"
               >
                 <img
@@ -344,7 +403,11 @@ onUnmounted(() => {
                 :key="photo.src"
                 type="button"
                 class="flex-shrink-0 w-14 h-14 sm:w-16 sm:h-16 overflow-hidden rounded-md transition-all"
-                :class="index === selectedIndex ? 'ring-2 ring-white opacity-100' : 'opacity-50 hover:opacity-80'"
+                :class="
+                  index === selectedIndex
+                    ? 'ring-2 ring-white opacity-100'
+                    : 'opacity-50 hover:opacity-80'
+                "
                 @click="jumpToPhoto(index)"
               >
                 <img
@@ -375,7 +438,9 @@ onUnmounted(() => {
 
 .slide-left-enter-active,
 .slide-left-leave-active {
-  transition: transform 0.25s ease, opacity 0.25s ease;
+  transition:
+    transform 0.25s ease,
+    opacity 0.25s ease;
 }
 
 .slide-left-enter-from {
@@ -390,7 +455,9 @@ onUnmounted(() => {
 
 .slide-right-enter-active,
 .slide-right-leave-active {
-  transition: transform 0.25s ease, opacity 0.25s ease;
+  transition:
+    transform 0.25s ease,
+    opacity 0.25s ease;
 }
 
 .slide-right-enter-from {

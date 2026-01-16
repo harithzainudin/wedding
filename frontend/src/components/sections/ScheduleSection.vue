@@ -41,9 +41,13 @@ const getScheduleSubtitle = computed(() => (item: ScheduleItem): string => {
 </script>
 
 <template>
-  <section class="py-12 sm:py-16 px-4 sm:px-6 bg-white dark:bg-dark-bg-secondary transition-colors duration-300">
+  <section
+    class="py-12 sm:py-16 px-4 sm:px-6 bg-white dark:bg-dark-bg-secondary transition-colors duration-300"
+  >
     <div class="max-w-xl mx-auto">
-      <h2 class="font-heading text-xl sm:text-2xl md:text-3xl text-center text-sage-dark dark:text-sage-light mb-6 sm:mb-8">
+      <h2
+        class="font-heading text-xl sm:text-2xl md:text-3xl text-center text-sage-dark dark:text-sage-light mb-6 sm:mb-8"
+      >
         {{ t.schedule.title }}
       </h2>
 
@@ -55,15 +59,23 @@ const getScheduleSubtitle = computed(() => (item: ScheduleItem): string => {
           class="flex items-start gap-3 sm:gap-4 animate-pulse"
         >
           <div class="flex-shrink-0 w-20 sm:w-24 text-right">
-            <div class="h-5 sm:h-6 w-16 bg-sage/20 dark:bg-sage/10 rounded ml-auto"></div>
+            <div
+              class="h-5 sm:h-6 w-16 bg-sage/20 dark:bg-sage/10 rounded ml-auto"
+            ></div>
           </div>
           <div class="flex flex-col items-center">
-            <div class="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-sage/30"></div>
+            <div
+              class="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-sage/30"
+            ></div>
             <div v-if="i < 4" class="w-0.5 h-10 sm:h-12 bg-sage/20"></div>
           </div>
           <div class="flex-1 pb-4 sm:pb-6 space-y-2">
-            <div class="h-5 sm:h-6 w-3/4 bg-charcoal/10 dark:bg-dark-text/10 rounded"></div>
-            <div class="h-4 w-1/2 bg-charcoal/5 dark:bg-dark-text/5 rounded"></div>
+            <div
+              class="h-5 sm:h-6 w-3/4 bg-charcoal/10 dark:bg-dark-text/10 rounded"
+            ></div>
+            <div
+              class="h-4 w-1/2 bg-charcoal/5 dark:bg-dark-text/5 rounded"
+            ></div>
           </div>
         </div>
       </div>
@@ -80,7 +92,9 @@ const getScheduleSubtitle = computed(() => (item: ScheduleItem): string => {
         >
           <!-- Time -->
           <div class="flex-shrink-0 w-20 sm:w-24 text-right">
-            <p class="font-heading text-base sm:text-lg text-sage-dark dark:text-sage-light">
+            <p
+              class="font-heading text-base sm:text-lg text-sage-dark dark:text-sage-light"
+            >
               {{ item.time }}
             </p>
           </div>
@@ -96,10 +110,14 @@ const getScheduleSubtitle = computed(() => (item: ScheduleItem): string => {
 
           <!-- Event Description -->
           <div class="flex-1 pb-4 sm:pb-6">
-            <p class="font-heading text-base sm:text-lg text-charcoal dark:text-dark-text">
+            <p
+              class="font-heading text-base sm:text-lg text-charcoal dark:text-dark-text"
+            >
               {{ getScheduleTitle(item) }}
             </p>
-            <p class="font-body text-xs sm:text-sm text-charcoal-light dark:text-dark-text-secondary">
+            <p
+              class="font-body text-xs sm:text-sm text-charcoal-light dark:text-dark-text-secondary"
+            >
               {{ getScheduleSubtitle(item) }}
             </p>
           </div>

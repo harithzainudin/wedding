@@ -30,7 +30,7 @@ const PHONE_REGEX = /^\+?6?0[0-9]{8,10}$/;
 
 function validateMultilingualText(
   text: unknown,
-  label: string
+  label: string,
 ): { valid: true; data: MultilingualText } | { valid: false; error: string } {
   if (typeof text !== "object" || text === null) {
     return { valid: false, error: `${label} is required` };
@@ -47,7 +47,10 @@ function validateMultilingualText(
       return { valid: false, error: `${label} ${lang} is required` };
     }
     if (obj[lang].length > 100) {
-      return { valid: false, error: `${label} ${lang} must be 100 characters or less` };
+      return {
+        valid: false,
+        error: `${label} ${lang} must be 100 characters or less`,
+      };
     }
     result[lang] = (obj[lang] as string).trim();
   }
@@ -60,7 +63,7 @@ function validateMultilingualText(
 
 function validateContactPerson(
   contact: unknown,
-  index: number
+  index: number,
 ): { valid: true; data: ContactPerson } | { valid: false; error: string } {
   if (typeof contact !== "object" || contact === null) {
     return { valid: false, error: `Contact ${index + 1} is invalid` };
@@ -78,27 +81,46 @@ function validateContactPerson(
     return { valid: false, error: `Contact ${index + 1} name is required` };
   }
   if (obj.name.length > 100) {
-    return { valid: false, error: `Contact ${index + 1} name must be 100 characters or less` };
+    return {
+      valid: false,
+      error: `Contact ${index + 1} name must be 100 characters or less`,
+    };
   }
 
   // Validate role
-  const roleResult = validateMultilingualText(obj.role, `Contact ${index + 1} role`);
+  const roleResult = validateMultilingualText(
+    obj.role,
+    `Contact ${index + 1} role`,
+  );
   if (!roleResult.valid) return { valid: false, error: roleResult.error };
 
   // Validate phoneNumber
   if (typeof obj.phoneNumber !== "string" || !obj.phoneNumber.trim()) {
-    return { valid: false, error: `Contact ${index + 1} phone number is required` };
+    return {
+      valid: false,
+      error: `Contact ${index + 1} phone number is required`,
+    };
   }
 
   // Clean phone number (remove spaces and dashes)
   const cleanPhone = obj.phoneNumber.replace(/[\s-]/g, "");
   if (!PHONE_REGEX.test(cleanPhone)) {
-    return { valid: false, error: `Contact ${index + 1} has invalid Malaysian phone number format` };
+    return {
+      valid: false,
+      error: `Contact ${index + 1} has invalid Malaysian phone number format`,
+    };
   }
 
   // Validate order
-  if (typeof obj.order !== "number" || !Number.isInteger(obj.order) || obj.order < 0) {
-    return { valid: false, error: `Contact ${index + 1} order must be a non-negative integer` };
+  if (
+    typeof obj.order !== "number" ||
+    !Number.isInteger(obj.order) ||
+    obj.order < 0
+  ) {
+    return {
+      valid: false,
+      error: `Contact ${index + 1} order must be a non-negative integer`,
+    };
   }
 
   return {
@@ -114,8 +136,10 @@ function validateContactPerson(
 }
 
 export function validateContactsUpdate(
-  input: unknown
-): { valid: true; data: ContactsUpdateRequest } | { valid: false; error: string } {
+  input: unknown,
+):
+  | { valid: true; data: ContactsUpdateRequest }
+  | { valid: false; error: string } {
   if (typeof input !== "object" || input === null) {
     return { valid: false, error: "Invalid request body" };
   }
@@ -135,7 +159,8 @@ export function validateContactsUpdate(
 
   for (let i = 0; i < body.contacts.length; i++) {
     const contactResult = validateContactPerson(body.contacts[i], i);
-    if (!contactResult.valid) return { valid: false, error: contactResult.error };
+    if (!contactResult.valid)
+      return { valid: false, error: contactResult.error };
     validatedContacts.push(contactResult.data);
   }
 

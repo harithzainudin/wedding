@@ -1,6 +1,13 @@
 import { ref } from "vue";
-import type { ScheduleData, ScheduleItem, ScheduleUpdateRequest } from "@/types/schedule";
-import { getSchedule, updateSchedule as apiUpdateSchedule } from "@/services/api";
+import type {
+  ScheduleData,
+  ScheduleItem,
+  ScheduleUpdateRequest,
+} from "@/types/schedule";
+import {
+  getSchedule,
+  updateSchedule as apiUpdateSchedule,
+} from "@/services/api";
 
 // Default schedule data (matches backend defaults)
 const DEFAULT_SCHEDULE: ScheduleData = {
@@ -70,14 +77,17 @@ export function useSchedule() {
       const data = await getSchedule();
       schedule.value = data;
     } catch (err) {
-      loadError.value = err instanceof Error ? err.message : "Failed to load schedule";
+      loadError.value =
+        err instanceof Error ? err.message : "Failed to load schedule";
     } finally {
       isLoading.value = false;
     }
   };
 
   // Update schedule
-  const updateSchedule = async (items: ScheduleItem[]): Promise<{ success: boolean; error?: string }> => {
+  const updateSchedule = async (
+    items: ScheduleItem[],
+  ): Promise<{ success: boolean; error?: string }> => {
     isSaving.value = true;
     saveError.value = "";
     saveSuccess.value = false;
@@ -93,7 +103,8 @@ export function useSchedule() {
       }, 3000);
       return { success: true };
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : "Failed to update schedule";
+      const errorMessage =
+        err instanceof Error ? err.message : "Failed to update schedule";
       saveError.value = errorMessage;
       return { success: false, error: errorMessage };
     } finally {
@@ -108,7 +119,10 @@ export function useSchedule() {
 
   // Reset to defaults (for form reset)
   const resetToDefaults = (): void => {
-    schedule.value = { ...DEFAULT_SCHEDULE, items: [...DEFAULT_SCHEDULE.items] };
+    schedule.value = {
+      ...DEFAULT_SCHEDULE,
+      items: [...DEFAULT_SCHEDULE.items],
+    };
   };
 
   return {

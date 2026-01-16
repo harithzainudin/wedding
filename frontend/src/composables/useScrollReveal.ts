@@ -7,7 +7,11 @@ interface ScrollRevealOptions {
 }
 
 export function useScrollReveal(options: ScrollRevealOptions = {}) {
-  const { threshold = 0.1, rootMargin = "0px 0px -50px 0px", selector = "[data-index]" } = options;
+  const {
+    threshold = 0.1,
+    rootMargin = "0px 0px -50px 0px",
+    selector = "[data-index]",
+  } = options;
 
   const revealedItems = ref<Set<number>>(new Set());
   let observer: IntersectionObserver | null = null;
@@ -28,7 +32,10 @@ export function useScrollReveal(options: ScrollRevealOptions = {}) {
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
-            const index = parseInt(entry.target.getAttribute("data-index") || "0", 10);
+            const index = parseInt(
+              entry.target.getAttribute("data-index") || "0",
+              10,
+            );
             revealedItems.value = new Set([...revealedItems.value, index]);
             observer?.unobserve(entry.target);
           }
@@ -37,7 +44,7 @@ export function useScrollReveal(options: ScrollRevealOptions = {}) {
       {
         threshold,
         rootMargin,
-      }
+      },
     );
 
     // Use nextTick to ensure DOM is ready

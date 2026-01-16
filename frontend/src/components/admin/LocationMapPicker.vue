@@ -25,11 +25,15 @@ const showResults = ref(false);
 let searchTimeout: ReturnType<typeof setTimeout> | null = null;
 
 const fixLeafletIcons = () => {
-  delete (L.Icon.Default.prototype as unknown as { _getIconUrl?: unknown })._getIconUrl;
+  delete (L.Icon.Default.prototype as unknown as { _getIconUrl?: unknown })
+    ._getIconUrl;
   L.Icon.Default.mergeOptions({
-    iconRetinaUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png",
-    iconUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png",
-    shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png",
+    iconRetinaUrl:
+      "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png",
+    iconUrl:
+      "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png",
+    shadowUrl:
+      "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png",
   });
 };
 
@@ -38,10 +42,14 @@ const initMap = () => {
 
   fixLeafletIcons();
 
-  map = L.map(mapContainer.value).setView([props.coordinates.lat, props.coordinates.lng], 15);
+  map = L.map(mapContainer.value).setView(
+    [props.coordinates.lat, props.coordinates.lng],
+    15,
+  );
 
   L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+    attribution:
+      '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
   }).addTo(map);
 
   marker = L.marker([props.coordinates.lat, props.coordinates.lng], {
@@ -85,7 +93,7 @@ const searchLocation = async () => {
         headers: {
           "Accept-Language": "en",
         },
-      }
+      },
     );
     const data = (await response.json()) as NominatimResult[];
     searchResults.value = data;
@@ -138,7 +146,7 @@ watch(
       updateMarkerPosition(newCoords.lat, newCoords.lng);
     }
   },
-  { deep: true }
+  { deep: true },
 );
 
 // Watch for disabled state changes
@@ -152,7 +160,7 @@ watch(
         marker.dragging?.enable();
       }
     }
-  }
+  },
 );
 
 onMounted(() => {
@@ -177,12 +185,24 @@ onUnmounted(() => {
   <div class="space-y-3">
     <!-- Search Bar (z-[1001] to create stacking context above Leaflet map) -->
     <div class="search-container relative z-[1001]">
-      <label class="block font-body text-xs font-medium text-charcoal-light dark:text-dark-text-secondary mb-1.5">
+      <label
+        class="block font-body text-xs font-medium text-charcoal-light dark:text-dark-text-secondary mb-1.5"
+      >
         Search Location
       </label>
       <div class="relative">
-        <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-charcoal-light dark:text-dark-text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+        <svg
+          class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-charcoal-light dark:text-dark-text-secondary"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+          />
         </svg>
         <input
           v-model="searchQuery"
@@ -193,7 +213,10 @@ onUnmounted(() => {
           @input="handleSearchInput"
           @focus="showResults = true"
         />
-        <div v-if="isSearching" class="absolute right-3 top-1/2 -translate-y-1/2">
+        <div
+          v-if="isSearching"
+          class="absolute right-3 top-1/2 -translate-y-1/2"
+        >
           <svg
             class="w-5 h-5 text-sage animate-spin"
             viewBox="0 0 24 24"
@@ -218,10 +241,24 @@ onUnmounted(() => {
           v-else-if="searchQuery.length > 0"
           type="button"
           class="absolute right-3 top-1/2 -translate-y-1/2 text-charcoal-light dark:text-dark-text-secondary hover:text-charcoal dark:hover:text-dark-text"
-          @click="searchQuery = ''; searchResults = []; showResults = false"
+          @click="
+            searchQuery = '';
+            searchResults = [];
+            showResults = false;
+          "
         >
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          <svg
+            class="w-5 h-5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M6 18L18 6M6 6l12 12"
+            />
           </svg>
         </button>
       </div>
@@ -236,12 +273,20 @@ onUnmounted(() => {
           v-if="searchQuery.length < 3"
           class="px-4 py-3 flex items-center gap-2 text-charcoal-light dark:text-dark-text-secondary"
         >
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          <svg
+            class="w-4 h-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
           </svg>
-          <p class="font-body text-sm">
-            Type at least 3 characters to search
-          </p>
+          <p class="font-body text-sm">Type at least 3 characters to search</p>
         </div>
 
         <!-- Searching indicator -->
@@ -268,7 +313,9 @@ onUnmounted(() => {
               class="opacity-75"
             />
           </svg>
-          <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary">
+          <p
+            class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary"
+          >
             Searching for "{{ searchQuery }}"...
           </p>
         </div>
@@ -278,8 +325,13 @@ onUnmounted(() => {
           v-else-if="searchResults.length > 0"
           class="max-h-60 overflow-y-auto"
         >
-          <p class="px-4 py-2 font-body text-xs text-charcoal-light dark:text-dark-text-secondary bg-sand/50 dark:bg-dark-bg-elevated border-b border-sand-dark/30 dark:border-dark-border/30">
-            {{ searchResults.length }} location{{ searchResults.length > 1 ? 's' : '' }} found
+          <p
+            class="px-4 py-2 font-body text-xs text-charcoal-light dark:text-dark-text-secondary bg-sand/50 dark:bg-dark-bg-elevated border-b border-sand-dark/30 dark:border-dark-border/30"
+          >
+            {{ searchResults.length }} location{{
+              searchResults.length > 1 ? "s" : ""
+            }}
+            found
           </p>
           <button
             v-for="result in searchResults"
@@ -288,27 +340,46 @@ onUnmounted(() => {
             class="w-full px-4 py-3 text-left hover:bg-sage/10 dark:hover:bg-sage/20 transition-colors border-b border-sand-dark/30 dark:border-dark-border/30 last:border-b-0 flex items-start gap-3"
             @click="selectResult(result)"
           >
-            <svg class="w-5 h-5 text-sage flex-shrink-0 mt-0.5" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+            <svg
+              class="w-5 h-5 text-sage flex-shrink-0 mt-0.5"
+              viewBox="0 0 24 24"
+              fill="currentColor"
+            >
+              <path
+                d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"
+              />
             </svg>
-            <p class="font-body text-sm text-charcoal dark:text-dark-text line-clamp-2">
+            <p
+              class="font-body text-sm text-charcoal dark:text-dark-text line-clamp-2"
+            >
               {{ result.display_name }}
             </p>
           </button>
         </div>
 
         <!-- No Results -->
-        <div
-          v-else
-          class="px-4 py-4 text-center"
-        >
-          <svg class="w-8 h-8 text-charcoal-light/50 dark:text-dark-text-secondary/50 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        <div v-else class="px-4 py-4 text-center">
+          <svg
+            class="w-8 h-8 text-charcoal-light/50 dark:text-dark-text-secondary/50 mx-auto mb-2"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
           </svg>
-          <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary">
+          <p
+            class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary"
+          >
             No locations found for "{{ searchQuery }}"
           </p>
-          <p class="font-body text-xs text-charcoal-light/70 dark:text-dark-text-secondary/70 mt-1">
+          <p
+            class="font-body text-xs text-charcoal-light/70 dark:text-dark-text-secondary/70 mt-1"
+          >
             Try a different search term
           </p>
         </div>
@@ -323,7 +394,9 @@ onUnmounted(() => {
     />
 
     <!-- Instructions -->
-    <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary">
+    <p
+      class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary"
+    >
       Click on the map or drag the marker to set the exact location
     </p>
   </div>

@@ -28,7 +28,9 @@ const message = ref("");
 
 // Computed
 const isEditMode = computed(() => !!props.rsvp);
-const modalTitle = computed(() => (isEditMode.value ? "Edit Guest" : "Add Guest"));
+const modalTitle = computed(() =>
+  isEditMode.value ? "Edit Guest" : "Add Guest",
+);
 const submitText = computed(() => {
   if (props.isSubmitting) return "Saving...";
   return isEditMode.value ? "Update" : "Add Guest";
@@ -79,7 +81,7 @@ watch(
       nameInputRef.value?.focus();
     }
   },
-  { immediate: true }
+  { immediate: true },
 );
 
 // Handle submit
@@ -135,7 +137,9 @@ const handleGuestInput = (e: Event) => {
   >
     <!-- Title (honorific) - Optional -->
     <div>
-      <label class="block font-body text-sm text-charcoal dark:text-dark-text mb-1">
+      <label
+        class="block font-body text-sm text-charcoal dark:text-dark-text mb-1"
+      >
         Title (Optional)
       </label>
       <select
@@ -144,13 +148,17 @@ const handleGuestInput = (e: Event) => {
         class="w-full px-3 py-2 font-body text-sm border border-sand-dark dark:border-dark-border rounded-lg bg-white dark:bg-dark-bg focus:outline-none focus:ring-2 focus:ring-sage/50 dark:text-dark-text disabled:opacity-50"
       >
         <option value="">-- No Title --</option>
-        <option v-for="t in HONORIFIC_TITLES" :key="t" :value="t">{{ t }}</option>
+        <option v-for="t in HONORIFIC_TITLES" :key="t" :value="t">
+          {{ t }}
+        </option>
       </select>
     </div>
 
     <!-- Full Name - Required -->
     <div>
-      <label class="block font-body text-sm text-charcoal dark:text-dark-text mb-1">
+      <label
+        class="block font-body text-sm text-charcoal dark:text-dark-text mb-1"
+      >
         Full Name <span class="text-red-500">*</span>
       </label>
       <input
@@ -163,17 +171,24 @@ const handleGuestInput = (e: Event) => {
         class="w-full px-3 py-2 font-body text-sm border border-sand-dark dark:border-dark-border rounded-lg bg-white dark:bg-dark-bg focus:outline-none focus:ring-2 focus:ring-sage/50 dark:text-dark-text disabled:opacity-50"
         placeholder="Enter full name"
       />
-      <p v-if="fullName && fullName.trim().length < 2" class="mt-1 font-body text-xs text-red-500">
+      <p
+        v-if="fullName && fullName.trim().length < 2"
+        class="mt-1 font-body text-xs text-red-500"
+      >
         Name must be at least 2 characters
       </p>
     </div>
 
     <!-- Attendance Status - Visual Toggle -->
     <div>
-      <label class="block font-body text-sm text-charcoal dark:text-dark-text mb-2">
+      <label
+        class="block font-body text-sm text-charcoal dark:text-dark-text mb-2"
+      >
         Attendance
       </label>
-      <div class="flex rounded-lg overflow-hidden border border-sand-dark dark:border-dark-border">
+      <div
+        class="flex rounded-lg overflow-hidden border border-sand-dark dark:border-dark-border"
+      >
         <button
           type="button"
           :disabled="isSubmitting"
@@ -185,7 +200,13 @@ const handleGuestInput = (e: Event) => {
           "
           @click="setAttending(true)"
         >
-          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <svg
+            class="w-4 h-4"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
             <polyline points="20 6 9 17 4 12" />
           </svg>
           Attending
@@ -201,7 +222,13 @@ const handleGuestInput = (e: Event) => {
           "
           @click="setAttending(false)"
         >
-          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <svg
+            class="w-4 h-4"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
             <line x1="18" y1="6" x2="6" y2="18" />
             <line x1="6" y1="6" x2="18" y2="18" />
           </svg>
@@ -220,7 +247,9 @@ const handleGuestInput = (e: Event) => {
       leave-to-class="opacity-0 -translate-y-2 max-h-0"
     >
       <div v-if="isAttending" class="overflow-hidden">
-        <label class="block font-body text-sm text-charcoal dark:text-dark-text mb-1">
+        <label
+          class="block font-body text-sm text-charcoal dark:text-dark-text mb-1"
+        >
           Number of Guests
         </label>
         <div class="flex items-center gap-2">
@@ -230,7 +259,13 @@ const handleGuestInput = (e: Event) => {
             class="w-10 h-10 rounded-lg border border-sand-dark dark:border-dark-border bg-white dark:bg-dark-bg flex items-center justify-center transition-colors hover:bg-sand dark:hover:bg-dark-border disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer flex-shrink-0"
             @click="numberOfGuests = Math.max(1, numberOfGuests - 1)"
           >
-            <svg class="w-5 h-5 text-charcoal dark:text-dark-text" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <svg
+              class="w-5 h-5 text-charcoal dark:text-dark-text"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
               <line x1="5" y1="12" x2="19" y2="12" />
             </svg>
           </button>
@@ -252,13 +287,21 @@ const handleGuestInput = (e: Event) => {
             class="w-10 h-10 rounded-lg border border-sand-dark dark:border-dark-border bg-white dark:bg-dark-bg flex items-center justify-center transition-colors hover:bg-sand dark:hover:bg-dark-border disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer flex-shrink-0"
             @click="numberOfGuests = Math.min(10, numberOfGuests + 1)"
           >
-            <svg class="w-5 h-5 text-charcoal dark:text-dark-text" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <svg
+              class="w-5 h-5 text-charcoal dark:text-dark-text"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
               <line x1="12" y1="5" x2="12" y2="19" />
               <line x1="5" y1="12" x2="19" y2="12" />
             </svg>
           </button>
         </div>
-        <p class="mt-1 font-body text-xs text-charcoal-light dark:text-dark-text-secondary text-center">
+        <p
+          class="mt-1 font-body text-xs text-charcoal-light dark:text-dark-text-secondary text-center"
+        >
           Enter 1-10 guests
         </p>
       </div>
@@ -266,7 +309,9 @@ const handleGuestInput = (e: Event) => {
 
     <!-- Message - Optional -->
     <div>
-      <label class="block font-body text-sm text-charcoal dark:text-dark-text mb-1">
+      <label
+        class="block font-body text-sm text-charcoal dark:text-dark-text mb-1"
+      >
         Message (Optional)
       </label>
       <textarea
@@ -277,14 +322,23 @@ const handleGuestInput = (e: Event) => {
         class="w-full px-3 py-2 font-body text-sm border border-sand-dark dark:border-dark-border rounded-lg bg-white dark:bg-dark-bg focus:outline-none focus:ring-2 focus:ring-sage/50 dark:text-dark-text disabled:opacity-50 resize-none"
         placeholder="Any wishes or notes..."
       ></textarea>
-      <p class="mt-1 font-body text-xs text-charcoal-light dark:text-dark-text-secondary text-right">
+      <p
+        class="mt-1 font-body text-xs text-charcoal-light dark:text-dark-text-secondary text-right"
+      >
         {{ message.length }}/500
       </p>
     </div>
 
     <!-- Keyboard shortcut hint - hidden on mobile -->
-    <p class="hidden sm:block text-xs text-charcoal-light dark:text-dark-text-secondary text-center pt-2">
-      Press <kbd class="px-1.5 py-0.5 bg-sand dark:bg-dark-border rounded text-xs font-mono">Esc</kbd> to close
+    <p
+      class="hidden sm:block text-xs text-charcoal-light dark:text-dark-text-secondary text-center pt-2"
+    >
+      Press
+      <kbd
+        class="px-1.5 py-0.5 bg-sand dark:bg-dark-border rounded text-xs font-mono"
+        >Esc</kbd
+      >
+      to close
     </p>
   </BaseFormModal>
 </template>

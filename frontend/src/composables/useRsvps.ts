@@ -30,7 +30,8 @@ export function useRsvps() {
 
   const filteredRsvps = computed(() => {
     if (filter.value === "all") return rsvps.value;
-    if (filter.value === "attending") return rsvps.value.filter((r) => r.isAttending);
+    if (filter.value === "attending")
+      return rsvps.value.filter((r) => r.isAttending);
     return rsvps.value.filter((r) => !r.isAttending);
   });
 
@@ -58,14 +59,18 @@ export function useRsvps() {
       await fetchRsvps();
       return true;
     } catch (error) {
-      operationError.value = error instanceof Error ? error.message : "Failed to create guest";
+      operationError.value =
+        error instanceof Error ? error.message : "Failed to create guest";
       return false;
     } finally {
       isCreating.value = false;
     }
   };
 
-  const updateRsvpEntry = async (id: string, data: AdminRsvpRequest): Promise<boolean> => {
+  const updateRsvpEntry = async (
+    id: string,
+    data: AdminRsvpRequest,
+  ): Promise<boolean> => {
     isUpdating.value = true;
     operationError.value = "";
 
@@ -74,7 +79,8 @@ export function useRsvps() {
       await fetchRsvps();
       return true;
     } catch (error) {
-      operationError.value = error instanceof Error ? error.message : "Failed to update guest";
+      operationError.value =
+        error instanceof Error ? error.message : "Failed to update guest";
       return false;
     } finally {
       isUpdating.value = false;
@@ -90,7 +96,8 @@ export function useRsvps() {
       await fetchRsvps();
       return true;
     } catch (error) {
-      operationError.value = error instanceof Error ? error.message : "Failed to delete guest";
+      operationError.value =
+        error instanceof Error ? error.message : "Failed to delete guest";
       return false;
     } finally {
       isDeleting.value = false;
@@ -101,7 +108,9 @@ export function useRsvps() {
     operationError.value = "";
   };
 
-  const setFilter = (newFilter: "all" | "attending" | "not_attending"): void => {
+  const setFilter = (
+    newFilter: "all" | "attending" | "not_attending",
+  ): void => {
     filter.value = newFilter;
   };
 
@@ -116,7 +125,15 @@ export function useRsvps() {
   };
 
   const exportToCsv = (): void => {
-    const headers = ["Title", "Full Name", "Phone", "Attending", "Guests", "Message", "Submitted At"];
+    const headers = [
+      "Title",
+      "Full Name",
+      "Phone",
+      "Attending",
+      "Guests",
+      "Message",
+      "Submitted At",
+    ];
     const rows = rsvps.value.map((r) => [
       r.title,
       r.fullName,

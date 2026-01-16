@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find:*)",
+      "Bash(npx vue-tsc:*)",
+      "Bash(npm run type-check:*)",
+      "Bash(npm run:*)",
+      "Bash(npx tsc:*)",
+      "Bash(grep:*)",
+      "Bash(npx sst diff)",
+      "Bash(xargs ls:*)",
+      "Bash(npm ls:*)",
+      "Bash(pnpm build:*)",
+      "Bash(pnpm:*)",
+      "Bash(npx prettier:*)"
+    ]
+  }
+}

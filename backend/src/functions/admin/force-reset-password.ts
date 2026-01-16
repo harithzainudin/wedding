@@ -1,6 +1,10 @@
 import type { APIGatewayProxyHandlerV2 } from "aws-lambda";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocumentClient, GetCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
+import {
+  DynamoDBDocumentClient,
+  GetCommand,
+  UpdateCommand,
+} from "@aws-sdk/lib-dynamodb";
 import bcrypt from "bcryptjs";
 import { createSuccessResponse, createErrorResponse } from "../shared/response";
 import { requireMaster } from "../shared/auth";
@@ -32,16 +36,31 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
     // Require master admin access
     const authResult = requireMaster(event);
     if (!authResult.authenticated) {
-      return createErrorResponse(authResult.statusCode, authResult.error, context, "AUTH_ERROR");
+      return createErrorResponse(
+        authResult.statusCode,
+        authResult.error,
+        context,
+        "AUTH_ERROR",
+      );
     }
 
     if (!targetUsername) {
-      return createErrorResponse(400, "Username is required", context, "VALIDATION_ERROR");
+      return createErrorResponse(
+        400,
+        "Username is required",
+        context,
+        "VALIDATION_ERROR",
+      );
     }
 
     // Prevent resetting master account password
     if (targetUsername === "master") {
-      return createErrorResponse(403, "Cannot reset master account password", context, "FORBIDDEN");
+      return createErrorResponse(
+        403,
+        "Cannot reset master account password",
+        context,
+        "FORBIDDEN",
+      );
     }
 
     // Fetch user from DynamoDB
@@ -52,7 +71,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
           pk: `ADMIN#${targetUsername}`,
           sk: "PROFILE",
         },
-      })
+      }),
     );
 
     if (!result.Item) {
@@ -74,13 +93,14 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
           pk: `ADMIN#${targetUsername}`,
           sk: "PROFILE",
         },
-        UpdateExpression: "SET passwordHash = :hash, mustChangePassword = :must, updatedAt = :updatedAt",
+        UpdateExpression:
+          "SET passwordHash = :hash, mustChangePassword = :must, updatedAt = :updatedAt",
         ExpressionAttributeValues: {
           ":hash": passwordHash,
           ":must": true,
           ":updatedAt": new Date().toISOString(),
         },
-      })
+      }),
     );
 
     // Send password reset email if user has email
@@ -98,32 +118,47 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
       emailSent = emailResult.success;
       if (!emailResult.success) {
         emailError = emailResult.error;
-        logError({
-          endpoint: "PUT /admin/users/{username}/reset-password",
-          operation: "sendPasswordResetEmail",
-          requestId: context.awsRequestId,
-          input: { targetUsername, email: userEmail },
-        }, new Error(emailResult.error));
+        logError(
+          {
+            endpoint: "PUT /admin/users/{username}/reset-password",
+            operation: "sendPasswordResetEmail",
+            requestId: context.awsRequestId,
+            input: { targetUsername, email: userEmail },
+          },
+          new Error(emailResult.error),
+        );
       }
     }
 
-    return createSuccessResponse(200, {
-      message: emailSent
-        ? "Password reset successfully. Email sent with temporary password."
-        : userEmail
-          ? "Password reset successfully. Email failed to send - please share the temporary password manually."
-          : "Password reset successfully. User has no email - please share the temporary password manually.",
-      temporaryPassword,
-      emailSent,
-      ...(emailError && { emailError }),
-    }, context);
+    return createSuccessResponse(
+      200,
+      {
+        message: emailSent
+          ? "Password reset successfully. Email sent with temporary password."
+          : userEmail
+            ? "Password reset successfully. Email failed to send - please share the temporary password manually."
+            : "Password reset successfully. User has no email - please share the temporary password manually.",
+        temporaryPassword,
+        emailSent,
+        ...(emailError && { emailError }),
+      },
+      context,
+    );
   } catch (error) {
-    logError({
-      endpoint: "PUT /admin/users/{username}/reset-password",
-      operation: "forceResetPassword",
-      requestId: context.awsRequestId,
-      input: { targetUsername },
-    }, error);
-    return createErrorResponse(500, "Internal server error", context, "INTERNAL_ERROR");
+    logError(
+      {
+        endpoint: "PUT /admin/users/{username}/reset-password",
+        operation: "forceResetPassword",
+        requestId: context.awsRequestId,
+        input: { targetUsername },
+      },
+      error,
+    );
+    return createErrorResponse(
+      500,
+      "Internal server error",
+      context,
+      "INTERNAL_ERROR",
+    );
   }
 };

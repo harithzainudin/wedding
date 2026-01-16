@@ -34,10 +34,12 @@ interface AdminRsvpInput {
   message?: string;
 }
 
-function validateAdminRsvpInput(input: unknown): {
-  valid: true;
-  data: AdminRsvpInput;
-} | { valid: false; error: string } {
+function validateAdminRsvpInput(input: unknown):
+  | {
+      valid: true;
+      data: AdminRsvpInput;
+    }
+  | { valid: false; error: string } {
   if (typeof input !== "object" || input === null) {
     return { valid: false, error: "Invalid request body" };
   }
@@ -100,7 +102,10 @@ function validateAdminRsvpInput(input: unknown): {
       return { valid: false, error: "Message must be a string" };
     }
     if (body.message.length > 500) {
-      return { valid: false, error: "Message must be less than 500 characters" };
+      return {
+        valid: false,
+        error: "Message must be less than 500 characters",
+      };
     }
   }
 
@@ -112,7 +117,8 @@ function validateAdminRsvpInput(input: unknown): {
       isAttending: body.isAttending,
       numberOfGuests: body.isAttending ? (body.numberOfGuests as number) : 0,
       phoneNumber: cleanPhone || undefined,
-      message: typeof body.message === "string" ? body.message.trim() : undefined,
+      message:
+        typeof body.message === "string" ? body.message.trim() : undefined,
     },
   };
 }
@@ -128,7 +134,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
         authResult.statusCode,
         authResult.error,
         context,
-        "AUTH_ERROR"
+        "AUTH_ERROR",
       );
     }
 
@@ -137,13 +143,23 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
     try {
       body = JSON.parse(event.body ?? "{}");
     } catch {
-      return createErrorResponse(400, "Invalid JSON in request body", context, "INVALID_JSON");
+      return createErrorResponse(
+        400,
+        "Invalid JSON in request body",
+        context,
+        "INVALID_JSON",
+      );
     }
 
     // Validate input
     const validation = validateAdminRsvpInput(body);
     if (!validation.valid) {
-      return createErrorResponse(400, validation.error, context, "VALIDATION_ERROR");
+      return createErrorResponse(
+        400,
+        validation.error,
+        context,
+        "VALIDATION_ERROR",
+      );
     }
 
     const { data } = validation;
@@ -177,20 +193,32 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
       new PutCommand({
         TableName: Resource.AppDataTable.name,
         Item: rsvpItem,
-      })
+      }),
     );
 
-    return createSuccessResponse(201, {
-      id,
-      submittedAt: timestamp,
-    }, context);
+    return createSuccessResponse(
+      201,
+      {
+        id,
+        submittedAt: timestamp,
+      },
+      context,
+    );
   } catch (error) {
-    logError({
-      endpoint: "POST /rsvp/admin",
-      operation: "createRsvp",
-      requestId: context.awsRequestId,
-      input: { fullName },
-    }, error);
-    return createErrorResponse(500, "Internal server error", context, "DB_ERROR");
+    logError(
+      {
+        endpoint: "POST /rsvp/admin",
+        operation: "createRsvp",
+        requestId: context.awsRequestId,
+        input: { fullName },
+      },
+      error,
+    );
+    return createErrorResponse(
+      500,
+      "Internal server error",
+      context,
+      "DB_ERROR",
+    );
   }
 };

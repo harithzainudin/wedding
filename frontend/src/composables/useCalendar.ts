@@ -8,7 +8,7 @@ function formatDateForCalendar(date: Date): string {
 // Helper to get ordered couple names based on display order
 function getOrderedNicknames(
   couple: WeddingConfig["couple"],
-  displayNameOrder: DisplayNameOrder = "bride_first"
+  displayNameOrder: DisplayNameOrder = "bride_first",
 ): { first: string; second: string } {
   if (displayNameOrder === "groom_first") {
     return { first: couple.groom.nickname, second: couple.bride.nickname };
@@ -18,7 +18,7 @@ function getOrderedNicknames(
 
 export function generateGoogleCalendarUrl(
   config: WeddingConfig,
-  displayNameOrder: DisplayNameOrder = "bride_first"
+  displayNameOrder: DisplayNameOrder = "bride_first",
 ): string {
   const { event, couple } = config;
   const startDate = event.date;
@@ -33,7 +33,7 @@ export function generateGoogleCalendarUrl(
   googleUrl.searchParams.set("text", title);
   googleUrl.searchParams.set(
     "dates",
-    `${formatDateForCalendar(startDate)}/${formatDateForCalendar(endDate)}`
+    `${formatDateForCalendar(startDate)}/${formatDateForCalendar(endDate)}`,
   );
   googleUrl.searchParams.set("details", details);
   googleUrl.searchParams.set("location", event.venue.address);
@@ -43,7 +43,7 @@ export function generateGoogleCalendarUrl(
 
 export function generateIcsContent(
   config: WeddingConfig,
-  displayNameOrder: DisplayNameOrder = "bride_first"
+  displayNameOrder: DisplayNameOrder = "bride_first",
 ): string {
   const { event, couple } = config;
   const startDate = event.date;
@@ -69,7 +69,7 @@ END:VCALENDAR`;
 
 export function downloadIcsFile(
   config: WeddingConfig,
-  displayNameOrder: DisplayNameOrder = "bride_first"
+  displayNameOrder: DisplayNameOrder = "bride_first",
 ): void {
   const content = generateIcsContent(config, displayNameOrder);
   const blob = new Blob([content], { type: "text/calendar;charset=utf-8" });
