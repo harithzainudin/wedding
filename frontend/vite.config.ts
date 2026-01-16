@@ -12,4 +12,24 @@ export default defineConfig({
       "@": resolve(__dirname, "src"),
     },
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes("node_modules/vue") || id.includes("node_modules/@vue") || id.includes("node_modules/vue-router")) {
+            return "vendor-vue";
+          }
+          if (id.includes("node_modules/leaflet")) {
+            return "vendor-leaflet";
+          }
+          if (id.includes("node_modules/vuedraggable") || id.includes("node_modules/sortablejs")) {
+            return "vendor-draggable";
+          }
+          if (id.includes("node_modules/qrcode")) {
+            return "vendor-qrcode";
+          }
+        },
+      },
+    },
+  },
 });
