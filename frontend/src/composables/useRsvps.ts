@@ -1,6 +1,6 @@
 import { ref, computed } from "vue";
-import { listRsvps } from "@/services/api";
-import type { RsvpSubmission } from "@/types/rsvp";
+import { listRsvps, createRsvp, updateRsvp, deleteRsvp } from "@/services/api";
+import type { RsvpSubmission, AdminRsvpRequest } from "@/types/rsvp";
 
 export interface RsvpSummary {
   total: number;
@@ -22,6 +22,12 @@ export function useRsvps() {
     totalGuests: 0,
   });
 
+  // CRUD operation states
+  const isCreating = ref(false);
+  const isUpdating = ref(false);
+  const isDeleting = ref(false);
+  const operationError = ref("");
+
   const filteredRsvps = computed(() => {
     if (filter.value === "all") return rsvps.value;
     if (filter.value === "attending") return rsvps.value.filter((r) => r.isAttending);
@@ -41,6 +47,58 @@ export function useRsvps() {
     } finally {
       isLoading.value = false;
     }
+  };
+
+  const createRsvpEntry = async (data: AdminRsvpRequest): Promise<boolean> => {
+    isCreating.value = true;
+    operationError.value = "";
+
+    try {
+      await createRsvp(data);
+      await fetchRsvps();
+      return true;
+    } catch (error) {
+      operationError.value = error instanceof Error ? error.message : "Failed to create guest";
+      return false;
+    } finally {
+      isCreating.value = false;
+    }
+  };
+
+  const updateRsvpEntry = async (id: string, data: AdminRsvpRequest): Promise<boolean> => {
+    isUpdating.value = true;
+    operationError.value = "";
+
+    try {
+      await updateRsvp(id, data);
+      await fetchRsvps();
+      return true;
+    } catch (error) {
+      operationError.value = error instanceof Error ? error.message : "Failed to update guest";
+      return false;
+    } finally {
+      isUpdating.value = false;
+    }
+  };
+
+  const deleteRsvpEntry = async (id: string): Promise<boolean> => {
+    isDeleting.value = true;
+    operationError.value = "";
+
+    try {
+      await deleteRsvp(id);
+      await fetchRsvps();
+      return true;
+    } catch (error) {
+      operationError.value = error instanceof Error ? error.message : "Failed to delete guest";
+      return false;
+    } finally {
+      isDeleting.value = false;
+    }
+  };
+
+  const clearOperationError = (): void => {
+    operationError.value = "";
   };
 
   const setFilter = (newFilter: "all" | "attending" | "not_attending"): void => {
@@ -93,5 +151,14 @@ export function useRsvps() {
     formatDate,
     exportToCsv,
     clearRsvps,
+    // CRUD operations
+    isCreating,
+    isUpdating,
+    isDeleting,
+    operationError,
+    createRsvpEntry,
+    updateRsvpEntry,
+    deleteRsvpEntry,
+    clearOperationError,
   };
 }

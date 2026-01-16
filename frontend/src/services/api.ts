@@ -1,4 +1,12 @@
-import type { RsvpFormData, RsvpApiResponse, RsvpListResponse } from "@/types/rsvp";
+import type {
+  RsvpFormData,
+  RsvpApiResponse,
+  RsvpListResponse,
+  AdminRsvpRequest,
+  CreateRsvpResponse,
+  UpdateRsvpResponse,
+  DeleteRsvpResponse,
+} from "@/types/rsvp";
 import type {
   AdminLoginRequest,
   AdminLoginResponse,
@@ -163,6 +171,30 @@ export async function listRsvps(status?: "attending" | "not_attending"): Promise
   return authenticatedFetch<RsvpListResponse>(url.toString(), {
     method: "GET",
   });
+}
+
+export async function createRsvp(data: AdminRsvpRequest): Promise<CreateRsvpResponse> {
+  return authenticatedFetch<CreateRsvpResponse>(`${API_URL}/rsvp/admin`, {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function updateRsvp(id: string, data: AdminRsvpRequest): Promise<UpdateRsvpResponse> {
+  return authenticatedFetch<UpdateRsvpResponse>(
+    `${API_URL}/rsvp/${encodeURIComponent(id)}`,
+    {
+      method: "PUT",
+      body: JSON.stringify(data),
+    }
+  );
+}
+
+export async function deleteRsvp(id: string): Promise<DeleteRsvpResponse> {
+  return authenticatedFetch<DeleteRsvpResponse>(
+    `${API_URL}/rsvp/${encodeURIComponent(id)}`,
+    { method: "DELETE" }
+  );
 }
 
 export async function adminLogin(data: AdminLoginRequest): Promise<AdminLoginResponse> {

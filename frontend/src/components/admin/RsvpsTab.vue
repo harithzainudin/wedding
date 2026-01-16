@@ -1,6 +1,9 @@
 <script setup lang="ts">
-import { onMounted } from "vue";
+import { ref, onMounted, watch } from "vue";
 import { useRsvps } from "@/composables/useRsvps";
+import type { RsvpSubmission, AdminRsvpRequest } from "@/types/rsvp";
+import RsvpFormModal from "./RsvpFormModal.vue";
+import ConfirmModal from "./ConfirmModal.vue";
 
 const {
   filteredRsvps,
@@ -12,7 +15,70 @@ const {
   setFilter,
   formatDate,
   exportToCsv,
+  isCreating,
+  isUpdating,
+  isDeleting,
+  operationError,
+  createRsvpEntry,
+  updateRsvpEntry,
+  deleteRsvpEntry,
+  clearOperationError,
 } = useRsvps();
+
+// Modal state
+const showFormModal = ref(false);
+const showDeleteModal = ref(false);
+const selectedRsvp = ref<RsvpSubmission | undefined>(undefined);
+
+// Open add modal
+const openAddModal = () => {
+  selectedRsvp.value = undefined;
+  showFormModal.value = true;
+};
+
+// Open edit modal
+const openEditModal = (rsvp: RsvpSubmission) => {
+  selectedRsvp.value = rsvp;
+  showFormModal.value = true;
+};
+
+// Open delete confirmation
+const openDeleteModal = (rsvp: RsvpSubmission) => {
+  selectedRsvp.value = rsvp;
+  showDeleteModal.value = true;
+};
+
+// Handle form submit (create or update)
+const handleFormSubmit = async (data: AdminRsvpRequest) => {
+  let success: boolean;
+  if (selectedRsvp.value) {
+    success = await updateRsvpEntry(selectedRsvp.value.id, data);
+  } else {
+    success = await createRsvpEntry(data);
+  }
+  if (success) {
+    showFormModal.value = false;
+  }
+};
+
+// Handle delete confirm
+const handleDeleteConfirm = async () => {
+  if (selectedRsvp.value) {
+    const success = await deleteRsvpEntry(selectedRsvp.value.id);
+    if (success) {
+      showDeleteModal.value = false;
+    }
+  }
+};
+
+// Auto-clear error after 5 seconds
+watch(operationError, (error) => {
+  if (error) {
+    setTimeout(() => {
+      clearOperationError();
+    }, 5000);
+  }
+});
 
 onMounted(() => {
   fetchRsvps();
@@ -41,7 +107,7 @@ onMounted(() => {
     </div>
 
     <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
-      <div class="flex gap-2">
+      <div class="flex gap-2 flex-wrap">
         <button
           type="button"
           class="px-3 py-1.5 font-body text-sm rounded-full transition-colors cursor-pointer"
@@ -68,16 +134,29 @@ onMounted(() => {
         </button>
       </div>
 
-      <button
-        type="button"
-        class="flex items-center gap-2 px-4 py-2 font-body text-sm text-sage border border-sage rounded-lg hover:bg-sage hover:text-white transition-colors cursor-pointer"
-        @click="exportToCsv"
-      >
-        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3" />
-        </svg>
-        Export CSV
-      </button>
+      <div class="flex gap-2">
+        <button
+          type="button"
+          class="flex items-center gap-2 px-4 py-2 font-body text-sm text-white bg-sage rounded-lg hover:bg-sage-dark transition-colors cursor-pointer"
+          @click="openAddModal"
+        >
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="12" y1="5" x2="12" y2="19" />
+            <line x1="5" y1="12" x2="19" y2="12" />
+          </svg>
+          Add Guest
+        </button>
+        <button
+          type="button"
+          class="flex items-center gap-2 px-4 py-2 font-body text-sm text-sage border border-sage rounded-lg hover:bg-sage hover:text-white transition-colors cursor-pointer"
+          @click="exportToCsv"
+        >
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3" />
+          </svg>
+          Export CSV
+        </button>
+      </div>
     </div>
 
     <div v-if="isLoading" class="text-center py-12">
@@ -98,6 +177,13 @@ onMounted(() => {
 
     <div v-else-if="filteredRsvps.length === 0" class="text-center py-12 bg-white dark:bg-dark-bg-secondary rounded-xl">
       <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary">No RSVPs found.</p>
+      <button
+        type="button"
+        class="mt-3 px-4 py-2 font-body text-sm text-sage border border-sage rounded-full hover:bg-sage hover:text-white transition-colors cursor-pointer"
+        @click="openAddModal"
+      >
+        Add First Guest
+      </button>
     </div>
 
     <div v-else class="space-y-3">
@@ -108,7 +194,7 @@ onMounted(() => {
       >
         <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
           <div class="flex-1">
-            <div class="flex items-center gap-2 mb-1">
+            <div class="flex items-center gap-2 mb-1 flex-wrap">
               <p class="font-heading text-lg text-charcoal dark:text-dark-text">
                 {{ rsvp.title }} {{ rsvp.fullName }}
               </p>
@@ -118,18 +204,52 @@ onMounted(() => {
               >
                 {{ rsvp.isAttending ? "Attending" : "Not Attending" }}
               </span>
+              <span
+                v-if="rsvp.source === 'admin'"
+                class="px-2 py-0.5 text-xs font-medium rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300"
+              >
+                Manual
+              </span>
             </div>
             <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary">
-              {{ rsvp.phoneNumber }}
-              <span v-if="rsvp.isAttending"> &bull; {{ rsvp.numberOfGuests }} guest(s)</span>
+              <span v-if="rsvp.phoneNumber">{{ rsvp.phoneNumber }}</span>
+              <span v-if="rsvp.phoneNumber && rsvp.isAttending"> &bull; </span>
+              <span v-if="rsvp.isAttending">{{ rsvp.numberOfGuests }} guest(s)</span>
+              <span v-if="!rsvp.phoneNumber && !rsvp.isAttending" class="italic">No phone provided</span>
             </p>
             <p v-if="rsvp.message" class="font-body text-sm text-charcoal dark:text-dark-text mt-2 italic">
               "{{ rsvp.message }}"
             </p>
           </div>
-          <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary whitespace-nowrap">
-            {{ formatDate(rsvp.submittedAt) }}
-          </p>
+          <div class="flex items-center gap-2">
+            <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary whitespace-nowrap">
+              {{ formatDate(rsvp.submittedAt) }}
+            </p>
+            <div class="flex gap-1">
+              <button
+                type="button"
+                class="p-1.5 text-sage hover:bg-sage/10 dark:hover:bg-sage/20 rounded-lg transition-colors cursor-pointer"
+                title="Edit"
+                @click="openEditModal(rsvp)"
+              >
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" />
+                  <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" />
+                </svg>
+              </button>
+              <button
+                type="button"
+                class="p-1.5 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors cursor-pointer"
+                title="Delete"
+                @click="openDeleteModal(rsvp)"
+              >
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="3 6 5 6 21 6" />
+                  <path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" />
+                </svg>
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -143,5 +263,60 @@ onMounted(() => {
         Refresh
       </button>
     </div>
+
+    <!-- Add/Edit Modal -->
+    <RsvpFormModal
+      :show="showFormModal"
+      :rsvp="selectedRsvp"
+      :is-submitting="isCreating || isUpdating"
+      @close="showFormModal = false"
+      @submit="handleFormSubmit"
+    />
+
+    <!-- Delete Confirmation Modal -->
+    <ConfirmModal
+      v-if="showDeleteModal"
+      title="Delete Guest?"
+      :message="`Are you sure you want to delete ${selectedRsvp?.fullName}'s RSVP? This action cannot be undone.`"
+      confirm-text="Delete"
+      variant="danger"
+      :is-loading="isDeleting"
+      @confirm="handleDeleteConfirm"
+      @cancel="showDeleteModal = false"
+    />
+
+    <!-- Error toast -->
+    <Teleport to="body">
+      <Transition
+        enter-active-class="transition-all duration-300 ease-out"
+        enter-from-class="opacity-0 translate-y-2"
+        enter-to-class="opacity-100 translate-y-0"
+        leave-active-class="transition-all duration-200 ease-in"
+        leave-from-class="opacity-100 translate-y-0"
+        leave-to-class="opacity-0 translate-y-2"
+      >
+        <div
+          v-if="operationError"
+          class="fixed bottom-4 right-4 bg-red-600 text-white px-4 py-3 rounded-lg shadow-lg flex items-center gap-3 z-50"
+        >
+          <svg class="w-5 h-5 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10" />
+            <line x1="15" y1="9" x2="9" y2="15" />
+            <line x1="9" y1="9" x2="15" y2="15" />
+          </svg>
+          <span class="font-body text-sm">{{ operationError }}</span>
+          <button
+            type="button"
+            class="ml-2 hover:opacity-80 transition-opacity cursor-pointer"
+            @click="clearOperationError"
+          >
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </button>
+        </div>
+      </Transition>
+    </Teleport>
   </div>
 </template>

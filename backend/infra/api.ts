@@ -124,6 +124,27 @@ export function addRsvpAuthRoutes(tokenSecret: sst.Secret) {
     link: [table, tokenSecret],
     ...functionConfig,
   });
+
+  // POST /rsvp/admin - Admin create RSVP
+  api.route("POST /rsvp/admin", {
+    handler: "src/functions/rsvp/create.handler",
+    link: [table, tokenSecret],
+    ...functionConfig,
+  });
+
+  // PUT /rsvp/{id} - Update RSVP
+  api.route("PUT /rsvp/{id}", {
+    handler: "src/functions/rsvp/update.handler",
+    link: [table, tokenSecret],
+    ...functionConfig,
+  });
+
+  // DELETE /rsvp/{id} - Delete RSVP
+  api.route("DELETE /rsvp/{id}", {
+    handler: "src/functions/rsvp/delete.handler",
+    link: [table, tokenSecret],
+    ...functionConfig,
+  });
 }
 
 // Function to add image management routes
