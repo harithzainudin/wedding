@@ -287,6 +287,89 @@ export function addThemeRoutes(tokenSecret: sst.Secret) {
   });
 }
 
+// Function to add gift registry routes
+export function addGiftRoutes(
+  tokenSecret: sst.Secret,
+  imageBucket: sst.aws.Bucket
+) {
+  // GET /gifts - Public: list all gifts
+  api.route("GET /gifts", {
+    handler: "src/functions/gifts/list.handler",
+    link: [table, imageBucket],
+    ...functionConfig,
+  });
+
+  // POST /gifts - Admin: create gift
+  api.route("POST /gifts", {
+    handler: "src/functions/gifts/create.handler",
+    link: [table, tokenSecret],
+    ...functionConfig,
+  });
+
+  // PUT /gifts/{id} - Admin: update gift
+  api.route("PUT /gifts/{id}", {
+    handler: "src/functions/gifts/update.handler",
+    link: [table, tokenSecret],
+    ...functionConfig,
+  });
+
+  // DELETE /gifts/{id} - Admin: delete gift
+  api.route("DELETE /gifts/{id}", {
+    handler: "src/functions/gifts/delete.handler",
+    link: [table, tokenSecret, imageBucket],
+    ...functionConfig,
+  });
+
+  // PUT /gifts/reorder - Admin: reorder gifts
+  api.route("PUT /gifts/reorder", {
+    handler: "src/functions/gifts/reorder.handler",
+    link: [table, tokenSecret],
+    ...functionConfig,
+  });
+
+  // POST /gifts/presigned-url - Admin: request presigned URL for upload
+  api.route("POST /gifts/presigned-url", {
+    handler: "src/functions/gifts/request-upload.handler",
+    link: [table, tokenSecret, imageBucket],
+    ...functionConfig,
+  });
+
+  // POST /gifts/confirm - Admin: confirm upload
+  api.route("POST /gifts/confirm", {
+    handler: "src/functions/gifts/confirm-upload.handler",
+    link: [table, tokenSecret, imageBucket],
+    ...functionConfig,
+  });
+
+  // POST /gifts/{id}/reserve - Public: reserve a gift
+  api.route("POST /gifts/{id}/reserve", {
+    handler: "src/functions/gifts/reserve.handler",
+    link: [table],
+    ...functionConfig,
+  });
+
+  // GET /gifts/settings - Admin: get gift settings
+  api.route("GET /gifts/settings", {
+    handler: "src/functions/gifts/get-settings.handler",
+    link: [table, tokenSecret],
+    ...functionConfig,
+  });
+
+  // PUT /gifts/settings - Admin: update gift settings
+  api.route("PUT /gifts/settings", {
+    handler: "src/functions/gifts/update-settings.handler",
+    link: [table, tokenSecret],
+    ...functionConfig,
+  });
+
+  // GET /gifts/reservations - Admin: list all reservations
+  api.route("GET /gifts/reservations", {
+    handler: "src/functions/gifts/reservations.handler",
+    link: [table, tokenSecret],
+    ...functionConfig,
+  });
+}
+
 // Function to add music management routes
 export function addMusicRoutes(
   tokenSecret: sst.Secret,

@@ -266,9 +266,17 @@ onMounted(() => {
 
     <!-- Add/Edit Modal -->
     <RsvpFormModal
-      :show="showFormModal"
+      v-if="showFormModal && selectedRsvp"
+      :show="true"
       :rsvp="selectedRsvp"
       :is-submitting="isCreating || isUpdating"
+      @close="showFormModal = false"
+      @submit="handleFormSubmit"
+    />
+    <RsvpFormModal
+      v-else-if="showFormModal"
+      :show="true"
+      :is-submitting="isCreating"
       @close="showFormModal = false"
       @submit="handleFormSubmit"
     />

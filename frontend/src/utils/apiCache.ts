@@ -67,4 +67,5 @@ export const CACHE_KEYS = {
   THEME: "theme",
   GALLERY_IMAGES: "gallery-images",
   RSVPS: "rsvps",
+  GIFTS: "gifts",
 } as const;

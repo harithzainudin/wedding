@@ -7,6 +7,7 @@ import ScheduleSection from "@/components/sections/ScheduleSection.vue";
 import ContactSection from "@/components/sections/ContactSection.vue";
 import QrCodeSection from "@/components/sections/QrCodeSection.vue";
 import GuestbookSection from "@/components/sections/GuestbookSection.vue";
+import WishlistSection from "@/components/sections/WishlistSection.vue";
 import RsvpSection from "@/components/sections/RsvpSection.vue";
 import StickyNavigation from "@/components/ui/StickyNavigation.vue";
 import { useDocumentTitle } from "@/composables/useDocumentTitle";
@@ -31,6 +32,7 @@ onMounted(() => {
     <ContactSection />
     <QrCodeSection />
     <GuestbookSection />
+    <WishlistSection />
     <RsvpSection />
     <StickyNavigation />
   </main>

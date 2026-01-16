@@ -88,6 +88,37 @@ export interface Translations {
     noWishes: string;
     errorLoading: string;
   };
+  // Wishlist Section
+  wishlist: {
+    title: string;
+    subtitle: string;
+    loading: string;
+    errorLoading: string;
+    noItems: string;
+    reserveButton: string;
+    fullyReserved: string;
+    viewOnStore: string;
+    reserveTitle: string;
+    yourName: string;
+    yourPhone: string;
+    namePlaceholder: string;
+    phonePlaceholder: string;
+    optionalMessage: string;
+    messagePlaceholder: string;
+    submitReserve: string;
+    submitting: string;
+    thankYou: string;
+    reservationReceived: string;
+    footerNote: string;
+    categories: {
+      all: string;
+      home: string;
+      kitchen: string;
+      electronics: string;
+      experiences: string;
+      other: string;
+    };
+  };
   // Navigation
   nav: {
     maps: string;
@@ -179,6 +210,36 @@ export const translations: Record<Language, Translations> = {
       noWishes: "Belum ada ucapan lagi. Jadilah yang pertama!",
       errorLoading: "Gagal memuatkan ucapan. Sila cuba lagi.",
     },
+    wishlist: {
+      title: "Senarai Hadiah",
+      subtitle: "Jika anda ingin memberkati kami dengan hadiah, berikut adalah beberapa idea. Kehadiran anda adalah hadiah terbaik!",
+      loading: "Memuatkan senarai...",
+      errorLoading: "Gagal memuatkan senarai. Sila cuba lagi.",
+      noItems: "Tiada hadiah dalam senarai buat masa ini.",
+      reserveButton: "Tempah",
+      fullyReserved: "Ditempah",
+      viewOnStore: "Lihat",
+      reserveTitle: "Tempah Hadiah",
+      yourName: "Nama Anda",
+      yourPhone: "Nombor Telefon",
+      namePlaceholder: "Nama penuh anda",
+      phonePlaceholder: "012-3456789",
+      optionalMessage: "Mesej (Pilihan)",
+      messagePlaceholder: "Tinggalkan mesej untuk pengantin...",
+      submitReserve: "Tempah Sekarang",
+      submitting: "Menghantar...",
+      thankYou: "Terima Kasih!",
+      reservationReceived: "Tempahan anda telah diterima.",
+      footerNote: "Anda bebas memberi sebarang hadiah dari hati - senarai ini hanya untuk mengelakkan pertindihan!",
+      categories: {
+        all: "Semua",
+        home: "Rumah",
+        kitchen: "Dapur",
+        electronics: "Elektronik",
+        experiences: "Pengalaman",
+        other: "Lain-lain",
+      },
+    },
     nav: {
       maps: "Maps",
       waze: "Waze",
@@ -267,6 +328,36 @@ export const translations: Record<Language, Translations> = {
       noWishes: "No wishes yet. Be the first!",
       errorLoading: "Failed to load wishes. Please try again.",
     },
+    wishlist: {
+      title: "Gift Wishlist",
+      subtitle: "If you'd like to bless us with a gift, here are some ideas. Your presence is the greatest gift!",
+      loading: "Loading wishlist...",
+      errorLoading: "Failed to load wishlist. Please try again.",
+      noItems: "No gifts in the wishlist at the moment.",
+      reserveButton: "Reserve",
+      fullyReserved: "Reserved",
+      viewOnStore: "View",
+      reserveTitle: "Reserve Gift",
+      yourName: "Your Name",
+      yourPhone: "Phone Number",
+      namePlaceholder: "Your full name",
+      phonePlaceholder: "012-3456789",
+      optionalMessage: "Message (Optional)",
+      messagePlaceholder: "Leave a message for the couple...",
+      submitReserve: "Reserve Now",
+      submitting: "Submitting...",
+      thankYou: "Thank You!",
+      reservationReceived: "Your reservation has been received.",
+      footerNote: "Feel free to give any gift from the heart - this list is just to help avoid duplicates!",
+      categories: {
+        all: "All",
+        home: "Home",
+        kitchen: "Kitchen",
+        electronics: "Electronics",
+        experiences: "Experiences",
+        other: "Other",
+      },
+    },
     nav: {
       maps: "Maps",
       waze: "Waze",
@@ -353,6 +444,36 @@ export const translations: Record<Language, Translations> = {
       loading: "加载祝福中...",
       noWishes: "暂无祝福。成为第一位留言者！",
       errorLoading: "加载祝福失败。请重试。",
+    },
+    wishlist: {
+      title: "礼物清单",
+      subtitle: "如果您想送我们礼物，以下是一些建议。您的出席就是最好的礼物！",
+      loading: "加载清单中...",
+      errorLoading: "加载清单失败。请重试。",
+      noItems: "目前清单中没有礼物。",
+      reserveButton: "预订",
+      fullyReserved: "已预订",
+      viewOnStore: "查看",
+      reserveTitle: "预订礼物",
+      yourName: "您的姓名",
+      yourPhone: "电话号码",
+      namePlaceholder: "您的全名",
+      phonePlaceholder: "012-3456789",
+      optionalMessage: "留言（选填）",
+      messagePlaceholder: "为新人留言...",
+      submitReserve: "立即预订",
+      submitting: "提交中...",
+      thankYou: "谢谢！",
+      reservationReceived: "已收到您的预订。",
+      footerNote: "欢迎送任何来自心意的礼物 - 此清单只是为了避免重复！",
+      categories: {
+        all: "全部",
+        home: "家居",
+        kitchen: "厨房",
+        electronics: "电子产品",
+        experiences: "体验",
+        other: "其他",
+      },
     },
     nav: {
       maps: "地图",
@@ -441,6 +562,36 @@ export const translations: Record<Language, Translations> = {
       loading: "வாழ்த்துக்களை ஏற்றுகிறது...",
       noWishes: "இன்னும் வாழ்த்துக்கள் இல்லை. முதல் நபராக இருங்கள்!",
       errorLoading: "வாழ்த்துக்களை ஏற்ற முடியவில்லை. மீண்டும் முயற்சிக்கவும்.",
+    },
+    wishlist: {
+      title: "பரிசு பட்டியல்",
+      subtitle: "எங்களுக்கு பரிசு கொடுக்க விரும்பினால், இங்கே சில யோசனைகள். உங்கள் வருகையே சிறந்த பரிசு!",
+      loading: "பட்டியலை ஏற்றுகிறது...",
+      errorLoading: "பட்டியலை ஏற்ற முடியவில்லை. மீண்டும் முயற்சிக்கவும்.",
+      noItems: "தற்போது பட்டியலில் பரிசுகள் இல்லை.",
+      reserveButton: "முன்பதிவு",
+      fullyReserved: "முன்பதிவு செய்யப்பட்டது",
+      viewOnStore: "பார்",
+      reserveTitle: "பரிசை முன்பதிவு செய்",
+      yourName: "உங்கள் பெயர்",
+      yourPhone: "தொலைபேசி எண்",
+      namePlaceholder: "உங்கள் முழுப் பெயர்",
+      phonePlaceholder: "012-3456789",
+      optionalMessage: "செய்தி (விருப்பம்)",
+      messagePlaceholder: "தம்பதியருக்கு செய்தி விடுங்கள்...",
+      submitReserve: "இப்போது முன்பதிவு செய்",
+      submitting: "சமர்ப்பிக்கிறது...",
+      thankYou: "நன்றி!",
+      reservationReceived: "உங்கள் முன்பதிவு பெறப்பட்டது.",
+      footerNote: "இதயத்திலிருந்து எந்த பரிசும் கொடுக்கலாம் - இப்பட்டியல் நகல்களை தவிர்க்க மட்டுமே!",
+      categories: {
+        all: "அனைத்தும்",
+        home: "வீடு",
+        kitchen: "சமையலறை",
+        electronics: "மின்னணு",
+        experiences: "அனுபவங்கள்",
+        other: "மற்றவை",
+      },
     },
     nav: {
       maps: "வரைபடம்",

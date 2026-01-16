@@ -51,6 +51,25 @@ import type {
   MusicReorderResponse,
 } from "@/types/music";
 import type { ThemeSettings, ThemeUpdateRequest } from "@/types/theme";
+import type {
+  GiftListResponse,
+  CreateGiftRequest,
+  CreateGiftResponse,
+  UpdateGiftRequest,
+  UpdateGiftResponse,
+  DeleteGiftResponse,
+  ReorderGiftsRequest,
+  ReorderGiftsResponse,
+  GiftPresignedUrlRequest,
+  GiftPresignedUrlResponse,
+  GiftConfirmUploadRequest,
+  GiftConfirmUploadResponse,
+  ReserveGiftRequest,
+  ReserveGiftResponse,
+  GiftSettings,
+  GiftSettingsUpdateRequest,
+  ReservationListResponse,
+} from "@/types/gift";
 import {
   getAccessToken,
   refreshTokens,
@@ -491,6 +510,102 @@ export async function updateTheme(data: ThemeUpdateRequest): Promise<ThemeSettin
   });
 }
 
+// Gift Registry API functions
+
+export async function listGifts(): Promise<GiftListResponse> {
+  const response = await fetch(`${API_URL}/gifts`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+
+  const json = (await response.json()) as ApiResponse<GiftListResponse>;
+  return unwrapResponse(json);
+}
+
+export async function createGift(data: CreateGiftRequest): Promise<CreateGiftResponse> {
+  return authenticatedFetch<CreateGiftResponse>(`${API_URL}/gifts`, {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function updateGift(id: string, data: UpdateGiftRequest): Promise<UpdateGiftResponse> {
+  return authenticatedFetch<UpdateGiftResponse>(
+    `${API_URL}/gifts/${encodeURIComponent(id)}`,
+    {
+      method: "PUT",
+      body: JSON.stringify(data),
+    }
+  );
+}
+
+export async function deleteGift(id: string): Promise<DeleteGiftResponse> {
+  return authenticatedFetch<DeleteGiftResponse>(
+    `${API_URL}/gifts/${encodeURIComponent(id)}`,
+    { method: "DELETE" }
+  );
+}
+
+export async function reorderGifts(data: ReorderGiftsRequest): Promise<ReorderGiftsResponse> {
+  return authenticatedFetch<ReorderGiftsResponse>(`${API_URL}/gifts/reorder`, {
+    method: "PUT",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function getGiftPresignedUrl(data: GiftPresignedUrlRequest): Promise<GiftPresignedUrlResponse> {
+  return authenticatedFetch<GiftPresignedUrlResponse>(`${API_URL}/gifts/presigned-url`, {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function confirmGiftUpload(data: GiftConfirmUploadRequest): Promise<GiftConfirmUploadResponse> {
+  return authenticatedFetch<GiftConfirmUploadResponse>(`${API_URL}/gifts/confirm`, {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function reserveGift(giftId: string, data: ReserveGiftRequest): Promise<ReserveGiftResponse> {
+  const response = await fetch(`${API_URL}/gifts/${encodeURIComponent(giftId)}/reserve`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(data),
+  });
+
+  const json = (await response.json()) as ApiResponse<ReserveGiftResponse>;
+  return unwrapResponse(json);
+}
+
+export async function getGiftSettings(): Promise<GiftSettings> {
+  return authenticatedFetch<GiftSettings>(`${API_URL}/gifts/settings`, {
+    method: "GET",
+  });
+}
+
+export async function updateGiftSettings(data: GiftSettingsUpdateRequest): Promise<GiftSettings> {
+  return authenticatedFetch<GiftSettings>(`${API_URL}/gifts/settings`, {
+    method: "PUT",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function listGiftReservations(giftId?: string): Promise<ReservationListResponse> {
+  const url = new URL(`${API_URL}/gifts/reservations`);
+  if (giftId) {
+    url.searchParams.set("giftId", giftId);
+  }
+
+  return authenticatedFetch<ReservationListResponse>(url.toString(), {
+    method: "GET",
+  });
+}
+
 // ============================================================================
 // Cached API Functions (for public pages - session-level caching)
 // ============================================================================
@@ -559,6 +674,10 @@ export function listGalleryImagesCached(forceRefresh = false): Promise<ListImage
 
 export function listRsvpsCached(forceRefresh = false): Promise<RsvpListResponse> {
   return cachedFetch(CACHE_KEYS.RSVPS, listRsvpsPublic, forceRefresh);
+}
+
+export function listGiftsCached(forceRefresh = false): Promise<GiftListResponse> {
+  return cachedFetch(CACHE_KEYS.GIFTS, listGifts, forceRefresh);
 }
 
 // Admin cached versions (authenticated)
