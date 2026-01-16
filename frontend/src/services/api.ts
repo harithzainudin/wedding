@@ -42,6 +42,7 @@ import type {
   MusicReorderRequest,
   MusicReorderResponse,
 } from "@/types/music";
+import type { ThemeSettings, ThemeUpdateRequest } from "@/types/theme";
 import {
   getAccessToken,
   refreshTokens,
@@ -437,6 +438,27 @@ export async function reorderMusicTracks(data: MusicReorderRequest): Promise<Mus
   });
 }
 
+// Theme API functions
+
+export async function getTheme(): Promise<ThemeSettings> {
+  const response = await fetch(`${API_URL}/theme`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+
+  const json = (await response.json()) as ApiResponse<ThemeSettings>;
+  return unwrapResponse(json);
+}
+
+export async function updateTheme(data: ThemeUpdateRequest): Promise<ThemeSettings> {
+  return authenticatedFetch<ThemeSettings>(`${API_URL}/theme`, {
+    method: "PUT",
+    body: JSON.stringify(data),
+  });
+}
+
 // ============================================================================
 // Cached API Functions (for public pages - session-level caching)
 // ============================================================================
@@ -493,6 +515,10 @@ export function getContactsCached(forceRefresh = false): Promise<ContactsData> {
 
 export function getMusicCached(forceRefresh = false): Promise<MusicResponse> {
   return cachedFetch(CACHE_KEYS.MUSIC, getMusic, forceRefresh);
+}
+
+export function getThemeCached(forceRefresh = false): Promise<ThemeSettings> {
+  return cachedFetch(CACHE_KEYS.THEME, getTheme, forceRefresh);
 }
 
 export function listGalleryImagesCached(forceRefresh = false): Promise<ListImagesResponse> {

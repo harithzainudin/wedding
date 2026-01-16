@@ -6,28 +6,28 @@
 /* Enable class-based dark mode (instead of media query) */
 @custom-variant dark (&:where(.dark, .dark *));
 
-/* Theme customization - Earthy Minimalist */
+/* Theme customization - Dynamic theme with fallbacks to Earthy Minimalist */
 @theme {
-  /* Light Mode Colors */
-  --color-sage: #7c8363;
-  --color-sage-light: #9ba58a;
-  --color-sage-dark: #5d6349;
-  --color-sand: #f5f2ed;
-  --color-sand-dark: #e8e3db;
-  --color-charcoal: #333333;
-  --color-charcoal-light: #555555;
+  /* Light Mode Colors - reference injectable variables with defaults */
+  --color-sage: var(--theme-primary, #7c8363);
+  --color-sage-light: var(--theme-primary-light, #9ba58a);
+  --color-sage-dark: var(--theme-primary-dark, #5d6349);
+  --color-sand: var(--theme-secondary, #f5f2ed);
+  --color-sand-dark: var(--theme-secondary-dark, #e8e3db);
+  --color-charcoal: var(--theme-text, #333333);
+  --color-charcoal-light: var(--theme-text-light, #555555);
 
-  /* Dark Mode Colors */
-  --color-dark-bg: #1a1a1a;
-  --color-dark-bg-secondary: #2a2a2a;
-  --color-dark-bg-elevated: #3a3a3a;
-  --color-dark-border: #444444;
-  --color-dark-text: #f5f2ed;
-  --color-dark-text-secondary: #c8c4bc;
+  /* Dark Mode Colors - reference injectable variables with defaults */
+  --color-dark-bg: var(--theme-dark-bg, #1a1a1a);
+  --color-dark-bg-secondary: var(--theme-dark-bg-secondary, #2a2a2a);
+  --color-dark-bg-elevated: var(--theme-dark-bg-elevated, #3a3a3a);
+  --color-dark-border: var(--theme-dark-border, #444444);
+  --color-dark-text: var(--theme-dark-text, #f5f2ed);
+  --color-dark-text-secondary: var(--theme-dark-text-secondary, #c8c4bc);
 
-  /* Font Families - use font-family-* for Tailwind v4 */
-  --font-family-heading: "Playfair Display", serif;
-  --font-family-body: "Montserrat", sans-serif;
+  /* Font Families - reference injectable variables with defaults */
+  --font-family-heading: var(--theme-font-heading, "Playfair Display"), serif;
+  --font-family-body: var(--theme-font-body, "Montserrat"), sans-serif;
 }
 
 /* Base styles */

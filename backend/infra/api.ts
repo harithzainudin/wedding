@@ -249,6 +249,23 @@ export function addContactsRoutes(tokenSecret: sst.Secret) {
   });
 }
 
+// Function to add theme routes
+export function addThemeRoutes(tokenSecret: sst.Secret) {
+  // GET /theme - Public endpoint to fetch theme settings
+  api.route("GET /theme", {
+    handler: "src/functions/theme/get.handler",
+    link: [table],
+    ...functionConfig,
+  });
+
+  // PUT /theme - Update theme settings (auth required)
+  api.route("PUT /theme", {
+    handler: "src/functions/theme/update.handler",
+    link: [table, tokenSecret],
+    ...functionConfig,
+  });
+}
+
 // Function to add music management routes
 export function addMusicRoutes(
   tokenSecret: sst.Secret,

@@ -64,6 +64,7 @@ export const CACHE_KEYS = {
   SCHEDULE: "schedule",
   CONTACTS: "contacts",
   MUSIC: "music",
+  THEME: "theme",
   GALLERY_IMAGES: "gallery-images",
   RSVPS: "rsvps",
 } as const;
