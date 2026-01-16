@@ -1,8 +1,8 @@
 import { ref } from "vue";
 import { getWeddingDetailsCached, getScheduleCached, getContactsCached } from "@/services/api";
 import { weddingConfig } from "@/config/wedding";
-import type { WeddingDetailsData, EventDisplayFormat, DisplayNameOrder, BismillahCalligraphySettings } from "@/types/weddingDetails";
-import { DEFAULT_DISPLAY_FORMAT, DEFAULT_BISMILLAH_SETTINGS } from "@/types/weddingDetails";
+import type { WeddingDetailsData, EventDisplayFormat, DisplayNameOrder, BismillahCalligraphySettings, ParentsVisibilitySettings } from "@/types/weddingDetails";
+import { DEFAULT_DISPLAY_FORMAT, DEFAULT_BISMILLAH_SETTINGS, DEFAULT_PARENTS_VISIBILITY } from "@/types/weddingDetails";
 import type { ScheduleData, ScheduleItem } from "@/types/schedule";
 import type { ContactsData, ContactPerson } from "@/types/contacts";
 
@@ -232,6 +232,14 @@ export function usePublicWeddingData() {
     return DEFAULT_BISMILLAH_SETTINGS;
   };
 
+  // Parents visibility settings with fallback (defaults to showing both)
+  const getParentsVisibility = (): ParentsVisibilitySettings => {
+    if (weddingDetails.value?.parentsVisibility) {
+      return weddingDetails.value.parentsVisibility;
+    }
+    return DEFAULT_PARENTS_VISIBILITY;
+  };
+
   return {
     isLoading,
     hasLoaded,
@@ -256,5 +264,6 @@ export function usePublicWeddingData() {
     getContactsList,
     getContactsMultilingual,
     getBismillahSettings,
+    getParentsVisibility,
   };
 }

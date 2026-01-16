@@ -10,6 +10,17 @@ export interface ParentsInfo {
   mother: string;
 }
 
+// Parents visibility settings - controls which parents are shown on public page
+export interface ParentsVisibilitySettings {
+  showBrideParents: boolean;
+  showGroomParents: boolean;
+}
+
+export const DEFAULT_PARENTS_VISIBILITY: ParentsVisibilitySettings = {
+  showBrideParents: true,
+  showGroomParents: true,
+};
+
 // Display name order - determines whether bride or groom name appears first
 export type DisplayNameOrder = "bride_first" | "groom_first";
 
@@ -107,6 +118,7 @@ export interface WeddingDetailsData {
     bride: ParentsInfo;
     groom: ParentsInfo;
   };
+  parentsVisibility?: ParentsVisibilitySettings;
   eventDate: string; // ISO datetime string (start time)
   eventEndTime?: string; // ISO datetime string (end time)
   eventDisplayFormat?: EventDisplayFormat;
@@ -128,6 +140,7 @@ export interface WeddingDetailsUpdateRequest {
     bride: ParentsInfo;
     groom: ParentsInfo;
   };
+  parentsVisibility?: ParentsVisibilitySettings;
   eventDate: string;
   eventEndTime?: string;
   eventDisplayFormat?: EventDisplayFormat;
@@ -366,6 +379,28 @@ export function validateWeddingDetailsUpdate(
     };
   }
 
+  // Validate parentsVisibility (optional)
+  let validatedParentsVisibility: ParentsVisibilitySettings | undefined;
+  if (body.parentsVisibility !== undefined && body.parentsVisibility !== null) {
+    if (typeof body.parentsVisibility !== "object") {
+      return { valid: false, error: "Invalid parents visibility settings" };
+    }
+    const visibility = body.parentsVisibility as Record<string, unknown>;
+
+    // Validate boolean fields
+    if (typeof visibility.showBrideParents !== "boolean") {
+      return { valid: false, error: "showBrideParents must be a boolean" };
+    }
+    if (typeof visibility.showGroomParents !== "boolean") {
+      return { valid: false, error: "showGroomParents must be a boolean" };
+    }
+
+    validatedParentsVisibility = {
+      showBrideParents: visibility.showBrideParents,
+      showGroomParents: visibility.showGroomParents,
+    };
+  }
+
   // Validate dressCode
   if (typeof body.dressCode !== "string" || !body.dressCode.trim()) {
     return { valid: false, error: "Dress code is required" };
@@ -401,6 +436,7 @@ export function validateWeddingDetailsUpdate(
         bride: brideParentsResult.data,
         groom: groomParentsResult.data,
       },
+      parentsVisibility: validatedParentsVisibility,
       eventDate: body.eventDate.trim(),
       eventEndTime: validatedEndTime,
       eventDisplayFormat: validatedDisplayFormat,
@@ -435,6 +471,7 @@ export const DEFAULT_WEDDING_DETAILS: WeddingDetailsData = {
       mother: "Puan Ibu Pengantin Lelaki",
     },
   },
+  parentsVisibility: DEFAULT_PARENTS_VISIBILITY,
   eventDate: "2026-12-12T11:00:00+08:00",
   eventEndTime: "2026-12-12T16:00:00+08:00",
   eventDisplayFormat: DEFAULT_DISPLAY_FORMAT,

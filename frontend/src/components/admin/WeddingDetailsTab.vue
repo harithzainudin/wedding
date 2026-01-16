@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from "vue";
 import { useWeddingDetails } from "@/composables/useWeddingDetails";
-import type { EventDisplayFormat, EventDisplayPreset, DisplayNameOrder, BismillahCalligraphySettings } from "@/types/weddingDetails";
-import { DEFAULT_DISPLAY_FORMAT, DEFAULT_BISMILLAH_SETTINGS } from "@/types/weddingDetails";
+import type { EventDisplayFormat, EventDisplayPreset, DisplayNameOrder, BismillahCalligraphySettings, ParentsVisibilitySettings } from "@/types/weddingDetails";
+import { DEFAULT_DISPLAY_FORMAT, DEFAULT_BISMILLAH_SETTINGS, DEFAULT_PARENTS_VISIBILITY } from "@/types/weddingDetails";
 import BismillahCalligraphySelector from "@/components/admin/BismillahCalligraphySelector.vue";
 
 // Tooltip content for name order setting
@@ -64,6 +64,7 @@ const formData = ref({
     bride: { father: "", mother: "" },
     groom: { father: "", mother: "" },
   },
+  parentsVisibility: { ...DEFAULT_PARENTS_VISIBILITY } as ParentsVisibilitySettings,
   eventDate: "",
   eventEndTime: "",
   eventDisplayFormat: { ...DEFAULT_DISPLAY_FORMAT } as EventDisplayFormat,
@@ -79,6 +80,7 @@ const hasChanges = computed(() => {
   return JSON.stringify(formData.value) !== JSON.stringify({
     couple: weddingDetails.value.couple,
     parents: weddingDetails.value.parents,
+    parentsVisibility: weddingDetails.value.parentsVisibility ?? DEFAULT_PARENTS_VISIBILITY,
     eventDate: weddingDetails.value.eventDate,
     eventEndTime: weddingDetails.value.eventEndTime ?? "",
     eventDisplayFormat: weddingDetails.value.eventDisplayFormat ?? DEFAULT_DISPLAY_FORMAT,
@@ -101,6 +103,9 @@ const syncFormData = () => {
       bride: { ...weddingDetails.value.parents.bride },
       groom: { ...weddingDetails.value.parents.groom },
     },
+    parentsVisibility: weddingDetails.value.parentsVisibility
+      ? { ...weddingDetails.value.parentsVisibility }
+      : { ...DEFAULT_PARENTS_VISIBILITY },
     eventDate: weddingDetails.value.eventDate,
     eventEndTime: weddingDetails.value.eventEndTime ?? "",
     eventDisplayFormat: weddingDetails.value.eventDisplayFormat
@@ -327,7 +332,11 @@ const handlePresetChange = (preset: EventDisplayPreset) => {
 
 // Save changes
 const handleSave = async () => {
-  await updateWeddingDetails(formData.value);
+  const result = await updateWeddingDetails(formData.value);
+  // Sync form data after successful save to ensure hasChanges is false
+  if (result.success) {
+    syncFormData();
+  }
 };
 
 // Discard changes
@@ -652,9 +661,77 @@ onMounted(async () => {
           </svg>
         </button>
         <div v-show="expandedSections.parents" class="px-4 sm:px-6 pb-4 sm:pb-6">
+        <!-- Parents Visibility Settings -->
+        <div class="mb-6 space-y-3">
+          <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary mb-2">
+            Control which parents names appear on the public invitation
+          </p>
+
+          <!-- Show Bride's Parents Toggle -->
+          <div class="flex items-center justify-between py-3 px-4 bg-sand/50 dark:bg-dark-bg rounded-lg">
+            <div>
+              <label class="font-body text-sm font-medium text-charcoal dark:text-dark-text">
+                Show Bride's Parents
+              </label>
+              <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary mt-0.5">
+                Display bride's parents names on the invitation
+              </p>
+            </div>
+            <button
+              type="button"
+              role="switch"
+              :aria-checked="formData.parentsVisibility.showBrideParents"
+              class="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-sage focus:ring-offset-2"
+              :class="formData.parentsVisibility.showBrideParents ? 'bg-sage' : 'bg-gray-300 dark:bg-dark-border'"
+              :disabled="isSaving"
+              @click="formData.parentsVisibility.showBrideParents = !formData.parentsVisibility.showBrideParents"
+            >
+              <span
+                class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"
+                :class="formData.parentsVisibility.showBrideParents ? 'translate-x-5' : 'translate-x-0'"
+              />
+            </button>
+          </div>
+
+          <!-- Show Groom's Parents Toggle -->
+          <div class="flex items-center justify-between py-3 px-4 bg-sand/50 dark:bg-dark-bg rounded-lg">
+            <div>
+              <label class="font-body text-sm font-medium text-charcoal dark:text-dark-text">
+                Show Groom's Parents
+              </label>
+              <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary mt-0.5">
+                Display groom's parents names on the invitation
+              </p>
+            </div>
+            <button
+              type="button"
+              role="switch"
+              :aria-checked="formData.parentsVisibility.showGroomParents"
+              class="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-sage focus:ring-offset-2"
+              :class="formData.parentsVisibility.showGroomParents ? 'bg-sage' : 'bg-gray-300 dark:bg-dark-border'"
+              :disabled="isSaving"
+              @click="formData.parentsVisibility.showGroomParents = !formData.parentsVisibility.showGroomParents"
+            >
+              <span
+                class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"
+                :class="formData.parentsVisibility.showGroomParents ? 'translate-x-5' : 'translate-x-0'"
+              />
+            </button>
+          </div>
+        </div>
+
+        <!-- Divider -->
+        <div class="border-t border-sand-dark dark:border-dark-border mb-4"></div>
+
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
           <!-- Bride's Parents -->
-          <div class="space-y-3">
+          <div
+            class="space-y-3 transition-opacity"
+            :class="{
+              'opacity-50': !formData.parentsVisibility.showBrideParents,
+              'cursor-not-allowed': !formData.parentsVisibility.showBrideParents
+            }"
+          >
             <h4 class="font-body text-sm font-medium text-sage-dark dark:text-sage-light">Bride's Parents</h4>
             <div>
               <label class="block font-body text-xs text-charcoal-light dark:text-dark-text-secondary mb-1">
@@ -663,9 +740,9 @@ onMounted(async () => {
               <input
                 v-model="formData.parents.bride.father"
                 type="text"
-                class="w-full px-3 py-2.5 font-body text-base border border-sand-dark dark:border-dark-border rounded-lg bg-sand dark:bg-dark-bg-elevated text-charcoal dark:text-dark-text focus:outline-none focus:border-sage"
+                class="w-full px-3 py-2.5 font-body text-base border border-sand-dark dark:border-dark-border rounded-lg bg-sand dark:bg-dark-bg-elevated text-charcoal dark:text-dark-text focus:outline-none focus:border-sage disabled:cursor-not-allowed disabled:bg-gray-100 dark:disabled:bg-dark-bg"
                 placeholder="Father's name"
-                :disabled="isSaving"
+                :disabled="isSaving || !formData.parentsVisibility.showBrideParents"
               />
             </div>
             <div>
@@ -675,15 +752,21 @@ onMounted(async () => {
               <input
                 v-model="formData.parents.bride.mother"
                 type="text"
-                class="w-full px-3 py-2.5 font-body text-base border border-sand-dark dark:border-dark-border rounded-lg bg-sand dark:bg-dark-bg-elevated text-charcoal dark:text-dark-text focus:outline-none focus:border-sage"
+                class="w-full px-3 py-2.5 font-body text-base border border-sand-dark dark:border-dark-border rounded-lg bg-sand dark:bg-dark-bg-elevated text-charcoal dark:text-dark-text focus:outline-none focus:border-sage disabled:cursor-not-allowed disabled:bg-gray-100 dark:disabled:bg-dark-bg"
                 placeholder="Mother's name"
-                :disabled="isSaving"
+                :disabled="isSaving || !formData.parentsVisibility.showBrideParents"
               />
             </div>
           </div>
 
           <!-- Groom's Parents -->
-          <div class="space-y-3">
+          <div
+            class="space-y-3 transition-opacity"
+            :class="{
+              'opacity-50': !formData.parentsVisibility.showGroomParents,
+              'cursor-not-allowed': !formData.parentsVisibility.showGroomParents
+            }"
+          >
             <h4 class="font-body text-sm font-medium text-sage-dark dark:text-sage-light">Groom's Parents</h4>
             <div>
               <label class="block font-body text-xs text-charcoal-light dark:text-dark-text-secondary mb-1">
@@ -692,9 +775,9 @@ onMounted(async () => {
               <input
                 v-model="formData.parents.groom.father"
                 type="text"
-                class="w-full px-3 py-2.5 font-body text-base border border-sand-dark dark:border-dark-border rounded-lg bg-sand dark:bg-dark-bg-elevated text-charcoal dark:text-dark-text focus:outline-none focus:border-sage"
+                class="w-full px-3 py-2.5 font-body text-base border border-sand-dark dark:border-dark-border rounded-lg bg-sand dark:bg-dark-bg-elevated text-charcoal dark:text-dark-text focus:outline-none focus:border-sage disabled:cursor-not-allowed disabled:bg-gray-100 dark:disabled:bg-dark-bg"
                 placeholder="Father's name"
-                :disabled="isSaving"
+                :disabled="isSaving || !formData.parentsVisibility.showGroomParents"
               />
             </div>
             <div>
@@ -704,9 +787,9 @@ onMounted(async () => {
               <input
                 v-model="formData.parents.groom.mother"
                 type="text"
-                class="w-full px-3 py-2.5 font-body text-base border border-sand-dark dark:border-dark-border rounded-lg bg-sand dark:bg-dark-bg-elevated text-charcoal dark:text-dark-text focus:outline-none focus:border-sage"
+                class="w-full px-3 py-2.5 font-body text-base border border-sand-dark dark:border-dark-border rounded-lg bg-sand dark:bg-dark-bg-elevated text-charcoal dark:text-dark-text focus:outline-none focus:border-sage disabled:cursor-not-allowed disabled:bg-gray-100 dark:disabled:bg-dark-bg"
                 placeholder="Mother's name"
-                :disabled="isSaving"
+                :disabled="isSaving || !formData.parentsVisibility.showGroomParents"
               />
             </div>
           </div>

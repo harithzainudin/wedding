@@ -1,6 +1,6 @@
 import { ref } from "vue";
 import type { WeddingDetailsData, WeddingDetailsUpdateRequest } from "@/types/weddingDetails";
-import { DEFAULT_DISPLAY_FORMAT, DEFAULT_BISMILLAH_SETTINGS } from "@/types/weddingDetails";
+import { DEFAULT_DISPLAY_FORMAT, DEFAULT_BISMILLAH_SETTINGS, DEFAULT_PARENTS_VISIBILITY } from "@/types/weddingDetails";
 import { getWeddingDetails, updateWeddingDetails as apiUpdateWeddingDetails } from "@/services/api";
 
 // Default wedding details data (matches backend defaults)
@@ -25,6 +25,7 @@ const DEFAULT_WEDDING_DETAILS: WeddingDetailsData = {
       mother: "Puan Ibu Pengantin Lelaki",
     },
   },
+  parentsVisibility: DEFAULT_PARENTS_VISIBILITY,
   eventDate: "2026-12-12T11:00:00+08:00",
   eventEndTime: "2026-12-12T16:00:00+08:00",
   eventDisplayFormat: DEFAULT_DISPLAY_FORMAT,

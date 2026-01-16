@@ -13,6 +13,17 @@ export interface ParentsInfo {
   mother: string;
 }
 
+// Parents visibility settings - controls which parents are shown on public page
+export interface ParentsVisibilitySettings {
+  showBrideParents: boolean;
+  showGroomParents: boolean;
+}
+
+export const DEFAULT_PARENTS_VISIBILITY: ParentsVisibilitySettings = {
+  showBrideParents: true,
+  showGroomParents: true,
+};
+
 // Display format types
 export type EventDisplayPreset =
   | "date_time_range"
@@ -82,6 +93,7 @@ export interface WeddingDetailsData {
     bride: ParentsInfo;
     groom: ParentsInfo;
   };
+  parentsVisibility?: ParentsVisibilitySettings;
   eventDate: string;
   eventEndTime?: string;
   eventDisplayFormat?: EventDisplayFormat;
@@ -103,6 +115,7 @@ export interface WeddingDetailsUpdateRequest {
     bride: ParentsInfo;
     groom: ParentsInfo;
   };
+  parentsVisibility?: ParentsVisibilitySettings;
   eventDate: string;
   eventEndTime?: string;
   eventDisplayFormat?: EventDisplayFormat;

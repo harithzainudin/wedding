@@ -26,6 +26,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (_event, context) => {
     const weddingData: WeddingDetailsData = {
       couple: result.Item.couple,
       parents: result.Item.parents,
+      parentsVisibility: result.Item.parentsVisibility,
       eventDate: result.Item.eventDate,
       eventEndTime: result.Item.eventEndTime,
       eventDisplayFormat: result.Item.eventDisplayFormat,

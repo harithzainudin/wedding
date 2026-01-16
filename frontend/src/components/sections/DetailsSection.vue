@@ -9,7 +9,7 @@ import type { EventDisplayPreset, EventDisplayCustomOptions } from "@/types/wedd
 const { t, currentLanguage } = useLanguage();
 const { venue } = useVenueConfig();
 const { getEventDate, getEventEndTime, getEventDisplayFormat, getDressCode, getHashtag, isLoadingWeddingDetails } = usePublicWeddingData();
-const { orderedCouple, orderedParents } = useNameOrder();
+const { orderedCouple, orderedParentsWithVisibility } = useNameOrder();
 
 const localeMap: Record<string, string> = {
   ms: "ms-MY",
@@ -19,7 +19,7 @@ const localeMap: Record<string, string> = {
 };
 
 const couple = computed(() => orderedCouple.value);
-const parents = computed(() => orderedParents.value);
+const parentsInfo = computed(() => orderedParentsWithVisibility.value);
 const eventDate = computed(() => getEventDate());
 const eventEndTime = computed(() => getEventEndTime());
 const displayFormat = computed(() => getEventDisplayFormat());
@@ -236,45 +236,52 @@ const copyHashtag = async (): Promise<void> => {
           {{ t.details.withGratitude }}
         </p>
 
-        <!-- First Parents (based on display order) -->
-        <div class="mb-3 sm:mb-4">
-          <template v-if="isLoadingWeddingDetails">
-            <div class="animate-pulse flex flex-col items-center space-y-2">
-              <div class="h-5 sm:h-6 w-48 sm:w-56 bg-charcoal/10 dark:bg-dark-text/10 rounded"></div>
-              <div class="h-5 sm:h-6 w-52 sm:w-60 bg-charcoal/10 dark:bg-dark-text/10 rounded"></div>
-            </div>
-          </template>
-          <template v-else>
-            <p class="font-heading text-base sm:text-lg text-charcoal dark:text-dark-text">
-              {{ parents.first.father }}
-            </p>
-            <p class="font-heading text-base sm:text-lg text-charcoal dark:text-dark-text">
-              & {{ parents.first.mother }}
-            </p>
-          </template>
-        </div>
+        <!-- Parents Section - Conditional Display -->
+        <template v-if="parentsInfo.showAny">
+          <!-- First Parents (if visible) -->
+          <div v-if="parentsInfo.firstVisible" class="mb-3 sm:mb-4">
+            <template v-if="isLoadingWeddingDetails">
+              <div class="animate-pulse flex flex-col items-center space-y-2">
+                <div class="h-5 sm:h-6 w-48 sm:w-56 bg-charcoal/10 dark:bg-dark-text/10 rounded"></div>
+                <div class="h-5 sm:h-6 w-52 sm:w-60 bg-charcoal/10 dark:bg-dark-text/10 rounded"></div>
+              </div>
+            </template>
+            <template v-else>
+              <p class="font-heading text-base sm:text-lg text-charcoal dark:text-dark-text">
+                {{ parentsInfo.first.father }}
+              </p>
+              <p class="font-heading text-base sm:text-lg text-charcoal dark:text-dark-text">
+                & {{ parentsInfo.first.mother }}
+              </p>
+            </template>
+          </div>
 
-        <p class="font-body text-sm sm:text-base text-charcoal-light dark:text-dark-text-secondary mb-3 sm:mb-4">
-          {{ t.details.together }}
-        </p>
+          <!-- "Together With" text - only show if BOTH parents are visible -->
+          <p
+            v-if="parentsInfo.showBoth"
+            class="font-body text-sm sm:text-base text-charcoal-light dark:text-dark-text-secondary mb-3 sm:mb-4"
+          >
+            {{ t.details.together }}
+          </p>
 
-        <!-- Second Parents (based on display order) -->
-        <div class="mb-4 sm:mb-6">
-          <template v-if="isLoadingWeddingDetails">
-            <div class="animate-pulse flex flex-col items-center space-y-2">
-              <div class="h-5 sm:h-6 w-48 sm:w-56 bg-charcoal/10 dark:bg-dark-text/10 rounded"></div>
-              <div class="h-5 sm:h-6 w-52 sm:w-60 bg-charcoal/10 dark:bg-dark-text/10 rounded"></div>
-            </div>
-          </template>
-          <template v-else>
-            <p class="font-heading text-base sm:text-lg text-charcoal dark:text-dark-text">
-              {{ parents.second.father }}
-            </p>
-            <p class="font-heading text-base sm:text-lg text-charcoal dark:text-dark-text">
-              & {{ parents.second.mother }}
-            </p>
-          </template>
-        </div>
+          <!-- Second Parents (if visible) -->
+          <div v-if="parentsInfo.secondVisible" class="mb-4 sm:mb-6">
+            <template v-if="isLoadingWeddingDetails">
+              <div class="animate-pulse flex flex-col items-center space-y-2">
+                <div class="h-5 sm:h-6 w-48 sm:w-56 bg-charcoal/10 dark:bg-dark-text/10 rounded"></div>
+                <div class="h-5 sm:h-6 w-52 sm:w-60 bg-charcoal/10 dark:bg-dark-text/10 rounded"></div>
+              </div>
+            </template>
+            <template v-else>
+              <p class="font-heading text-base sm:text-lg text-charcoal dark:text-dark-text">
+                {{ parentsInfo.second.father }}
+              </p>
+              <p class="font-heading text-base sm:text-lg text-charcoal dark:text-dark-text">
+                & {{ parentsInfo.second.mother }}
+              </p>
+            </template>
+          </div>
+        </template>
 
         <p class="font-body text-xs sm:text-sm text-charcoal-light dark:text-dark-text-secondary leading-relaxed px-2">
           {{ t.details.invitation }}

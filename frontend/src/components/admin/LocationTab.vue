@@ -76,7 +76,11 @@ const handleSave = async () => {
   if (formData.value.parkingInfo) {
     data.parkingInfo = formData.value.parkingInfo;
   }
-  await updateVenue(data);
+  const result = await updateVenue(data);
+  // Sync form data after successful save to ensure hasChanges is false
+  if (result.success) {
+    syncFormData();
+  }
 };
 
 // Watch for venue changes and sync form
