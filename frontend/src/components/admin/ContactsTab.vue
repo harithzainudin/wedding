@@ -143,15 +143,20 @@ onMounted(async () => {
     </div>
 
     <div v-else class="space-y-4">
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div
-          v-if="localContacts.length === 0"
-          class="col-span-full p-8 bg-white dark:bg-dark-bg-secondary rounded-lg border border-sand-dark dark:border-dark-border text-center"
-        >
-          <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary">
-            No contacts yet. Click "Add Contact" to create one.
-          </p>
-        </div>
+      <div
+        v-if="localContacts.length === 0"
+        class="p-8 bg-white dark:bg-dark-bg-secondary rounded-lg border border-sand-dark dark:border-dark-border text-center"
+      >
+        <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary">
+          No contacts yet. Click "Add Contact" to create one.
+        </p>
+      </div>
+      <TransitionGroup
+        v-else
+        name="list"
+        tag="div"
+        class="grid grid-cols-1 sm:grid-cols-2 gap-4"
+      >
         <div
           v-for="(contact, index) in localContacts"
           :key="contact.id"
@@ -191,7 +196,7 @@ onMounted(async () => {
             />
           </div>
         </div>
-      </div>
+      </TransitionGroup>
 
       <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-2">
         <div class="flex-1">
@@ -289,3 +294,24 @@ onMounted(async () => {
     />
   </div>
 </template>
+
+<style scoped>
+.list-move {
+  transition: transform 0.3s ease;
+}
+
+.list-enter-active,
+.list-leave-active {
+  transition: all 0.3s ease;
+}
+
+.list-enter-from,
+.list-leave-to {
+  opacity: 0;
+  transform: scale(0.95);
+}
+
+.list-leave-active {
+  position: absolute;
+}
+</style>

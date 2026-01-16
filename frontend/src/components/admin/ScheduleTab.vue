@@ -142,11 +142,16 @@ onMounted(async () => {
             No schedule items yet. Click "Add Item" to create one.
           </p>
         </div>
-        <div v-else class="divide-y divide-sand-dark dark:divide-dark-border">
+        <TransitionGroup
+          v-else
+          name="list"
+          tag="div"
+          class="divide-y divide-sand-dark dark:divide-dark-border"
+        >
           <div
             v-for="(item, index) in localItems"
             :key="item.id"
-            class="p-4 flex flex-col sm:flex-row sm:items-center gap-3"
+            class="p-4 flex flex-col sm:flex-row sm:items-center gap-3 bg-white dark:bg-dark-bg-secondary"
           >
             <div class="flex-shrink-0">
               <span
@@ -173,7 +178,7 @@ onMounted(async () => {
               @delete="confirmDelete(item)"
             />
           </div>
-        </div>
+        </TransitionGroup>
       </div>
 
       <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-2">
@@ -262,3 +267,24 @@ onMounted(async () => {
     />
   </div>
 </template>
+
+<style scoped>
+.list-move {
+  transition: transform 0.3s ease;
+}
+
+.list-enter-active,
+.list-leave-active {
+  transition: all 0.3s ease;
+}
+
+.list-enter-from,
+.list-leave-to {
+  opacity: 0;
+  transform: translateX(-10px);
+}
+
+.list-leave-active {
+  position: absolute;
+}
+</style>

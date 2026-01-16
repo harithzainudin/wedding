@@ -86,12 +86,16 @@ onMounted(() => {
             dir="rtl"
             v-html="bismillahSvg"
           />
-          <p
-            v-if="bismillahSettings?.showTranslation !== false"
-            class="font-body text-[10px] sm:text-xs md:text-sm opacity-80 leading-relaxed mt-2"
+          <div
+            class="grid transition-all duration-300 ease-out"
+            :class="bismillahSettings?.showTranslation !== false ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'"
           >
-            {{ t.hero.bismillahTranslation }}
-          </p>
+            <div class="overflow-hidden min-h-0">
+              <p class="font-body text-[10px] sm:text-xs md:text-sm opacity-80 leading-relaxed mt-2">
+                {{ t.hero.bismillahTranslation }}
+              </p>
+            </div>
+          </div>
         </template>
         <!-- Fallback Text -->
         <template v-else>
@@ -101,12 +105,16 @@ onMounted(() => {
           >
             بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ
           </p>
-          <p
-            v-if="bismillahSettings?.showTranslation !== false"
-            class="font-body text-[10px] sm:text-xs md:text-sm opacity-80 leading-relaxed"
+          <div
+            class="grid transition-all duration-300 ease-out"
+            :class="bismillahSettings?.showTranslation !== false ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'"
           >
-            {{ t.hero.bismillahTranslation }}
-          </p>
+            <div class="overflow-hidden min-h-0">
+              <p class="font-body text-[10px] sm:text-xs md:text-sm opacity-80 leading-relaxed">
+                {{ t.hero.bismillahTranslation }}
+              </p>
+            </div>
+          </div>
         </template>
       </div>
 

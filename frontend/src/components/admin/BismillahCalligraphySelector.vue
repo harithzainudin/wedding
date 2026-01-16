@@ -96,12 +96,16 @@ const emitUpdate = () => {
             dir="rtl"
             v-html="currentPreviewSvg"
           />
-          <p
-            v-if="showTranslation"
-            class="text-white/80 text-[10px] sm:text-xs mt-1 font-body"
+          <div
+            class="grid transition-all duration-300 ease-out"
+            :class="showTranslation ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'"
           >
-            In the Name of Allah, the Most Gracious, the Most Merciful
-          </p>
+            <div class="overflow-hidden min-h-0">
+              <p class="text-white/80 text-[10px] sm:text-xs mt-1 font-body">
+                In the Name of Allah, the Most Gracious, the Most Merciful
+              </p>
+            </div>
+          </div>
           <!-- Preview indicator - always reserve space to prevent jittering -->
           <p
             class="text-[10px] mt-1 font-body h-4 transition-opacity"

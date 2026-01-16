@@ -429,7 +429,12 @@ onMounted(async () => {
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
           </svg>
         </button>
-        <div v-show="expandedSections.couple" class="px-4 sm:px-6 pb-4 sm:pb-6">
+        <div
+          class="grid transition-[grid-template-rows] duration-300 ease-out"
+          :class="expandedSections.couple ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'"
+        >
+          <div class="overflow-hidden min-h-0">
+            <div class="px-4 sm:px-6 pt-2 pb-4 sm:pb-6">
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
           <!-- Bride -->
           <div class="space-y-3">
@@ -489,6 +494,8 @@ onMounted(async () => {
             </div>
           </div>
         </div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -535,56 +542,63 @@ onMounted(async () => {
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
           </svg>
         </button>
-        <div v-show="expandedSections.nameOrder" class="px-4 sm:px-6 pb-4 sm:pb-6">
-        <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary mb-4">
-          Choose whether to display the bride or groom name first throughout the website.
-        </p>
+        <div
+          class="grid transition-[grid-template-rows] duration-300 ease-out"
+          :class="expandedSections.nameOrder ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'"
+        >
+          <div class="overflow-hidden min-h-0">
+            <div class="px-4 sm:px-6 pt-2 pb-4 sm:pb-6">
+              <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary mb-4">
+                Choose whether to display the bride or groom name first throughout the website.
+              </p>
 
-        <div class="flex flex-col sm:flex-row gap-3">
-          <label class="flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors"
-            :class="formData.displayNameOrder === 'bride_first'
-              ? 'border-sage bg-sage/10 dark:bg-sage/20'
-              : 'border-sand-dark dark:border-dark-border hover:border-sage/50'"
-          >
-            <input
-              v-model="formData.displayNameOrder"
-              type="radio"
-              value="bride_first"
-              class="w-4 h-4 border-sand-dark text-sage focus:ring-sage"
-              :disabled="isSaving"
-            />
-            <div>
-              <span class="font-body text-sm font-medium text-charcoal dark:text-dark-text block">
-                Bride First
-              </span>
-              <span class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary">
-                Traditional arrangement
-              </span>
-            </div>
-          </label>
+              <div class="flex flex-col sm:flex-row gap-3">
+                <label class="flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors"
+                  :class="formData.displayNameOrder === 'bride_first'
+                    ? 'border-sage bg-sage/10 dark:bg-sage/20'
+                    : 'border-sand-dark dark:border-dark-border hover:border-sage/50'"
+                >
+                  <input
+                    v-model="formData.displayNameOrder"
+                    type="radio"
+                    value="bride_first"
+                    class="w-4 h-4 border-sand-dark text-sage focus:ring-sage"
+                    :disabled="isSaving"
+                  />
+                  <div>
+                    <span class="font-body text-sm font-medium text-charcoal dark:text-dark-text block">
+                      Bride First
+                    </span>
+                    <span class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary">
+                      Traditional arrangement
+                    </span>
+                  </div>
+                </label>
 
-          <label class="flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors"
-            :class="formData.displayNameOrder === 'groom_first'
-              ? 'border-sage bg-sage/10 dark:bg-sage/20'
-              : 'border-sand-dark dark:border-dark-border hover:border-sage/50'"
-          >
-            <input
-              v-model="formData.displayNameOrder"
-              type="radio"
-              value="groom_first"
-              class="w-4 h-4 border-sand-dark text-sage focus:ring-sage"
-              :disabled="isSaving"
-            />
-            <div>
-              <span class="font-body text-sm font-medium text-charcoal dark:text-dark-text block">
-                Groom First
-              </span>
-              <span class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary">
-                Alternative arrangement
-              </span>
+                <label class="flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors"
+                  :class="formData.displayNameOrder === 'groom_first'
+                    ? 'border-sage bg-sage/10 dark:bg-sage/20'
+                    : 'border-sand-dark dark:border-dark-border hover:border-sage/50'"
+                >
+                  <input
+                    v-model="formData.displayNameOrder"
+                    type="radio"
+                    value="groom_first"
+                    class="w-4 h-4 border-sand-dark text-sage focus:ring-sage"
+                    :disabled="isSaving"
+                  />
+                  <div>
+                    <span class="font-body text-sm font-medium text-charcoal dark:text-dark-text block">
+                      Groom First
+                    </span>
+                    <span class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary">
+                      Alternative arrangement
+                    </span>
+                  </div>
+                </label>
+              </div>
             </div>
-          </label>
-        </div>
+          </div>
         </div>
       </div>
 
@@ -622,12 +636,19 @@ onMounted(async () => {
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
           </svg>
         </button>
-        <div v-show="expandedSections.calligraphy" class="px-4 sm:px-6 pb-4 sm:pb-6">
-          <BismillahCalligraphySelector
-            :settings="formData.bismillahCalligraphy"
-            :disabled="isSaving"
-            @update="formData.bismillahCalligraphy = $event"
-          />
+        <div
+          class="grid transition-[grid-template-rows] duration-300 ease-out"
+          :class="expandedSections.calligraphy ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'"
+        >
+          <div class="overflow-hidden min-h-0">
+            <div class="px-4 sm:px-6 pt-2 pb-4 sm:pb-6">
+              <BismillahCalligraphySelector
+                :settings="formData.bismillahCalligraphy"
+                :disabled="isSaving"
+                @update="formData.bismillahCalligraphy = $event"
+              />
+            </div>
+          </div>
         </div>
       </div>
 
@@ -660,7 +681,12 @@ onMounted(async () => {
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
           </svg>
         </button>
-        <div v-show="expandedSections.parents" class="px-4 sm:px-6 pb-4 sm:pb-6">
+        <div
+          class="grid transition-[grid-template-rows] duration-300 ease-out"
+          :class="expandedSections.parents ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'"
+        >
+          <div class="overflow-hidden min-h-0">
+            <div class="px-4 sm:px-6 pt-2 pb-4 sm:pb-6">
         <!-- Parents Visibility Settings -->
         <div class="mb-6 space-y-3">
           <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary mb-2">
@@ -793,6 +819,8 @@ onMounted(async () => {
               />
             </div>
           </div>
+            </div>
+          </div>
         </div>
         </div>
       </div>
@@ -826,43 +854,50 @@ onMounted(async () => {
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
           </svg>
         </button>
-        <div v-show="expandedSections.event" class="px-4 sm:px-6 pb-4 sm:pb-6">
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-          <div>
-            <label class="block font-body text-xs text-charcoal-light dark:text-dark-text-secondary mb-1">
-              Event Start Date & Time
-            </label>
-            <input
-              v-model="formattedEventDate"
-              type="datetime-local"
-              class="w-full px-3 py-2.5 font-body text-base border border-sand-dark dark:border-dark-border rounded-lg bg-sand dark:bg-dark-bg-elevated text-charcoal dark:text-dark-text focus:outline-none focus:border-sage"
-              :disabled="isSaving"
-            />
+        <div
+          class="grid transition-[grid-template-rows] duration-300 ease-out"
+          :class="expandedSections.event ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'"
+        >
+          <div class="overflow-hidden min-h-0">
+            <div class="px-4 sm:px-6 pt-2 pb-4 sm:pb-6">
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                <div>
+                  <label class="block font-body text-xs text-charcoal-light dark:text-dark-text-secondary mb-1">
+                    Event Start Date & Time
+                  </label>
+                  <input
+                    v-model="formattedEventDate"
+                    type="datetime-local"
+                    class="w-full px-3 py-2.5 font-body text-base border border-sand-dark dark:border-dark-border rounded-lg bg-sand dark:bg-dark-bg-elevated text-charcoal dark:text-dark-text focus:outline-none focus:border-sage"
+                    :disabled="isSaving"
+                  />
+                </div>
+                <div>
+                  <label class="block font-body text-xs text-charcoal-light dark:text-dark-text-secondary mb-1">
+                    Event End Time
+                  </label>
+                  <input
+                    v-model="formattedEventEndTime"
+                    type="datetime-local"
+                    class="w-full px-3 py-2.5 font-body text-base border border-sand-dark dark:border-dark-border rounded-lg bg-sand dark:bg-dark-bg-elevated text-charcoal dark:text-dark-text focus:outline-none focus:border-sage"
+                    :disabled="isSaving"
+                  />
+                </div>
+              </div>
+              <div>
+                <label class="block font-body text-xs text-charcoal-light dark:text-dark-text-secondary mb-1">
+                  Dress Code
+                </label>
+                <input
+                  v-model="formData.dressCode"
+                  type="text"
+                  class="w-full px-3 py-2.5 font-body text-base border border-sand-dark dark:border-dark-border rounded-lg bg-sand dark:bg-dark-bg-elevated text-charcoal dark:text-dark-text focus:outline-none focus:border-sage"
+                  placeholder="e.g., Pastel / Earthy Tones"
+                  :disabled="isSaving"
+                />
+              </div>
+            </div>
           </div>
-          <div>
-            <label class="block font-body text-xs text-charcoal-light dark:text-dark-text-secondary mb-1">
-              Event End Time
-            </label>
-            <input
-              v-model="formattedEventEndTime"
-              type="datetime-local"
-              class="w-full px-3 py-2.5 font-body text-base border border-sand-dark dark:border-dark-border rounded-lg bg-sand dark:bg-dark-bg-elevated text-charcoal dark:text-dark-text focus:outline-none focus:border-sage"
-              :disabled="isSaving"
-            />
-          </div>
-        </div>
-        <div>
-          <label class="block font-body text-xs text-charcoal-light dark:text-dark-text-secondary mb-1">
-            Dress Code
-          </label>
-          <input
-            v-model="formData.dressCode"
-            type="text"
-            class="w-full px-3 py-2.5 font-body text-base border border-sand-dark dark:border-dark-border rounded-lg bg-sand dark:bg-dark-bg-elevated text-charcoal dark:text-dark-text focus:outline-none focus:border-sage"
-            placeholder="e.g., Pastel / Earthy Tones"
-            :disabled="isSaving"
-          />
-        </div>
         </div>
       </div>
 
@@ -900,7 +935,12 @@ onMounted(async () => {
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
           </svg>
         </button>
-        <div v-show="expandedSections.displayFormat" class="px-4 sm:px-6 pb-4 sm:pb-6">
+        <div
+          class="grid transition-[grid-template-rows] duration-300 ease-out"
+          :class="expandedSections.displayFormat ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'"
+        >
+          <div class="overflow-hidden min-h-0">
+            <div class="px-4 sm:px-6 pt-2 pb-4 sm:pb-6">
 
         <!-- Preset Dropdown -->
         <div class="mb-4">
@@ -1046,6 +1086,8 @@ onMounted(async () => {
               </div>
             </div>
           </div>
+            </div>
+          </div>
         </div>
         </div>
       </div>
@@ -1079,31 +1121,38 @@ onMounted(async () => {
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
           </svg>
         </button>
-        <div v-show="expandedSections.website" class="px-4 sm:px-6 pb-4 sm:pb-6">
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label class="block font-body text-xs text-charcoal-light dark:text-dark-text-secondary mb-1">
-                Wedding Hashtag
-              </label>
-              <input
-                v-model="formData.hashtag"
-                type="text"
-                class="w-full px-3 py-2.5 font-body text-base border border-sand-dark dark:border-dark-border rounded-lg bg-sand dark:bg-dark-bg-elevated text-charcoal dark:text-dark-text focus:outline-none focus:border-sage"
-                placeholder="#YourWeddingHashtag"
-                :disabled="isSaving"
-              />
-            </div>
-            <div>
-              <label class="block font-body text-xs text-charcoal-light dark:text-dark-text-secondary mb-1">
-                QR Code URL
-              </label>
-              <input
-                v-model="formData.qrCodeUrl"
-                type="url"
-                class="w-full px-3 py-2.5 font-body text-base border border-sand-dark dark:border-dark-border rounded-lg bg-sand dark:bg-dark-bg-elevated text-charcoal dark:text-dark-text focus:outline-none focus:border-sage"
-                placeholder="https://your-wedding-site.com"
-                :disabled="isSaving"
-              />
+        <div
+          class="grid transition-[grid-template-rows] duration-300 ease-out"
+          :class="expandedSections.website ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'"
+        >
+          <div class="overflow-hidden min-h-0">
+            <div class="px-4 sm:px-6 pt-2 pb-4 sm:pb-6">
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label class="block font-body text-xs text-charcoal-light dark:text-dark-text-secondary mb-1">
+                    Wedding Hashtag
+                  </label>
+                  <input
+                    v-model="formData.hashtag"
+                    type="text"
+                    class="w-full px-3 py-2.5 font-body text-base border border-sand-dark dark:border-dark-border rounded-lg bg-sand dark:bg-dark-bg-elevated text-charcoal dark:text-dark-text focus:outline-none focus:border-sage"
+                    placeholder="#YourWeddingHashtag"
+                    :disabled="isSaving"
+                  />
+                </div>
+                <div>
+                  <label class="block font-body text-xs text-charcoal-light dark:text-dark-text-secondary mb-1">
+                    QR Code URL
+                  </label>
+                  <input
+                    v-model="formData.qrCodeUrl"
+                    type="url"
+                    class="w-full px-3 py-2.5 font-body text-base border border-sand-dark dark:border-dark-border rounded-lg bg-sand dark:bg-dark-bg-elevated text-charcoal dark:text-dark-text focus:outline-none focus:border-sage"
+                    placeholder="https://your-wedding-site.com"
+                    :disabled="isSaving"
+                  />
+                </div>
+              </div>
             </div>
           </div>
         </div>
