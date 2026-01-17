@@ -138,6 +138,30 @@ export interface Translations {
     directions: string
     videoGuide: string
   }
+  // QR Code Hub
+  qrCodeHub?: {
+    title: string
+    subtitle: string
+    // QR Types
+    website: string
+    restuDigital: string
+    location: string
+    wifi: string
+    rsvp: string
+    calendar: string
+    hashtag: string
+    // Restu Digital
+    restuTagline: string
+    bankName: string
+    accountName: string
+    accountNumber: string
+    // Actions
+    download: string
+    share: string
+    close: string
+    tapToView: string
+    linkCopied: string
+  }
 }
 
 export const translations: Record<Language, Translations> = {
@@ -265,6 +289,26 @@ export const translations: Record<Language, Translations> = {
       directions: 'Arah',
       videoGuide: 'Video Panduan',
     },
+    qrCodeHub: {
+      title: 'QR Hub',
+      subtitle: 'Imbas untuk akses pantas',
+      website: 'Laman Web',
+      restuDigital: 'Restu Digital',
+      location: 'Lokasi',
+      wifi: 'WiFi',
+      rsvp: 'RSVP',
+      calendar: 'Kalendar',
+      hashtag: 'Hashtag',
+      restuTagline: 'Restu anda, walau dalam apa bentuk, amat bermakna',
+      bankName: 'Bank',
+      accountName: 'Nama Akaun',
+      accountNumber: 'Nombor Akaun',
+      download: 'Muat Turun',
+      share: 'Kongsi',
+      close: 'Tutup',
+      tapToView: 'Ketik untuk lihat',
+      linkCopied: 'Pautan disalin!',
+    },
   },
 
   // English
@@ -390,6 +434,26 @@ export const translations: Record<Language, Translations> = {
       directions: 'Directions',
       videoGuide: 'Video Guide',
     },
+    qrCodeHub: {
+      title: 'QR Hub',
+      subtitle: 'Scan for quick access',
+      website: 'Website',
+      restuDigital: 'Digital Blessing',
+      location: 'Location',
+      wifi: 'WiFi',
+      rsvp: 'RSVP',
+      calendar: 'Calendar',
+      hashtag: 'Hashtag',
+      restuTagline: 'Your blessing, in whatever form, means so much',
+      bankName: 'Bank',
+      accountName: 'Account Name',
+      accountNumber: 'Account Number',
+      download: 'Download',
+      share: 'Share',
+      close: 'Close',
+      tapToView: 'Tap to view',
+      linkCopied: 'Link copied!',
+    },
   },
 
   // Mandarin (Chinese)
@@ -512,6 +576,26 @@ export const translations: Record<Language, Translations> = {
       tapToExpand: '点击查看详情',
       directions: '路线指引',
       videoGuide: '视频指南',
+    },
+    qrCodeHub: {
+      title: '二维码中心',
+      subtitle: '扫描快速访问',
+      website: '网站',
+      restuDigital: '数码祝福',
+      location: '位置',
+      wifi: 'WiFi',
+      rsvp: '出席确认',
+      calendar: '日历',
+      hashtag: '标签',
+      restuTagline: '您的祝福，无论以何种形式，都意义非凡',
+      bankName: '银行',
+      accountName: '账户名',
+      accountNumber: '账号',
+      download: '下载',
+      share: '分享',
+      close: '关闭',
+      tapToView: '点击查看',
+      linkCopied: '链接已复制！',
     },
   },
 
@@ -638,6 +722,26 @@ export const translations: Record<Language, Translations> = {
       tapToExpand: 'விவரங்களுக்கு தட்டவும்',
       directions: 'திசைகள்',
       videoGuide: 'வீடியோ வழிகாட்டி',
+    },
+    qrCodeHub: {
+      title: 'QR மையம்',
+      subtitle: 'விரைவான அணுகலுக்கு ஸ்கேன் செய்யவும்',
+      website: 'இணையதளம்',
+      restuDigital: 'டிஜிட்டல் ஆசீர்வாதம்',
+      location: 'இடம்',
+      wifi: 'WiFi',
+      rsvp: 'RSVP',
+      calendar: 'நாட்காட்டி',
+      hashtag: 'ஹேஷ்டேக்',
+      restuTagline: 'உங்கள் ஆசீர்வாதம், எந்த வடிவத்தில் இருந்தாலும், மிகவும் மதிப்புக்குரியது',
+      bankName: 'வங்கி',
+      accountName: 'கணக்கு பெயர்',
+      accountNumber: 'கணக்கு எண்',
+      download: 'பதிவிறக்கம்',
+      share: 'பகிர்',
+      close: 'மூடு',
+      tapToView: 'பார்க்க தட்டவும்',
+      linkCopied: 'இணைப்பு நகலெடுக்கப்பட்டது!',
     },
   },
 }

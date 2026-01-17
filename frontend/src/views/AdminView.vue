@@ -21,6 +21,7 @@
   import MusicTab from '@/components/admin/MusicTab.vue'
   import ThemeTab from '@/components/admin/ThemeTab.vue'
   import GiftsTab from '@/components/admin/GiftsTab.vue'
+  import QRCodeHubTab from '@/components/admin/QRCodeHubTab.vue'
 
   useDocumentTitle({ text: 'CMS Admin', position: 'prefix' })
 
@@ -98,6 +99,7 @@
     | 'theme'
     | 'contacts'
     | 'rsvps'
+    | 'qrcodehub'
     | 'settings'
   const validTabs: TabType[] = [
     'dashboard',
@@ -110,6 +112,7 @@
     'theme',
     'contacts',
     'rsvps',
+    'qrcodehub',
     'settings',
   ]
 
@@ -176,6 +179,11 @@
       key: 'rsvps',
       label: 'RSVPs',
       icon: 'M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z',
+    },
+    {
+      key: 'qrcodehub',
+      label: 'QR Hub',
+      icon: 'M3 11h8V3H3v8zm2-6h4v4H5V5zM3 21h8v-8H3v8zm2-6h4v4H5v-4zm8-12v8h8V3h-8zm6 6h-4V5h4v4zm-6 4h2v2h-2zm2 2h2v2h-2zm-2 2h2v2h-2zm4-4h2v2h-2zm0 4h2v2h-2zm2-2h2v2h-2z',
     },
     {
       key: 'settings',
@@ -349,6 +357,7 @@
         <ThemeTab v-if="activeTab === 'theme'" />
         <ContactsTab v-if="activeTab === 'contacts'" />
         <RsvpsTab v-if="activeTab === 'rsvps'" />
+        <QRCodeHubTab v-if="activeTab === 'qrcodehub'" />
         <SettingsTab
           v-if="activeTab === 'settings'"
           :is-master-user="isMasterUser"

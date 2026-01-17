@@ -150,11 +150,7 @@
             class="flex items-center gap-2 hover:opacity-80 transition-opacity cursor-pointer min-w-0"
             @click="isImagesExpanded = !isImagesExpanded"
           >
-            <svg
-              class="w-5 h-5 text-sage flex-shrink-0"
-              viewBox="0 0 24 24"
-              fill="currentColor"
-            >
+            <svg class="w-5 h-5 text-sage flex-shrink-0" viewBox="0 0 24 24" fill="currentColor">
               <path
                 d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"
               />
@@ -304,11 +300,7 @@
             class="flex items-center gap-2 hover:opacity-80 transition-opacity cursor-pointer min-w-0"
             @click="isStepsExpanded = !isStepsExpanded"
           >
-            <svg
-              class="w-5 h-5 text-sage flex-shrink-0"
-              viewBox="0 0 24 24"
-              fill="currentColor"
-            >
+            <svg class="w-5 h-5 text-sage flex-shrink-0" viewBox="0 0 24 24" fill="currentColor">
               <path
                 d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"
               />
@@ -507,11 +499,7 @@
             class="flex items-center gap-2 hover:opacity-80 transition-opacity cursor-pointer min-w-0"
             @click="isVideoExpanded = !isVideoExpanded"
           >
-            <svg
-              class="w-5 h-5 text-sage flex-shrink-0"
-              viewBox="0 0 24 24"
-              fill="currentColor"
-            >
+            <svg class="w-5 h-5 text-sage flex-shrink-0" viewBox="0 0 24 24" fill="currentColor">
               <path
                 d="M10 16.5l6-4.5-6-4.5v9zM12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"
               />

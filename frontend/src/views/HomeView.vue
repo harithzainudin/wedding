@@ -5,7 +5,7 @@
   import GallerySection from '@/components/sections/GallerySection.vue'
   import ScheduleSection from '@/components/sections/ScheduleSection.vue'
   import ContactSection from '@/components/sections/ContactSection.vue'
-  import QrCodeSection from '@/components/sections/QrCodeSection.vue'
+  import QRCodeHubSection from '@/components/sections/QRCodeHubSection.vue'
   import GuestbookSection from '@/components/sections/GuestbookSection.vue'
   import WishlistSection from '@/components/sections/WishlistSection.vue'
   import RsvpSection from '@/components/sections/RsvpSection.vue'
@@ -30,7 +30,7 @@
     <GallerySection />
     <ScheduleSection />
     <ContactSection />
-    <QrCodeSection />
+    <QRCodeHubSection />
     <GuestbookSection />
     <WishlistSection />
     <RsvpSection />

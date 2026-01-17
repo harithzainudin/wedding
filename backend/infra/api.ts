@@ -446,3 +446,27 @@ export function addParkingRoutes(tokenSecret: sst.Secret, imageBucket: sst.aws.B
     ...functionConfig,
   })
 }
+
+// Function to add QR Code Hub routes
+export function addQRCodeHubRoutes(tokenSecret: sst.Secret, imageBucket: sst.aws.Bucket) {
+  // GET /qrcode-hub - Public endpoint to fetch QR Code Hub settings
+  api.route('GET /qrcode-hub', {
+    handler: 'src/functions/qrcode-hub/get.handler',
+    link: [table],
+    ...functionConfig,
+  })
+
+  // PUT /qrcode-hub - Update QR Code Hub settings (auth required)
+  api.route('PUT /qrcode-hub', {
+    handler: 'src/functions/qrcode-hub/update.handler',
+    link: [table, tokenSecret],
+    ...functionConfig,
+  })
+
+  // POST /qrcode-hub/presigned-url - Request presigned URL for Restu Digital QR image upload
+  api.route('POST /qrcode-hub/presigned-url', {
+    handler: 'src/functions/qrcode-hub/request-upload.handler',
+    link: [table, tokenSecret, imageBucket],
+    ...functionConfig,
+  })
+}

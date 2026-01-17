@@ -68,4 +68,5 @@ export const CACHE_KEYS = {
   GALLERY_IMAGES: 'gallery-images',
   RSVPS: 'rsvps',
   GIFTS: 'gifts',
+  QRCODE_HUB: 'qrcode-hub',
 } as const

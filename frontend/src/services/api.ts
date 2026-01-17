@@ -78,6 +78,12 @@ import type {
   GiftSettingsUpdateRequest,
   ReservationListResponse,
 } from '@/types/gift'
+import type {
+  QRCodeHubSettings,
+  QRCodeHubUpdateRequest,
+  QRCodeHubPresignedUrlRequest,
+  QRCodeHubPresignedUrlResponse,
+} from '@/types/qrCodeHub'
 import {
   getAccessToken,
   refreshTokens,
@@ -764,6 +770,40 @@ export function listRsvpsAdminCached(forceRefresh = false): Promise<RsvpListResp
 
 export function listGalleryImagesAdminCached(forceRefresh = false): Promise<ListImagesResponse> {
   return cachedFetch(`${CACHE_KEYS.GALLERY_IMAGES}-admin`, listGalleryImages, forceRefresh)
+}
+
+// QR Code Hub API functions
+
+export async function getQRCodeHub(): Promise<QRCodeHubSettings> {
+  const response = await fetch(`${API_URL}/qrcode-hub`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  })
+
+  const json = (await response.json()) as ApiResponse<QRCodeHubSettings>
+  return unwrapResponse(json)
+}
+
+export async function updateQRCodeHub(data: QRCodeHubUpdateRequest): Promise<QRCodeHubSettings> {
+  return authenticatedFetch<QRCodeHubSettings>(`${API_URL}/qrcode-hub`, {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  })
+}
+
+export async function getQRCodeHubPresignedUrl(
+  data: QRCodeHubPresignedUrlRequest
+): Promise<QRCodeHubPresignedUrlResponse> {
+  return authenticatedFetch<QRCodeHubPresignedUrlResponse>(`${API_URL}/qrcode-hub/presigned-url`, {
+    method: 'POST',
+    body: JSON.stringify(data),
+  })
+}
+
+export function getQRCodeHubCached(forceRefresh = false): Promise<QRCodeHubSettings> {
+  return cachedFetch(CACHE_KEYS.QRCODE_HUB, getQRCodeHub, forceRefresh)
 }
 
 // Re-export clearCache for components that need to invalidate cache

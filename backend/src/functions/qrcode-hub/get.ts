@@ -1,0 +1,73 @@
+import type { APIGatewayProxyHandlerV2 } from 'aws-lambda'
+import { DynamoDBClient } from '@aws-sdk/client-dynamodb'
+import { DynamoDBDocumentClient, GetCommand } from '@aws-sdk/lib-dynamodb'
+import { Resource } from 'sst'
+import { createSuccessResponse, createErrorResponse } from '../shared/response'
+import { logError } from '../shared/logger'
+import { DEFAULT_QRCODE_HUB_SETTINGS, type QRCodeHubSettings } from '../shared/qrcode-validation'
+
+const dynamoClient = new DynamoDBClient({})
+const docClient = DynamoDBDocumentClient.from(dynamoClient)
+
+export const handler: APIGatewayProxyHandlerV2 = async (_event, context) => {
+  try {
+    const result = await docClient.send(
+      new GetCommand({
+        TableName: Resource.AppDataTable.name,
+        Key: { pk: 'SETTINGS', sk: 'QR_CODE_HUB' },
+      })
+    )
+
+    if (!result.Item) {
+      // Return default settings if none exists in database
+      return createSuccessResponse(200, DEFAULT_QRCODE_HUB_SETTINGS, context)
+    }
+
+    const settings: QRCodeHubSettings = {
+      hubEnabled: result.Item.hubEnabled ?? DEFAULT_QRCODE_HUB_SETTINGS.hubEnabled,
+      website: result.Item.website ?? DEFAULT_QRCODE_HUB_SETTINGS.website,
+      restuDigital: {
+        enabled:
+          result.Item.restuDigital?.enabled ?? DEFAULT_QRCODE_HUB_SETTINGS.restuDigital.enabled,
+        useImage:
+          result.Item.restuDigital?.useImage ?? DEFAULT_QRCODE_HUB_SETTINGS.restuDigital.useImage,
+        qrImageUrl: result.Item.restuDigital?.qrImageUrl,
+        bankAccountNumber: result.Item.restuDigital?.bankAccountNumber,
+        bankAccountName: result.Item.restuDigital?.bankAccountName,
+        bankName: result.Item.restuDigital?.bankName,
+        tagline:
+          result.Item.restuDigital?.tagline ?? DEFAULT_QRCODE_HUB_SETTINGS.restuDigital.tagline,
+      },
+      location: {
+        enabled: result.Item.location?.enabled ?? DEFAULT_QRCODE_HUB_SETTINGS.location.enabled,
+        preferredApp:
+          result.Item.location?.preferredApp ?? DEFAULT_QRCODE_HUB_SETTINGS.location.preferredApp,
+      },
+      wifi: {
+        enabled: result.Item.wifi?.enabled ?? DEFAULT_QRCODE_HUB_SETTINGS.wifi.enabled,
+        ssid: result.Item.wifi?.ssid ?? DEFAULT_QRCODE_HUB_SETTINGS.wifi.ssid,
+        password: result.Item.wifi?.password ?? DEFAULT_QRCODE_HUB_SETTINGS.wifi.password,
+        encryption: result.Item.wifi?.encryption ?? DEFAULT_QRCODE_HUB_SETTINGS.wifi.encryption,
+        hidden: result.Item.wifi?.hidden ?? DEFAULT_QRCODE_HUB_SETTINGS.wifi.hidden,
+      },
+      rsvp: result.Item.rsvp ?? DEFAULT_QRCODE_HUB_SETTINGS.rsvp,
+      calendar: result.Item.calendar ?? DEFAULT_QRCODE_HUB_SETTINGS.calendar,
+      hashtag: result.Item.hashtag ?? DEFAULT_QRCODE_HUB_SETTINGS.hashtag,
+      displayOrder: result.Item.displayOrder ?? DEFAULT_QRCODE_HUB_SETTINGS.displayOrder,
+      updatedAt: result.Item.updatedAt,
+      updatedBy: result.Item.updatedBy,
+    }
+
+    return createSuccessResponse(200, settings, context)
+  } catch (error) {
+    logError(
+      {
+        endpoint: 'GET /qrcode-hub',
+        operation: 'fetchQRCodeHubSettings',
+        requestId: context.awsRequestId,
+      },
+      error
+    )
+    return createErrorResponse(500, 'Failed to fetch QR Code Hub settings', context, 'DB_ERROR')
+  }
+}
