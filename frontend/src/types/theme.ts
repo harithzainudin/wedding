@@ -1,4 +1,4 @@
-// Theme identifier types
+// Theme identifier types - these are the actual preset themes with definitions
 export type PresetThemeId =
   | 'earthy-minimalist'
   | 'romantic-blush'
@@ -11,7 +11,15 @@ export type PresetThemeId =
   | 'midnight-luxe'
   | 'sunset-glow'
 
-export type ThemeId = PresetThemeId | 'custom'
+// Legacy theme IDs (still used in translations and ThemeCard)
+export type LegacyThemeId =
+  | 'classic-elegance'
+  | 'modern-romantic'
+  | 'garden-party'
+  | 'tropical-paradise'
+
+// All possible theme IDs
+export type ThemeId = PresetThemeId | LegacyThemeId | 'custom'
 
 // Light mode color palette structure
 export interface ThemeColors {

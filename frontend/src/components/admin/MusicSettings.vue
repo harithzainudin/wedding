@@ -56,7 +56,9 @@
     <!-- Enable Music -->
     <div class="flex items-center justify-between">
       <div>
-        <p class="font-body text-sm font-medium text-charcoal dark:text-dark-text">{{ adminT.music.enableMusic }}</p>
+        <p class="font-body text-sm font-medium text-charcoal dark:text-dark-text">
+          {{ adminT.music.enableMusic }}
+        </p>
         <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary">
           {{ adminT.music.enableMusicDesc }}
         </p>
@@ -77,7 +79,9 @@
     <!-- Autoplay -->
     <div class="flex items-center justify-between">
       <div>
-        <p class="font-body text-sm font-medium text-charcoal dark:text-dark-text">{{ adminT.music.autoplay }}</p>
+        <p class="font-body text-sm font-medium text-charcoal dark:text-dark-text">
+          {{ adminT.music.autoplay }}
+        </p>
         <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary">
           {{ adminT.music.autoplayDesc }}
         </p>
@@ -97,7 +101,9 @@
 
     <!-- Play Mode -->
     <div>
-      <p class="font-body text-sm font-medium text-charcoal dark:text-dark-text mb-2">{{ adminT.music.playMode }}</p>
+      <p class="font-body text-sm font-medium text-charcoal dark:text-dark-text mb-2">
+        {{ adminT.music.playMode }}
+      </p>
       <div class="flex gap-2">
         <button
           type="button"
@@ -125,14 +131,18 @@
         </button>
       </div>
       <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary mt-1">
-        {{ localSettings.mode === 'single' ? adminT.music.singleTrackDesc : adminT.music.playlistDesc }}
+        {{
+          localSettings.mode === 'single' ? adminT.music.singleTrackDesc : adminT.music.playlistDesc
+        }}
       </p>
     </div>
 
     <!-- Shuffle (Playlist mode only) -->
     <div v-if="localSettings.mode === 'playlist'" class="flex items-center justify-between">
       <div>
-        <p class="font-body text-sm font-medium text-charcoal dark:text-dark-text">{{ adminT.music.shuffle }}</p>
+        <p class="font-body text-sm font-medium text-charcoal dark:text-dark-text">
+          {{ adminT.music.shuffle }}
+        </p>
         <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary">
           {{ adminT.music.shuffleDesc }}
         </p>
@@ -153,9 +163,15 @@
     <!-- Loop -->
     <div class="flex items-center justify-between">
       <div>
-        <p class="font-body text-sm font-medium text-charcoal dark:text-dark-text">{{ adminT.music.loop }}</p>
+        <p class="font-body text-sm font-medium text-charcoal dark:text-dark-text">
+          {{ adminT.music.loop }}
+        </p>
         <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary">
-          {{ localSettings.mode === 'single' ? adminT.music.loopSingleDesc : adminT.music.loopPlaylistDesc }}
+          {{
+            localSettings.mode === 'single'
+              ? adminT.music.loopSingleDesc
+              : adminT.music.loopPlaylistDesc
+          }}
         </p>
       </div>
       <button

@@ -1,7 +1,7 @@
 <script setup lang="ts">
   import { ref, computed, onMounted } from 'vue'
   import { v4 as uuidv4 } from 'uuid'
-  import type { ParkingStep, ParkingIcon, ParkingImage } from '@/types/venue'
+  import type { ParkingStep, ParkingIcon } from '@/types/venue'
   import { useParkingImages } from '@/composables/useParkingImages'
   import { useAdminLanguage } from '@/composables/useAdminLanguage'
   import ImageUploader from './ImageUploader.vue'
@@ -33,7 +33,6 @@
     loadError: imagesLoadError,
     activeUploads,
     canUploadMore,
-    remainingSlots,
     maxImages,
     maxFileSize,
     allowedMimeTypes,
@@ -93,14 +92,23 @@
     const newStep: ParkingStep = {
       id: uuidv4(),
       text: '',
-      icon: undefined,
     }
     emit('update:parkingSteps', [...props.parkingSteps, newStep])
   }
 
   const updateStep = (index: number, updates: Partial<ParkingStep>) => {
     const updated = [...props.parkingSteps]
-    updated[index] = { ...updated[index], ...updates }
+    const currentStep = updated[index]
+    if (!currentStep) return
+    updated[index] = {
+      id: updates.id ?? currentStep.id,
+      text: updates.text ?? currentStep.text,
+      ...(updates.icon !== undefined
+        ? { icon: updates.icon }
+        : currentStep.icon
+          ? { icon: currentStep.icon }
+          : {}),
+    }
     emit('update:parkingSteps', updated)
   }
 
@@ -114,7 +122,10 @@
     if (newIndex < 0 || newIndex >= props.parkingSteps.length) return
 
     const updated = [...props.parkingSteps]
-    ;[updated[index], updated[newIndex]] = [updated[newIndex], updated[index]]
+    const step1 = updated[index]!
+    const step2 = updated[newIndex]!
+    updated[index] = step2
+    updated[newIndex] = step1
     emit('update:parkingSteps', updated)
   }
 

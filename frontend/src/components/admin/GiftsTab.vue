@@ -324,7 +324,12 @@
         </h2>
         <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary mt-1">
           {{ interpolate(adminT.gifts.itemsCount, { count: String(summary.total) }) }} |
-          {{ interpolate(adminT.gifts.reserved, { reserved: String(summary.reservedQuantity), total: String(summary.totalQuantity) }) }}
+          {{
+            interpolate(adminT.gifts.reserved, {
+              reserved: String(summary.reservedQuantity),
+              total: String(summary.totalQuantity),
+            })
+          }}
         </p>
       </div>
 
@@ -411,9 +416,7 @@
           {{ adminT.gifts.registryStatus }}
         </h3>
         <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary mt-0.5">
-          {{
-            settings.enabled ? adminT.gifts.visibleToGuests : adminT.gifts.hiddenFromGuests
-          }}
+          {{ settings.enabled ? adminT.gifts.visibleToGuests : adminT.gifts.hiddenFromGuests }}
         </p>
       </div>
       <button
@@ -978,7 +981,13 @@
                   :disabled="!isFormValid || isCreating || isUpdating"
                   class="flex-1 py-2.5 px-4 font-body text-sm bg-sage text-white rounded-lg hover:bg-sage-dark disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer"
                 >
-                  {{ isCreating || isUpdating ? adminT.common.saving : editingGift ? adminT.common.update : adminT.gifts.addGift }}
+                  {{
+                    isCreating || isUpdating
+                      ? adminT.common.saving
+                      : editingGift
+                        ? adminT.common.update
+                        : adminT.gifts.addGift
+                  }}
                 </button>
               </div>
             </form>
@@ -1069,7 +1078,9 @@
     <DeleteConfirmModal
       v-if="deleteConfirmId"
       :title="adminT.gifts.deleteGift"
-      :message="interpolate(adminT.gifts.deleteGiftConfirm, { name: getGiftToDelete()?.name?.en || '' })"
+      :message="
+        interpolate(adminT.gifts.deleteGiftConfirm, { name: getGiftToDelete()?.name?.en || '' })
+      "
       :is-deleting="isDeleting"
       @confirm="handleDeleteConfirm"
       @cancel="handleDeleteCancel"

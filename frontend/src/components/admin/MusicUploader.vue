@@ -137,7 +137,8 @@
       </svg>
 
       <p class="font-body text-sm text-charcoal dark:text-dark-text mb-1">
-        <span class="text-sage font-medium">{{ adminT.music.clickToUpload }}</span> {{ adminT.music.orDragAndDrop }}
+        <span class="text-sage font-medium">{{ adminT.music.clickToUpload }}</span>
+        {{ adminT.music.orDragAndDrop }}
       </p>
       <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary">
         {{ interpolate(adminT.music.formatInfo, { size: formatFileSize(maxFileSize) }) }}

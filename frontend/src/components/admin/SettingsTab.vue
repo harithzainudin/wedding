@@ -136,7 +136,9 @@
     />
 
     <div class="flex justify-between items-center mb-6">
-      <h2 class="font-heading text-xl text-charcoal dark:text-dark-text">{{ adminT.adminUsers.title }}</h2>
+      <h2 class="font-heading text-xl text-charcoal dark:text-dark-text">
+        {{ adminT.adminUsers.title }}
+      </h2>
       <button
         v-if="isMasterUser"
         type="button"
@@ -157,7 +159,9 @@
     >
       <div class="bg-white dark:bg-dark-bg-secondary rounded-xl p-6 max-w-md w-full shadow-xl">
         <div class="flex items-center justify-between mb-4">
-          <h3 class="font-heading text-lg text-charcoal dark:text-dark-text">{{ adminT.adminUsers.createNewAdmin }}</h3>
+          <h3 class="font-heading text-lg text-charcoal dark:text-dark-text">
+            {{ adminT.adminUsers.createNewAdmin }}
+          </h3>
           <button
             type="button"
             class="text-charcoal-light hover:text-charcoal transition-colors cursor-pointer"
@@ -322,7 +326,12 @@
               {{ admin.username }}
             </p>
             <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary">
-              {{ interpolate(adminT.adminUsers.createdBy, { user: admin.createdBy, date: formatDate(admin.createdAt) }) }}
+              {{
+                interpolate(adminT.adminUsers.createdBy, {
+                  user: admin.createdBy,
+                  date: formatDate(admin.createdAt),
+                })
+              }}
             </p>
           </div>
           <div v-if="isMasterUser" class="flex items-center gap-2 flex-wrap justify-end">
@@ -348,7 +357,9 @@
 
             <!-- Reset Password Confirmation -->
             <template v-else-if="resetPasswordConfirm === admin.username">
-              <span class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary">{{ adminT.adminUsers.resetConfirm }}</span>
+              <span class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary">{{
+                adminT.adminUsers.resetConfirm
+              }}</span>
               <button
                 type="button"
                 class="px-3 py-1.5 font-body text-sm text-white bg-amber-600 rounded-lg hover:bg-amber-700 transition-colors cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed"
@@ -368,7 +379,9 @@
 
             <!-- Delete Confirmation -->
             <template v-else-if="deleteConfirm === admin.username">
-              <span class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary">{{ adminT.adminUsers.deleteConfirm }}</span>
+              <span class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary">{{
+                adminT.adminUsers.deleteConfirm
+              }}</span>
               <button
                 type="button"
                 class="px-3 py-1.5 font-body text-sm text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed"

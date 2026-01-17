@@ -41,7 +41,11 @@
         @input="emit('update:venueName', ($event.target as HTMLInputElement).value)"
       />
       <p class="mt-1 font-body text-xs text-charcoal-light dark:text-dark-text-secondary">
-        {{ adminT.venue.characters.replace('{count}', String(venueName.length)).replace('{max}', '100') }}
+        {{
+          adminT.venue.characters
+            .replace('{count}', String(venueName.length))
+            .replace('{max}', '100')
+        }}
       </p>
     </div>
 
@@ -60,7 +64,9 @@
         @input="emit('update:address', ($event.target as HTMLTextAreaElement).value)"
       />
       <p class="mt-1 font-body text-xs text-charcoal-light dark:text-dark-text-secondary">
-        {{ adminT.venue.characters.replace('{count}', String(address.length)).replace('{max}', '500') }}
+        {{
+          adminT.venue.characters.replace('{count}', String(address.length)).replace('{max}', '500')
+        }}
       </p>
     </div>
 
@@ -82,7 +88,11 @@
         @input="emit('update:parkingInfo', ($event.target as HTMLTextAreaElement).value)"
       />
       <p class="mt-1 font-body text-xs text-charcoal-light dark:text-dark-text-secondary">
-        {{ adminT.venue.characters.replace('{count}', String(parkingInfo.length)).replace('{max}', '500') }}
+        {{
+          adminT.venue.characters
+            .replace('{count}', String(parkingInfo.length))
+            .replace('{max}', '500')
+        }}
       </p>
     </div>
 

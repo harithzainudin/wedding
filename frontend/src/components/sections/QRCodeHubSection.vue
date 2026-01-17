@@ -16,8 +16,8 @@
     generateHashtagUrl,
   } from '@/utils/qrCodeFormats'
 
-  const { t, currentLanguage } = useLanguage()
-  const { getQrCodeUrl, weddingDetails, isLoadingWeddingDetails } = usePublicWeddingData()
+  const { currentLanguage } = useLanguage()
+  const { getQrCodeUrl, weddingDetails } = usePublicWeddingData()
 
   // State
   const settings = ref<QRCodeHubSettings>({ ...DEFAULT_QRCODE_HUB_SETTINGS })
@@ -294,7 +294,7 @@
         await navigator.share({
           title: modalTitle.value,
           text: modalSubtitle.value,
-          url: data.startsWith('http') ? data : undefined,
+          ...(data.startsWith('http') ? { url: data } : {}),
         })
       } catch {
         // User cancelled

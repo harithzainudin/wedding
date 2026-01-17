@@ -490,7 +490,11 @@
                   :disabled="isUploading"
                   @click="triggerFileUpload"
                 >
-                  {{ isUploading ? adminT.qrHub.uploading.replace('{progress}', String(uploadProgress)) : adminT.qrHub.uploadImage }}
+                  {{
+                    isUploading
+                      ? adminT.qrHub.uploading.replace('{progress}', String(uploadProgress))
+                      : adminT.qrHub.uploadImage
+                  }}
                 </button>
                 <p v-if="uploadError" class="mt-1 font-body text-xs text-red-500">
                   {{ uploadError }}
@@ -547,7 +551,9 @@
           v-if="expandedSection === 'wifi'"
           class="rounded-lg border border-blue-200 bg-blue-50 p-4"
         >
-          <h3 class="mb-4 font-heading text-lg font-medium text-gray-900">{{ adminT.qrHub.wifiConfiguration }}</h3>
+          <h3 class="mb-4 font-heading text-lg font-medium text-gray-900">
+            {{ adminT.qrHub.wifiConfiguration }}
+          </h3>
 
           <div class="space-y-3">
             <div>

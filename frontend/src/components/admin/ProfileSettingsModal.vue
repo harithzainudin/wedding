@@ -43,7 +43,9 @@
             <path d="M20 6L9 17l-5-5" />
           </svg>
         </div>
-        <h3 class="font-heading text-lg text-charcoal dark:text-dark-text mb-2">{{ adminT.profile.profileUpdated }}</h3>
+        <h3 class="font-heading text-lg text-charcoal dark:text-dark-text mb-2">
+          {{ adminT.profile.profileUpdated }}
+        </h3>
         <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary">
           {{ adminT.profile.updateSuccess }}
         </p>
@@ -51,7 +53,9 @@
 
       <div v-else>
         <div class="flex items-center justify-between mb-6">
-          <h3 class="font-heading text-lg text-charcoal dark:text-dark-text">{{ adminT.profile.title }}</h3>
+          <h3 class="font-heading text-lg text-charcoal dark:text-dark-text">
+            {{ adminT.profile.title }}
+          </h3>
           <button
             type="button"
             class="text-charcoal-light dark:text-dark-text-secondary hover:text-charcoal dark:hover:text-dark-text transition-colors cursor-pointer"

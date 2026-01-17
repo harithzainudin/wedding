@@ -88,7 +88,9 @@
           <div
             class="flex items-center justify-between px-4 py-3 border-b border-sand-dark dark:border-dark-border"
           >
-            <span class="font-body text-sm text-charcoal dark:text-dark-text">{{ adminT.header.darkMode }}</span>
+            <span class="font-body text-sm text-charcoal dark:text-dark-text">{{
+              adminT.header.darkMode
+            }}</span>
             <DarkModeToggle variant="light" />
           </div>
 

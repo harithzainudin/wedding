@@ -5,6 +5,7 @@
   import { usePublicWeddingData } from '@/composables/usePublicWeddingData'
   import { useNameOrder } from '@/composables/useNameOrder'
   import type { EventDisplayPreset, EventDisplayCustomOptions } from '@/types/weddingDetails'
+  import type { ParkingStep, ParkingImage } from '@/types/venue'
   import ParkingGuide from './parking/ParkingGuide.vue'
 
   const { t, currentLanguage } = useLanguage()
@@ -444,9 +445,9 @@
         <!-- Parking Guide (expandable) -->
         <ParkingGuide
           :parking-info="venue.parkingInfo"
-          :parking-steps="venue.parkingSteps"
-          :parking-images="venue.parkingImages"
-          :parking-video-url="venue.parkingVideoUrl"
+          :parking-steps="(venue.parkingSteps as ParkingStep[]) ?? []"
+          :parking-images="(venue.parkingImages as ParkingImage[]) ?? []"
+          :parking-video-url="venue.parkingVideoUrl ?? null"
           :show-parking-images="venue.showParkingImages ?? true"
           :show-parking-directions="venue.showParkingDirections ?? true"
           :show-parking-video="venue.showParkingVideo ?? true"

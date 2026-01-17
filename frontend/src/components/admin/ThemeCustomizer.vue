@@ -93,23 +93,79 @@
 
   // Color field definitions (computed for translations)
   const lightColorFields = computed(() => [
-    { key: 'primary' as keyof ThemeColors, label: adminT.value.theme.primary, description: adminT.value.theme.primaryDesc },
-    { key: 'primaryLight' as keyof ThemeColors, label: adminT.value.theme.primaryLight, description: adminT.value.theme.primaryLightDesc },
-    { key: 'primaryDark' as keyof ThemeColors, label: adminT.value.theme.primaryDark, description: adminT.value.theme.primaryDarkDesc },
-    { key: 'secondary' as keyof ThemeColors, label: adminT.value.theme.secondary, description: adminT.value.theme.secondaryDesc },
-    { key: 'secondaryDark' as keyof ThemeColors, label: adminT.value.theme.secondaryDark, description: adminT.value.theme.secondaryDarkDesc },
-    { key: 'text' as keyof ThemeColors, label: adminT.value.theme.text, description: adminT.value.theme.textDesc },
-    { key: 'textLight' as keyof ThemeColors, label: adminT.value.theme.textLight, description: adminT.value.theme.textLightDesc },
-    { key: 'background' as keyof ThemeColors, label: adminT.value.theme.background, description: adminT.value.theme.backgroundDesc },
+    {
+      key: 'primary' as keyof ThemeColors,
+      label: adminT.value.theme.primary,
+      description: adminT.value.theme.primaryDesc,
+    },
+    {
+      key: 'primaryLight' as keyof ThemeColors,
+      label: adminT.value.theme.primaryLight,
+      description: adminT.value.theme.primaryLightDesc,
+    },
+    {
+      key: 'primaryDark' as keyof ThemeColors,
+      label: adminT.value.theme.primaryDark,
+      description: adminT.value.theme.primaryDarkDesc,
+    },
+    {
+      key: 'secondary' as keyof ThemeColors,
+      label: adminT.value.theme.secondary,
+      description: adminT.value.theme.secondaryDesc,
+    },
+    {
+      key: 'secondaryDark' as keyof ThemeColors,
+      label: adminT.value.theme.secondaryDark,
+      description: adminT.value.theme.secondaryDarkDesc,
+    },
+    {
+      key: 'text' as keyof ThemeColors,
+      label: adminT.value.theme.text,
+      description: adminT.value.theme.textDesc,
+    },
+    {
+      key: 'textLight' as keyof ThemeColors,
+      label: adminT.value.theme.textLight,
+      description: adminT.value.theme.textLightDesc,
+    },
+    {
+      key: 'background' as keyof ThemeColors,
+      label: adminT.value.theme.background,
+      description: adminT.value.theme.backgroundDesc,
+    },
   ])
 
   const darkColorFields = computed(() => [
-    { key: 'background' as keyof ThemeDarkColors, label: adminT.value.theme.background, description: adminT.value.theme.backgroundDesc },
-    { key: 'backgroundSecondary' as keyof ThemeDarkColors, label: adminT.value.theme.backgroundSecondary, description: adminT.value.theme.backgroundSecondaryDesc },
-    { key: 'backgroundElevated' as keyof ThemeDarkColors, label: adminT.value.theme.backgroundElevated, description: adminT.value.theme.backgroundElevatedDesc },
-    { key: 'border' as keyof ThemeDarkColors, label: adminT.value.theme.border, description: adminT.value.theme.borderDesc },
-    { key: 'text' as keyof ThemeDarkColors, label: adminT.value.theme.darkModeText, description: adminT.value.theme.darkModeTextDesc },
-    { key: 'textSecondary' as keyof ThemeDarkColors, label: adminT.value.theme.textSecondary, description: adminT.value.theme.textSecondaryDesc },
+    {
+      key: 'background' as keyof ThemeDarkColors,
+      label: adminT.value.theme.background,
+      description: adminT.value.theme.backgroundDesc,
+    },
+    {
+      key: 'backgroundSecondary' as keyof ThemeDarkColors,
+      label: adminT.value.theme.backgroundSecondary,
+      description: adminT.value.theme.backgroundSecondaryDesc,
+    },
+    {
+      key: 'backgroundElevated' as keyof ThemeDarkColors,
+      label: adminT.value.theme.backgroundElevated,
+      description: adminT.value.theme.backgroundElevatedDesc,
+    },
+    {
+      key: 'border' as keyof ThemeDarkColors,
+      label: adminT.value.theme.border,
+      description: adminT.value.theme.borderDesc,
+    },
+    {
+      key: 'text' as keyof ThemeDarkColors,
+      label: adminT.value.theme.darkModeText,
+      description: adminT.value.theme.darkModeTextDesc,
+    },
+    {
+      key: 'textSecondary' as keyof ThemeDarkColors,
+      label: adminT.value.theme.textSecondary,
+      description: adminT.value.theme.textSecondaryDesc,
+    },
   ])
 </script>
 
@@ -241,7 +297,9 @@
         class="w-full flex items-center justify-between px-4 py-3 bg-sand/50 dark:bg-dark-bg-secondary text-left cursor-pointer hover:bg-sand dark:hover:bg-dark-bg-elevated transition-colors"
         @click="toggleSection('fonts')"
       >
-        <span class="font-body text-sm font-medium text-charcoal dark:text-dark-text">{{ adminT.theme.fonts }}</span>
+        <span class="font-body text-sm font-medium text-charcoal dark:text-dark-text">{{
+          adminT.theme.fonts
+        }}</span>
         <svg
           class="w-5 h-5 text-charcoal-light dark:text-dark-text-secondary transition-transform"
           :class="{ 'rotate-180': expandedSections.fonts }"

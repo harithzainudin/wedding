@@ -18,9 +18,6 @@
 
   const { adminT } = useAdminLanguage()
 
-  // Tooltip content for name order setting - computed for translations
-  const nameOrderTooltip = computed(() => adminT.value.wedding.nameDisplayOrderDesc)
-
   const {
     weddingDetails,
     isLoading,
@@ -1555,7 +1552,9 @@
         <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary">
           {{ adminT.messages.lastUpdated }}:
           {{ new Date(weddingDetails.updatedAt).toLocaleString() }}
-          <span v-if="weddingDetails.updatedBy"> {{ adminT.messages.by }} {{ weddingDetails.updatedBy }}</span>
+          <span v-if="weddingDetails.updatedBy">
+            {{ adminT.messages.by }} {{ weddingDetails.updatedBy }}</span
+          >
         </p>
       </div>
     </div>

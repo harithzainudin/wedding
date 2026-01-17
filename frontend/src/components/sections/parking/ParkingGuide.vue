@@ -72,6 +72,9 @@
   // Current image index for carousel
   const currentImageIndex = ref(0)
 
+  // Safe access to current image
+  const currentImage = computed(() => props.parkingImages?.[currentImageIndex.value])
+
   const nextImage = () => {
     if (props.parkingImages && props.parkingImages.length > 0) {
       currentImageIndex.value = (currentImageIndex.value + 1) % props.parkingImages.length
@@ -174,11 +177,11 @@
     >
       <div class="px-3 sm:px-4 pb-3 sm:pb-4 space-y-4">
         <!-- Parking Images Carousel -->
-        <div v-if="shouldShowImages" class="relative rounded-lg overflow-hidden">
+        <div v-if="shouldShowImages && currentImage" class="relative rounded-lg overflow-hidden">
           <div class="aspect-video bg-sand/30 dark:bg-dark-bg-secondary">
             <img
-              :src="parkingImages[currentImageIndex].url"
-              :alt="parkingImages[currentImageIndex].caption || 'Parking guide image'"
+              :src="currentImage.url"
+              :alt="currentImage.caption || 'Parking guide image'"
               class="w-full h-full object-cover"
             />
           </div>
@@ -229,10 +232,10 @@
 
           <!-- Caption -->
           <p
-            v-if="parkingImages[currentImageIndex].caption"
+            v-if="currentImage?.caption"
             class="mt-2 font-body text-xs text-charcoal-light dark:text-dark-text-secondary text-center"
           >
-            {{ parkingImages[currentImageIndex].caption }}
+            {{ currentImage.caption }}
           </p>
         </div>
 

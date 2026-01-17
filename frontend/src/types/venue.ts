@@ -39,6 +39,8 @@ export interface VenueData {
   showParkingImages?: boolean
   showParkingDirections?: boolean
   showParkingVideo?: boolean
+  // Parking images
+  parkingImages?: ParkingImage[]
   googleMapsUrl: string
   wazeUrl: string
   updatedAt?: string

@@ -18,7 +18,7 @@
 
   // Get translated theme name based on theme ID
   const translatedName = computed(() => {
-    const themeNameMap: Record<ThemeId, keyof typeof adminT.value.theme> = {
+    const themeNameMap: Partial<Record<ThemeId, keyof typeof adminT.value.theme>> = {
       'earthy-minimalist': 'earthyMinimalist',
       'classic-elegance': 'classicElegance',
       'modern-romantic': 'modernRomantic',
@@ -33,7 +33,7 @@
 
   // Get translated theme description based on theme ID
   const translatedDescription = computed(() => {
-    const themeDescMap: Record<ThemeId, keyof typeof adminT.value.theme> = {
+    const themeDescMap: Partial<Record<ThemeId, keyof typeof adminT.value.theme>> = {
       'earthy-minimalist': 'earthyMinimalistDesc',
       'classic-elegance': 'classicEleganceDesc',
       'modern-romantic': 'modernRomanticDesc',

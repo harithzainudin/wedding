@@ -108,7 +108,12 @@
         {{ adminT.gallery.dragDropImages }}
       </p>
       <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary">
-        {{ interpolate(adminT.gallery.upToSize, { formats: allowedFormatsLabel, size: formatFileSize(maxFileSize) }) }}
+        {{
+          interpolate(adminT.gallery.upToSize, {
+            formats: allowedFormatsLabel,
+            size: formatFileSize(maxFileSize),
+          })
+        }}
       </p>
     </div>
   </div>

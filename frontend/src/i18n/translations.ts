@@ -805,6 +805,9 @@ export interface AdminTranslations {
     resetChanges: string
     saveAllChanges: string
     selected: string
+    discard: string
+    enabled: string
+    disabled: string
   }
 
   // Authentication
@@ -1435,6 +1438,7 @@ export interface AdminTranslations {
     actionCannotBeUndone: string
     unsavedChanges: string
     discardChanges: string
+    pleaseWait: string
   }
 
   // Messages
@@ -1487,6 +1491,9 @@ export const adminTranslations: Record<AdminLanguage, AdminTranslations> = {
       resetChanges: 'Reset Changes',
       saveAllChanges: 'Save All Changes',
       selected: 'Selected',
+      discard: 'Discard',
+      enabled: 'Enabled',
+      disabled: 'Disabled',
     },
 
     auth: {
@@ -1721,7 +1728,8 @@ export const adminTranslations: Record<AdminLanguage, AdminTranslations> = {
       loopSingleDesc: 'Repeat track continuously',
       loopPlaylistDesc: 'Repeat playlist when finished',
       defaultVolume: 'Default Volume',
-      autoplayNote: 'Most browsers block autoplay until user interaction. Even with autoplay enabled, music may not start automatically on first visit. Visitors can always click the music button to start playing.',
+      autoplayNote:
+        'Most browsers block autoplay until user interaction. Even with autoplay enabled, music may not start automatically on first visit. Visitors can always click the music button to start playing.',
       selectTrack: 'Select a track',
       selectedTrack: 'Selected',
       noTrackSelected: 'No track selected',
@@ -1742,7 +1750,8 @@ export const adminTranslations: Record<AdminLanguage, AdminTranslations> = {
       bride: 'Bride',
       groom: 'Groom',
       nameDisplayOrder: 'Name Display Order',
-      nameDisplayOrderDesc: 'Choose whether to display the bride or groom name first throughout the website.',
+      nameDisplayOrderDesc:
+        'Choose whether to display the bride or groom name first throughout the website.',
       brideFirst: 'Bride First',
       brideFirstDesc: 'Traditional arrangement',
       groomFirst: 'Groom First',
@@ -1864,7 +1873,8 @@ export const adminTranslations: Record<AdminLanguage, AdminTranslations> = {
       waze: 'Waze',
       // Parking form
       showOnWebsite: 'Show on website',
-      uploadParkingPhotosDesc: 'Upload photos of parking areas or map diagrams to help guests find parking.',
+      uploadParkingPhotosDesc:
+        'Upload photos of parking areas or map diagrams to help guests find parking.',
       maxImagesReached: 'Maximum {max} images reached',
       directionsTitle: 'Directions',
       step: 'step',
@@ -2097,6 +2107,7 @@ export const adminTranslations: Record<AdminLanguage, AdminTranslations> = {
       actionCannotBeUndone: 'This action cannot be undone.',
       unsavedChanges: 'Unsaved Changes',
       discardChanges: 'Discard Changes',
+      pleaseWait: 'Please wait...',
     },
 
     messages: {
@@ -2142,6 +2153,9 @@ export const adminTranslations: Record<AdminLanguage, AdminTranslations> = {
       resetChanges: 'Set Semula Perubahan',
       saveAllChanges: 'Simpan Semua Perubahan',
       selected: 'Dipilih',
+      discard: 'Buang',
+      enabled: 'Diaktifkan',
+      disabled: 'Dinyahaktifkan',
     },
 
     auth: {
@@ -2380,7 +2394,8 @@ export const adminTranslations: Record<AdminLanguage, AdminTranslations> = {
       loopSingleDesc: 'Ulang trek secara berterusan',
       loopPlaylistDesc: 'Ulang senarai main apabila selesai',
       defaultVolume: 'Kelantangan Lalai',
-      autoplayNote: 'Kebanyakan pelayar menyekat main automatik sehingga interaksi pengguna. Walaupun main automatik diaktifkan, muzik mungkin tidak bermula secara automatik pada lawatan pertama. Pelawat sentiasa boleh klik butang muzik untuk mula bermain.',
+      autoplayNote:
+        'Kebanyakan pelayar menyekat main automatik sehingga interaksi pengguna. Walaupun main automatik diaktifkan, muzik mungkin tidak bermula secara automatik pada lawatan pertama. Pelawat sentiasa boleh klik butang muzik untuk mula bermain.',
       selectTrack: 'Pilih trek',
       selectedTrack: 'Dipilih',
       noTrackSelected: 'Tiada trek dipilih',
@@ -2401,7 +2416,8 @@ export const adminTranslations: Record<AdminLanguage, AdminTranslations> = {
       bride: 'Pengantin Perempuan',
       groom: 'Pengantin Lelaki',
       nameDisplayOrder: 'Susunan Paparan Nama',
-      nameDisplayOrderDesc: 'Pilih sama ada untuk memaparkan nama pengantin perempuan atau lelaki dahulu di seluruh laman web.',
+      nameDisplayOrderDesc:
+        'Pilih sama ada untuk memaparkan nama pengantin perempuan atau lelaki dahulu di seluruh laman web.',
       brideFirst: 'Pengantin Perempuan Dahulu',
       brideFirstDesc: 'Susunan tradisional',
       groomFirst: 'Pengantin Lelaki Dahulu',
@@ -2446,12 +2462,14 @@ export const adminTranslations: Record<AdminLanguage, AdminTranslations> = {
       time12Hour: '12-jam (AM/PM)',
       time24Hour: '24-jam',
       advancedFormat: 'Format Lanjutan (Pilihan)',
-      advancedFormatDesc: 'Gunakan rentetan format tersuai. Biarkan kosong untuk menggunakan format lalai.',
+      advancedFormatDesc:
+        'Gunakan rentetan format tersuai. Biarkan kosong untuk menggunakan format lalai.',
       dateFormatLabel: 'Format Tarikh',
       dateFormatPlaceholder: 'cth., DD/MM/YYYY atau MMMM D, YYYY',
       timeFormatPlaceholder: 'cth., hh:mm A atau HH:mm',
       formatTokens: 'Token format:',
-      dateTokens: 'Tarikh: YYYY (tahun), MM (bulan), DD (hari), MMMM (nama bulan), dddd (nama hari)',
+      dateTokens:
+        'Tarikh: YYYY (tahun), MM (bulan), DD (hari), MMMM (nama bulan), dddd (nama hari)',
       timeTokens: 'Masa: HH (24j), hh (12j), mm (minit), A (AM/PM)',
       presetDateTimeRange: 'Tarikh + Julat Masa',
       presetDateStartOnly: 'Tarikh + Masa Mula Sahaja',
@@ -2523,7 +2541,8 @@ export const adminTranslations: Record<AdminLanguage, AdminTranslations> = {
       waze: 'Waze',
       // Parking form
       showOnWebsite: 'Papar di laman web',
-      uploadParkingPhotosDesc: 'Muat naik foto kawasan parkir atau gambarajah peta untuk membantu tetamu mencari parkir.',
+      uploadParkingPhotosDesc:
+        'Muat naik foto kawasan parkir atau gambarajah peta untuk membantu tetamu mencari parkir.',
       maxImagesReached: 'Maksimum {max} imej dicapai',
       directionsTitle: 'Arah',
       step: 'langkah',
@@ -2673,7 +2692,8 @@ export const adminTranslations: Record<AdminLanguage, AdminTranslations> = {
       calendarSubtitle: 'Simpan tarikh',
       hashtagTitle: 'Hashtag Instagram',
       hashtagSubtitle: 'Buka carian hashtag Instagram',
-      hashtagNote: 'Menggunakan hashtag dari Butiran Perkahwinan. Buka carian Instagram apabila diimbas.',
+      hashtagNote:
+        'Menggunakan hashtag dari Butiran Perkahwinan. Buka carian Instagram apabila diimbas.',
       // Location Apps
       googleMapsOnly: 'Google Maps sahaja',
       wazeOnly: 'Waze sahaja',
@@ -2756,6 +2776,7 @@ export const adminTranslations: Record<AdminLanguage, AdminTranslations> = {
       actionCannotBeUndone: 'Tindakan ini tidak boleh dibatalkan.',
       unsavedChanges: 'Perubahan Belum Disimpan',
       discardChanges: 'Buang Perubahan',
+      pleaseWait: 'Sila tunggu...',
     },
 
     messages: {

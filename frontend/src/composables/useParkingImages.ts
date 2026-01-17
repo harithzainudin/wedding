@@ -115,7 +115,7 @@ export function useParkingImages() {
         filename: file.name,
         mimeType: file.type,
         fileSize: file.size,
-        caption,
+        ...(caption ? { caption } : {}),
       })
 
       // Check if cancelled
@@ -150,7 +150,7 @@ export function useParkingImages() {
         s3Key: presignedResponse.s3Key,
         filename: file.name,
         mimeType: file.type,
-        caption,
+        ...(caption ? { caption } : {}),
       })
 
       uploadProgress.value.set(fileId, { progress: 100, status: 'completed' })

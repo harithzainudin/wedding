@@ -195,7 +195,12 @@
       v-if="settings.updatedAt"
       class="text-xs font-body text-charcoal-light dark:text-dark-text-secondary"
     >
-      {{ interpolate(adminT.gallery.lastUpdatedBy, { date: new Date(settings.updatedAt).toLocaleString(), user: settings.updatedBy || '' }) }}
+      {{
+        interpolate(adminT.gallery.lastUpdatedBy, {
+          date: new Date(settings.updatedAt).toLocaleString(),
+          user: settings.updatedBy || '',
+        })
+      }}
     </div>
 
     <!-- Save Button -->
