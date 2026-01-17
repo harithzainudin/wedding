@@ -28,6 +28,15 @@ const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes,
   scrollBehavior(to, _from, savedPosition) {
+    // Always scroll to top for home page (wedding landing page)
+    // This prevents the page from jumping to previous scroll position on refresh
+    if (to.name === "home") {
+      if (to.hash) {
+        return { el: to.hash, behavior: "smooth" };
+      }
+      return { top: 0, behavior: "smooth" };
+    }
+
     if (savedPosition) {
       return savedPosition;
     }
