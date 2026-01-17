@@ -1,187 +1,183 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted, watch, nextTick } from "vue";
-import { useLanguage } from "@/composables/useLanguage";
-import { listGalleryImagesCached } from "@/services/api";
+  import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue'
+  import { useLanguage } from '@/composables/useLanguage'
+  import { listGalleryImagesCached } from '@/services/api'
 
-const { t } = useLanguage();
+  const { t } = useLanguage()
 
-interface Photo {
-  src: string;
-  alt?: string;
-}
-
-const MAX_VISIBLE_PHOTOS = 6;
-
-const photos = ref<Photo[]>([]);
-const showGallery = ref(true);
-const isLoadingPhotos = ref(true);
-const selectedIndex = ref<number | null>(null);
-const slideDirection = ref<"left" | "right">("left");
-const lightboxMode = ref<"single" | "grid">("single");
-const thumbnailStripRef = ref<HTMLDivElement | null>(null);
-
-const visiblePhotos = computed(() => photos.value.slice(0, MAX_VISIBLE_PHOTOS));
-const hasMorePhotos = computed(() => photos.value.length > MAX_VISIBLE_PHOTOS);
-const fetchPublicGallery = async (): Promise<void> => {
-  try {
-    const data = await listGalleryImagesCached();
-    showGallery.value = data.settings?.showGallery ?? true;
-    if (data.images?.length > 0) {
-      photos.value = data.images.map((img) => ({
-        src: img.url,
-        alt: img.filename,
-      }));
-    }
-  } catch {
-    // Photos remain empty on error
-  } finally {
-    isLoadingPhotos.value = false;
+  interface Photo {
+    src: string
+    alt?: string
   }
-};
 
-const isLightboxOpen = computed(() => selectedIndex.value !== null);
+  const MAX_VISIBLE_PHOTOS = 6
 
-const currentPhoto = computed(() => {
-  if (selectedIndex.value === null) return null;
-  return photos.value[selectedIndex.value] ?? null;
-});
+  const photos = ref<Photo[]>([])
+  const showGallery = ref(true)
+  const isLoadingPhotos = ref(true)
+  const selectedIndex = ref<number | null>(null)
+  const slideDirection = ref<'left' | 'right'>('left')
+  const lightboxMode = ref<'single' | 'grid'>('single')
+  const thumbnailStripRef = ref<HTMLDivElement | null>(null)
 
-const photoCounter = computed(() => {
-  if (selectedIndex.value === null) return "";
-  return t.value.gallery.photoOf
-    .replace("{current}", String(selectedIndex.value + 1))
-    .replace("{total}", String(photos.value.length));
-});
-
-const openLightbox = (index: number): void => {
-  selectedIndex.value = index;
-  lightboxMode.value = "single";
-  document.body.style.overflow = "hidden";
-};
-
-const closeLightbox = (): void => {
-  selectedIndex.value = null;
-  lightboxMode.value = "single";
-  document.body.style.overflow = "";
-};
-
-const jumpToPhoto = (index: number): void => {
-  if (selectedIndex.value !== null) {
-    slideDirection.value = index > selectedIndex.value ? "left" : "right";
-  }
-  selectedIndex.value = index;
-  lightboxMode.value = "single";
-};
-
-const toggleLightboxMode = (): void => {
-  lightboxMode.value = lightboxMode.value === "single" ? "grid" : "single";
-};
-
-const scrollToActiveThumbnail = (): void => {
-  if (!thumbnailStripRef.value || selectedIndex.value === null) return;
-
-  const container = thumbnailStripRef.value;
-  const thumbnails = container.querySelectorAll("button");
-  const activeThumbnail = thumbnails[selectedIndex.value];
-
-  if (activeThumbnail) {
-    const containerRect = container.getBoundingClientRect();
-    const thumbnailRect = activeThumbnail.getBoundingClientRect();
-    const isOutsideLeft = thumbnailRect.left < containerRect.left;
-    const isOutsideRight = thumbnailRect.right > containerRect.right;
-
-    if (isOutsideLeft || isOutsideRight) {
-      activeThumbnail.scrollIntoView({
-        behavior: "smooth",
-        inline: "center",
-        block: "nearest",
-      });
-    }
-  }
-};
-
-watch(selectedIndex, () => {
-  nextTick(scrollToActiveThumbnail);
-});
-
-const goToPrevious = (): void => {
-  if (selectedIndex.value === null) return;
-  slideDirection.value = "right";
-  selectedIndex.value =
-    selectedIndex.value === 0
-      ? photos.value.length - 1
-      : selectedIndex.value - 1;
-};
-
-const goToNext = (): void => {
-  if (selectedIndex.value === null) return;
-  slideDirection.value = "left";
-  selectedIndex.value =
-    selectedIndex.value === photos.value.length - 1
-      ? 0
-      : selectedIndex.value + 1;
-};
-
-const handleKeydown = (event: KeyboardEvent): void => {
-  if (!isLightboxOpen.value) return;
-
-  switch (event.key) {
-    case "Escape":
-      if (lightboxMode.value === "grid") {
-        lightboxMode.value = "single";
-      } else {
-        closeLightbox();
+  const visiblePhotos = computed(() => photos.value.slice(0, MAX_VISIBLE_PHOTOS))
+  const hasMorePhotos = computed(() => photos.value.length > MAX_VISIBLE_PHOTOS)
+  const fetchPublicGallery = async (): Promise<void> => {
+    try {
+      const data = await listGalleryImagesCached()
+      showGallery.value = data.settings?.showGallery ?? true
+      if (data.images?.length > 0) {
+        photos.value = data.images.map((img) => ({
+          src: img.url,
+          alt: img.filename,
+        }))
       }
-      break;
-    case "ArrowLeft":
-      if (lightboxMode.value === "single") goToPrevious();
-      break;
-    case "ArrowRight":
-      if (lightboxMode.value === "single") goToNext();
-      break;
-    case "g":
-    case "G":
-      toggleLightboxMode();
-      break;
-  }
-};
-
-const touchStartX = ref(0);
-const touchEndX = ref(0);
-
-const handleTouchStart = (e: TouchEvent): void => {
-  touchStartX.value = e.touches[0]?.clientX ?? 0;
-};
-
-const handleTouchMove = (e: TouchEvent): void => {
-  touchEndX.value = e.touches[0]?.clientX ?? 0;
-};
-
-const handleTouchEnd = (): void => {
-  const diff = touchStartX.value - touchEndX.value;
-  const threshold = 50;
-
-  if (Math.abs(diff) > threshold) {
-    if (diff > 0) {
-      goToNext();
-    } else {
-      goToPrevious();
+    } catch {
+      // Photos remain empty on error
+    } finally {
+      isLoadingPhotos.value = false
     }
   }
 
-  touchStartX.value = 0;
-  touchEndX.value = 0;
-};
+  const isLightboxOpen = computed(() => selectedIndex.value !== null)
 
-onMounted(() => {
-  window.addEventListener("keydown", handleKeydown);
-  fetchPublicGallery();
-});
+  const currentPhoto = computed(() => {
+    if (selectedIndex.value === null) return null
+    return photos.value[selectedIndex.value] ?? null
+  })
 
-onUnmounted(() => {
-  window.removeEventListener("keydown", handleKeydown);
-  document.body.style.overflow = "";
-});
+  const photoCounter = computed(() => {
+    if (selectedIndex.value === null) return ''
+    return t.value.gallery.photoOf
+      .replace('{current}', String(selectedIndex.value + 1))
+      .replace('{total}', String(photos.value.length))
+  })
+
+  const openLightbox = (index: number): void => {
+    selectedIndex.value = index
+    lightboxMode.value = 'single'
+    document.body.style.overflow = 'hidden'
+  }
+
+  const closeLightbox = (): void => {
+    selectedIndex.value = null
+    lightboxMode.value = 'single'
+    document.body.style.overflow = ''
+  }
+
+  const jumpToPhoto = (index: number): void => {
+    if (selectedIndex.value !== null) {
+      slideDirection.value = index > selectedIndex.value ? 'left' : 'right'
+    }
+    selectedIndex.value = index
+    lightboxMode.value = 'single'
+  }
+
+  const toggleLightboxMode = (): void => {
+    lightboxMode.value = lightboxMode.value === 'single' ? 'grid' : 'single'
+  }
+
+  const scrollToActiveThumbnail = (): void => {
+    if (!thumbnailStripRef.value || selectedIndex.value === null) return
+
+    const container = thumbnailStripRef.value
+    const thumbnails = container.querySelectorAll('button')
+    const activeThumbnail = thumbnails[selectedIndex.value]
+
+    if (activeThumbnail) {
+      const containerRect = container.getBoundingClientRect()
+      const thumbnailRect = activeThumbnail.getBoundingClientRect()
+      const isOutsideLeft = thumbnailRect.left < containerRect.left
+      const isOutsideRight = thumbnailRect.right > containerRect.right
+
+      if (isOutsideLeft || isOutsideRight) {
+        activeThumbnail.scrollIntoView({
+          behavior: 'smooth',
+          inline: 'center',
+          block: 'nearest',
+        })
+      }
+    }
+  }
+
+  watch(selectedIndex, () => {
+    nextTick(scrollToActiveThumbnail)
+  })
+
+  const goToPrevious = (): void => {
+    if (selectedIndex.value === null) return
+    slideDirection.value = 'right'
+    selectedIndex.value =
+      selectedIndex.value === 0 ? photos.value.length - 1 : selectedIndex.value - 1
+  }
+
+  const goToNext = (): void => {
+    if (selectedIndex.value === null) return
+    slideDirection.value = 'left'
+    selectedIndex.value =
+      selectedIndex.value === photos.value.length - 1 ? 0 : selectedIndex.value + 1
+  }
+
+  const handleKeydown = (event: KeyboardEvent): void => {
+    if (!isLightboxOpen.value) return
+
+    switch (event.key) {
+      case 'Escape':
+        if (lightboxMode.value === 'grid') {
+          lightboxMode.value = 'single'
+        } else {
+          closeLightbox()
+        }
+        break
+      case 'ArrowLeft':
+        if (lightboxMode.value === 'single') goToPrevious()
+        break
+      case 'ArrowRight':
+        if (lightboxMode.value === 'single') goToNext()
+        break
+      case 'g':
+      case 'G':
+        toggleLightboxMode()
+        break
+    }
+  }
+
+  const touchStartX = ref(0)
+  const touchEndX = ref(0)
+
+  const handleTouchStart = (e: TouchEvent): void => {
+    touchStartX.value = e.touches[0]?.clientX ?? 0
+  }
+
+  const handleTouchMove = (e: TouchEvent): void => {
+    touchEndX.value = e.touches[0]?.clientX ?? 0
+  }
+
+  const handleTouchEnd = (): void => {
+    const diff = touchStartX.value - touchEndX.value
+    const threshold = 50
+
+    if (Math.abs(diff) > threshold) {
+      if (diff > 0) {
+        goToNext()
+      } else {
+        goToPrevious()
+      }
+    }
+
+    touchStartX.value = 0
+    touchEndX.value = 0
+  }
+
+  onMounted(() => {
+    window.addEventListener('keydown', handleKeydown)
+    fetchPublicGallery()
+  })
+
+  onUnmounted(() => {
+    window.removeEventListener('keydown', handleKeydown)
+    document.body.style.overflow = ''
+  })
 </script>
 
 <template>
@@ -246,15 +242,9 @@ onUnmounted(() => {
         <div
           v-if="isLightboxOpen"
           class="fixed inset-0 z-[100] bg-black/95 flex flex-col"
-          @click.self="
-            lightboxMode === 'single'
-              ? closeLightbox()
-              : (lightboxMode = 'single')
-          "
+          @click.self="lightboxMode === 'single' ? closeLightbox() : (lightboxMode = 'single')"
         >
-          <div
-            class="flex-shrink-0 flex items-center justify-between p-3 sm:p-4"
-          >
+          <div class="flex-shrink-0 flex items-center justify-between p-3 sm:p-4">
             <p class="font-body text-sm text-white/80">
               {{ photoCounter }}
             </p>
@@ -263,12 +253,8 @@ onUnmounted(() => {
               <button
                 type="button"
                 class="p-2 text-white/80 hover:text-white transition-colors rounded-lg"
-                :class="
-                  lightboxMode === 'grid' ? 'bg-white/20' : 'hover:bg-white/10'
-                "
-                :aria-label="
-                  lightboxMode === 'grid' ? t.gallery.close : t.gallery.viewAll
-                "
+                :class="lightboxMode === 'grid' ? 'bg-white/20' : 'hover:bg-white/10'"
+                :aria-label="lightboxMode === 'grid' ? t.gallery.close : t.gallery.viewAll"
                 @click="toggleLightboxMode"
               >
                 <svg
@@ -365,9 +351,7 @@ onUnmounted(() => {
           </div>
 
           <div v-else class="flex-1 overflow-y-auto p-4">
-            <div
-              class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2"
-            >
+            <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2">
               <button
                 v-for="(photo, index) in photos"
                 :key="photo.src"
@@ -394,10 +378,7 @@ onUnmounted(() => {
             v-if="lightboxMode === 'single' && photos.length > 1"
             class="flex-shrink-0 p-3 sm:p-4 bg-black/50"
           >
-            <div
-              ref="thumbnailStripRef"
-              class="flex gap-2 overflow-x-auto scrollbar-hide"
-            >
+            <div ref="thumbnailStripRef" class="flex gap-2 overflow-x-auto scrollbar-hide">
               <button
                 v-for="(photo, index) in photos"
                 :key="photo.src"
@@ -426,56 +407,56 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.2s ease;
-}
+  .fade-enter-active,
+  .fade-leave-active {
+    transition: opacity 0.2s ease;
+  }
 
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
-}
+  .fade-enter-from,
+  .fade-leave-to {
+    opacity: 0;
+  }
 
-.slide-left-enter-active,
-.slide-left-leave-active {
-  transition:
-    transform 0.25s ease,
-    opacity 0.25s ease;
-}
+  .slide-left-enter-active,
+  .slide-left-leave-active {
+    transition:
+      transform 0.25s ease,
+      opacity 0.25s ease;
+  }
 
-.slide-left-enter-from {
-  transform: translateX(100px);
-  opacity: 0;
-}
+  .slide-left-enter-from {
+    transform: translateX(100px);
+    opacity: 0;
+  }
 
-.slide-left-leave-to {
-  transform: translateX(-100px);
-  opacity: 0;
-}
+  .slide-left-leave-to {
+    transform: translateX(-100px);
+    opacity: 0;
+  }
 
-.slide-right-enter-active,
-.slide-right-leave-active {
-  transition:
-    transform 0.25s ease,
-    opacity 0.25s ease;
-}
+  .slide-right-enter-active,
+  .slide-right-leave-active {
+    transition:
+      transform 0.25s ease,
+      opacity 0.25s ease;
+  }
 
-.slide-right-enter-from {
-  transform: translateX(-100px);
-  opacity: 0;
-}
+  .slide-right-enter-from {
+    transform: translateX(-100px);
+    opacity: 0;
+  }
 
-.slide-right-leave-to {
-  transform: translateX(100px);
-  opacity: 0;
-}
+  .slide-right-leave-to {
+    transform: translateX(100px);
+    opacity: 0;
+  }
 
-.scrollbar-hide {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
 
-.scrollbar-hide::-webkit-scrollbar {
-  display: none;
-}
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
 </style>

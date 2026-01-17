@@ -1,20 +1,20 @@
 <script setup lang="ts">
-import DarkModeToggle from "@/components/ui/DarkModeToggle.vue";
+  import DarkModeToggle from '@/components/ui/DarkModeToggle.vue'
 
-defineProps<{
-  username: string;
-  password: string;
-  showPassword: boolean;
-  loginError: string;
-  isLoggingIn: boolean;
-}>();
+  defineProps<{
+    username: string
+    password: string
+    showPassword: boolean
+    loginError: string
+    isLoggingIn: boolean
+  }>()
 
-const emit = defineEmits<{
-  "update:username": [value: string];
-  "update:password": [value: string];
-  "update:showPassword": [value: boolean];
-  submit: [];
-}>();
+  const emit = defineEmits<{
+    'update:username': [value: string]
+    'update:password': [value: string]
+    'update:showPassword': [value: boolean]
+    submit: []
+  }>()
 </script>
 
 <template>
@@ -22,12 +22,8 @@ const emit = defineEmits<{
     <div class="absolute top-4 right-4">
       <DarkModeToggle variant="light" />
     </div>
-    <div
-      class="w-full max-w-sm p-6 bg-white dark:bg-dark-bg-secondary rounded-xl shadow-lg"
-    >
-      <h1
-        class="font-heading text-2xl text-center text-sage-dark dark:text-sage-light mb-6"
-      >
+    <div class="w-full max-w-sm p-6 bg-white dark:bg-dark-bg-secondary rounded-xl shadow-lg">
+      <h1 class="font-heading text-2xl text-center text-sage-dark dark:text-sage-light mb-6">
         Admin Login
       </h1>
 
@@ -47,9 +43,7 @@ const emit = defineEmits<{
             placeholder="Enter username"
             required
             autofocus
-            @input="
-              emit('update:username', ($event.target as HTMLInputElement).value)
-            "
+            @input="emit('update:username', ($event.target as HTMLInputElement).value)"
           />
         </div>
 
@@ -68,12 +62,7 @@ const emit = defineEmits<{
               class="w-full px-3 py-2.5 pr-10 font-body text-base border border-sand-dark dark:border-dark-border rounded-lg bg-sand dark:bg-dark-bg-elevated text-charcoal dark:text-dark-text focus:outline-none focus:border-sage placeholder:text-charcoal-light/60 dark:placeholder:text-dark-text-secondary/60"
               placeholder="Enter password"
               required
-              @input="
-                emit(
-                  'update:password',
-                  ($event.target as HTMLInputElement).value,
-                )
-              "
+              @input="emit('update:password', ($event.target as HTMLInputElement).value)"
             />
             <button
               type="button"
@@ -108,16 +97,11 @@ const emit = defineEmits<{
           </div>
         </div>
 
-        <p
-          class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary text-center"
-        >
+        <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary text-center">
           Use "master" as username with the master password for initial setup.
         </p>
 
-        <p
-          v-if="loginError"
-          class="text-red-600 dark:text-red-400 font-body text-sm text-center"
-        >
+        <p v-if="loginError" class="text-red-600 dark:text-red-400 font-body text-sm text-center">
           {{ loginError }}
         </p>
 
@@ -126,7 +110,7 @@ const emit = defineEmits<{
           class="w-full py-3 px-6 font-body text-base font-medium text-white bg-sage rounded-lg cursor-pointer transition-colors hover:bg-sage-dark disabled:opacity-70 disabled:cursor-not-allowed"
           :disabled="isLoggingIn"
         >
-          {{ isLoggingIn ? "Logging in..." : "Login" }}
+          {{ isLoggingIn ? 'Logging in...' : 'Login' }}
         </button>
       </form>
     </div>

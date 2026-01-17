@@ -71,6 +71,7 @@ cd frontend && pnpm check && cd ../backend && pnpm check
 - Gift registry
 - Image gallery
 - Music player
+- Parking guide (images, step-by-step directions, video walkthrough)
 - Multi-language support (i18n)
 - Theme customization
 

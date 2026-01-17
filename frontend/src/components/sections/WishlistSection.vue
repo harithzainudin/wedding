@@ -1,124 +1,116 @@
 <script setup lang="ts">
-import { ref, onMounted, reactive } from "vue";
-import { usePublicGifts } from "@/composables/usePublicGifts";
-import { useLanguage } from "@/composables/useLanguage";
-import type { GiftItem, ReserveGiftRequest } from "@/types/gift";
+  import { ref, onMounted, reactive } from 'vue'
+  import { usePublicGifts } from '@/composables/usePublicGifts'
+  import { useLanguage } from '@/composables/useLanguage'
+  import type { GiftItem, ReserveGiftRequest } from '@/types/gift'
 
-const { t, currentLanguage } = useLanguage();
-const {
-  gifts,
-  isEnabled,
-  isLoading,
-  loadError,
-  isReserving,
-  reserveError,
-  reserveSuccess,
-  hasGifts,
-  fetchGifts,
-  reserveGiftItem,
-  isGiftAvailable,
-  getAvailabilityText,
-  resetReserveState,
-} = usePublicGifts();
+  const { t, currentLanguage } = useLanguage()
+  const {
+    gifts,
+    isEnabled,
+    isLoading,
+    loadError,
+    isReserving,
+    reserveError,
+    reserveSuccess,
+    hasGifts,
+    fetchGifts,
+    reserveGiftItem,
+    isGiftAvailable,
+    getAvailabilityText,
+    resetReserveState,
+  } = usePublicGifts()
 
-// Modal state
-const showReserveModal = ref(false);
-const selectedGift = ref<GiftItem | null>(null);
+  // Modal state
+  const showReserveModal = ref(false)
+  const selectedGift = ref<GiftItem | null>(null)
 
-// Form data
-const formData = reactive<ReserveGiftRequest>({
-  guestName: "",
-  guestPhone: "",
-  quantity: 1,
-  message: "",
-});
+  // Form data
+  const formData = reactive<ReserveGiftRequest>({
+    guestName: '',
+    guestPhone: '',
+    quantity: 1,
+    message: '',
+  })
 
-// Category filter
-const selectedCategory = ref<string>("all");
+  // Category filter
+  const selectedCategory = ref<string>('all')
 
-// Get localized text
-const getLocalizedText = (text: Record<string, string>): string => {
-  return text[currentLanguage.value] || text.en || "";
-};
-
-// Filter gifts by category
-const filteredGifts = () => {
-  if (selectedCategory.value === "all") {
-    return gifts.value;
-  }
-  return gifts.value.filter((g) => g.category === selectedCategory.value);
-};
-
-// Open reserve modal
-const openReserveModal = (gift: GiftItem) => {
-  selectedGift.value = gift;
-  formData.guestName = "";
-  formData.guestPhone = "";
-  formData.quantity = 1;
-  formData.message = "";
-  resetReserveState();
-  showReserveModal.value = true;
-};
-
-// Close modal
-const closeModal = () => {
-  showReserveModal.value = false;
-  selectedGift.value = null;
-  resetReserveState();
-};
-
-// Handle form submit
-const handleSubmit = async () => {
-  if (
-    !selectedGift.value ||
-    !formData.guestName.trim() ||
-    !formData.guestPhone.trim()
-  ) {
-    return;
+  // Get localized text
+  const getLocalizedText = (text: Record<string, string>): string => {
+    return text[currentLanguage.value] || text.en || ''
   }
 
-  const trimmedMessage = formData.message?.trim();
-  await reserveGiftItem(selectedGift.value.id, {
-    guestName: formData.guestName.trim(),
-    guestPhone: formData.guestPhone.trim(),
-    quantity: formData.quantity ?? 1,
-    ...(trimmedMessage ? { message: trimmedMessage } : {}),
-  });
-
-  // Keep modal open to show success/error state
-};
-
-// Get priority badge color
-const getPriorityColor = (priority: string): string => {
-  switch (priority) {
-    case "high":
-      return "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300";
-    case "medium":
-      return "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300";
-    default:
-      return "bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300";
+  // Filter gifts by category
+  const filteredGifts = () => {
+    if (selectedCategory.value === 'all') {
+      return gifts.value
+    }
+    return gifts.value.filter((g) => g.category === selectedCategory.value)
   }
-};
 
-// Get category label
-const getCategoryLabel = (category: string): string => {
-  const labels: Record<string, Record<string, string>> = {
-    home: { en: "Home", ms: "Rumah" },
-    kitchen: { en: "Kitchen", ms: "Dapur" },
-    electronics: { en: "Electronics", ms: "Elektronik" },
-    experiences: { en: "Experiences", ms: "Pengalaman" },
-    other: { en: "Other", ms: "Lain-lain" },
-  };
-  return (
-    labels[category]?.[currentLanguage.value] ||
-    labels[category]?.en ||
-    category
-  );
-};
+  // Open reserve modal
+  const openReserveModal = (gift: GiftItem) => {
+    selectedGift.value = gift
+    formData.guestName = ''
+    formData.guestPhone = ''
+    formData.quantity = 1
+    formData.message = ''
+    resetReserveState()
+    showReserveModal.value = true
+  }
 
-onMounted(() => {
-  fetchGifts();
-});
+  // Close modal
+  const closeModal = () => {
+    showReserveModal.value = false
+    selectedGift.value = null
+    resetReserveState()
+  }
+
+  // Handle form submit
+  const handleSubmit = async () => {
+    if (!selectedGift.value || !formData.guestName.trim() || !formData.guestPhone.trim()) {
+      return
+    }
+
+    const trimmedMessage = formData.message?.trim()
+    await reserveGiftItem(selectedGift.value.id, {
+      guestName: formData.guestName.trim(),
+      guestPhone: formData.guestPhone.trim(),
+      quantity: formData.quantity ?? 1,
+      ...(trimmedMessage ? { message: trimmedMessage } : {}),
+    })
+
+    // Keep modal open to show success/error state
+  }
+
+  // Get priority badge color
+  const getPriorityColor = (priority: string): string => {
+    switch (priority) {
+      case 'high':
+        return 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300'
+      case 'medium':
+        return 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300'
+      default:
+        return 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300'
+    }
+  }
+
+  // Get category label
+  const getCategoryLabel = (category: string): string => {
+    const labels: Record<string, Record<string, string>> = {
+      home: { en: 'Home', ms: 'Rumah' },
+      kitchen: { en: 'Kitchen', ms: 'Dapur' },
+      electronics: { en: 'Electronics', ms: 'Elektronik' },
+      experiences: { en: 'Experiences', ms: 'Pengalaman' },
+      other: { en: 'Other', ms: 'Lain-lain' },
+    }
+    return labels[category]?.[currentLanguage.value] || labels[category]?.en || category
+  }
+
+  onMounted(() => {
+    fetchGifts()
+  })
 </script>
 
 <template>
@@ -133,7 +125,7 @@ onMounted(() => {
         <h2
           class="font-heading text-xl sm:text-2xl md:text-3xl text-sage-dark dark:text-sage-light mb-2"
         >
-          {{ t.wishlist?.title || "Gift Wishlist" }}
+          {{ t.wishlist?.title || 'Gift Wishlist' }}
         </h2>
         <p
           class="font-body text-sm sm:text-base text-charcoal-light dark:text-dark-text-secondary max-w-2xl mx-auto"
@@ -176,16 +168,10 @@ onMounted(() => {
                 : 'bg-white dark:bg-dark-bg-secondary text-charcoal dark:text-dark-text hover:bg-sage-light dark:hover:bg-sage/20',
             ]"
           >
-            {{ t.wishlist?.categories?.all || "All" }}
+            {{ t.wishlist?.categories?.all || 'All' }}
           </button>
           <button
-            v-for="cat in [
-              'home',
-              'kitchen',
-              'electronics',
-              'experiences',
-              'other',
-            ]"
+            v-for="cat in ['home', 'kitchen', 'electronics', 'experiences', 'other']"
             :key="cat"
             @click="selectedCategory = cat"
             :class="[
@@ -200,9 +186,7 @@ onMounted(() => {
         </div>
 
         <!-- Grid -->
-        <div
-          class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6"
-        >
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           <div
             v-for="gift in filteredGifts()"
             :key="gift.id"
@@ -219,10 +203,7 @@ onMounted(() => {
                 :alt="getLocalizedText(gift.name)"
                 class="w-full h-full object-cover"
               />
-              <div
-                v-else
-                class="w-full h-full flex items-center justify-center"
-              >
+              <div v-else class="w-full h-full flex items-center justify-center">
                 <svg
                   class="w-12 h-12 text-charcoal-light/30"
                   fill="currentColor"
@@ -242,7 +223,7 @@ onMounted(() => {
                   getPriorityColor(gift.priority),
                 ]"
               >
-                {{ currentLanguage === "ms" ? "Penting" : "Needed" }}
+                {{ currentLanguage === 'ms' ? 'Penting' : 'Needed' }}
               </span>
 
               <!-- Fully Reserved Overlay -->
@@ -253,16 +234,14 @@ onMounted(() => {
                 <span
                   class="px-3 py-1.5 bg-charcoal/80 text-white text-xs sm:text-sm font-body rounded-full"
                 >
-                  {{ t.wishlist?.fullyReserved || "Fully Reserved" }}
+                  {{ t.wishlist?.fullyReserved || 'Fully Reserved' }}
                 </span>
               </div>
             </div>
 
             <!-- Content -->
             <div class="p-4 flex-1 flex flex-col">
-              <h3
-                class="font-heading text-base sm:text-lg text-charcoal dark:text-dark-text mb-1"
-              >
+              <h3 class="font-heading text-base sm:text-lg text-charcoal dark:text-dark-text mb-1">
                 {{ getLocalizedText(gift.name) }}
               </h3>
               <p
@@ -280,9 +259,7 @@ onMounted(() => {
               </p>
 
               <!-- Price Range -->
-              <p
-                class="font-body text-sm text-charcoal dark:text-dark-text mb-3"
-              >
+              <p class="font-body text-sm text-charcoal dark:text-dark-text mb-3">
                 {{ gift.priceRange }}
               </p>
 
@@ -306,7 +283,7 @@ onMounted(() => {
                   rel="noopener noreferrer"
                   class="flex-1 py-2 px-3 text-xs sm:text-sm font-body text-center text-sage border border-sage rounded-lg hover:bg-sage/10 transition-colors"
                 >
-                  {{ t.wishlist?.viewOnStore || "View" }}
+                  {{ t.wishlist?.viewOnStore || 'View' }}
                 </a>
                 <button
                   @click="openReserveModal(gift)"
@@ -320,8 +297,8 @@ onMounted(() => {
                 >
                   {{
                     isGiftAvailable(gift)
-                      ? t.wishlist?.reserveButton || "Reserve"
-                      : t.wishlist?.fullyReserved || "Reserved"
+                      ? t.wishlist?.reserveButton || 'Reserve'
+                      : t.wishlist?.fullyReserved || 'Reserved'
                   }}
                 </button>
               </div>
@@ -335,7 +312,7 @@ onMounted(() => {
         >
           {{
             t.wishlist?.footerNote ||
-            "Feel free to give any gift from the heart - this list is just to help avoid duplicates!"
+            'Feel free to give any gift from the heart - this list is just to help avoid duplicates!'
           }}
         </p>
       </div>
@@ -362,38 +339,27 @@ onMounted(() => {
               >
                 ✓
               </div>
-              <h3
-                class="font-heading text-xl text-sage-dark dark:text-sage-light mb-2"
-              >
-                {{ t.wishlist?.thankYou || "Thank You!" }}
+              <h3 class="font-heading text-xl text-sage-dark dark:text-sage-light mb-2">
+                {{ t.wishlist?.thankYou || 'Thank You!' }}
               </h3>
-              <p
-                class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary mb-4"
-              >
-                {{
-                  t.wishlist?.reservationReceived ||
-                  "Your reservation has been received."
-                }}
+              <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary mb-4">
+                {{ t.wishlist?.reservationReceived || 'Your reservation has been received.' }}
               </p>
               <button
                 @click="closeModal"
                 class="px-6 py-2 font-body text-sm bg-sage text-white rounded-lg hover:bg-sage-dark transition-colors"
               >
-                {{ currentLanguage === "ms" ? "Tutup" : "Close" }}
+                {{ currentLanguage === 'ms' ? 'Tutup' : 'Close' }}
               </button>
             </div>
 
             <!-- Form State -->
             <div v-else>
-              <h3
-                class="font-heading text-lg sm:text-xl text-charcoal dark:text-dark-text mb-1"
-              >
-                {{ t.wishlist?.reserveTitle || "Reserve Gift" }}
+              <h3 class="font-heading text-lg sm:text-xl text-charcoal dark:text-dark-text mb-1">
+                {{ t.wishlist?.reserveTitle || 'Reserve Gift' }}
               </h3>
-              <p
-                class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary mb-4"
-              >
-                {{ selectedGift ? getLocalizedText(selectedGift.name) : "" }}
+              <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary mb-4">
+                {{ selectedGift ? getLocalizedText(selectedGift.name) : '' }}
               </p>
 
               <!-- Error -->
@@ -412,15 +378,13 @@ onMounted(() => {
                   <label
                     class="block font-body text-sm font-medium text-charcoal dark:text-dark-text mb-1"
                   >
-                    {{ t.wishlist?.yourName || "Your Name" }} *
+                    {{ t.wishlist?.yourName || 'Your Name' }} *
                   </label>
                   <input
                     v-model="formData.guestName"
                     type="text"
                     required
-                    :placeholder="
-                      t.wishlist?.namePlaceholder || 'Your full name'
-                    "
+                    :placeholder="t.wishlist?.namePlaceholder || 'Your full name'"
                     class="w-full px-3 py-2 font-body text-sm border border-sand-dark dark:border-gray-600 rounded-lg bg-sand dark:bg-dark-bg focus:outline-none focus:border-sage dark:focus:border-sage text-charcoal dark:text-dark-text"
                   />
                 </div>
@@ -430,7 +394,7 @@ onMounted(() => {
                   <label
                     class="block font-body text-sm font-medium text-charcoal dark:text-dark-text mb-1"
                   >
-                    {{ t.wishlist?.yourPhone || "Phone Number" }} *
+                    {{ t.wishlist?.yourPhone || 'Phone Number' }} *
                   </label>
                   <input
                     v-model="formData.guestPhone"
@@ -446,14 +410,13 @@ onMounted(() => {
                   <label
                     class="block font-body text-sm font-medium text-charcoal dark:text-dark-text mb-1"
                   >
-                    {{ t.wishlist?.optionalMessage || "Message (Optional)" }}
+                    {{ t.wishlist?.optionalMessage || 'Message (Optional)' }}
                   </label>
                   <textarea
                     v-model="formData.message"
                     rows="2"
                     :placeholder="
-                      t.wishlist?.messagePlaceholder ||
-                      'Leave a message for the couple...'
+                      t.wishlist?.messagePlaceholder || 'Leave a message for the couple...'
                     "
                     class="w-full px-3 py-2 font-body text-sm border border-sand-dark dark:border-gray-600 rounded-lg bg-sand dark:bg-dark-bg focus:outline-none focus:border-sage dark:focus:border-sage text-charcoal dark:text-dark-text resize-none"
                   ></textarea>
@@ -466,21 +429,19 @@ onMounted(() => {
                     @click="closeModal"
                     class="flex-1 py-2.5 px-4 font-body text-sm text-charcoal dark:text-dark-text border border-sand-dark dark:border-gray-600 rounded-lg hover:bg-sand dark:hover:bg-dark-bg transition-colors"
                   >
-                    {{ currentLanguage === "ms" ? "Batal" : "Cancel" }}
+                    {{ currentLanguage === 'ms' ? 'Batal' : 'Cancel' }}
                   </button>
                   <button
                     type="submit"
                     :disabled="
-                      isReserving ||
-                      !formData.guestName.trim() ||
-                      !formData.guestPhone.trim()
+                      isReserving || !formData.guestName.trim() || !formData.guestPhone.trim()
                     "
                     class="flex-1 py-2.5 px-4 font-body text-sm bg-sage text-white rounded-lg hover:bg-sage-dark disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   >
                     {{
                       isReserving
-                        ? t.wishlist?.submitting || "Submitting..."
-                        : t.wishlist?.submitReserve || "Reserve Now"
+                        ? t.wishlist?.submitting || 'Submitting...'
+                        : t.wishlist?.submitReserve || 'Reserve Now'
                     }}
                   </button>
                 </div>
@@ -494,20 +455,20 @@ onMounted(() => {
 </template>
 
 <style scoped>
-.modal-enter-active,
-.modal-leave-active {
-  transition: opacity 0.2s ease;
-}
+  .modal-enter-active,
+  .modal-leave-active {
+    transition: opacity 0.2s ease;
+  }
 
-.modal-enter-from,
-.modal-leave-to {
-  opacity: 0;
-}
+  .modal-enter-from,
+  .modal-leave-to {
+    opacity: 0;
+  }
 
-.line-clamp-2 {
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
 </style>

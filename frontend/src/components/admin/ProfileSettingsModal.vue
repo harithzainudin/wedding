@@ -1,21 +1,21 @@
 <script setup lang="ts">
-defineProps<{
-  show: boolean;
-  username: string;
-  email: string;
-  isMasterUser: boolean;
-  isLoading: boolean;
-  isSaving: boolean;
-  error: string;
-  success: boolean;
-}>();
+  defineProps<{
+    show: boolean
+    username: string
+    email: string
+    isMasterUser: boolean
+    isLoading: boolean
+    isSaving: boolean
+    error: string
+    success: boolean
+  }>()
 
-const emit = defineEmits<{
-  "update:email": [value: string];
-  close: [];
-  save: [];
-  openPasswordChange: [];
-}>();
+  const emit = defineEmits<{
+    'update:email': [value: string]
+    close: []
+    save: []
+    openPasswordChange: []
+  }>()
 </script>
 
 <template>
@@ -24,9 +24,7 @@ const emit = defineEmits<{
     class="fixed inset-0 bg-black/50 dark:bg-black/70 flex items-center justify-center z-50 px-4"
     @click.self="emit('close')"
   >
-    <div
-      class="bg-white dark:bg-dark-bg-secondary rounded-xl p-6 max-w-md w-full shadow-xl"
-    >
+    <div class="bg-white dark:bg-dark-bg-secondary rounded-xl p-6 max-w-md w-full shadow-xl">
       <div v-if="success" class="text-center">
         <div
           class="w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-4"
@@ -41,21 +39,15 @@ const emit = defineEmits<{
             <path d="M20 6L9 17l-5-5" />
           </svg>
         </div>
-        <h3 class="font-heading text-lg text-charcoal dark:text-dark-text mb-2">
-          Profile Updated
-        </h3>
-        <p
-          class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary"
-        >
+        <h3 class="font-heading text-lg text-charcoal dark:text-dark-text mb-2">Profile Updated</h3>
+        <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary">
           Your profile has been updated successfully.
         </p>
       </div>
 
       <div v-else>
         <div class="flex items-center justify-between mb-6">
-          <h3 class="font-heading text-lg text-charcoal dark:text-dark-text">
-            Profile Settings
-          </h3>
+          <h3 class="font-heading text-lg text-charcoal dark:text-dark-text">Profile Settings</h3>
           <button
             type="button"
             class="text-charcoal-light dark:text-dark-text-secondary hover:text-charcoal dark:hover:text-dark-text transition-colors cursor-pointer"
@@ -78,9 +70,7 @@ const emit = defineEmits<{
           <div
             class="inline-block w-8 h-8 border-3 border-sage border-t-transparent rounded-full animate-spin"
           ></div>
-          <p
-            class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary mt-3"
-          >
+          <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary mt-3">
             Loading profile...
           </p>
         </div>
@@ -97,9 +87,7 @@ const emit = defineEmits<{
             >
               {{ username }}
             </div>
-            <p
-              class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary mt-1"
-            >
+            <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary mt-1">
               Username cannot be changed.
             </p>
           </div>
@@ -117,13 +105,9 @@ const emit = defineEmits<{
               type="email"
               class="w-full px-3 py-2.5 font-body text-base border border-sand-dark dark:border-dark-border rounded-lg bg-sand dark:bg-dark-bg-elevated text-charcoal dark:text-dark-text focus:outline-none focus:border-sage placeholder:text-charcoal-light/60 dark:placeholder:text-dark-text-secondary/60"
               placeholder="Enter your email"
-              @input="
-                emit('update:email', ($event.target as HTMLInputElement).value)
-              "
+              @input="emit('update:email', ($event.target as HTMLInputElement).value)"
             />
-            <p
-              class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary mt-1"
-            >
+            <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary mt-1">
               Used for account recovery and notifications.
             </p>
           </div>
@@ -133,15 +117,11 @@ const emit = defineEmits<{
             class="p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg"
           >
             <p class="font-body text-sm text-amber-700 dark:text-amber-300">
-              Master account profile settings are managed through environment
-              configuration.
+              Master account profile settings are managed through environment configuration.
             </p>
           </div>
 
-          <div
-            v-if="!isMasterUser"
-            class="pt-2 border-t border-sand-dark dark:border-dark-border"
-          >
+          <div v-if="!isMasterUser" class="pt-2 border-t border-sand-dark dark:border-dark-border">
             <button
               type="button"
               class="flex items-center gap-2 font-body text-sm text-sage hover:text-sage-dark dark:hover:text-sage-light transition-colors cursor-pointer"
@@ -161,10 +141,7 @@ const emit = defineEmits<{
             </button>
           </div>
 
-          <p
-            v-if="error"
-            class="text-red-600 dark:text-red-400 font-body text-sm"
-          >
+          <p v-if="error" class="text-red-600 dark:text-red-400 font-body text-sm">
             {{ error }}
           </p>
 
@@ -174,7 +151,7 @@ const emit = defineEmits<{
               class="px-4 py-2 font-body text-sm text-white bg-sage rounded-lg hover:bg-sage-dark transition-colors cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed"
               :disabled="isSaving"
             >
-              {{ isSaving ? "Saving..." : "Save Changes" }}
+              {{ isSaving ? 'Saving...' : 'Save Changes' }}
             </button>
             <button
               type="button"

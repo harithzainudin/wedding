@@ -1,21 +1,21 @@
 <script setup lang="ts">
-defineProps<{
-  show: boolean;
-  newPassword: string;
-  confirmNewPassword: string;
-  showNewPassword: boolean;
-  showConfirmNewPassword: boolean;
-  error: string;
-  isSubmitting: boolean;
-}>();
+  defineProps<{
+    show: boolean
+    newPassword: string
+    confirmNewPassword: string
+    showNewPassword: boolean
+    showConfirmNewPassword: boolean
+    error: string
+    isSubmitting: boolean
+  }>()
 
-const emit = defineEmits<{
-  "update:newPassword": [value: string];
-  "update:confirmNewPassword": [value: string];
-  "update:showNewPassword": [value: boolean];
-  "update:showConfirmNewPassword": [value: boolean];
-  submit: [];
-}>();
+  const emit = defineEmits<{
+    'update:newPassword': [value: string]
+    'update:confirmNewPassword': [value: string]
+    'update:showNewPassword': [value: boolean]
+    'update:showConfirmNewPassword': [value: boolean]
+    submit: []
+  }>()
 </script>
 
 <template>
@@ -23,9 +23,7 @@ const emit = defineEmits<{
     v-if="show"
     class="fixed inset-0 bg-black/70 dark:bg-black/80 flex items-center justify-center z-50 px-4"
   >
-    <div
-      class="bg-white dark:bg-dark-bg-secondary rounded-xl p-6 max-w-md w-full shadow-xl"
-    >
+    <div class="bg-white dark:bg-dark-bg-secondary rounded-xl p-6 max-w-md w-full shadow-xl">
       <div class="text-center mb-6">
         <div
           class="w-14 h-14 bg-amber-100 dark:bg-amber-900/30 rounded-full flex items-center justify-center mx-auto mb-4"
@@ -44,11 +42,8 @@ const emit = defineEmits<{
         <h3 class="font-heading text-xl text-charcoal dark:text-dark-text mb-2">
           Password Change Required
         </h3>
-        <p
-          class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary"
-        >
-          Your password has been reset by an administrator. You must set a new
-          password to continue.
+        <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary">
+          Your password has been reset by an administrator. You must set a new password to continue.
         </p>
       </div>
 
@@ -70,12 +65,7 @@ const emit = defineEmits<{
               required
               minlength="6"
               autocomplete="new-password"
-              @input="
-                emit(
-                  'update:newPassword',
-                  ($event.target as HTMLInputElement).value,
-                )
-              "
+              @input="emit('update:newPassword', ($event.target as HTMLInputElement).value)"
             />
             <button
               type="button"
@@ -127,19 +117,12 @@ const emit = defineEmits<{
               required
               minlength="6"
               autocomplete="new-password"
-              @input="
-                emit(
-                  'update:confirmNewPassword',
-                  ($event.target as HTMLInputElement).value,
-                )
-              "
+              @input="emit('update:confirmNewPassword', ($event.target as HTMLInputElement).value)"
             />
             <button
               type="button"
               class="absolute right-3 top-1/2 -translate-y-1/2 text-charcoal-light dark:text-dark-text-secondary hover:text-charcoal dark:hover:text-dark-text transition-colors cursor-pointer"
-              @click="
-                emit('update:showConfirmNewPassword', !showConfirmNewPassword)
-              "
+              @click="emit('update:showConfirmNewPassword', !showConfirmNewPassword)"
             >
               <svg
                 v-if="showConfirmNewPassword"
@@ -169,16 +152,11 @@ const emit = defineEmits<{
           </div>
         </div>
 
-        <p
-          class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary"
-        >
+        <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary">
           Password must be at least 6 characters.
         </p>
 
-        <p
-          v-if="error"
-          class="text-red-600 dark:text-red-400 font-body text-sm"
-        >
+        <p v-if="error" class="text-red-600 dark:text-red-400 font-body text-sm">
           {{ error }}
         </p>
 
@@ -187,7 +165,7 @@ const emit = defineEmits<{
           class="w-full px-4 py-3 font-body text-sm text-white bg-sage rounded-lg hover:bg-sage-dark transition-colors cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed"
           :disabled="isSubmitting"
         >
-          {{ isSubmitting ? "Setting Password..." : "Set New Password" }}
+          {{ isSubmitting ? 'Setting Password...' : 'Set New Password' }}
         </button>
       </form>
     </div>

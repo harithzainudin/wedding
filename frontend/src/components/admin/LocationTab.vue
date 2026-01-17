@@ -1,128 +1,153 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from "vue";
-import { useVenue } from "@/composables/useVenue";
-import LocationMapPicker from "./LocationMapPicker.vue";
-import LocationForm from "./LocationForm.vue";
-import LocationPreview from "./LocationPreview.vue";
+  import { ref, computed, onMounted, watch } from 'vue'
+  import { useVenue } from '@/composables/useVenue'
+  import type { ParkingStep } from '@/types/venue'
+  import LocationMapPicker from './LocationMapPicker.vue'
+  import LocationForm from './LocationForm.vue'
+  import LocationPreview from './LocationPreview.vue'
+  import ParkingForm from './ParkingForm.vue'
 
-const {
-  venue,
-  isLoading,
-  loadError,
-  isSaving,
-  saveError,
-  saveSuccess,
-  fetchVenue,
-  updateVenue,
-  generateGoogleMapsUrl,
-  generateWazeUrl,
-} = useVenue();
+  const {
+    venue,
+    isLoading,
+    loadError,
+    isSaving,
+    saveError,
+    saveSuccess,
+    fetchVenue,
+    updateVenue,
+    generateGoogleMapsUrl,
+    generateWazeUrl,
+  } = useVenue()
 
-// Local form state (editable copy)
-const formData = ref({
-  venueName: "",
-  address: "",
-  parkingInfo: "",
-  coordinates: { lat: 0, lng: 0 },
-});
+  // Local form state (editable copy)
+  const formData = ref({
+    venueName: '',
+    address: '',
+    parkingInfo: '',
+    parkingSteps: [] as ParkingStep[],
+    parkingVideoUrl: '',
+    showParkingImages: true,
+    showParkingDirections: true,
+    showParkingVideo: true,
+    coordinates: { lat: 0, lng: 0 },
+  })
 
-// Track if form has unsaved changes
-const hasChanges = computed(() => {
-  return (
-    formData.value.venueName !== venue.value.venueName ||
-    formData.value.address !== venue.value.address ||
-    formData.value.parkingInfo !== (venue.value.parkingInfo ?? "") ||
-    formData.value.coordinates.lat !== venue.value.coordinates.lat ||
-    formData.value.coordinates.lng !== venue.value.coordinates.lng
-  );
-});
+  // Track if form has unsaved changes
+  const hasChanges = computed(() => {
+    const stepsChanged =
+      JSON.stringify(formData.value.parkingSteps) !== JSON.stringify(venue.value.parkingSteps ?? [])
+    return (
+      formData.value.venueName !== venue.value.venueName ||
+      formData.value.address !== venue.value.address ||
+      formData.value.parkingInfo !== (venue.value.parkingInfo ?? '') ||
+      stepsChanged ||
+      formData.value.parkingVideoUrl !== (venue.value.parkingVideoUrl ?? '') ||
+      formData.value.showParkingImages !== (venue.value.showParkingImages ?? true) ||
+      formData.value.showParkingDirections !== (venue.value.showParkingDirections ?? true) ||
+      formData.value.showParkingVideo !== (venue.value.showParkingVideo ?? true) ||
+      formData.value.coordinates.lat !== venue.value.coordinates.lat ||
+      formData.value.coordinates.lng !== venue.value.coordinates.lng
+    )
+  })
 
-// Preview URLs (computed from current coordinates)
-const previewGoogleMapsUrl = computed(() => {
-  return generateGoogleMapsUrl(
-    formData.value.coordinates.lat,
-    formData.value.coordinates.lng,
-  );
-});
+  // Preview URLs (computed from current coordinates)
+  const previewGoogleMapsUrl = computed(() => {
+    return generateGoogleMapsUrl(formData.value.coordinates.lat, formData.value.coordinates.lng)
+  })
 
-const previewWazeUrl = computed(() => {
-  return generateWazeUrl(
-    formData.value.coordinates.lat,
-    formData.value.coordinates.lng,
-  );
-});
+  const previewWazeUrl = computed(() => {
+    return generateWazeUrl(formData.value.coordinates.lat, formData.value.coordinates.lng)
+  })
 
-// Sync form data when venue is loaded
-const syncFormData = () => {
-  formData.value = {
-    venueName: venue.value.venueName,
-    address: venue.value.address,
-    parkingInfo: venue.value.parkingInfo ?? "",
-    coordinates: { ...venue.value.coordinates },
-  };
-};
-
-// Handle coordinate updates from map
-const handleCoordinatesUpdate = (coords: { lat: number; lng: number }) => {
-  formData.value.coordinates = coords;
-};
-
-// Handle address selection from search
-const handleAddressSelected = (address: string) => {
-  formData.value.address = address;
-};
-
-// Save changes
-const handleSave = async () => {
-  const data: {
-    venueName: string;
-    address: string;
-    coordinates: { lat: number; lng: number };
-    parkingInfo?: string;
-  } = {
-    venueName: formData.value.venueName,
-    address: formData.value.address,
-    coordinates: formData.value.coordinates,
-  };
-  if (formData.value.parkingInfo) {
-    data.parkingInfo = formData.value.parkingInfo;
-  }
-  const result = await updateVenue(data);
-  // Sync form data after successful save to ensure hasChanges is false
-  if (result.success) {
-    syncFormData();
-  }
-};
-
-// Watch for venue changes and sync form
-watch(
-  () => venue.value,
-  () => {
-    if (!hasChanges.value) {
-      syncFormData();
+  // Sync form data when venue is loaded
+  const syncFormData = () => {
+    formData.value = {
+      venueName: venue.value.venueName,
+      address: venue.value.address,
+      parkingInfo: venue.value.parkingInfo ?? '',
+      parkingSteps: venue.value.parkingSteps
+        ? JSON.parse(JSON.stringify(venue.value.parkingSteps))
+        : [],
+      parkingVideoUrl: venue.value.parkingVideoUrl ?? '',
+      showParkingImages: venue.value.showParkingImages ?? true,
+      showParkingDirections: venue.value.showParkingDirections ?? true,
+      showParkingVideo: venue.value.showParkingVideo ?? true,
+      coordinates: { ...venue.value.coordinates },
     }
-  },
-  { deep: true },
-);
+  }
 
-onMounted(async () => {
-  await fetchVenue();
-  syncFormData();
-});
+  // Handle coordinate updates from map
+  const handleCoordinatesUpdate = (coords: { lat: number; lng: number }) => {
+    formData.value.coordinates = coords
+  }
+
+  // Handle address selection from search
+  const handleAddressSelected = (address: string) => {
+    formData.value.address = address
+  }
+
+  // Save changes
+  const handleSave = async () => {
+    const data: {
+      venueName: string
+      address: string
+      coordinates: { lat: number; lng: number }
+      parkingInfo?: string
+      parkingSteps?: ParkingStep[]
+      parkingVideoUrl?: string
+      showParkingImages?: boolean
+      showParkingDirections?: boolean
+      showParkingVideo?: boolean
+    } = {
+      venueName: formData.value.venueName,
+      address: formData.value.address,
+      coordinates: formData.value.coordinates,
+      showParkingImages: formData.value.showParkingImages,
+      showParkingDirections: formData.value.showParkingDirections,
+      showParkingVideo: formData.value.showParkingVideo,
+    }
+    if (formData.value.parkingInfo) {
+      data.parkingInfo = formData.value.parkingInfo
+    }
+    if (formData.value.parkingSteps.length > 0) {
+      data.parkingSteps = formData.value.parkingSteps
+    }
+    if (formData.value.parkingVideoUrl) {
+      data.parkingVideoUrl = formData.value.parkingVideoUrl
+    }
+    const result = await updateVenue(data)
+    // Sync form data after successful save to ensure hasChanges is false
+    if (result.success) {
+      syncFormData()
+    }
+  }
+
+  // Watch for venue changes and sync form
+  watch(
+    () => venue.value,
+    () => {
+      if (!hasChanges.value) {
+        syncFormData()
+      }
+    },
+    { deep: true }
+  )
+
+  onMounted(async () => {
+    await fetchVenue()
+    syncFormData()
+  })
 </script>
 
 <template>
   <div class="max-w-5xl mx-auto">
     <!-- Header -->
     <div class="mb-6">
-      <h2
-        class="font-heading text-xl font-semibold text-charcoal dark:text-dark-text"
-      >
+      <h2 class="font-heading text-xl font-semibold text-charcoal dark:text-dark-text">
         Location Management
       </h2>
-      <p
-        class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary mt-1"
-      >
+      <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary mt-1">
         Update the venue location for guests to find your wedding
       </p>
     </div>
@@ -132,9 +157,7 @@ onMounted(async () => {
       <div
         class="inline-block w-8 h-8 border-3 border-sage border-t-transparent rounded-full animate-spin"
       />
-      <p
-        class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary mt-3"
-      >
+      <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary mt-3">
         Loading venue settings...
       </p>
     </div>
@@ -177,9 +200,7 @@ onMounted(async () => {
         <div
           class="bg-white dark:bg-dark-bg-secondary rounded-lg border border-sand-dark dark:border-dark-border p-4"
         >
-          <h3
-            class="font-heading text-base font-medium text-charcoal dark:text-dark-text mb-3"
-          >
+          <h3 class="font-heading text-base font-medium text-charcoal dark:text-dark-text mb-3">
             Select Location
           </h3>
           <LocationMapPicker
@@ -208,9 +229,7 @@ onMounted(async () => {
         <div
           class="bg-white dark:bg-dark-bg-secondary rounded-lg border border-sand-dark dark:border-dark-border p-4"
         >
-          <h3
-            class="font-heading text-base font-medium text-charcoal dark:text-dark-text mb-3"
-          >
+          <h3 class="font-heading text-base font-medium text-charcoal dark:text-dark-text mb-3">
             Venue Details
           </h3>
           <LocationForm
@@ -219,70 +238,7 @@ onMounted(async () => {
             v-model:parking-info="formData.parkingInfo"
             :coordinates="formData.coordinates"
             :is-saving="isSaving"
-            :has-changes="hasChanges"
-            @save="handleSave"
-            @cancel="syncFormData"
           />
-
-          <!-- Save Error -->
-          <div
-            v-if="saveError"
-            class="mt-3 p-3 bg-red-50 dark:bg-red-900/20 rounded-lg"
-          >
-            <p class="font-body text-sm text-red-600 dark:text-red-400">
-              {{ saveError }}
-            </p>
-          </div>
-
-          <!-- Save Success -->
-          <div
-            v-if="saveSuccess"
-            class="mt-3 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg"
-          >
-            <p
-              class="font-body text-sm text-green-600 dark:text-green-400 flex items-center gap-2"
-            >
-              <svg
-                class="w-4 h-4"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M5 13l4 4L19 7"
-                />
-              </svg>
-              Location saved successfully!
-            </p>
-          </div>
-
-          <!-- Unsaved Changes Warning -->
-          <div
-            v-if="hasChanges && !isSaving"
-            class="mt-3 p-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg"
-          >
-            <p
-              class="font-body text-sm text-amber-700 dark:text-amber-400 flex items-center gap-2"
-            >
-              <svg
-                class="w-4 h-4"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-                />
-              </svg>
-              You have unsaved changes
-            </p>
-          </div>
         </div>
 
         <!-- Preview (hidden on mobile, shown on desktop) -->
@@ -295,20 +251,116 @@ onMounted(async () => {
             :waze-url="previewWazeUrl"
           />
         </div>
-
-        <!-- Last Updated Info -->
-        <div
-          v-if="venue.updatedAt"
-          class="p-3 bg-sand/30 dark:bg-dark-bg-elevated rounded-lg"
-        >
-          <p
-            class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary"
-          >
-            Last updated: {{ new Date(venue.updatedAt).toLocaleString() }}
-            <span v-if="venue.updatedBy"> by {{ venue.updatedBy }}</span>
-          </p>
-        </div>
       </div>
+    </div>
+
+    <!-- Parking Guide Section (full width below the two columns) -->
+    <div v-if="!isLoading && !loadError" class="mt-6">
+      <ParkingForm
+        v-model:parking-steps="formData.parkingSteps"
+        v-model:parking-video-url="formData.parkingVideoUrl"
+        v-model:show-parking-images="formData.showParkingImages"
+        v-model:show-parking-directions="formData.showParkingDirections"
+        v-model:show-parking-video="formData.showParkingVideo"
+        :is-saving="isSaving"
+      />
+    </div>
+
+    <!-- Bottom Save Section -->
+    <div
+      v-if="!isLoading && !loadError"
+      class="mt-6 p-4 bg-white dark:bg-dark-bg-secondary rounded-lg border border-sand-dark dark:border-dark-border"
+    >
+      <!-- Unsaved Changes Warning -->
+      <div
+        v-if="hasChanges && !isSaving"
+        class="mb-4 p-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg"
+      >
+        <p class="font-body text-sm text-amber-700 dark:text-amber-400 flex items-center gap-2">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+            />
+          </svg>
+          You have unsaved changes
+        </p>
+      </div>
+
+      <!-- Save Success -->
+      <div v-if="saveSuccess" class="mb-4 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
+        <p class="font-body text-sm text-green-600 dark:text-green-400 flex items-center gap-2">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M5 13l4 4L19 7"
+            />
+          </svg>
+          All changes saved successfully!
+        </p>
+      </div>
+
+      <!-- Save Error -->
+      <div v-if="saveError" class="mb-4 p-3 bg-red-50 dark:bg-red-900/20 rounded-lg">
+        <p class="font-body text-sm text-red-600 dark:text-red-400">
+          {{ saveError }}
+        </p>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="flex gap-3">
+        <button
+          type="button"
+          :disabled="!hasChanges || isSaving"
+          class="px-4 py-2.5 rounded-lg border border-sand-dark dark:border-dark-border font-body text-sm text-charcoal dark:text-dark-text hover:bg-sand/50 dark:hover:bg-dark-bg transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+          @click="syncFormData"
+        >
+          Reset Changes
+        </button>
+        <button
+          type="button"
+          :disabled="!hasChanges || isSaving"
+          class="flex-1 py-2.5 rounded-lg font-body text-sm font-medium transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer"
+          :class="
+            hasChanges && !isSaving
+              ? 'bg-sage text-white hover:bg-sage-dark'
+              : 'bg-sand-dark dark:bg-dark-border text-charcoal-light dark:text-dark-text-secondary cursor-not-allowed'
+          "
+          @click="handleSave"
+        >
+          <svg v-if="isSaving" class="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none">
+            <circle
+              cx="12"
+              cy="12"
+              r="10"
+              stroke="currentColor"
+              stroke-width="3"
+              class="opacity-25"
+            />
+            <path
+              fill="currentColor"
+              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+              class="opacity-75"
+            />
+          </svg>
+          <span>{{ isSaving ? 'Saving...' : 'Save All Changes' }}</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Last Updated Info -->
+    <div
+      v-if="!isLoading && !loadError && venue.updatedAt"
+      class="mt-6 p-3 bg-sand/30 dark:bg-dark-bg-elevated rounded-lg"
+    >
+      <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary">
+        Last updated: {{ new Date(venue.updatedAt).toLocaleString() }}
+        <span v-if="venue.updatedBy"> by {{ venue.updatedBy }}</span>
+      </p>
     </div>
   </div>
 </template>

@@ -1,33 +1,33 @@
 <script setup lang="ts">
-import { weddingConfig } from "@/config/wedding";
-import { generateGoogleCalendarUrl } from "@/composables/useCalendar";
-import { useLanguage } from "@/composables/useLanguage";
-import { useVenueConfig } from "@/composables/useVenueConfig";
-import { usePublicWeddingData } from "@/composables/usePublicWeddingData";
+  import { weddingConfig } from '@/config/wedding'
+  import { generateGoogleCalendarUrl } from '@/composables/useCalendar'
+  import { useLanguage } from '@/composables/useLanguage'
+  import { useVenueConfig } from '@/composables/useVenueConfig'
+  import { usePublicWeddingData } from '@/composables/usePublicWeddingData'
 
-const { t } = useLanguage();
-const { venue } = useVenueConfig();
-const { getDisplayNameOrder } = usePublicWeddingData();
+  const { t } = useLanguage()
+  const { venue } = useVenueConfig()
+  const { getDisplayNameOrder } = usePublicWeddingData()
 
-const openGoogleMaps = (): void => {
-  window.open(venue.value.googleMapsUrl, "_blank");
-};
-
-const openWaze = (): void => {
-  window.open(venue.value.wazeUrl, "_blank");
-};
-
-const addToCalendar = (): void => {
-  const url = generateGoogleCalendarUrl(weddingConfig, getDisplayNameOrder());
-  window.open(url, "_blank");
-};
-
-const scrollToRsvp = (): void => {
-  const rsvpSection = document.getElementById("rsvp");
-  if (rsvpSection) {
-    rsvpSection.scrollIntoView({ behavior: "smooth" });
+  const openGoogleMaps = (): void => {
+    window.open(venue.value.googleMapsUrl, '_blank')
   }
-};
+
+  const openWaze = (): void => {
+    window.open(venue.value.wazeUrl, '_blank')
+  }
+
+  const addToCalendar = (): void => {
+    const url = generateGoogleCalendarUrl(weddingConfig, getDisplayNameOrder())
+    window.open(url, '_blank')
+  }
+
+  const scrollToRsvp = (): void => {
+    const rsvpSection = document.getElementById('rsvp')
+    if (rsvpSection) {
+      rsvpSection.scrollIntoView({ behavior: 'smooth' })
+    }
+  }
 </script>
 
 <template>

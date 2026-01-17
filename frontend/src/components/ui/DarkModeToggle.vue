@@ -1,25 +1,25 @@
 <script setup lang="ts">
-import { computed } from "vue";
-import { useDarkMode } from "@/composables/useDarkMode";
+  import { computed } from 'vue'
+  import { useDarkMode } from '@/composables/useDarkMode'
 
-interface Props {
-  variant?: "dark" | "light";
-}
-
-const props = withDefaults(defineProps<Props>(), {
-  variant: "dark",
-});
-
-const { isDark, toggleDarkMode } = useDarkMode();
-
-const buttonClasses = computed(() => {
-  const base =
-    "flex items-center justify-center w-10 h-10 backdrop-blur-sm border rounded-full cursor-pointer transition-all duration-300 active:scale-95";
-  if (props.variant === "light") {
-    return `${base} bg-sage/10 border-sage/30 text-sage hover:bg-sage/20 dark:bg-dark-bg-elevated/50 dark:border-dark-border dark:text-dark-text dark:hover:bg-dark-bg-elevated`;
+  interface Props {
+    variant?: 'dark' | 'light'
   }
-  return `${base} bg-white/20 border-white/30 text-white hover:bg-white/30`;
-});
+
+  const props = withDefaults(defineProps<Props>(), {
+    variant: 'dark',
+  })
+
+  const { isDark, toggleDarkMode } = useDarkMode()
+
+  const buttonClasses = computed(() => {
+    const base =
+      'flex items-center justify-center w-10 h-10 backdrop-blur-sm border rounded-full cursor-pointer transition-all duration-300 active:scale-95'
+    if (props.variant === 'light') {
+      return `${base} bg-sage/10 border-sage/30 text-sage hover:bg-sage/20 dark:bg-dark-bg-elevated/50 dark:border-dark-border dark:text-dark-text dark:hover:bg-dark-bg-elevated`
+    }
+    return `${base} bg-white/20 border-white/30 text-white hover:bg-white/30`
+  })
 </script>
 
 <template>
@@ -71,19 +71,19 @@ const buttonClasses = computed(() => {
 </template>
 
 <style scoped>
-/* Icon rotation transition */
-.icon-rotate-enter-active,
-.icon-rotate-leave-active {
-  transition: all 0.25s ease;
-}
+  /* Icon rotation transition */
+  .icon-rotate-enter-active,
+  .icon-rotate-leave-active {
+    transition: all 0.25s ease;
+  }
 
-.icon-rotate-enter-from {
-  opacity: 0;
-  transform: rotate(-90deg) scale(0.5);
-}
+  .icon-rotate-enter-from {
+    opacity: 0;
+    transform: rotate(-90deg) scale(0.5);
+  }
 
-.icon-rotate-leave-to {
-  opacity: 0;
-  transform: rotate(90deg) scale(0.5);
-}
+  .icon-rotate-leave-to {
+    opacity: 0;
+    transform: rotate(90deg) scale(0.5);
+  }
 </style>

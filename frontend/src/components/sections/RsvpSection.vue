@@ -1,52 +1,52 @@
 <script setup lang="ts">
-import { ref, reactive } from "vue";
-import type { RsvpFormData } from "@/types/rsvp";
-import { HONORIFIC_TITLES } from "@/types";
-import { submitRsvp } from "@/services/api";
-import { useLanguage } from "@/composables/useLanguage";
+  import { ref, reactive } from 'vue'
+  import type { RsvpFormData } from '@/types/rsvp'
+  import { HONORIFIC_TITLES } from '@/types'
+  import { submitRsvp } from '@/services/api'
+  import { useLanguage } from '@/composables/useLanguage'
 
-const { t } = useLanguage();
+  const { t } = useLanguage()
 
-const guestOptions = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+  const guestOptions = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 
-const formData = reactive<RsvpFormData>({
-  title: "Encik",
-  fullName: "",
-  isAttending: true,
-  numberOfGuests: 1,
-  phoneNumber: "",
-  message: "",
-});
+  const formData = reactive<RsvpFormData>({
+    title: 'Encik',
+    fullName: '',
+    isAttending: true,
+    numberOfGuests: 1,
+    phoneNumber: '',
+    message: '',
+  })
 
-const isSubmitting = ref(false);
-const isSubmitted = ref(false);
-const errorMessage = ref("");
+  const isSubmitting = ref(false)
+  const isSubmitted = ref(false)
+  const errorMessage = ref('')
 
-const handleSubmit = async (): Promise<void> => {
-  errorMessage.value = "";
+  const handleSubmit = async (): Promise<void> => {
+    errorMessage.value = ''
 
-  // Basic validation
-  if (!formData.fullName.trim()) {
-    errorMessage.value = t.value.rsvp.errorName;
-    return;
+    // Basic validation
+    if (!formData.fullName.trim()) {
+      errorMessage.value = t.value.rsvp.errorName
+      return
+    }
+
+    if (!formData.phoneNumber.trim()) {
+      errorMessage.value = t.value.rsvp.errorPhone
+      return
+    }
+
+    isSubmitting.value = true
+
+    try {
+      await submitRsvp(formData)
+      isSubmitted.value = true
+    } catch {
+      errorMessage.value = t.value.rsvp.errorGeneric
+    } finally {
+      isSubmitting.value = false
+    }
   }
-
-  if (!formData.phoneNumber.trim()) {
-    errorMessage.value = t.value.rsvp.errorPhone;
-    return;
-  }
-
-  isSubmitting.value = true;
-
-  try {
-    await submitRsvp(formData);
-    isSubmitted.value = true;
-  } catch {
-    errorMessage.value = t.value.rsvp.errorGeneric;
-  } finally {
-    isSubmitting.value = false;
-  }
-};
 </script>
 
 <template>
@@ -73,9 +73,7 @@ const handleSubmit = async (): Promise<void> => {
         >
           ✓
         </div>
-        <h3
-          class="font-heading text-xl sm:text-2xl text-sage-dark dark:text-sage-light mb-2"
-        >
+        <h3 class="font-heading text-xl sm:text-2xl text-sage-dark dark:text-sage-light mb-2">
           {{ t.rsvp.thankYou }}
         </h3>
         <p
@@ -91,11 +89,7 @@ const handleSubmit = async (): Promise<void> => {
       </div>
 
       <!-- RSVP Form -->
-      <form
-        v-else
-        class="space-y-4 sm:space-y-5"
-        @submit.prevent="handleSubmit"
-      >
+      <form v-else class="space-y-4 sm:space-y-5" @submit.prevent="handleSubmit">
         <!-- Title & Name - Stack on mobile -->
         <div class="flex flex-col sm:flex-row gap-3">
           <div class="w-full sm:w-28">
@@ -110,11 +104,7 @@ const handleSubmit = async (): Promise<void> => {
               v-model="formData.title"
               class="w-full px-3 py-2.5 font-body text-sm sm:text-base border border-sand-dark dark:border-dark-border rounded-lg bg-sand dark:bg-dark-bg-elevated text-charcoal dark:text-dark-text focus:outline-none focus:border-sage"
             >
-              <option
-                v-for="title in HONORIFIC_TITLES"
-                :key="title"
-                :value="title"
-              >
+              <option v-for="title in HONORIFIC_TITLES" :key="title" :value="title">
                 {{ title }}
               </option>
             </select>
@@ -155,9 +145,7 @@ const handleSubmit = async (): Promise<void> => {
                 :value="true"
                 class="w-4 h-4 accent-sage"
               />
-              <span
-                class="font-body text-sm sm:text-base text-charcoal dark:text-dark-text"
-              >
+              <span class="font-body text-sm sm:text-base text-charcoal dark:text-dark-text">
                 {{ t.rsvp.attending }}
               </span>
             </label>
@@ -170,9 +158,7 @@ const handleSubmit = async (): Promise<void> => {
                 :value="false"
                 class="w-4 h-4 accent-sage"
               />
-              <span
-                class="font-body text-sm sm:text-base text-charcoal dark:text-dark-text"
-              >
+              <span class="font-body text-sm sm:text-base text-charcoal dark:text-dark-text">
                 {{ t.rsvp.notAttending }}
               </span>
             </label>
@@ -234,10 +220,7 @@ const handleSubmit = async (): Promise<void> => {
         </div>
 
         <!-- Error Message -->
-        <p
-          v-if="errorMessage"
-          class="text-red-600 font-body text-xs sm:text-sm text-center"
-        >
+        <p v-if="errorMessage" class="text-red-600 font-body text-xs sm:text-sm text-center">
           {{ errorMessage }}
         </p>
 

@@ -1,25 +1,25 @@
 <script setup lang="ts">
-import type { ThemeDefinition } from "@/types/theme";
+  import type { ThemeDefinition } from '@/types/theme'
 
-const props = defineProps<{
-  theme: ThemeDefinition;
-  isSelected: boolean;
-  isCustom?: boolean;
-}>();
+  const props = defineProps<{
+    theme: ThemeDefinition
+    isSelected: boolean
+    isCustom?: boolean
+  }>()
 
-const emit = defineEmits<{
-  select: [];
-  preview: [];
-}>();
+  const emit = defineEmits<{
+    select: []
+    preview: []
+  }>()
 
-const handleClick = (): void => {
-  emit("select");
-};
+  const handleClick = (): void => {
+    emit('select')
+  }
 
-const handlePreview = (e: Event): void => {
-  e.stopPropagation();
-  emit("preview");
-};
+  const handlePreview = (e: Event): void => {
+    e.stopPropagation()
+    emit('preview')
+  }
 </script>
 
 <template>
@@ -37,32 +37,18 @@ const handlePreview = (e: Event): void => {
       v-if="isSelected"
       class="absolute top-2 right-2 w-6 h-6 bg-sage rounded-full flex items-center justify-center"
     >
-      <svg
-        class="w-4 h-4 text-white"
-        fill="none"
-        stroke="currentColor"
-        viewBox="0 0 24 24"
-      >
-        <path
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          stroke-width="2"
-          d="M5 13l4 4L19 7"
-        />
+      <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
       </svg>
     </div>
 
     <!-- Theme Name -->
-    <h4
-      class="font-heading text-base font-medium text-charcoal dark:text-dark-text mb-1 pr-8"
-    >
+    <h4 class="font-heading text-base font-medium text-charcoal dark:text-dark-text mb-1 pr-8">
       {{ theme.name }}
     </h4>
 
     <!-- Description -->
-    <p
-      class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary mb-3"
-    >
+    <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary mb-3">
       {{ theme.description }}
     </p>
 
@@ -96,12 +82,7 @@ const handlePreview = (e: Event): void => {
 
     <!-- Font Preview -->
     <div class="flex items-baseline gap-2 mb-3">
-      <span
-        class="text-lg"
-        :style="{ fontFamily: theme.fonts.heading + ', serif' }"
-      >
-        Aa
-      </span>
+      <span class="text-lg" :style="{ fontFamily: theme.fonts.heading + ', serif' }"> Aa </span>
       <span
         class="text-sm text-charcoal-light dark:text-dark-text-secondary"
         :style="{ fontFamily: theme.fonts.body + ', sans-serif' }"

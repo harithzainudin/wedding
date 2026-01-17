@@ -1,111 +1,107 @@
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
-import { useAdminUsers } from "@/composables/useAdminUsers";
-import SuccessPopup from "./SuccessPopup.vue";
-import EmailWarningPopup from "./EmailWarningPopup.vue";
-import PasswordResetResultPopup from "./PasswordResetResultPopup.vue";
+  import { ref, onMounted } from 'vue'
+  import { useAdminUsers } from '@/composables/useAdminUsers'
+  import SuccessPopup from './SuccessPopup.vue'
+  import EmailWarningPopup from './EmailWarningPopup.vue'
+  import PasswordResetResultPopup from './PasswordResetResultPopup.vue'
 
-const props = defineProps<{
-  isMasterUser: boolean;
-  currentUser: string;
-}>();
+  const props = defineProps<{
+    isMasterUser: boolean
+    currentUser: string
+  }>()
 
-const {
-  adminUsers,
-  isLoadingAdmins,
-  adminLoadError,
-  showCreateForm,
-  newAdminUsername,
-  newAdminPassword,
-  newAdminEmail,
-  showNewAdminPassword,
-  createError,
-  isCreating,
-  deleteConfirm,
-  isDeleting,
-  resetPasswordConfirm,
-  isResetting,
-  fetchAdminUsers,
-  handleCreateAdmin,
-  handleDeleteAdmin,
-  handleForceResetPassword,
-  closeCreateForm,
-} = useAdminUsers(() => props.currentUser);
+  const {
+    adminUsers,
+    isLoadingAdmins,
+    adminLoadError,
+    showCreateForm,
+    newAdminUsername,
+    newAdminPassword,
+    newAdminEmail,
+    showNewAdminPassword,
+    createError,
+    isCreating,
+    deleteConfirm,
+    isDeleting,
+    resetPasswordConfirm,
+    isResetting,
+    fetchAdminUsers,
+    handleCreateAdmin,
+    handleDeleteAdmin,
+    handleForceResetPassword,
+    closeCreateForm,
+  } = useAdminUsers(() => props.currentUser)
 
-const showSuccessPopup = ref(false);
-const showEmailWarningPopup = ref(false);
-const emailWarningMessage = ref("");
-const createdCredentials = ref({ username: "", password: "" });
+  const showSuccessPopup = ref(false)
+  const showEmailWarningPopup = ref(false)
+  const emailWarningMessage = ref('')
+  const createdCredentials = ref({ username: '', password: '' })
 
-const showPasswordResetPopup = ref(false);
-const passwordResetResult = ref({
-  username: "",
-  temporaryPassword: "",
-  emailSent: false,
-  emailError: "",
-  hasEmail: false,
-});
+  const showPasswordResetPopup = ref(false)
+  const passwordResetResult = ref({
+    username: '',
+    temporaryPassword: '',
+    emailSent: false,
+    emailError: '',
+    hasEmail: false,
+  })
 
-const formatDate = (dateString: string): string => {
-  const date = new Date(dateString);
-  const day = date.getDate().toString().padStart(2, "0");
-  const month = (date.getMonth() + 1).toString().padStart(2, "0");
-  const year = date.getFullYear();
-  const hours = date.getHours().toString().padStart(2, "0");
-  const minutes = date.getMinutes().toString().padStart(2, "0");
-  return `${day}/${month}/${year} ${hours}:${minutes}`;
-};
+  const formatDate = (dateString: string): string => {
+    const date = new Date(dateString)
+    const day = date.getDate().toString().padStart(2, '0')
+    const month = (date.getMonth() + 1).toString().padStart(2, '0')
+    const year = date.getFullYear()
+    const hours = date.getHours().toString().padStart(2, '0')
+    const minutes = date.getMinutes().toString().padStart(2, '0')
+    return `${day}/${month}/${year} ${hours}:${minutes}`
+  }
 
-const onCreateAdmin = async (): Promise<void> => {
-  const credentials = {
-    username: newAdminUsername.value,
-    password: newAdminPassword.value,
-  };
+  const onCreateAdmin = async (): Promise<void> => {
+    const credentials = {
+      username: newAdminUsername.value,
+      password: newAdminPassword.value,
+    }
 
-  const result = await handleCreateAdmin();
-  if (result?.success) {
-    createdCredentials.value = credentials;
-    if (newAdminEmail.value) {
-      if (result.emailSent) {
-        showSuccessPopup.value = true;
+    const result = await handleCreateAdmin()
+    if (result?.success) {
+      createdCredentials.value = credentials
+      if (newAdminEmail.value) {
+        if (result.emailSent) {
+          showSuccessPopup.value = true
+        } else {
+          emailWarningMessage.value = result.emailError ?? 'Failed to send welcome email'
+          showEmailWarningPopup.value = true
+        }
       } else {
-        emailWarningMessage.value =
-          result.emailError ?? "Failed to send welcome email";
-        showEmailWarningPopup.value = true;
+        showSuccessPopup.value = true
       }
-    } else {
-      showSuccessPopup.value = true;
     }
   }
-};
 
-const closePopups = (): void => {
-  showSuccessPopup.value = false;
-  showEmailWarningPopup.value = false;
-  emailWarningMessage.value = "";
-  showPasswordResetPopup.value = false;
-};
-
-const onResetPassword = async (admin: {
-  username: string;
-  email?: string;
-}): Promise<void> => {
-  const result = await handleForceResetPassword(admin.username);
-  if (result?.success) {
-    passwordResetResult.value = {
-      username: admin.username,
-      temporaryPassword: result.temporaryPassword ?? "",
-      emailSent: result.emailSent ?? false,
-      emailError: result.emailError ?? "",
-      hasEmail: !!admin.email,
-    };
-    showPasswordResetPopup.value = true;
+  const closePopups = (): void => {
+    showSuccessPopup.value = false
+    showEmailWarningPopup.value = false
+    emailWarningMessage.value = ''
+    showPasswordResetPopup.value = false
   }
-};
 
-onMounted(() => {
-  fetchAdminUsers();
-});
+  const onResetPassword = async (admin: { username: string; email?: string }): Promise<void> => {
+    const result = await handleForceResetPassword(admin.username)
+    if (result?.success) {
+      passwordResetResult.value = {
+        username: admin.username,
+        temporaryPassword: result.temporaryPassword ?? '',
+        emailSent: result.emailSent ?? false,
+        emailError: result.emailError ?? '',
+        hasEmail: !!admin.email,
+      }
+      showPasswordResetPopup.value = true
+    }
+  }
+
+  onMounted(() => {
+    fetchAdminUsers()
+  })
 </script>
 
 <template>
@@ -136,22 +132,14 @@ onMounted(() => {
     />
 
     <div class="flex justify-between items-center mb-6">
-      <h2 class="font-heading text-xl text-charcoal dark:text-dark-text">
-        Manage Admin Users
-      </h2>
+      <h2 class="font-heading text-xl text-charcoal dark:text-dark-text">Manage Admin Users</h2>
       <button
         v-if="isMasterUser"
         type="button"
         class="flex items-center gap-2 px-4 py-2 font-body text-sm text-white bg-sage rounded-lg hover:bg-sage-dark transition-colors cursor-pointer"
         @click="showCreateForm = !showCreateForm"
       >
-        <svg
-          class="w-4 h-4"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-        >
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M12 5v14M5 12h14" />
         </svg>
         Add Admin
@@ -163,13 +151,9 @@ onMounted(() => {
       class="fixed inset-0 bg-black/50 dark:bg-black/70 flex items-center justify-center z-50 px-4"
       @click.self="closeCreateForm"
     >
-      <div
-        class="bg-white dark:bg-dark-bg-secondary rounded-xl p-6 max-w-md w-full shadow-xl"
-      >
+      <div class="bg-white dark:bg-dark-bg-secondary rounded-xl p-6 max-w-md w-full shadow-xl">
         <div class="flex items-center justify-between mb-4">
-          <h3 class="font-heading text-lg text-charcoal dark:text-dark-text">
-            Create New Admin
-          </h3>
+          <h3 class="font-heading text-lg text-charcoal dark:text-dark-text">Create New Admin</h3>
           <button
             type="button"
             class="text-charcoal-light hover:text-charcoal transition-colors cursor-pointer"
@@ -189,10 +173,7 @@ onMounted(() => {
         </div>
         <form @submit.prevent="onCreateAdmin" class="space-y-4">
           <div>
-            <label
-              for="newUsername"
-              class="block font-body text-sm font-medium text-charcoal mb-1"
-            >
+            <label for="newUsername" class="block font-body text-sm font-medium text-charcoal mb-1">
               Username
             </label>
             <input
@@ -205,10 +186,7 @@ onMounted(() => {
             />
           </div>
           <div>
-            <label
-              for="newPassword"
-              class="block font-body text-sm font-medium text-charcoal mb-1"
-            >
+            <label for="newPassword" class="block font-body text-sm font-medium text-charcoal mb-1">
               Password
             </label>
             <div class="relative">
@@ -255,10 +233,7 @@ onMounted(() => {
           </div>
 
           <div>
-            <label
-              for="newEmail"
-              class="block font-body text-sm font-medium text-charcoal mb-1"
-            >
+            <label for="newEmail" class="block font-body text-sm font-medium text-charcoal mb-1">
               Email
               <span class="text-charcoal-light font-normal">(optional)</span>
             </label>
@@ -270,8 +245,7 @@ onMounted(() => {
               placeholder="Enter email for welcome notification"
             />
             <p class="font-body text-xs text-charcoal-light mt-1">
-              A welcome email with login credentials will be sent to this
-              address.
+              A welcome email with login credentials will be sent to this address.
             </p>
           </div>
 
@@ -285,7 +259,7 @@ onMounted(() => {
               class="px-4 py-2 font-body text-sm text-white bg-sage rounded-lg hover:bg-sage-dark transition-colors cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed"
               :disabled="isCreating"
             >
-              {{ isCreating ? "Creating..." : "Create Admin" }}
+              {{ isCreating ? 'Creating...' : 'Create Admin' }}
             </button>
             <button
               type="button"
@@ -303,9 +277,7 @@ onMounted(() => {
       <div
         class="inline-block w-8 h-8 border-3 border-sage border-t-transparent rounded-full animate-spin"
       ></div>
-      <p
-        class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary mt-3"
-      >
+      <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary mt-3">
         Loading admin users...
       </p>
     </div>
@@ -327,14 +299,10 @@ onMounted(() => {
       v-else-if="adminUsers.length === 0"
       class="text-center py-12 bg-white dark:bg-dark-bg-secondary rounded-xl"
     >
-      <p
-        class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary"
-      >
+      <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary">
         No admin users found.
       </p>
-      <p
-        class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary mt-2"
-      >
+      <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary mt-2">
         Create the first admin user to get started.
       </p>
     </div>
@@ -350,23 +318,15 @@ onMounted(() => {
             <p class="font-heading text-lg text-charcoal dark:text-dark-text">
               {{ admin.username }}
             </p>
-            <p
-              class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary"
-            >
+            <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary">
               Created by {{ admin.createdBy }} on
               {{ formatDate(admin.createdAt) }}
             </p>
           </div>
-          <div
-            v-if="isMasterUser"
-            class="flex items-center gap-2 flex-wrap justify-end"
-          >
+          <div v-if="isMasterUser" class="flex items-center gap-2 flex-wrap justify-end">
             <!-- Reset Password Button -->
             <template
-              v-if="
-                resetPasswordConfirm !== admin.username &&
-                deleteConfirm !== admin.username
-              "
+              v-if="resetPasswordConfirm !== admin.username && deleteConfirm !== admin.username"
             >
               <button
                 type="button"
@@ -386,8 +346,7 @@ onMounted(() => {
 
             <!-- Reset Password Confirmation -->
             <template v-else-if="resetPasswordConfirm === admin.username">
-              <span
-                class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary"
+              <span class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary"
                 >Reset password?</span
               >
               <button
@@ -396,7 +355,7 @@ onMounted(() => {
                 :disabled="isResetting"
                 @click="onResetPassword(admin)"
               >
-                {{ isResetting ? "..." : "Yes" }}
+                {{ isResetting ? '...' : 'Yes' }}
               </button>
               <button
                 type="button"
@@ -409,8 +368,7 @@ onMounted(() => {
 
             <!-- Delete Confirmation -->
             <template v-else-if="deleteConfirm === admin.username">
-              <span
-                class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary"
+              <span class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary"
                 >Delete?</span
               >
               <button
@@ -419,7 +377,7 @@ onMounted(() => {
                 :disabled="isDeleting"
                 @click="handleDeleteAdmin(admin.username)"
               >
-                {{ isDeleting ? "..." : "Yes" }}
+                {{ isDeleting ? '...' : 'Yes' }}
               </button>
               <button
                 type="button"

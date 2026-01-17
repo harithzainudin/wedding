@@ -1,127 +1,118 @@
 <script setup lang="ts">
-import { ref, watch, onMounted } from "vue";
-import { useContacts } from "@/composables/useContacts";
-import { useCrudList } from "@/composables/useCrudList";
-import ConfirmModal from "./ConfirmModal.vue";
-import ItemActions from "./ItemActions.vue";
-import MultilingualInput from "./MultilingualInput.vue";
-import BaseFormModal from "./BaseFormModal.vue";
-import type { ContactPerson, MultilingualText } from "@/types/contacts";
+  import { ref, watch, onMounted } from 'vue'
+  import { useContacts } from '@/composables/useContacts'
+  import { useCrudList } from '@/composables/useCrudList'
+  import ConfirmModal from './ConfirmModal.vue'
+  import ItemActions from './ItemActions.vue'
+  import MultilingualInput from './MultilingualInput.vue'
+  import BaseFormModal from './BaseFormModal.vue'
+  import type { ContactPerson, MultilingualText } from '@/types/contacts'
 
-const {
-  contacts,
-  isLoading,
-  loadError,
-  isSaving,
-  saveError,
-  saveSuccess,
-  fetchContacts,
-  updateContacts,
-  generateId,
-} = useContacts();
+  const {
+    contacts,
+    isLoading,
+    loadError,
+    isSaving,
+    saveError,
+    saveSuccess,
+    fetchContacts,
+    updateContacts,
+    generateId,
+  } = useContacts()
 
-const {
-  localItems: localContacts,
-  showModal,
-  editingItem: editingContact,
-  showDeleteModal,
-  itemToDelete: contactToDelete,
-  hasChanges,
-  syncLocalItems: syncLocalContacts,
-  openModal,
-  closeModal,
-  confirmDelete,
-  deleteItem: deleteContact,
-  cancelDelete,
-  moveUp,
-  moveDown,
-  handleSave,
-  discardChanges,
-} = useCrudList<ContactPerson, typeof contacts.value>({
-  sourceData: contacts,
-  getItems: (data) => data.contacts,
-  cloneItem: (c) => ({ ...c, role: { ...c.role } }),
-  updateFn: updateContacts,
-});
+  const {
+    localItems: localContacts,
+    showModal,
+    editingItem: editingContact,
+    showDeleteModal,
+    itemToDelete: contactToDelete,
+    hasChanges,
+    syncLocalItems: syncLocalContacts,
+    openModal,
+    closeModal,
+    confirmDelete,
+    deleteItem: deleteContact,
+    cancelDelete,
+    moveUp,
+    moveDown,
+    handleSave,
+    discardChanges,
+  } = useCrudList<ContactPerson, typeof contacts.value>({
+    sourceData: contacts,
+    getItems: (data) => data.contacts,
+    cloneItem: (c) => ({ ...c, role: { ...c.role } }),
+    updateFn: updateContacts,
+  })
 
-const modalForm = ref({
-  name: "",
-  phoneNumber: "",
-  role: { ms: "", en: "", zh: "", ta: "" } as MultilingualText,
-});
+  const modalForm = ref({
+    name: '',
+    phoneNumber: '',
+    role: { ms: '', en: '', zh: '', ta: '' } as MultilingualText,
+  })
 
-watch([showModal, editingContact], ([show, item]) => {
-  if (show) {
-    if (item) {
-      modalForm.value = {
-        name: item.name,
-        phoneNumber: item.phoneNumber,
-        role: { ...item.role },
-      };
-    } else {
-      modalForm.value = {
-        name: "",
-        phoneNumber: "",
-        role: { ms: "", en: "", zh: "", ta: "" },
-      };
+  watch([showModal, editingContact], ([show, item]) => {
+    if (show) {
+      if (item) {
+        modalForm.value = {
+          name: item.name,
+          phoneNumber: item.phoneNumber,
+          role: { ...item.role },
+        }
+      } else {
+        modalForm.value = {
+          name: '',
+          phoneNumber: '',
+          role: { ms: '', en: '', zh: '', ta: '' },
+        }
+      }
     }
-  }
-});
+  })
 
-const saveModalForm = () => {
-  if (!modalForm.value.name.trim() || !modalForm.value.phoneNumber.trim())
-    return;
+  const saveModalForm = () => {
+    if (!modalForm.value.name.trim() || !modalForm.value.phoneNumber.trim()) return
 
-  if (editingContact.value) {
-    const index = localContacts.value.findIndex(
-      (c) => c.id === editingContact.value?.id,
-    );
-    const existing = localContacts.value[index];
-    if (index !== -1 && existing) {
-      localContacts.value[index] = {
-        id: existing.id,
+    if (editingContact.value) {
+      const index = localContacts.value.findIndex((c) => c.id === editingContact.value?.id)
+      const existing = localContacts.value[index]
+      if (index !== -1 && existing) {
+        localContacts.value[index] = {
+          id: existing.id,
+          name: modalForm.value.name,
+          phoneNumber: modalForm.value.phoneNumber,
+          role: { ...modalForm.value.role },
+          order: existing.order,
+        }
+      }
+    } else {
+      localContacts.value.push({
+        id: generateId(),
         name: modalForm.value.name,
         phoneNumber: modalForm.value.phoneNumber,
         role: { ...modalForm.value.role },
-        order: existing.order,
-      };
+        order: localContacts.value.length,
+      })
     }
-  } else {
-    localContacts.value.push({
-      id: generateId(),
-      name: modalForm.value.name,
-      phoneNumber: modalForm.value.phoneNumber,
-      role: { ...modalForm.value.role },
-      order: localContacts.value.length,
-    });
+    closeModal()
   }
-  closeModal();
-};
 
-const formatPhone = (phone: string): string => {
-  return phone.replace(/(\+60)(\d{2,3})(\d{3,4})(\d{4})/, "$1 $2-$3 $4");
-};
+  const formatPhone = (phone: string): string => {
+    return phone.replace(/(\+60)(\d{2,3})(\d{3,4})(\d{4})/, '$1 $2-$3 $4')
+  }
 
-onMounted(async () => {
-  await fetchContacts();
-  syncLocalContacts();
-});
+  onMounted(async () => {
+    await fetchContacts()
+    syncLocalContacts()
+  })
 </script>
 
 <template>
   <div class="max-w-4xl mx-auto">
-    <div
-      class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6"
-    >
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
       <div>
-        <h2
-          class="font-heading text-xl font-semibold text-charcoal dark:text-dark-text"
-        >
+        <h2 class="font-heading text-xl font-semibold text-charcoal dark:text-dark-text">
           Contacts
         </h2>
-        <p
-          class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary mt-1"
-        >
+        <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary mt-1">
           Manage contact people for guests to reach
         </p>
       </div>
@@ -130,12 +121,7 @@ onMounted(async () => {
         class="flex items-center justify-center gap-2 px-4 py-2 font-body text-sm text-white bg-sage rounded-lg hover:bg-sage-dark transition-colors cursor-pointer"
         @click="openModal()"
       >
-        <svg
-          class="w-4 h-4"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path
             stroke-linecap="round"
             stroke-linejoin="round"
@@ -151,9 +137,7 @@ onMounted(async () => {
       <div
         class="inline-block w-8 h-8 border-3 border-sage border-t-transparent rounded-full animate-spin"
       />
-      <p
-        class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary mt-3"
-      >
+      <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary mt-3">
         Loading contacts...
       </p>
     </div>
@@ -176,18 +160,11 @@ onMounted(async () => {
         v-if="localContacts.length === 0"
         class="p-8 bg-white dark:bg-dark-bg-secondary rounded-lg border border-sand-dark dark:border-dark-border text-center"
       >
-        <p
-          class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary"
-        >
+        <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary">
           No contacts yet. Click "Add Contact" to create one.
         </p>
       </div>
-      <TransitionGroup
-        v-else
-        name="list"
-        tag="div"
-        class="grid grid-cols-1 sm:grid-cols-2 gap-4"
-      >
+      <TransitionGroup v-else name="list" tag="div" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div
           v-for="(contact, index) in localContacts"
           :key="contact.id"
@@ -200,21 +177,14 @@ onMounted(async () => {
               >
                 {{ contact.name }}
               </p>
-              <p
-                class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary"
-              >
+              <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary">
                 {{ contact.role.en || contact.role.ms }}
               </p>
               <a
                 :href="`tel:${contact.phoneNumber}`"
                 class="font-body text-sm text-sage hover:text-sage-dark inline-flex items-center gap-1 mt-1"
               >
-                <svg
-                  class="w-3.5 h-3.5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
                     stroke-linecap="round"
                     stroke-linejoin="round"
@@ -242,27 +212,14 @@ onMounted(async () => {
         class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-2"
       >
         <div class="flex-1">
-          <div
-            v-if="saveError"
-            class="p-3 bg-red-50 dark:bg-red-900/20 rounded-lg"
-          >
+          <div v-if="saveError" class="p-3 bg-red-50 dark:bg-red-900/20 rounded-lg">
             <p class="font-body text-sm text-red-600 dark:text-red-400">
               {{ saveError }}
             </p>
           </div>
-          <div
-            v-if="saveSuccess"
-            class="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg"
-          >
-            <p
-              class="font-body text-sm text-green-600 dark:text-green-400 flex items-center gap-2"
-            >
-              <svg
-                class="w-4 h-4"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
+          <div v-if="saveSuccess" class="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
+            <p class="font-body text-sm text-green-600 dark:text-green-400 flex items-center gap-2">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
                   stroke-linecap="round"
                   stroke-linejoin="round"
@@ -277,15 +234,8 @@ onMounted(async () => {
             v-if="hasChanges && !isSaving && !saveSuccess"
             class="p-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg"
           >
-            <p
-              class="font-body text-sm text-amber-700 dark:text-amber-400 flex items-center gap-2"
-            >
-              <svg
-                class="w-4 h-4"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
+            <p class="font-body text-sm text-amber-700 dark:text-amber-400 flex items-center gap-2">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
                   stroke-linecap="round"
                   stroke-linejoin="round"
@@ -312,18 +262,13 @@ onMounted(async () => {
             :disabled="isSaving || !hasChanges"
             @click="handleSave"
           >
-            {{ isSaving ? "Saving..." : "Save Changes" }}
+            {{ isSaving ? 'Saving...' : 'Save Changes' }}
           </button>
         </div>
       </div>
 
-      <div
-        v-if="contacts.updatedAt"
-        class="p-3 bg-sand/30 dark:bg-dark-bg-elevated rounded-lg"
-      >
-        <p
-          class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary"
-        >
+      <div v-if="contacts.updatedAt" class="p-3 bg-sand/30 dark:bg-dark-bg-elevated rounded-lg">
+        <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary">
           Last updated: {{ new Date(contacts.updatedAt).toLocaleString() }}
           <span v-if="contacts.updatedBy"> by {{ contacts.updatedBy }}</span>
         </p>
@@ -338,8 +283,7 @@ onMounted(async () => {
       @submit="saveModalForm"
     >
       <div>
-        <label
-          class="block font-body text-sm font-medium text-charcoal dark:text-dark-text mb-1"
+        <label class="block font-body text-sm font-medium text-charcoal dark:text-dark-text mb-1"
           >Name</label
         >
         <input
@@ -351,8 +295,7 @@ onMounted(async () => {
         />
       </div>
       <div>
-        <label
-          class="block font-body text-sm font-medium text-charcoal dark:text-dark-text mb-1"
+        <label class="block font-body text-sm font-medium text-charcoal dark:text-dark-text mb-1"
           >Phone Number</label
         >
         <input
@@ -383,22 +326,22 @@ onMounted(async () => {
 </template>
 
 <style scoped>
-.list-move {
-  transition: transform 0.3s ease;
-}
+  .list-move {
+    transition: transform 0.3s ease;
+  }
 
-.list-enter-active,
-.list-leave-active {
-  transition: all 0.3s ease;
-}
+  .list-enter-active,
+  .list-leave-active {
+    transition: all 0.3s ease;
+  }
 
-.list-enter-from,
-.list-leave-to {
-  opacity: 0;
-  transform: scale(0.95);
-}
+  .list-enter-from,
+  .list-leave-to {
+    opacity: 0;
+    transform: scale(0.95);
+  }
 
-.list-leave-active {
-  position: absolute;
-}
+  .list-leave-active {
+    position: absolute;
+  }
 </style>

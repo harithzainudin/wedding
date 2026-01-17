@@ -1,22 +1,22 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from "vue";
-import { useWeddingDetails } from "@/composables/useWeddingDetails";
-import type {
-  EventDisplayFormat,
-  EventDisplayPreset,
-  DisplayNameOrder,
-  BismillahCalligraphySettings,
-  ParentsVisibilitySettings,
-} from "@/types/weddingDetails";
-import {
-  DEFAULT_DISPLAY_FORMAT,
-  DEFAULT_BISMILLAH_SETTINGS,
-  DEFAULT_PARENTS_VISIBILITY,
-} from "@/types/weddingDetails";
-import BismillahCalligraphySelector from "@/components/admin/BismillahCalligraphySelector.vue";
+  import { ref, computed, onMounted, watch } from 'vue'
+  import { useWeddingDetails } from '@/composables/useWeddingDetails'
+  import type {
+    EventDisplayFormat,
+    EventDisplayPreset,
+    DisplayNameOrder,
+    BismillahCalligraphySettings,
+    ParentsVisibilitySettings,
+  } from '@/types/weddingDetails'
+  import {
+    DEFAULT_DISPLAY_FORMAT,
+    DEFAULT_BISMILLAH_SETTINGS,
+    DEFAULT_PARENTS_VISIBILITY,
+  } from '@/types/weddingDetails'
+  import BismillahCalligraphySelector from '@/components/admin/BismillahCalligraphySelector.vue'
 
-// Tooltip content for name order setting
-const nameOrderTooltip = `Malay Wedding Custom
+  // Tooltip content for name order setting
+  const nameOrderTooltip = `Malay Wedding Custom
 
 Traditionally, the name order reflects which family hosts the main reception first:
 
@@ -24,449 +24,426 @@ Traditionally, the name order reflects which family hosts the main reception fir
 
 • Groom First: When the groom's family hosts the reception first, or for the bertandang ceremony at the groom's home.
 
-Choose based on your wedding ceremony arrangement.`;
+Choose based on your wedding ceremony arrangement.`
 
-const {
-  weddingDetails,
-  isLoading,
-  loadError,
-  isSaving,
-  saveError,
-  saveSuccess,
-  fetchWeddingDetails,
-  updateWeddingDetails,
-} = useWeddingDetails();
+  const {
+    weddingDetails,
+    isLoading,
+    loadError,
+    isSaving,
+    saveError,
+    saveSuccess,
+    fetchWeddingDetails,
+    updateWeddingDetails,
+  } = useWeddingDetails()
 
-// Preset options for dropdown
-const presetOptions: { value: EventDisplayPreset; label: string }[] = [
-  { value: "date_time_range", label: "Date + Time Range" },
-  { value: "date_start_only", label: "Date + Start Time Only" },
-  { value: "date_only", label: "Date Only" },
-  { value: "full_details", label: "Full Details (Separate Lines)" },
-  { value: "custom", label: "Custom" },
-];
+  // Preset options for dropdown
+  const presetOptions: { value: EventDisplayPreset; label: string }[] = [
+    { value: 'date_time_range', label: 'Date + Time Range' },
+    { value: 'date_start_only', label: 'Date + Start Time Only' },
+    { value: 'date_only', label: 'Date Only' },
+    { value: 'full_details', label: 'Full Details (Separate Lines)' },
+    { value: 'custom', label: 'Custom' },
+  ]
 
-// Toggle for custom options
-const showCustomOptions = ref(false);
+  // Toggle for custom options
+  const showCustomOptions = ref(false)
 
-// Section visibility toggles (all expanded by default)
-const expandedSections = ref({
-  couple: true,
-  nameOrder: false,
-  calligraphy: false,
-  parents: false,
-  event: true,
-  displayFormat: false,
-  website: false,
-});
+  // Section visibility toggles (all expanded by default)
+  const expandedSections = ref({
+    couple: true,
+    nameOrder: false,
+    calligraphy: false,
+    parents: false,
+    event: true,
+    displayFormat: false,
+    website: false,
+  })
 
-const toggleSection = (section: keyof typeof expandedSections.value) => {
-  expandedSections.value[section] = !expandedSections.value[section];
-};
+  const toggleSection = (section: keyof typeof expandedSections.value) => {
+    expandedSections.value[section] = !expandedSections.value[section]
+  }
 
-// Local form state
-const formData = ref({
-  couple: {
-    bride: { fullName: "", nickname: "" },
-    groom: { fullName: "", nickname: "" },
-  },
-  parents: {
-    bride: { father: "", mother: "" },
-    groom: { father: "", mother: "" },
-  },
-  parentsVisibility: {
-    ...DEFAULT_PARENTS_VISIBILITY,
-  } as ParentsVisibilitySettings,
-  eventDate: "",
-  eventEndTime: "",
-  eventDisplayFormat: { ...DEFAULT_DISPLAY_FORMAT } as EventDisplayFormat,
-  displayNameOrder: "bride_first" as DisplayNameOrder,
-  bismillahCalligraphy: {
-    ...DEFAULT_BISMILLAH_SETTINGS,
-  } as BismillahCalligraphySettings,
-  dressCode: "",
-  hashtag: "",
-  qrCodeUrl: "",
-});
+  // Local form state
+  const formData = ref({
+    couple: {
+      bride: { fullName: '', nickname: '' },
+      groom: { fullName: '', nickname: '' },
+    },
+    parents: {
+      bride: { father: '', mother: '' },
+      groom: { father: '', mother: '' },
+    },
+    parentsVisibility: {
+      ...DEFAULT_PARENTS_VISIBILITY,
+    } as ParentsVisibilitySettings,
+    eventDate: '',
+    eventEndTime: '',
+    eventDisplayFormat: { ...DEFAULT_DISPLAY_FORMAT } as EventDisplayFormat,
+    displayNameOrder: 'bride_first' as DisplayNameOrder,
+    bismillahCalligraphy: {
+      ...DEFAULT_BISMILLAH_SETTINGS,
+    } as BismillahCalligraphySettings,
+    dressCode: '',
+    hashtag: '',
+    qrCodeUrl: '',
+  })
 
-// Track if form has unsaved changes
-const hasChanges = computed(() => {
-  return (
-    JSON.stringify(formData.value) !==
-    JSON.stringify({
-      couple: weddingDetails.value.couple,
-      parents: weddingDetails.value.parents,
-      parentsVisibility:
-        weddingDetails.value.parentsVisibility ?? DEFAULT_PARENTS_VISIBILITY,
+  // Track if form has unsaved changes
+  const hasChanges = computed(() => {
+    return (
+      JSON.stringify(formData.value) !==
+      JSON.stringify({
+        couple: weddingDetails.value.couple,
+        parents: weddingDetails.value.parents,
+        parentsVisibility: weddingDetails.value.parentsVisibility ?? DEFAULT_PARENTS_VISIBILITY,
+        eventDate: weddingDetails.value.eventDate,
+        eventEndTime: weddingDetails.value.eventEndTime ?? '',
+        eventDisplayFormat: weddingDetails.value.eventDisplayFormat ?? DEFAULT_DISPLAY_FORMAT,
+        displayNameOrder: weddingDetails.value.displayNameOrder ?? 'bride_first',
+        bismillahCalligraphy:
+          weddingDetails.value.bismillahCalligraphy ?? DEFAULT_BISMILLAH_SETTINGS,
+        dressCode: weddingDetails.value.dressCode,
+        hashtag: weddingDetails.value.hashtag,
+        qrCodeUrl: weddingDetails.value.qrCodeUrl,
+      })
+    )
+  })
+
+  // Sync form data when wedding details are loaded
+  const syncFormData = () => {
+    formData.value = {
+      couple: {
+        bride: { ...weddingDetails.value.couple.bride },
+        groom: { ...weddingDetails.value.couple.groom },
+      },
+      parents: {
+        bride: { ...weddingDetails.value.parents.bride },
+        groom: { ...weddingDetails.value.parents.groom },
+      },
+      parentsVisibility: weddingDetails.value.parentsVisibility
+        ? { ...weddingDetails.value.parentsVisibility }
+        : { ...DEFAULT_PARENTS_VISIBILITY },
       eventDate: weddingDetails.value.eventDate,
-      eventEndTime: weddingDetails.value.eventEndTime ?? "",
-      eventDisplayFormat:
-        weddingDetails.value.eventDisplayFormat ?? DEFAULT_DISPLAY_FORMAT,
-      displayNameOrder: weddingDetails.value.displayNameOrder ?? "bride_first",
-      bismillahCalligraphy:
-        weddingDetails.value.bismillahCalligraphy ?? DEFAULT_BISMILLAH_SETTINGS,
+      eventEndTime: weddingDetails.value.eventEndTime ?? '',
+      eventDisplayFormat: weddingDetails.value.eventDisplayFormat
+        ? {
+            ...weddingDetails.value.eventDisplayFormat,
+            customOptions: {
+              ...weddingDetails.value.eventDisplayFormat.customOptions,
+            },
+          }
+        : {
+            ...DEFAULT_DISPLAY_FORMAT,
+            customOptions: { ...DEFAULT_DISPLAY_FORMAT.customOptions },
+          },
+      displayNameOrder: weddingDetails.value.displayNameOrder ?? 'bride_first',
+      bismillahCalligraphy: weddingDetails.value.bismillahCalligraphy
+        ? { ...weddingDetails.value.bismillahCalligraphy }
+        : { ...DEFAULT_BISMILLAH_SETTINGS },
       dressCode: weddingDetails.value.dressCode,
       hashtag: weddingDetails.value.hashtag,
       qrCodeUrl: weddingDetails.value.qrCodeUrl,
-    })
-  );
-});
-
-// Sync form data when wedding details are loaded
-const syncFormData = () => {
-  formData.value = {
-    couple: {
-      bride: { ...weddingDetails.value.couple.bride },
-      groom: { ...weddingDetails.value.couple.groom },
-    },
-    parents: {
-      bride: { ...weddingDetails.value.parents.bride },
-      groom: { ...weddingDetails.value.parents.groom },
-    },
-    parentsVisibility: weddingDetails.value.parentsVisibility
-      ? { ...weddingDetails.value.parentsVisibility }
-      : { ...DEFAULT_PARENTS_VISIBILITY },
-    eventDate: weddingDetails.value.eventDate,
-    eventEndTime: weddingDetails.value.eventEndTime ?? "",
-    eventDisplayFormat: weddingDetails.value.eventDisplayFormat
-      ? {
-          ...weddingDetails.value.eventDisplayFormat,
-          customOptions: {
-            ...weddingDetails.value.eventDisplayFormat.customOptions,
-          },
-        }
-      : {
-          ...DEFAULT_DISPLAY_FORMAT,
-          customOptions: { ...DEFAULT_DISPLAY_FORMAT.customOptions },
-        },
-    displayNameOrder: weddingDetails.value.displayNameOrder ?? "bride_first",
-    bismillahCalligraphy: weddingDetails.value.bismillahCalligraphy
-      ? { ...weddingDetails.value.bismillahCalligraphy }
-      : { ...DEFAULT_BISMILLAH_SETTINGS },
-    dressCode: weddingDetails.value.dressCode,
-    hashtag: weddingDetails.value.hashtag,
-    qrCodeUrl: weddingDetails.value.qrCodeUrl,
-  };
-  // Set custom options toggle based on preset
-  showCustomOptions.value =
-    formData.value.eventDisplayFormat.preset === "custom";
-};
-
-// Format datetime for input - handles timezone correctly
-const formattedEventDate = computed({
-  get: () => {
-    if (!formData.value.eventDate) return "";
-    const date = new Date(formData.value.eventDate);
-    // Format as local datetime for the input (YYYY-MM-DDTHH:MM)
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-    const day = String(date.getDate()).padStart(2, "0");
-    const hours = String(date.getHours()).padStart(2, "0");
-    const minutes = String(date.getMinutes()).padStart(2, "0");
-    return `${year}-${month}-${day}T${hours}:${minutes}`;
-  },
-  set: (value: string) => {
-    if (value) {
-      // Parse the local datetime and store with timezone offset
-      const date = new Date(value);
-      const tzOffset = -date.getTimezoneOffset();
-      const tzHours = String(Math.floor(Math.abs(tzOffset) / 60)).padStart(
-        2,
-        "0",
-      );
-      const tzMinutes = String(Math.abs(tzOffset) % 60).padStart(2, "0");
-      const tzSign = tzOffset >= 0 ? "+" : "-";
-
-      const year = date.getFullYear();
-      const month = String(date.getMonth() + 1).padStart(2, "0");
-      const day = String(date.getDate()).padStart(2, "0");
-      const hours = String(date.getHours()).padStart(2, "0");
-      const minutes = String(date.getMinutes()).padStart(2, "0");
-      const seconds = String(date.getSeconds()).padStart(2, "0");
-
-      formData.value.eventDate = `${year}-${month}-${day}T${hours}:${minutes}:${seconds}${tzSign}${tzHours}:${tzMinutes}`;
     }
-  },
-});
-
-// Format end time for input - handles timezone correctly
-const formattedEventEndTime = computed({
-  get: () => {
-    if (!formData.value.eventEndTime) return "";
-    const date = new Date(formData.value.eventEndTime);
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-    const day = String(date.getDate()).padStart(2, "0");
-    const hours = String(date.getHours()).padStart(2, "0");
-    const minutes = String(date.getMinutes()).padStart(2, "0");
-    return `${year}-${month}-${day}T${hours}:${minutes}`;
-  },
-  set: (value: string) => {
-    if (value) {
-      const date = new Date(value);
-      const tzOffset = -date.getTimezoneOffset();
-      const tzHours = String(Math.floor(Math.abs(tzOffset) / 60)).padStart(
-        2,
-        "0",
-      );
-      const tzMinutes = String(Math.abs(tzOffset) % 60).padStart(2, "0");
-      const tzSign = tzOffset >= 0 ? "+" : "-";
-
-      const year = date.getFullYear();
-      const month = String(date.getMonth() + 1).padStart(2, "0");
-      const day = String(date.getDate()).padStart(2, "0");
-      const hours = String(date.getHours()).padStart(2, "0");
-      const minutes = String(date.getMinutes()).padStart(2, "0");
-      const seconds = String(date.getSeconds()).padStart(2, "0");
-
-      formData.value.eventEndTime = `${year}-${month}-${day}T${hours}:${minutes}:${seconds}${tzSign}${tzHours}:${tzMinutes}`;
-    } else {
-      formData.value.eventEndTime = "";
-    }
-  },
-});
-
-// Custom format parser - converts format strings like "DD/MM/YYYY" to formatted date
-function formatDateWithPattern(date: Date, pattern: string): string {
-  const monthNames = [
-    "January",
-    "February",
-    "March",
-    "April",
-    "May",
-    "June",
-    "July",
-    "August",
-    "September",
-    "October",
-    "November",
-    "December",
-  ] as const;
-  const dayNames = [
-    "Sunday",
-    "Monday",
-    "Tuesday",
-    "Wednesday",
-    "Thursday",
-    "Friday",
-    "Saturday",
-  ] as const;
-
-  const year = date.getFullYear();
-  const month = date.getMonth();
-  const day = date.getDate();
-  const dayOfWeek = date.getDay();
-  const hours24 = date.getHours();
-  const hours12 = hours24 % 12 || 12;
-  const minutes = date.getMinutes();
-  const ampm = hours24 >= 12 ? "PM" : "AM";
-
-  const monthName = monthNames[month] ?? "Unknown";
-  const dayName = dayNames[dayOfWeek] ?? "Unknown";
-
-  return pattern
-    .replace(/YYYY/g, String(year))
-    .replace(/YY/g, String(year).slice(-2))
-    .replace(/MMMM/g, monthName)
-    .replace(/MMM/g, monthName.slice(0, 3))
-    .replace(/MM/g, String(month + 1).padStart(2, "0"))
-    .replace(/M(?!a)/g, String(month + 1))
-    .replace(/dddd/g, dayName)
-    .replace(/ddd/g, dayName.slice(0, 3))
-    .replace(/DD/g, String(day).padStart(2, "0"))
-    .replace(/D(?!e)/g, String(day))
-    .replace(/HH/g, String(hours24).padStart(2, "0"))
-    .replace(/H(?!o)/g, String(hours24))
-    .replace(/hh/g, String(hours12).padStart(2, "0"))
-    .replace(/h(?!o)/g, String(hours12))
-    .replace(/mm/g, String(minutes).padStart(2, "0"))
-    .replace(/m(?!b)/g, String(minutes))
-    .replace(/A/g, ampm)
-    .replace(/a/g, ampm.toLowerCase());
-}
-
-// Preview computed properties
-const previewDate = computed(() => {
-  if (!formData.value.eventDate) return "No date set";
-  const date = new Date(formData.value.eventDate);
-  const format = formData.value.eventDisplayFormat;
-  const options =
-    format.preset === "custom"
-      ? format.customOptions
-      : getOptionsForPreset(format.preset);
-
-  if (!options.showDate) return "";
-
-  // Use custom format if provided
-  if (format.preset === "custom" && options.customDateFormat) {
-    return formatDateWithPattern(date, options.customDateFormat);
+    // Set custom options toggle based on preset
+    showCustomOptions.value = formData.value.eventDisplayFormat.preset === 'custom'
   }
 
-  const dateOptions: Intl.DateTimeFormatOptions = {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  };
-  if (options.showDayOfWeek) {
-    dateOptions.weekday = "long";
+  // Format datetime for input - handles timezone correctly
+  const formattedEventDate = computed({
+    get: () => {
+      if (!formData.value.eventDate) return ''
+      const date = new Date(formData.value.eventDate)
+      // Format as local datetime for the input (YYYY-MM-DDTHH:MM)
+      const year = date.getFullYear()
+      const month = String(date.getMonth() + 1).padStart(2, '0')
+      const day = String(date.getDate()).padStart(2, '0')
+      const hours = String(date.getHours()).padStart(2, '0')
+      const minutes = String(date.getMinutes()).padStart(2, '0')
+      return `${year}-${month}-${day}T${hours}:${minutes}`
+    },
+    set: (value: string) => {
+      if (value) {
+        // Parse the local datetime and store with timezone offset
+        const date = new Date(value)
+        const tzOffset = -date.getTimezoneOffset()
+        const tzHours = String(Math.floor(Math.abs(tzOffset) / 60)).padStart(2, '0')
+        const tzMinutes = String(Math.abs(tzOffset) % 60).padStart(2, '0')
+        const tzSign = tzOffset >= 0 ? '+' : '-'
+
+        const year = date.getFullYear()
+        const month = String(date.getMonth() + 1).padStart(2, '0')
+        const day = String(date.getDate()).padStart(2, '0')
+        const hours = String(date.getHours()).padStart(2, '0')
+        const minutes = String(date.getMinutes()).padStart(2, '0')
+        const seconds = String(date.getSeconds()).padStart(2, '0')
+
+        formData.value.eventDate = `${year}-${month}-${day}T${hours}:${minutes}:${seconds}${tzSign}${tzHours}:${tzMinutes}`
+      }
+    },
+  })
+
+  // Format end time for input - handles timezone correctly
+  const formattedEventEndTime = computed({
+    get: () => {
+      if (!formData.value.eventEndTime) return ''
+      const date = new Date(formData.value.eventEndTime)
+      const year = date.getFullYear()
+      const month = String(date.getMonth() + 1).padStart(2, '0')
+      const day = String(date.getDate()).padStart(2, '0')
+      const hours = String(date.getHours()).padStart(2, '0')
+      const minutes = String(date.getMinutes()).padStart(2, '0')
+      return `${year}-${month}-${day}T${hours}:${minutes}`
+    },
+    set: (value: string) => {
+      if (value) {
+        const date = new Date(value)
+        const tzOffset = -date.getTimezoneOffset()
+        const tzHours = String(Math.floor(Math.abs(tzOffset) / 60)).padStart(2, '0')
+        const tzMinutes = String(Math.abs(tzOffset) % 60).padStart(2, '0')
+        const tzSign = tzOffset >= 0 ? '+' : '-'
+
+        const year = date.getFullYear()
+        const month = String(date.getMonth() + 1).padStart(2, '0')
+        const day = String(date.getDate()).padStart(2, '0')
+        const hours = String(date.getHours()).padStart(2, '0')
+        const minutes = String(date.getMinutes()).padStart(2, '0')
+        const seconds = String(date.getSeconds()).padStart(2, '0')
+
+        formData.value.eventEndTime = `${year}-${month}-${day}T${hours}:${minutes}:${seconds}${tzSign}${tzHours}:${tzMinutes}`
+      } else {
+        formData.value.eventEndTime = ''
+      }
+    },
+  })
+
+  // Custom format parser - converts format strings like "DD/MM/YYYY" to formatted date
+  function formatDateWithPattern(date: Date, pattern: string): string {
+    const monthNames = [
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December',
+    ] as const
+    const dayNames = [
+      'Sunday',
+      'Monday',
+      'Tuesday',
+      'Wednesday',
+      'Thursday',
+      'Friday',
+      'Saturday',
+    ] as const
+
+    const year = date.getFullYear()
+    const month = date.getMonth()
+    const day = date.getDate()
+    const dayOfWeek = date.getDay()
+    const hours24 = date.getHours()
+    const hours12 = hours24 % 12 || 12
+    const minutes = date.getMinutes()
+    const ampm = hours24 >= 12 ? 'PM' : 'AM'
+
+    const monthName = monthNames[month] ?? 'Unknown'
+    const dayName = dayNames[dayOfWeek] ?? 'Unknown'
+
+    return pattern
+      .replace(/YYYY/g, String(year))
+      .replace(/YY/g, String(year).slice(-2))
+      .replace(/MMMM/g, monthName)
+      .replace(/MMM/g, monthName.slice(0, 3))
+      .replace(/MM/g, String(month + 1).padStart(2, '0'))
+      .replace(/M(?!a)/g, String(month + 1))
+      .replace(/dddd/g, dayName)
+      .replace(/ddd/g, dayName.slice(0, 3))
+      .replace(/DD/g, String(day).padStart(2, '0'))
+      .replace(/D(?!e)/g, String(day))
+      .replace(/HH/g, String(hours24).padStart(2, '0'))
+      .replace(/H(?!o)/g, String(hours24))
+      .replace(/hh/g, String(hours12).padStart(2, '0'))
+      .replace(/h(?!o)/g, String(hours12))
+      .replace(/mm/g, String(minutes).padStart(2, '0'))
+      .replace(/m(?!b)/g, String(minutes))
+      .replace(/A/g, ampm)
+      .replace(/a/g, ampm.toLowerCase())
   }
-  return date.toLocaleDateString("en-MY", dateOptions);
-});
 
-const previewTime = computed(() => {
-  if (!formData.value.eventDate) return "";
-  const format = formData.value.eventDisplayFormat;
-  const options =
-    format.preset === "custom"
-      ? format.customOptions
-      : getOptionsForPreset(format.preset);
+  // Preview computed properties
+  const previewDate = computed(() => {
+    if (!formData.value.eventDate) return 'No date set'
+    const date = new Date(formData.value.eventDate)
+    const format = formData.value.eventDisplayFormat
+    const options =
+      format.preset === 'custom' ? format.customOptions : getOptionsForPreset(format.preset)
 
-  if (!options.showStartTime && !options.showEndTime) return "";
+    if (!options.showDate) return ''
 
-  const startDate = new Date(formData.value.eventDate);
+    // Use custom format if provided
+    if (format.preset === 'custom' && options.customDateFormat) {
+      return formatDateWithPattern(date, options.customDateFormat)
+    }
 
-  // Use custom time format if provided
-  if (format.preset === "custom" && options.customTimeFormat) {
-    const startTimeStr = formatDateWithPattern(
-      startDate,
-      options.customTimeFormat,
-    );
+    const dateOptions: Intl.DateTimeFormatOptions = {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    }
+    if (options.showDayOfWeek) {
+      dateOptions.weekday = 'long'
+    }
+    return date.toLocaleDateString('en-MY', dateOptions)
+  })
+
+  const previewTime = computed(() => {
+    if (!formData.value.eventDate) return ''
+    const format = formData.value.eventDisplayFormat
+    const options =
+      format.preset === 'custom' ? format.customOptions : getOptionsForPreset(format.preset)
+
+    if (!options.showStartTime && !options.showEndTime) return ''
+
+    const startDate = new Date(formData.value.eventDate)
+
+    // Use custom time format if provided
+    if (format.preset === 'custom' && options.customTimeFormat) {
+      const startTimeStr = formatDateWithPattern(startDate, options.customTimeFormat)
+
+      if (options.showEndTime && formData.value.eventEndTime) {
+        const endDate = new Date(formData.value.eventEndTime)
+        const endTimeStr = formatDateWithPattern(endDate, options.customTimeFormat)
+        return `${startTimeStr} - ${endTimeStr}`
+      }
+
+      return options.showStartTime ? startTimeStr : ''
+    }
+
+    const timeOptions: Intl.DateTimeFormatOptions = {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: options.timeFormat === '12h',
+    }
+
+    const startTimeStr = startDate.toLocaleTimeString('en-MY', timeOptions)
 
     if (options.showEndTime && formData.value.eventEndTime) {
-      const endDate = new Date(formData.value.eventEndTime);
-      const endTimeStr = formatDateWithPattern(
-        endDate,
-        options.customTimeFormat,
-      );
-      return `${startTimeStr} - ${endTimeStr}`;
+      const endDate = new Date(formData.value.eventEndTime)
+      const endTimeStr = endDate.toLocaleTimeString('en-MY', timeOptions)
+
+      if (format.preset === 'full_details') {
+        return `Starts: ${startTimeStr}\nEnds: ${endTimeStr}`
+      }
+      return `${startTimeStr} - ${endTimeStr}`
     }
 
-    return options.showStartTime ? startTimeStr : "";
-  }
-
-  const timeOptions: Intl.DateTimeFormatOptions = {
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: options.timeFormat === "12h",
-  };
-
-  const startTimeStr = startDate.toLocaleTimeString("en-MY", timeOptions);
-
-  if (options.showEndTime && formData.value.eventEndTime) {
-    const endDate = new Date(formData.value.eventEndTime);
-    const endTimeStr = endDate.toLocaleTimeString("en-MY", timeOptions);
-
-    if (format.preset === "full_details") {
-      return `Starts: ${startTimeStr}\nEnds: ${endTimeStr}`;
+    if (format.preset === 'full_details' && options.showStartTime) {
+      return `Starts: ${startTimeStr}`
     }
-    return `${startTimeStr} - ${endTimeStr}`;
-  }
 
-  if (format.preset === "full_details" && options.showStartTime) {
-    return `Starts: ${startTimeStr}`;
-  }
+    return options.showStartTime ? startTimeStr : ''
+  })
 
-  return options.showStartTime ? startTimeStr : "";
-});
-
-// Get display options for a preset
-function getOptionsForPreset(preset: EventDisplayPreset) {
-  switch (preset) {
-    case "date_time_range":
-      return {
-        showDate: true,
-        showStartTime: true,
-        showEndTime: true,
-        showDayOfWeek: true,
-        timeFormat: "12h" as const,
-      };
-    case "date_start_only":
-      return {
-        showDate: true,
-        showStartTime: true,
-        showEndTime: false,
-        showDayOfWeek: true,
-        timeFormat: "12h" as const,
-      };
-    case "date_only":
-      return {
-        showDate: true,
-        showStartTime: false,
-        showEndTime: false,
-        showDayOfWeek: true,
-        timeFormat: "12h" as const,
-      };
-    case "full_details":
-      return {
-        showDate: true,
-        showStartTime: true,
-        showEndTime: true,
-        showDayOfWeek: true,
-        timeFormat: "12h" as const,
-      };
-    case "custom":
-    default:
-      return formData.value.eventDisplayFormat.customOptions;
-  }
-}
-
-// Handle preset change
-const handlePresetChange = (preset: EventDisplayPreset) => {
-  formData.value.eventDisplayFormat.preset = preset;
-  if (preset === "custom") {
-    showCustomOptions.value = true;
-  } else {
-    showCustomOptions.value = false;
-    // Update custom options to match preset for consistency
-    formData.value.eventDisplayFormat.customOptions = {
-      ...getOptionsForPreset(preset),
-    };
-  }
-};
-
-// Save changes
-const handleSave = async () => {
-  const result = await updateWeddingDetails(formData.value);
-  // Sync form data after successful save to ensure hasChanges is false
-  if (result.success) {
-    syncFormData();
-  }
-};
-
-// Discard changes
-const discardChanges = () => {
-  syncFormData();
-};
-
-// Watch for wedding details changes and sync form
-watch(
-  () => weddingDetails.value,
-  () => {
-    if (!hasChanges.value) {
-      syncFormData();
+  // Get display options for a preset
+  function getOptionsForPreset(preset: EventDisplayPreset) {
+    switch (preset) {
+      case 'date_time_range':
+        return {
+          showDate: true,
+          showStartTime: true,
+          showEndTime: true,
+          showDayOfWeek: true,
+          timeFormat: '12h' as const,
+        }
+      case 'date_start_only':
+        return {
+          showDate: true,
+          showStartTime: true,
+          showEndTime: false,
+          showDayOfWeek: true,
+          timeFormat: '12h' as const,
+        }
+      case 'date_only':
+        return {
+          showDate: true,
+          showStartTime: false,
+          showEndTime: false,
+          showDayOfWeek: true,
+          timeFormat: '12h' as const,
+        }
+      case 'full_details':
+        return {
+          showDate: true,
+          showStartTime: true,
+          showEndTime: true,
+          showDayOfWeek: true,
+          timeFormat: '12h' as const,
+        }
+      case 'custom':
+      default:
+        return formData.value.eventDisplayFormat.customOptions
     }
-  },
-  { deep: true },
-);
+  }
 
-onMounted(async () => {
-  await fetchWeddingDetails();
-  syncFormData();
-});
+  // Handle preset change
+  const handlePresetChange = (preset: EventDisplayPreset) => {
+    formData.value.eventDisplayFormat.preset = preset
+    if (preset === 'custom') {
+      showCustomOptions.value = true
+    } else {
+      showCustomOptions.value = false
+      // Update custom options to match preset for consistency
+      formData.value.eventDisplayFormat.customOptions = {
+        ...getOptionsForPreset(preset),
+      }
+    }
+  }
+
+  // Save changes
+  const handleSave = async () => {
+    const result = await updateWeddingDetails(formData.value)
+    // Sync form data after successful save to ensure hasChanges is false
+    if (result.success) {
+      syncFormData()
+    }
+  }
+
+  // Discard changes
+  const discardChanges = () => {
+    syncFormData()
+  }
+
+  // Watch for wedding details changes and sync form
+  watch(
+    () => weddingDetails.value,
+    () => {
+      if (!hasChanges.value) {
+        syncFormData()
+      }
+    },
+    { deep: true }
+  )
+
+  onMounted(async () => {
+    await fetchWeddingDetails()
+    syncFormData()
+  })
 </script>
 
 <template>
   <div class="max-w-5xl mx-auto">
     <!-- Header -->
     <div class="mb-6">
-      <h2
-        class="font-heading text-xl font-semibold text-charcoal dark:text-dark-text"
-      >
+      <h2 class="font-heading text-xl font-semibold text-charcoal dark:text-dark-text">
         Wedding Details
       </h2>
-      <p
-        class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary mt-1"
-      >
+      <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary mt-1">
         Manage couple information, parents, and event details
       </p>
     </div>
@@ -476,9 +453,7 @@ onMounted(async () => {
       <div
         class="inline-block w-8 h-8 border-3 border-sage border-t-transparent rounded-full animate-spin"
       />
-      <p
-        class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary mt-3"
-      >
+      <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary mt-3">
         Loading wedding details...
       </p>
     </div>
@@ -520,9 +495,7 @@ onMounted(async () => {
       <div
         class="bg-white dark:bg-dark-bg-secondary rounded-lg border border-sand-dark dark:border-dark-border overflow-hidden transition-all"
         :class="
-          expandedSections.couple
-            ? 'ring-2 ring-sage/30 border-sage/50'
-            : 'hover:border-sage/30'
+          expandedSections.couple ? 'ring-2 ring-sage/30 border-sage/50' : 'hover:border-sage/30'
         "
       >
         <button
@@ -566,18 +539,14 @@ onMounted(async () => {
         </button>
         <div
           class="grid transition-[grid-template-rows] duration-300 ease-out"
-          :class="
-            expandedSections.couple ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'
-          "
+          :class="expandedSections.couple ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'"
         >
           <div class="overflow-hidden min-h-0">
             <div class="px-4 sm:px-6 pt-2 pb-4 sm:pb-6">
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                 <!-- Bride -->
                 <div class="space-y-3">
-                  <h4
-                    class="font-body text-sm font-medium text-sage-dark dark:text-sage-light"
-                  >
+                  <h4 class="font-body text-sm font-medium text-sage-dark dark:text-sage-light">
                     Bride
                   </h4>
                   <div>
@@ -612,9 +581,7 @@ onMounted(async () => {
 
                 <!-- Groom -->
                 <div class="space-y-3">
-                  <h4
-                    class="font-body text-sm font-medium text-sage-dark dark:text-sage-light"
-                  >
+                  <h4 class="font-body text-sm font-medium text-sage-dark dark:text-sage-light">
                     Groom
                   </h4>
                   <div>
@@ -656,9 +623,7 @@ onMounted(async () => {
       <div
         class="bg-white dark:bg-dark-bg-secondary rounded-lg border border-sand-dark dark:border-dark-border transition-all"
         :class="
-          expandedSections.nameOrder
-            ? 'ring-2 ring-sage/30 border-sage/50'
-            : 'hover:border-sage/30'
+          expandedSections.nameOrder ? 'ring-2 ring-sage/30 border-sage/50' : 'hover:border-sage/30'
         "
       >
         <button
@@ -718,17 +683,12 @@ onMounted(async () => {
         </button>
         <div
           class="grid transition-[grid-template-rows] duration-300 ease-out"
-          :class="
-            expandedSections.nameOrder ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'
-          "
+          :class="expandedSections.nameOrder ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'"
         >
           <div class="overflow-hidden min-h-0">
             <div class="px-4 sm:px-6 pt-2 pb-4 sm:pb-6">
-              <p
-                class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary mb-4"
-              >
-                Choose whether to display the bride or groom name first
-                throughout the website.
+              <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary mb-4">
+                Choose whether to display the bride or groom name first throughout the website.
               </p>
 
               <div class="flex flex-col sm:flex-row gap-3">
@@ -825,11 +785,8 @@ onMounted(async () => {
             >
               Bismillah Calligraphy
             </h3>
-            <p
-              class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary mt-1"
-            >
-              Choose the calligraphy style for the Bismillah displayed on the
-              hero section
+            <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary mt-1">
+              Choose the calligraphy style for the Bismillah displayed on the hero section
             </p>
           </div>
           <svg
@@ -853,9 +810,7 @@ onMounted(async () => {
         </button>
         <div
           class="grid transition-[grid-template-rows] duration-300 ease-out"
-          :class="
-            expandedSections.calligraphy ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'
-          "
+          :class="expandedSections.calligraphy ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'"
         >
           <div class="overflow-hidden min-h-0">
             <div class="px-4 sm:px-6 pt-2 pb-4 sm:pb-6">
@@ -873,9 +828,7 @@ onMounted(async () => {
       <div
         class="bg-white dark:bg-dark-bg-secondary rounded-lg border border-sand-dark dark:border-dark-border overflow-hidden transition-all"
         :class="
-          expandedSections.parents
-            ? 'ring-2 ring-sage/30 border-sage/50'
-            : 'hover:border-sage/30'
+          expandedSections.parents ? 'ring-2 ring-sage/30 border-sage/50' : 'hover:border-sage/30'
         "
       >
         <button
@@ -919,17 +872,13 @@ onMounted(async () => {
         </button>
         <div
           class="grid transition-[grid-template-rows] duration-300 ease-out"
-          :class="
-            expandedSections.parents ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'
-          "
+          :class="expandedSections.parents ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'"
         >
           <div class="overflow-hidden min-h-0">
             <div class="px-4 sm:px-6 pt-2 pb-4 sm:pb-6">
               <!-- Parents Visibility Settings -->
               <div class="mb-6 space-y-3">
-                <p
-                  class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary mb-2"
-                >
+                <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary mb-2">
                   Control which parents names appear on the public invitation
                 </p>
 
@@ -938,9 +887,7 @@ onMounted(async () => {
                   class="flex items-center justify-between py-3 px-4 bg-sand/50 dark:bg-dark-bg rounded-lg"
                 >
                   <div>
-                    <label
-                      class="font-body text-sm font-medium text-charcoal dark:text-dark-text"
-                    >
+                    <label class="font-body text-sm font-medium text-charcoal dark:text-dark-text">
                       Show Bride's Parents
                     </label>
                     <p
@@ -981,9 +928,7 @@ onMounted(async () => {
                   class="flex items-center justify-between py-3 px-4 bg-sand/50 dark:bg-dark-bg rounded-lg"
                 >
                   <div>
-                    <label
-                      class="font-body text-sm font-medium text-charcoal dark:text-dark-text"
-                    >
+                    <label class="font-body text-sm font-medium text-charcoal dark:text-dark-text">
                       Show Groom's Parents
                     </label>
                     <p
@@ -1021,9 +966,7 @@ onMounted(async () => {
               </div>
 
               <!-- Divider -->
-              <div
-                class="border-t border-sand-dark dark:border-dark-border mb-4"
-              ></div>
+              <div class="border-t border-sand-dark dark:border-dark-border mb-4"></div>
 
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                 <!-- Bride's Parents -->
@@ -1031,13 +974,10 @@ onMounted(async () => {
                   class="space-y-3 transition-opacity"
                   :class="{
                     'opacity-50': !formData.parentsVisibility.showBrideParents,
-                    'cursor-not-allowed':
-                      !formData.parentsVisibility.showBrideParents,
+                    'cursor-not-allowed': !formData.parentsVisibility.showBrideParents,
                   }"
                 >
-                  <h4
-                    class="font-body text-sm font-medium text-sage-dark dark:text-sage-light"
-                  >
+                  <h4 class="font-body text-sm font-medium text-sage-dark dark:text-sage-light">
                     Bride's Parents
                   </h4>
                   <div>
@@ -1051,9 +991,7 @@ onMounted(async () => {
                       type="text"
                       class="w-full px-3 py-2.5 font-body text-base border border-sand-dark dark:border-dark-border rounded-lg bg-sand dark:bg-dark-bg-elevated text-charcoal dark:text-dark-text focus:outline-none focus:border-sage disabled:cursor-not-allowed disabled:bg-gray-100 dark:disabled:bg-dark-bg"
                       placeholder="Father's name"
-                      :disabled="
-                        isSaving || !formData.parentsVisibility.showBrideParents
-                      "
+                      :disabled="isSaving || !formData.parentsVisibility.showBrideParents"
                     />
                   </div>
                   <div>
@@ -1067,9 +1005,7 @@ onMounted(async () => {
                       type="text"
                       class="w-full px-3 py-2.5 font-body text-base border border-sand-dark dark:border-dark-border rounded-lg bg-sand dark:bg-dark-bg-elevated text-charcoal dark:text-dark-text focus:outline-none focus:border-sage disabled:cursor-not-allowed disabled:bg-gray-100 dark:disabled:bg-dark-bg"
                       placeholder="Mother's name"
-                      :disabled="
-                        isSaving || !formData.parentsVisibility.showBrideParents
-                      "
+                      :disabled="isSaving || !formData.parentsVisibility.showBrideParents"
                     />
                   </div>
                 </div>
@@ -1079,13 +1015,10 @@ onMounted(async () => {
                   class="space-y-3 transition-opacity"
                   :class="{
                     'opacity-50': !formData.parentsVisibility.showGroomParents,
-                    'cursor-not-allowed':
-                      !formData.parentsVisibility.showGroomParents,
+                    'cursor-not-allowed': !formData.parentsVisibility.showGroomParents,
                   }"
                 >
-                  <h4
-                    class="font-body text-sm font-medium text-sage-dark dark:text-sage-light"
-                  >
+                  <h4 class="font-body text-sm font-medium text-sage-dark dark:text-sage-light">
                     Groom's Parents
                   </h4>
                   <div>
@@ -1099,9 +1032,7 @@ onMounted(async () => {
                       type="text"
                       class="w-full px-3 py-2.5 font-body text-base border border-sand-dark dark:border-dark-border rounded-lg bg-sand dark:bg-dark-bg-elevated text-charcoal dark:text-dark-text focus:outline-none focus:border-sage disabled:cursor-not-allowed disabled:bg-gray-100 dark:disabled:bg-dark-bg"
                       placeholder="Father's name"
-                      :disabled="
-                        isSaving || !formData.parentsVisibility.showGroomParents
-                      "
+                      :disabled="isSaving || !formData.parentsVisibility.showGroomParents"
                     />
                   </div>
                   <div>
@@ -1115,9 +1046,7 @@ onMounted(async () => {
                       type="text"
                       class="w-full px-3 py-2.5 font-body text-base border border-sand-dark dark:border-dark-border rounded-lg bg-sand dark:bg-dark-bg-elevated text-charcoal dark:text-dark-text focus:outline-none focus:border-sage disabled:cursor-not-allowed disabled:bg-gray-100 dark:disabled:bg-dark-bg"
                       placeholder="Mother's name"
-                      :disabled="
-                        isSaving || !formData.parentsVisibility.showGroomParents
-                      "
+                      :disabled="isSaving || !formData.parentsVisibility.showGroomParents"
                     />
                   </div>
                 </div>
@@ -1131,9 +1060,7 @@ onMounted(async () => {
       <div
         class="bg-white dark:bg-dark-bg-secondary rounded-lg border border-sand-dark dark:border-dark-border overflow-hidden transition-all"
         :class="
-          expandedSections.event
-            ? 'ring-2 ring-sage/30 border-sage/50'
-            : 'hover:border-sage/30'
+          expandedSections.event ? 'ring-2 ring-sage/30 border-sage/50' : 'hover:border-sage/30'
         "
       >
         <button
@@ -1177,9 +1104,7 @@ onMounted(async () => {
         </button>
         <div
           class="grid transition-[grid-template-rows] duration-300 ease-out"
-          :class="
-            expandedSections.event ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'
-          "
+          :class="expandedSections.event ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'"
         >
           <div class="overflow-hidden min-h-0">
             <div class="px-4 sm:px-6 pt-2 pb-4 sm:pb-6">
@@ -1260,11 +1185,8 @@ onMounted(async () => {
             >
               Display Format Settings
             </h3>
-            <p
-              class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary mt-1"
-            >
-              Choose how the event date and time should appear on the public
-              website
+            <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary mt-1">
+              Choose how the event date and time should appear on the public website
             </p>
           </div>
           <svg
@@ -1288,11 +1210,7 @@ onMounted(async () => {
         </button>
         <div
           class="grid transition-[grid-template-rows] duration-300 ease-out"
-          :class="
-            expandedSections.displayFormat
-              ? 'grid-rows-[1fr]'
-              : 'grid-rows-[0fr]'
-          "
+          :class="expandedSections.displayFormat ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'"
         >
           <div class="overflow-hidden min-h-0">
             <div class="px-4 sm:px-6 pt-2 pb-4 sm:pb-6">
@@ -1309,16 +1227,11 @@ onMounted(async () => {
                   :disabled="isSaving"
                   @change="
                     handlePresetChange(
-                      ($event.target as HTMLSelectElement)
-                        .value as EventDisplayPreset,
+                      ($event.target as HTMLSelectElement).value as EventDisplayPreset
                     )
                   "
                 >
-                  <option
-                    v-for="option in presetOptions"
-                    :key="option.value"
-                    :value="option.value"
-                  >
+                  <option v-for="option in presetOptions" :key="option.value" :value="option.value">
                     {{ option.label }}
                   </option>
                 </select>
@@ -1328,9 +1241,7 @@ onMounted(async () => {
               <div
                 class="mb-4 p-4 bg-sand/50 dark:bg-dark-bg-elevated rounded-lg border border-sand-dark/50 dark:border-dark-border"
               >
-                <p
-                  class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary mb-2"
-                >
+                <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary mb-2">
                   Preview:
                 </p>
                 <div class="text-center">
@@ -1356,16 +1267,9 @@ onMounted(async () => {
               </div>
 
               <!-- Custom Options Toggle -->
-              <div
-                v-if="formData.eventDisplayFormat.preset === 'custom'"
-                class="space-y-4"
-              >
-                <div
-                  class="border-t border-sand-dark dark:border-dark-border pt-4"
-                >
-                  <h4
-                    class="font-body text-sm font-medium text-charcoal dark:text-dark-text mb-3"
-                  >
+              <div v-if="formData.eventDisplayFormat.preset === 'custom'" class="space-y-4">
+                <div class="border-t border-sand-dark dark:border-dark-border pt-4">
+                  <h4 class="font-body text-sm font-medium text-charcoal dark:text-dark-text mb-3">
                     Custom Options
                   </h4>
 
@@ -1373,59 +1277,45 @@ onMounted(async () => {
                   <div class="grid grid-cols-2 gap-3 mb-4">
                     <label class="flex items-center gap-2 cursor-pointer">
                       <input
-                        v-model="
-                          formData.eventDisplayFormat.customOptions.showDate
-                        "
+                        v-model="formData.eventDisplayFormat.customOptions.showDate"
                         type="checkbox"
                         class="w-4 h-4 rounded border-sand-dark text-sage focus:ring-sage"
                         :disabled="isSaving"
                       />
-                      <span
-                        class="font-body text-sm text-charcoal dark:text-dark-text"
+                      <span class="font-body text-sm text-charcoal dark:text-dark-text"
                         >Show date</span
                       >
                     </label>
                     <label class="flex items-center gap-2 cursor-pointer">
                       <input
-                        v-model="
-                          formData.eventDisplayFormat.customOptions
-                            .showDayOfWeek
-                        "
+                        v-model="formData.eventDisplayFormat.customOptions.showDayOfWeek"
                         type="checkbox"
                         class="w-4 h-4 rounded border-sand-dark text-sage focus:ring-sage"
                         :disabled="isSaving"
                       />
-                      <span
-                        class="font-body text-sm text-charcoal dark:text-dark-text"
+                      <span class="font-body text-sm text-charcoal dark:text-dark-text"
                         >Show day of week</span
                       >
                     </label>
                     <label class="flex items-center gap-2 cursor-pointer">
                       <input
-                        v-model="
-                          formData.eventDisplayFormat.customOptions
-                            .showStartTime
-                        "
+                        v-model="formData.eventDisplayFormat.customOptions.showStartTime"
                         type="checkbox"
                         class="w-4 h-4 rounded border-sand-dark text-sage focus:ring-sage"
                         :disabled="isSaving"
                       />
-                      <span
-                        class="font-body text-sm text-charcoal dark:text-dark-text"
+                      <span class="font-body text-sm text-charcoal dark:text-dark-text"
                         >Show start time</span
                       >
                     </label>
                     <label class="flex items-center gap-2 cursor-pointer">
                       <input
-                        v-model="
-                          formData.eventDisplayFormat.customOptions.showEndTime
-                        "
+                        v-model="formData.eventDisplayFormat.customOptions.showEndTime"
                         type="checkbox"
                         class="w-4 h-4 rounded border-sand-dark text-sage focus:ring-sage"
                         :disabled="isSaving"
                       />
-                      <span
-                        class="font-body text-sm text-charcoal dark:text-dark-text"
+                      <span class="font-body text-sm text-charcoal dark:text-dark-text"
                         >Show end time</span
                       >
                     </label>
@@ -1441,31 +1331,25 @@ onMounted(async () => {
                     <div class="flex gap-4">
                       <label class="flex items-center gap-2 cursor-pointer">
                         <input
-                          v-model="
-                            formData.eventDisplayFormat.customOptions.timeFormat
-                          "
+                          v-model="formData.eventDisplayFormat.customOptions.timeFormat"
                           type="radio"
                           value="12h"
                           class="w-4 h-4 border-sand-dark text-sage focus:ring-sage"
                           :disabled="isSaving"
                         />
-                        <span
-                          class="font-body text-sm text-charcoal dark:text-dark-text"
+                        <span class="font-body text-sm text-charcoal dark:text-dark-text"
                           >12-hour (AM/PM)</span
                         >
                       </label>
                       <label class="flex items-center gap-2 cursor-pointer">
                         <input
-                          v-model="
-                            formData.eventDisplayFormat.customOptions.timeFormat
-                          "
+                          v-model="formData.eventDisplayFormat.customOptions.timeFormat"
                           type="radio"
                           value="24h"
                           class="w-4 h-4 border-sand-dark text-sage focus:ring-sage"
                           :disabled="isSaving"
                         />
-                        <span
-                          class="font-body text-sm text-charcoal dark:text-dark-text"
+                        <span class="font-body text-sm text-charcoal dark:text-dark-text"
                           >24-hour</span
                         >
                       </label>
@@ -1473,9 +1357,7 @@ onMounted(async () => {
                   </div>
 
                   <!-- Advanced Custom Format -->
-                  <div
-                    class="border-t border-sand-dark dark:border-dark-border pt-4 mt-4"
-                  >
+                  <div class="border-t border-sand-dark dark:border-dark-border pt-4 mt-4">
                     <h5
                       class="font-body text-sm font-medium text-charcoal dark:text-dark-text mb-2"
                     >
@@ -1484,8 +1366,7 @@ onMounted(async () => {
                     <p
                       class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary mb-3"
                     >
-                      Use custom format strings. Leave empty to use default
-                      formatting.
+                      Use custom format strings. Leave empty to use default formatting.
                     </p>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div>
@@ -1495,10 +1376,7 @@ onMounted(async () => {
                           Date Format
                         </label>
                         <input
-                          v-model="
-                            formData.eventDisplayFormat.customOptions
-                              .customDateFormat
-                          "
+                          v-model="formData.eventDisplayFormat.customOptions.customDateFormat"
                           type="text"
                           class="w-full px-3 py-2 font-body text-sm border border-sand-dark dark:border-dark-border rounded-lg bg-sand dark:bg-dark-bg-elevated text-charcoal dark:text-dark-text focus:outline-none focus:border-sage font-mono"
                           placeholder="e.g., DD/MM/YYYY or MMMM D, YYYY"
@@ -1512,10 +1390,7 @@ onMounted(async () => {
                           Time Format
                         </label>
                         <input
-                          v-model="
-                            formData.eventDisplayFormat.customOptions
-                              .customTimeFormat
-                          "
+                          v-model="formData.eventDisplayFormat.customOptions.customTimeFormat"
                           type="text"
                           class="w-full px-3 py-2 font-body text-sm border border-sand-dark dark:border-dark-border rounded-lg bg-sand dark:bg-dark-bg-elevated text-charcoal dark:text-dark-text focus:outline-none focus:border-sage font-mono"
                           placeholder="e.g., hh:mm A or HH:mm"
@@ -1528,8 +1403,7 @@ onMounted(async () => {
                     >
                       <p class="font-medium mb-1">Format tokens:</p>
                       <p>
-                        Date: YYYY (year), MM (month), DD (day), MMMM (month
-                        name), dddd (day name)
+                        Date: YYYY (year), MM (month), DD (day), MMMM (month name), dddd (day name)
                       </p>
                       <p>Time: HH (24h), hh (12h), mm (minutes), A (AM/PM)</p>
                     </div>
@@ -1545,9 +1419,7 @@ onMounted(async () => {
       <div
         class="bg-white dark:bg-dark-bg-secondary rounded-lg border border-sand-dark dark:border-dark-border overflow-hidden transition-all"
         :class="
-          expandedSections.website
-            ? 'ring-2 ring-sage/30 border-sage/50'
-            : 'hover:border-sage/30'
+          expandedSections.website ? 'ring-2 ring-sage/30 border-sage/50' : 'hover:border-sage/30'
         "
       >
         <button
@@ -1591,9 +1463,7 @@ onMounted(async () => {
         </button>
         <div
           class="grid transition-[grid-template-rows] duration-300 ease-out"
-          :class="
-            expandedSections.website ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'
-          "
+          :class="expandedSections.website ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'"
         >
           <div class="overflow-hidden min-h-0">
             <div class="px-4 sm:px-6 pt-2 pb-4 sm:pb-6">
@@ -1638,29 +1508,16 @@ onMounted(async () => {
       >
         <div class="flex-1">
           <!-- Save Error -->
-          <div
-            v-if="saveError"
-            class="p-3 bg-red-50 dark:bg-red-900/20 rounded-lg"
-          >
+          <div v-if="saveError" class="p-3 bg-red-50 dark:bg-red-900/20 rounded-lg">
             <p class="font-body text-sm text-red-600 dark:text-red-400">
               {{ saveError }}
             </p>
           </div>
 
           <!-- Save Success -->
-          <div
-            v-if="saveSuccess"
-            class="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg"
-          >
-            <p
-              class="font-body text-sm text-green-600 dark:text-green-400 flex items-center gap-2"
-            >
-              <svg
-                class="w-4 h-4"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
+          <div v-if="saveSuccess" class="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
+            <p class="font-body text-sm text-green-600 dark:text-green-400 flex items-center gap-2">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
                   stroke-linecap="round"
                   stroke-linejoin="round"
@@ -1677,15 +1534,8 @@ onMounted(async () => {
             v-if="hasChanges && !isSaving && !saveSuccess"
             class="p-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg"
           >
-            <p
-              class="font-body text-sm text-amber-700 dark:text-amber-400 flex items-center gap-2"
-            >
-              <svg
-                class="w-4 h-4"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
+            <p class="font-body text-sm text-amber-700 dark:text-amber-400 flex items-center gap-2">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
                   stroke-linecap="round"
                   stroke-linejoin="round"
@@ -1713,7 +1563,7 @@ onMounted(async () => {
             :disabled="isSaving || !hasChanges"
             @click="handleSave"
           >
-            {{ isSaving ? "Saving..." : "Save Changes" }}
+            {{ isSaving ? 'Saving...' : 'Save Changes' }}
           </button>
         </div>
       </div>
@@ -1723,14 +1573,10 @@ onMounted(async () => {
         v-if="weddingDetails.updatedAt"
         class="p-3 bg-sand/30 dark:bg-dark-bg-elevated rounded-lg"
       >
-        <p
-          class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary"
-        >
+        <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary">
           Last updated:
           {{ new Date(weddingDetails.updatedAt).toLocaleString() }}
-          <span v-if="weddingDetails.updatedBy">
-            by {{ weddingDetails.updatedBy }}</span
-          >
+          <span v-if="weddingDetails.updatedBy"> by {{ weddingDetails.updatedBy }}</span>
         </p>
       </div>
     </div>

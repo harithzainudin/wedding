@@ -1,36 +1,31 @@
 <script setup lang="ts">
-import type { GalleryImage } from "@/types/gallery";
+  import type { GalleryImage } from '@/types/gallery'
 
-defineProps<{
-  image: GalleryImage;
-}>();
+  defineProps<{
+    image: GalleryImage
+  }>()
 
-const emit = defineEmits<{
-  delete: [];
-  view: [];
-}>();
+  const emit = defineEmits<{
+    delete: []
+    view: []
+  }>()
 
-const handleDelete = (event: Event): void => {
-  event.stopPropagation();
-  emit("delete");
-};
+  const handleDelete = (event: Event): void => {
+    event.stopPropagation()
+    emit('delete')
+  }
 
-const handleView = (event: Event): void => {
-  event.stopPropagation();
-  emit("view");
-};
+  const handleView = (event: Event): void => {
+    event.stopPropagation()
+    emit('view')
+  }
 </script>
 
 <template>
   <div
     class="group relative w-full h-full rounded-lg overflow-hidden bg-sand dark:bg-dark-bg-secondary"
   >
-    <img
-      :src="image.url"
-      :alt="image.filename"
-      class="w-full h-full object-cover"
-      loading="lazy"
-    />
+    <img :src="image.url" :alt="image.filename" class="w-full h-full object-cover" loading="lazy" />
 
     <!-- Overlay with controls - always visible on mobile, hover on desktop -->
     <div
@@ -43,12 +38,7 @@ const handleView = (event: Event): void => {
         title="Delete image"
         @click="handleDelete"
       >
-        <svg
-          class="w-5 h-5 sm:w-4 sm:h-4"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
+        <svg class="w-5 h-5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path
             stroke-linecap="round"
             stroke-linejoin="round"
@@ -65,12 +55,7 @@ const handleView = (event: Event): void => {
         title="View full image"
         @click="handleView"
       >
-        <svg
-          class="w-4 h-4"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path
             stroke-linecap="round"
             stroke-linejoin="round"

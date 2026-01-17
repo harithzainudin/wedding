@@ -1,58 +1,56 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from "vue";
+  import { ref, onMounted, onUnmounted } from 'vue'
 
-defineProps<{
-  username: string;
-  isMasterUser: boolean;
-}>();
+  defineProps<{
+    username: string
+    isMasterUser: boolean
+  }>()
 
-const emit = defineEmits<{
-  openProfile: [];
-  changePassword: [];
-  logout: [];
-}>();
+  const emit = defineEmits<{
+    openProfile: []
+    changePassword: []
+    logout: []
+  }>()
 
-const isOpen = ref(false);
-const dropdownRef = ref<HTMLElement | null>(null);
+  const isOpen = ref(false)
+  const dropdownRef = ref<HTMLElement | null>(null)
 
-const toggleDropdown = (): void => {
-  isOpen.value = !isOpen.value;
-};
-
-const closeDropdown = (): void => {
-  isOpen.value = false;
-};
-
-const handleClickOutside = (event: MouseEvent): void => {
-  if (dropdownRef.value && !dropdownRef.value.contains(event.target as Node)) {
-    closeDropdown();
+  const toggleDropdown = (): void => {
+    isOpen.value = !isOpen.value
   }
-};
 
-const handleAction = (
-  action: "profile" | "changePassword" | "logout",
-): void => {
-  closeDropdown();
-  if (action === "profile") {
-    emit("openProfile");
-  } else if (action === "changePassword") {
-    emit("changePassword");
-  } else {
-    emit("logout");
+  const closeDropdown = (): void => {
+    isOpen.value = false
   }
-};
 
-const getInitial = (name: string): string => {
-  return name.charAt(0).toUpperCase();
-};
+  const handleClickOutside = (event: MouseEvent): void => {
+    if (dropdownRef.value && !dropdownRef.value.contains(event.target as Node)) {
+      closeDropdown()
+    }
+  }
 
-onMounted(() => {
-  document.addEventListener("click", handleClickOutside);
-});
+  const handleAction = (action: 'profile' | 'changePassword' | 'logout'): void => {
+    closeDropdown()
+    if (action === 'profile') {
+      emit('openProfile')
+    } else if (action === 'changePassword') {
+      emit('changePassword')
+    } else {
+      emit('logout')
+    }
+  }
 
-onUnmounted(() => {
-  document.removeEventListener("click", handleClickOutside);
-});
+  const getInitial = (name: string): string => {
+    return name.charAt(0).toUpperCase()
+  }
+
+  onMounted(() => {
+    document.addEventListener('click', handleClickOutside)
+  })
+
+  onUnmounted(() => {
+    document.removeEventListener('click', handleClickOutside)
+  })
 </script>
 
 <template>
@@ -67,9 +65,7 @@ onUnmounted(() => {
       >
         {{ getInitial(username) }}
       </div>
-      <span
-        class="font-body text-sm text-charcoal dark:text-dark-text hidden sm:inline"
-      >
+      <span class="font-body text-sm text-charcoal dark:text-dark-text hidden sm:inline">
         {{ username }}
       </span>
       <span
@@ -102,18 +98,11 @@ onUnmounted(() => {
         v-if="isOpen"
         class="absolute right-0 mt-2 w-48 bg-white dark:bg-dark-bg-secondary rounded-lg shadow-lg border border-sand-dark dark:border-dark-border py-1 z-50"
       >
-        <div
-          class="px-3 py-2 border-b border-sand-dark dark:border-dark-border"
-        >
-          <p
-            class="font-body text-sm font-medium text-charcoal dark:text-dark-text truncate"
-          >
+        <div class="px-3 py-2 border-b border-sand-dark dark:border-dark-border">
+          <p class="font-body text-sm font-medium text-charcoal dark:text-dark-text truncate">
             {{ username }}
           </p>
-          <p
-            v-if="isMasterUser"
-            class="font-body text-xs text-amber-600 dark:text-amber-400"
-          >
+          <p v-if="isMasterUser" class="font-body text-xs text-amber-600 dark:text-amber-400">
             Master Account
           </p>
         </div>
@@ -155,9 +144,7 @@ onUnmounted(() => {
           Change Password
         </button>
 
-        <div
-          class="border-t border-sand-dark dark:border-dark-border mt-1 pt-1"
-        >
+        <div class="border-t border-sand-dark dark:border-dark-border mt-1 pt-1">
           <button
             type="button"
             class="w-full flex items-center gap-2 px-3 py-2 font-body text-sm text-red-600 dark:text-red-400 hover:bg-sand dark:hover:bg-dark-bg-elevated transition-colors cursor-pointer text-left"

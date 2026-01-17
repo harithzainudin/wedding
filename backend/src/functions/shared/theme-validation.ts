@@ -6,61 +6,59 @@ import {
   type ThemeFonts,
   type CustomThemeData,
   isValidThemeId,
-} from "./theme-constants";
+} from './theme-constants'
 
 // Validation result type
 export type ValidationResult =
   | { valid: true; data: ThemeUpdateRequest }
-  | { valid: false; error: string };
+  | { valid: false; error: string }
 
 // Validate hex color format (#RRGGBB or #RGB)
 export function isValidHexColor(color: unknown): boolean {
-  if (typeof color !== "string") return false;
-  return /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/.test(color);
+  if (typeof color !== 'string') return false
+  return /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/.test(color)
 }
 
 // Validate font family string
 export function isValidFontFamily(font: unknown): boolean {
-  if (typeof font !== "string") return false;
+  if (typeof font !== 'string') return false
   // Allow alphanumeric, spaces, and common punctuation
-  return font.trim().length > 0 && font.length <= 100;
+  return font.trim().length > 0 && font.length <= 100
 }
 
 // Validate Google Font URL
 export function isValidGoogleFontUrl(url: unknown): boolean {
-  if (typeof url !== "string") return false;
-  return (
-    url.startsWith("https://fonts.googleapis.com/css2?") && url.length <= 1000
-  );
+  if (typeof url !== 'string') return false
+  return url.startsWith('https://fonts.googleapis.com/css2?') && url.length <= 1000
 }
 
 // Validate light mode colors object
 function validateLightColors(
-  colors: unknown,
+  colors: unknown
 ): { valid: true; data: ThemeColors } | { valid: false; error: string } {
-  if (typeof colors !== "object" || colors === null) {
-    return { valid: false, error: "Light colors object is required" };
+  if (typeof colors !== 'object' || colors === null) {
+    return { valid: false, error: 'Light colors object is required' }
   }
 
-  const c = colors as Record<string, unknown>;
+  const c = colors as Record<string, unknown>
 
   const requiredFields: (keyof ThemeColors)[] = [
-    "primary",
-    "primaryLight",
-    "primaryDark",
-    "secondary",
-    "secondaryDark",
-    "text",
-    "textLight",
-    "background",
-  ];
+    'primary',
+    'primaryLight',
+    'primaryDark',
+    'secondary',
+    'secondaryDark',
+    'text',
+    'textLight',
+    'background',
+  ]
 
   for (const field of requiredFields) {
     if (!isValidHexColor(c[field])) {
       return {
         valid: false,
         error: `Invalid or missing light color: ${field}. Must be a valid hex color (e.g., #RRGGBB)`,
-      };
+      }
     }
   }
 
@@ -76,34 +74,34 @@ function validateLightColors(
       textLight: c.textLight as string,
       background: c.background as string,
     },
-  };
+  }
 }
 
 // Validate dark mode colors object
 function validateDarkColors(
-  colors: unknown,
+  colors: unknown
 ): { valid: true; data: ThemeDarkColors } | { valid: false; error: string } {
-  if (typeof colors !== "object" || colors === null) {
-    return { valid: false, error: "Dark colors object is required" };
+  if (typeof colors !== 'object' || colors === null) {
+    return { valid: false, error: 'Dark colors object is required' }
   }
 
-  const c = colors as Record<string, unknown>;
+  const c = colors as Record<string, unknown>
 
   const requiredFields: (keyof ThemeDarkColors)[] = [
-    "background",
-    "backgroundSecondary",
-    "backgroundElevated",
-    "border",
-    "text",
-    "textSecondary",
-  ];
+    'background',
+    'backgroundSecondary',
+    'backgroundElevated',
+    'border',
+    'text',
+    'textSecondary',
+  ]
 
   for (const field of requiredFields) {
     if (!isValidHexColor(c[field])) {
       return {
         valid: false,
         error: `Invalid or missing dark color: ${field}. Must be a valid hex color (e.g., #RRGGBB)`,
-      };
+      }
     }
   }
 
@@ -117,29 +115,29 @@ function validateDarkColors(
       text: c.text as string,
       textSecondary: c.textSecondary as string,
     },
-  };
+  }
 }
 
 // Validate fonts object
 function validateFonts(
-  fonts: unknown,
+  fonts: unknown
 ): { valid: true; data: ThemeFonts } | { valid: false; error: string } {
-  if (typeof fonts !== "object" || fonts === null) {
-    return { valid: false, error: "Fonts object is required" };
+  if (typeof fonts !== 'object' || fonts === null) {
+    return { valid: false, error: 'Fonts object is required' }
   }
 
-  const f = fonts as Record<string, unknown>;
+  const f = fonts as Record<string, unknown>
 
   if (!isValidFontFamily(f.heading)) {
-    return { valid: false, error: "Invalid or missing heading font family" };
+    return { valid: false, error: 'Invalid or missing heading font family' }
   }
 
   if (!isValidFontFamily(f.body)) {
-    return { valid: false, error: "Invalid or missing body font family" };
+    return { valid: false, error: 'Invalid or missing body font family' }
   }
 
   if (!isValidGoogleFontUrl(f.googleFontUrl)) {
-    return { valid: false, error: "Invalid or missing Google Font URL" };
+    return { valid: false, error: 'Invalid or missing Google Font URL' }
   }
 
   return {
@@ -149,54 +147,54 @@ function validateFonts(
       body: (f.body as string).trim(),
       googleFontUrl: (f.googleFontUrl as string).trim(),
     },
-  };
+  }
 }
 
 // Validate custom theme data
 function validateCustomTheme(
-  customTheme: unknown,
+  customTheme: unknown
 ): { valid: true; data: CustomThemeData } | { valid: false; error: string } {
-  if (typeof customTheme !== "object" || customTheme === null) {
+  if (typeof customTheme !== 'object' || customTheme === null) {
     return {
       valid: false,
       error: "Custom theme data is required when activeThemeId is 'custom'",
-    };
+    }
   }
 
-  const ct = customTheme as Record<string, unknown>;
+  const ct = customTheme as Record<string, unknown>
 
   // Validate name
-  if (typeof ct.name !== "string" || !ct.name.trim()) {
-    return { valid: false, error: "Custom theme name is required" };
+  if (typeof ct.name !== 'string' || !ct.name.trim()) {
+    return { valid: false, error: 'Custom theme name is required' }
   }
   if (ct.name.length > 50) {
     return {
       valid: false,
-      error: "Custom theme name must be 50 characters or less",
-    };
+      error: 'Custom theme name must be 50 characters or less',
+    }
   }
 
   // Validate colors
-  if (typeof ct.colors !== "object" || ct.colors === null) {
-    return { valid: false, error: "Custom theme colors are required" };
+  if (typeof ct.colors !== 'object' || ct.colors === null) {
+    return { valid: false, error: 'Custom theme colors are required' }
   }
 
-  const colors = ct.colors as Record<string, unknown>;
+  const colors = ct.colors as Record<string, unknown>
 
-  const lightResult = validateLightColors(colors.light);
+  const lightResult = validateLightColors(colors.light)
   if (!lightResult.valid) {
-    return { valid: false, error: lightResult.error };
+    return { valid: false, error: lightResult.error }
   }
 
-  const darkResult = validateDarkColors(colors.dark);
+  const darkResult = validateDarkColors(colors.dark)
   if (!darkResult.valid) {
-    return { valid: false, error: darkResult.error };
+    return { valid: false, error: darkResult.error }
   }
 
   // Validate fonts
-  const fontsResult = validateFonts(ct.fonts);
+  const fontsResult = validateFonts(ct.fonts)
   if (!fontsResult.valid) {
-    return { valid: false, error: fontsResult.error };
+    return { valid: false, error: fontsResult.error }
   }
 
   return {
@@ -209,40 +207,40 @@ function validateCustomTheme(
       },
       fonts: fontsResult.data,
     },
-  };
+  }
 }
 
 // Main validation function for theme update request
 export function validateThemeUpdate(input: unknown): ValidationResult {
-  if (typeof input !== "object" || input === null) {
-    return { valid: false, error: "Invalid request body" };
+  if (typeof input !== 'object' || input === null) {
+    return { valid: false, error: 'Invalid request body' }
   }
 
-  const body = input as Record<string, unknown>;
+  const body = input as Record<string, unknown>
 
   // Validate activeThemeId
-  if (typeof body.activeThemeId !== "string") {
+  if (typeof body.activeThemeId !== 'string') {
     return {
       valid: false,
-      error: "activeThemeId is required and must be a string",
-    };
+      error: 'activeThemeId is required and must be a string',
+    }
   }
 
   if (!isValidThemeId(body.activeThemeId)) {
     return {
       valid: false,
       error:
-        "Invalid activeThemeId. Must be one of: earthy-minimalist, romantic-blush, elegant-classic, modern-bold, garden-fresh, rustic-charm, or custom",
-    };
+        'Invalid activeThemeId. Must be one of: earthy-minimalist, romantic-blush, elegant-classic, modern-bold, garden-fresh, rustic-charm, or custom',
+    }
   }
 
-  const activeThemeId = body.activeThemeId as ThemeId;
+  const activeThemeId = body.activeThemeId as ThemeId
 
   // If custom theme is selected, validate the custom theme data
-  if (activeThemeId === "custom") {
-    const customResult = validateCustomTheme(body.customTheme);
+  if (activeThemeId === 'custom') {
+    const customResult = validateCustomTheme(body.customTheme)
     if (!customResult.valid) {
-      return { valid: false, error: customResult.error };
+      return { valid: false, error: customResult.error }
     }
 
     return {
@@ -251,7 +249,7 @@ export function validateThemeUpdate(input: unknown): ValidationResult {
         activeThemeId,
         customTheme: customResult.data,
       },
-    };
+    }
   }
 
   // For preset themes, custom theme data is ignored
@@ -260,5 +258,5 @@ export function validateThemeUpdate(input: unknown): ValidationResult {
     data: {
       activeThemeId,
     },
-  };
+  }
 }

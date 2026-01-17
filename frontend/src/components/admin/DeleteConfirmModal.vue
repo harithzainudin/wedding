@@ -1,15 +1,15 @@
 <script setup lang="ts">
-import type { GalleryImage } from "@/types/gallery";
+  import type { GalleryImage } from '@/types/gallery'
 
-defineProps<{
-  image?: GalleryImage | undefined;
-  isDeleting: boolean;
-}>();
+  defineProps<{
+    image?: GalleryImage | undefined
+    isDeleting: boolean
+  }>()
 
-const emit = defineEmits<{
-  confirm: [];
-  cancel: [];
-}>();
+  const emit = defineEmits<{
+    confirm: []
+    cancel: []
+  }>()
 </script>
 
 <template>
@@ -21,38 +21,25 @@ const emit = defineEmits<{
     <div
       class="relative bg-white dark:bg-dark-bg-secondary rounded-xl shadow-xl max-w-sm w-full p-6 space-y-4"
     >
-      <h3
-        class="font-heading text-lg font-semibold text-charcoal dark:text-dark-text"
-      >
+      <h3 class="font-heading text-lg font-semibold text-charcoal dark:text-dark-text">
         Delete Image?
       </h3>
 
       <!-- Image Preview -->
       <div v-if="image" class="flex items-center gap-4">
-        <img
-          :src="image.url"
-          :alt="image.filename"
-          class="w-20 h-20 object-cover rounded-lg"
-        />
+        <img :src="image.url" :alt="image.filename" class="w-20 h-20 object-cover rounded-lg" />
         <div class="flex-1 min-w-0">
-          <p
-            class="font-body text-sm text-charcoal dark:text-dark-text truncate"
-          >
+          <p class="font-body text-sm text-charcoal dark:text-dark-text truncate">
             {{ image.filename }}
           </p>
-          <p
-            class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary"
-          >
+          <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary">
             Uploaded {{ new Date(image.uploadedAt).toLocaleDateString() }}
           </p>
         </div>
       </div>
 
-      <p
-        class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary"
-      >
-        This action cannot be undone. The image will be permanently deleted from
-        the gallery.
+      <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary">
+        This action cannot be undone. The image will be permanently deleted from the gallery.
       </p>
 
       <!-- Actions -->
@@ -71,7 +58,7 @@ const emit = defineEmits<{
           class="px-4 py-2 font-body text-sm text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors cursor-pointer disabled:opacity-50"
           @click="emit('confirm')"
         >
-          {{ isDeleting ? "Deleting..." : "Delete" }}
+          {{ isDeleting ? 'Deleting...' : 'Delete' }}
         </button>
       </div>
     </div>

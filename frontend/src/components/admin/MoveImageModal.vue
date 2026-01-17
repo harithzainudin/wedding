@@ -1,77 +1,77 @@
 <script setup lang="ts">
-import { ref, computed, watch, onMounted, onUnmounted } from "vue";
-import type { GalleryImage } from "@/types/gallery";
+  import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
+  import type { GalleryImage } from '@/types/gallery'
 
-const props = defineProps<{
-  image: GalleryImage;
-  currentPosition: number;
-  totalImages: number;
-}>();
+  const props = defineProps<{
+    image: GalleryImage
+    currentPosition: number
+    totalImages: number
+  }>()
 
-const emit = defineEmits<{
-  move: [newPosition: number];
-  cancel: [];
-  viewLightbox: [image: GalleryImage];
-}>();
+  const emit = defineEmits<{
+    move: [newPosition: number]
+    cancel: []
+    viewLightbox: [image: GalleryImage]
+  }>()
 
-const targetPosition = ref(props.currentPosition);
-const inputRef = ref<HTMLInputElement | null>(null);
+  const targetPosition = ref(props.currentPosition)
+  const inputRef = ref<HTMLInputElement | null>(null)
 
-// Reset target position when modal opens with new image
-watch(
-  () => props.currentPosition,
-  (newPos) => {
-    targetPosition.value = newPos;
-  },
-);
+  // Reset target position when modal opens with new image
+  watch(
+    () => props.currentPosition,
+    (newPos) => {
+      targetPosition.value = newPos
+    }
+  )
 
-const isValidPosition = computed(() => {
-  return (
-    targetPosition.value >= 1 &&
-    targetPosition.value <= props.totalImages &&
-    targetPosition.value !== props.currentPosition
-  );
-});
+  const isValidPosition = computed(() => {
+    return (
+      targetPosition.value >= 1 &&
+      targetPosition.value <= props.totalImages &&
+      targetPosition.value !== props.currentPosition
+    )
+  })
 
-const handleMoveToTop = (): void => {
-  emit("move", 1);
-};
-
-const handleMoveToBottom = (): void => {
-  emit("move", props.totalImages);
-};
-
-const handleMove = (): void => {
-  if (isValidPosition.value) {
-    emit("move", targetPosition.value);
+  const handleMoveToTop = (): void => {
+    emit('move', 1)
   }
-};
 
-const handleCancel = (): void => {
-  emit("cancel");
-};
-
-const handleViewLightbox = (): void => {
-  emit("viewLightbox", props.image);
-};
-
-const handleKeydown = (event: KeyboardEvent): void => {
-  if (event.key === "Escape") {
-    handleCancel();
-  } else if (event.key === "Enter" && isValidPosition.value) {
-    handleMove();
+  const handleMoveToBottom = (): void => {
+    emit('move', props.totalImages)
   }
-};
 
-onMounted(() => {
-  document.addEventListener("keydown", handleKeydown);
-  // Focus input on mount
-  setTimeout(() => inputRef.value?.select(), 100);
-});
+  const handleMove = (): void => {
+    if (isValidPosition.value) {
+      emit('move', targetPosition.value)
+    }
+  }
 
-onUnmounted(() => {
-  document.removeEventListener("keydown", handleKeydown);
-});
+  const handleCancel = (): void => {
+    emit('cancel')
+  }
+
+  const handleViewLightbox = (): void => {
+    emit('viewLightbox', props.image)
+  }
+
+  const handleKeydown = (event: KeyboardEvent): void => {
+    if (event.key === 'Escape') {
+      handleCancel()
+    } else if (event.key === 'Enter' && isValidPosition.value) {
+      handleMove()
+    }
+  }
+
+  onMounted(() => {
+    document.addEventListener('keydown', handleKeydown)
+    // Focus input on mount
+    setTimeout(() => inputRef.value?.select(), 100)
+  })
+
+  onUnmounted(() => {
+    document.removeEventListener('keydown', handleKeydown)
+  })
 </script>
 
 <template>
@@ -86,24 +86,14 @@ onUnmounted(() => {
       <!-- Header -->
       <div class="flex items-center gap-4 mb-4">
         <!-- Image thumbnail -->
-        <div
-          class="w-16 h-16 rounded-lg overflow-hidden bg-sand dark:bg-dark-bg flex-shrink-0"
-        >
-          <img
-            :src="image.url"
-            :alt="image.filename"
-            class="w-full h-full object-cover"
-          />
+        <div class="w-16 h-16 rounded-lg overflow-hidden bg-sand dark:bg-dark-bg flex-shrink-0">
+          <img :src="image.url" :alt="image.filename" class="w-full h-full object-cover" />
         </div>
         <div class="flex-1">
-          <h3
-            class="font-heading text-lg font-semibold text-charcoal dark:text-dark-text"
-          >
+          <h3 class="font-heading text-lg font-semibold text-charcoal dark:text-dark-text">
             Image Options
           </h3>
-          <p
-            class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary"
-          >
+          <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary">
             Position {{ currentPosition }} of {{ totalImages }}
           </p>
         </div>
@@ -111,9 +101,7 @@ onUnmounted(() => {
 
       <!-- View Image Options -->
       <div class="mb-5 p-3 bg-sand/50 dark:bg-dark-bg rounded-lg">
-        <p
-          class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary mb-2"
-        >
+        <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary mb-2">
           View full image
         </p>
         <div class="flex gap-2">
@@ -122,12 +110,7 @@ onUnmounted(() => {
             class="flex-1 px-3 py-2 font-body text-sm bg-white dark:bg-dark-bg-secondary border border-sand-dark dark:border-dark-border rounded-lg transition-colors hover:bg-sand dark:hover:bg-dark-bg-elevated text-charcoal dark:text-dark-text cursor-pointer inline-flex items-center justify-center gap-1.5"
             @click="handleViewLightbox"
           >
-            <svg
-              class="w-4 h-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
                 stroke-linecap="round"
                 stroke-linejoin="round"
@@ -149,12 +132,7 @@ onUnmounted(() => {
             rel="noopener noreferrer"
             class="flex-1 px-3 py-2 font-body text-sm bg-white dark:bg-dark-bg-secondary border border-sand-dark dark:border-dark-border rounded-lg transition-colors hover:bg-sand dark:hover:bg-dark-bg-elevated text-charcoal dark:text-dark-text cursor-pointer inline-flex items-center justify-center gap-1.5"
           >
-            <svg
-              class="w-4 h-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
                 stroke-linecap="round"
                 stroke-linejoin="round"
@@ -169,9 +147,7 @@ onUnmounted(() => {
 
       <!-- Position input -->
       <div class="mb-4">
-        <label
-          class="block font-body text-sm font-medium text-charcoal dark:text-dark-text mb-2"
-        >
+        <label class="block font-body text-sm font-medium text-charcoal dark:text-dark-text mb-2">
           Move to position
         </label>
         <div class="flex gap-2">
@@ -234,18 +210,18 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
-@keyframes slide-up {
-  from {
-    transform: translateY(100%);
-    opacity: 0;
+  @keyframes slide-up {
+    from {
+      transform: translateY(100%);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
   }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
-}
 
-.animate-slide-up {
-  animation: slide-up 0.2s ease-out;
-}
+  .animate-slide-up {
+    animation: slide-up 0.2s ease-out;
+  }
 </style>

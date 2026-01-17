@@ -1,138 +1,134 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted, ref, watch } from "vue";
-import { useGallery } from "@/composables/useGallery";
-import type { GalleryImage } from "@/types/gallery";
-import ImageUploader from "./ImageUploader.vue";
-import ImageGrid from "./ImageGrid.vue";
-import GallerySettings from "./GallerySettings.vue";
-import DeleteConfirmModal from "./DeleteConfirmModal.vue";
-import HelpTooltip from "./HelpTooltip.vue";
-import GalleryHelpContent from "./GalleryHelpContent.vue";
-import UploadProgressBar from "./UploadProgressBar.vue";
+  import { onMounted, onUnmounted, ref, watch } from 'vue'
+  import { useGallery } from '@/composables/useGallery'
+  import type { GalleryImage } from '@/types/gallery'
+  import ImageUploader from './ImageUploader.vue'
+  import ImageGrid from './ImageGrid.vue'
+  import GallerySettings from './GallerySettings.vue'
+  import DeleteConfirmModal from './DeleteConfirmModal.vue'
+  import HelpTooltip from './HelpTooltip.vue'
+  import GalleryHelpContent from './GalleryHelpContent.vue'
+  import UploadProgressBar from './UploadProgressBar.vue'
 
-const {
-  images,
-  settings,
-  isLoading,
-  loadError,
-  activeUploads,
-  canUploadMore,
-  remainingSlots,
-  fetchImages,
-  uploadImage,
-  cancelUpload,
-  dismissUpload,
-  removeImage,
-  updateOrder,
-  updateSettings,
-  formatFileSize,
-} = useGallery();
+  const {
+    images,
+    settings,
+    isLoading,
+    loadError,
+    activeUploads,
+    canUploadMore,
+    remainingSlots,
+    fetchImages,
+    uploadImage,
+    cancelUpload,
+    dismissUpload,
+    removeImage,
+    updateOrder,
+    updateSettings,
+    formatFileSize,
+  } = useGallery()
 
-const showSettings = ref(false);
-const deleteConfirmId = ref<string | null>(null);
-const isDeleting = ref(false);
-const uploadErrors = ref<{ file: string; error: string }[]>([]);
+  const showSettings = ref(false)
+  const deleteConfirmId = ref<string | null>(null)
+  const isDeleting = ref(false)
+  const uploadErrors = ref<{ file: string; error: string }[]>([])
 
-onMounted(() => {
-  fetchImages();
-});
+  onMounted(() => {
+    fetchImages()
+  })
 
-const handleFilesSelected = async (files: File[]): Promise<void> => {
-  uploadErrors.value = [];
+  const handleFilesSelected = async (files: File[]): Promise<void> => {
+    uploadErrors.value = []
 
-  for (const file of files) {
-    const result = await uploadImage(file);
-    if (!result.success) {
-      uploadErrors.value.push({
-        file: file.name,
-        error: result.error ?? "Upload failed",
-      });
+    for (const file of files) {
+      const result = await uploadImage(file)
+      if (!result.success) {
+        uploadErrors.value.push({
+          file: file.name,
+          error: result.error ?? 'Upload failed',
+        })
+      }
     }
   }
-};
 
-const handleReorder = async (newOrder: string[]): Promise<void> => {
-  const result = await updateOrder(newOrder);
-  if (!result.success) {
-    // Show error toast or message
-    console.error("Reorder failed:", result.error);
-  }
-};
-
-const handleDeleteClick = (imageId: string): void => {
-  deleteConfirmId.value = imageId;
-};
-
-const handleDeleteConfirm = async (): Promise<void> => {
-  if (!deleteConfirmId.value) return;
-
-  isDeleting.value = true;
-  const result = await removeImage(deleteConfirmId.value);
-  isDeleting.value = false;
-
-  if (!result.success) {
-    console.error("Delete failed:", result.error);
+  const handleReorder = async (newOrder: string[]): Promise<void> => {
+    const result = await updateOrder(newOrder)
+    if (!result.success) {
+      // Show error toast or message
+      console.error('Reorder failed:', result.error)
+    }
   }
 
-  deleteConfirmId.value = null;
-};
-
-const handleDeleteCancel = (): void => {
-  deleteConfirmId.value = null;
-};
-
-const handleSettingsUpdate = async (newSettings: {
-  maxFileSize?: number | undefined;
-  maxImages?: number | undefined;
-}): Promise<void> => {
-  const result = await updateSettings(newSettings);
-  if (!result.success) {
-    console.error("Settings update failed:", result.error);
+  const handleDeleteClick = (imageId: string): void => {
+    deleteConfirmId.value = imageId
   }
-};
 
-const dismissError = (index: number): void => {
-  uploadErrors.value.splice(index, 1);
-};
+  const handleDeleteConfirm = async (): Promise<void> => {
+    if (!deleteConfirmId.value) return
 
-const getImageToDelete = (): GalleryImage | undefined => {
-  return images.value.find((img) => img.id === deleteConfirmId.value);
-};
+    isDeleting.value = true
+    const result = await removeImage(deleteConfirmId.value)
+    isDeleting.value = false
 
-// Handle Escape key to close settings
-const handleEscapeKey = (e: KeyboardEvent): void => {
-  if (e.key === "Escape" && showSettings.value) {
-    showSettings.value = false;
+    if (!result.success) {
+      console.error('Delete failed:', result.error)
+    }
+
+    deleteConfirmId.value = null
   }
-};
 
-watch(showSettings, (isOpen) => {
-  if (isOpen) {
-    document.addEventListener("keydown", handleEscapeKey);
-    document.body.style.overflow = "hidden";
-  } else {
-    document.removeEventListener("keydown", handleEscapeKey);
-    document.body.style.overflow = "";
+  const handleDeleteCancel = (): void => {
+    deleteConfirmId.value = null
   }
-});
 
-onUnmounted(() => {
-  document.removeEventListener("keydown", handleEscapeKey);
-  document.body.style.overflow = "";
-});
+  const handleSettingsUpdate = async (newSettings: {
+    maxFileSize?: number | undefined
+    maxImages?: number | undefined
+  }): Promise<void> => {
+    const result = await updateSettings(newSettings)
+    if (!result.success) {
+      console.error('Settings update failed:', result.error)
+    }
+  }
+
+  const dismissError = (index: number): void => {
+    uploadErrors.value.splice(index, 1)
+  }
+
+  const getImageToDelete = (): GalleryImage | undefined => {
+    return images.value.find((img) => img.id === deleteConfirmId.value)
+  }
+
+  // Handle Escape key to close settings
+  const handleEscapeKey = (e: KeyboardEvent): void => {
+    if (e.key === 'Escape' && showSettings.value) {
+      showSettings.value = false
+    }
+  }
+
+  watch(showSettings, (isOpen) => {
+    if (isOpen) {
+      document.addEventListener('keydown', handleEscapeKey)
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.removeEventListener('keydown', handleEscapeKey)
+      document.body.style.overflow = ''
+    }
+  })
+
+  onUnmounted(() => {
+    document.removeEventListener('keydown', handleEscapeKey)
+    document.body.style.overflow = ''
+  })
 </script>
 
 <template>
   <div class="space-y-6">
     <!-- Header -->
-    <div
-      class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
-    >
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
       <div>
         <div class="flex items-center gap-2">
-          <h2
-            class="font-heading text-xl font-semibold text-charcoal dark:text-dark-text"
-          >
+          <h2 class="font-heading text-xl font-semibold text-charcoal dark:text-dark-text">
             Gallery Management
           </h2>
           <HelpTooltip title="Gallery Help">
@@ -143,9 +139,7 @@ onUnmounted(() => {
             />
           </HelpTooltip>
         </div>
-        <p
-          class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary mt-1"
-        >
+        <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary mt-1">
           {{ images.length }} / {{ settings.maxImages }} images
           <span v-if="canUploadMore" class="text-sage">
             ({{ remainingSlots }} slots remaining)
@@ -200,17 +194,11 @@ onUnmounted(() => {
         <!-- Desktop: Popover | Mobile: Bottom Sheet -->
         <Teleport to="body">
           <Transition name="settings-panel">
-            <div
-              v-if="showSettings"
-              class="settings-container"
-              @click.self="showSettings = false"
-            >
+            <div v-if="showSettings" class="settings-container" @click.self="showSettings = false">
               <div class="settings-panel">
                 <!-- Mobile Header with Close -->
                 <div class="settings-mobile-header">
-                  <h3
-                    class="font-heading text-lg font-medium text-charcoal dark:text-dark-text"
-                  >
+                  <h3 class="font-heading text-lg font-medium text-charcoal dark:text-dark-text">
                     Gallery Settings
                   </h3>
                   <button
@@ -218,12 +206,7 @@ onUnmounted(() => {
                     class="p-2 -m-2 text-charcoal-light hover:text-charcoal dark:text-dark-text-secondary dark:hover:text-dark-text cursor-pointer"
                     @click="showSettings = false"
                   >
-                    <svg
-                      class="w-5 h-5"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path
                         stroke-linecap="round"
                         stroke-linejoin="round"
@@ -264,12 +247,7 @@ onUnmounted(() => {
         class="flex items-center justify-between p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg"
       >
         <div class="flex items-center gap-2">
-          <svg
-            class="w-5 h-5 text-red-500"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
+          <svg class="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
               stroke-linecap="round"
               stroke-linejoin="round"
@@ -286,12 +264,7 @@ onUnmounted(() => {
           class="p-1 text-red-500 hover:text-red-700 dark:hover:text-red-300 cursor-pointer"
           @click="dismissError(index)"
         >
-          <svg
-            class="w-4 h-4"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
               stroke-linecap="round"
               stroke-linejoin="round"
@@ -308,9 +281,7 @@ onUnmounted(() => {
       <div
         class="inline-block w-8 h-8 border-3 border-sage border-t-transparent rounded-full animate-spin"
       ></div>
-      <p
-        class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary mt-3"
-      >
+      <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary mt-3">
         Loading gallery...
       </p>
     </div>
@@ -345,8 +316,8 @@ onUnmounted(() => {
         class="p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg"
       >
         <p class="font-body text-sm text-amber-700 dark:text-amber-300">
-          Maximum number of images ({{ settings.maxImages }}) reached. Delete
-          some images to upload more.
+          Maximum number of images ({{ settings.maxImages }}) reached. Delete some images to upload
+          more.
         </p>
       </div>
 
@@ -366,25 +337,16 @@ onUnmounted(() => {
           <circle cx="8.5" cy="8.5" r="1.5" />
           <path d="M21 15l-5-5L5 21" />
         </svg>
-        <p
-          class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary"
-        >
+        <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary">
           No images in gallery yet.
         </p>
-        <p
-          class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary mt-2"
-        >
+        <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary mt-2">
           Upload your first image to get started.
         </p>
       </div>
 
       <!-- Image Grid -->
-      <ImageGrid
-        v-else
-        :images="images"
-        @reorder="handleReorder"
-        @delete="handleDeleteClick"
-      />
+      <ImageGrid v-else :images="images" @reorder="handleReorder" @delete="handleDeleteClick" />
     </div>
 
     <!-- Delete Confirmation Modal -->
@@ -399,110 +361,110 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
-/* Settings Container - Backdrop for mobile */
-.settings-container {
-  position: fixed;
-  inset: 0;
-  z-index: 50;
-  display: flex;
-  align-items: flex-end;
-  background-color: rgba(0, 0, 0, 0.5);
-}
-
-/* Settings Panel - Mobile: Bottom Sheet */
-.settings-panel {
-  width: 100%;
-  max-height: 85vh;
-  overflow-y: auto;
-  background-color: white;
-  border-top-left-radius: 1rem;
-  border-top-right-radius: 1rem;
-  padding: 1rem;
-}
-
-.settings-mobile-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding-bottom: 0.75rem;
-  margin-bottom: 0.5rem;
-  border-bottom: 1px solid #e5e7eb;
-}
-
-/* Dark mode */
-:global(.dark) .settings-panel {
-  background-color: #1f2937;
-}
-
-:global(.dark) .settings-mobile-header {
-  border-bottom-color: #374151;
-}
-
-/* Desktop: Popover style */
-@media (min-width: 640px) {
+  /* Settings Container - Backdrop for mobile */
   .settings-container {
     position: fixed;
     inset: 0;
-    background-color: transparent;
-    display: block;
+    z-index: 50;
+    display: flex;
+    align-items: flex-end;
+    background-color: rgba(0, 0, 0, 0.5);
   }
 
+  /* Settings Panel - Mobile: Bottom Sheet */
   .settings-panel {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: auto;
-    min-width: 400px;
-    max-width: 500px;
-    max-height: 80vh;
-    border-radius: 0.75rem;
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-    border: 1px solid #e5e7eb;
-  }
-
-  :global(.dark) .settings-panel {
-    border-color: #374151;
+    width: 100%;
+    max-height: 85vh;
+    overflow-y: auto;
+    background-color: white;
+    border-top-left-radius: 1rem;
+    border-top-right-radius: 1rem;
+    padding: 1rem;
   }
 
   .settings-mobile-header {
     display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 0.75rem;
+    margin-bottom: 0.5rem;
+    border-bottom: 1px solid #e5e7eb;
   }
-}
 
-/* Transitions - Mobile: Slide up */
-.settings-panel-enter-active,
-.settings-panel-leave-active {
-  transition: all 0.25s ease-out;
-}
+  /* Dark mode */
+  :global(.dark) .settings-panel {
+    background-color: #1f2937;
+  }
 
-.settings-panel-enter-active .settings-panel,
-.settings-panel-leave-active .settings-panel {
-  transition: transform 0.25s ease-out;
-}
+  :global(.dark) .settings-mobile-header {
+    border-bottom-color: #374151;
+  }
 
-.settings-panel-enter-from,
-.settings-panel-leave-to {
-  background-color: rgba(0, 0, 0, 0);
-}
+  /* Desktop: Popover style */
+  @media (min-width: 640px) {
+    .settings-container {
+      position: fixed;
+      inset: 0;
+      background-color: transparent;
+      display: block;
+    }
 
-.settings-panel-enter-from .settings-panel,
-.settings-panel-leave-to .settings-panel {
-  transform: translateY(100%);
-}
+    .settings-panel {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: auto;
+      min-width: 400px;
+      max-width: 500px;
+      max-height: 80vh;
+      border-radius: 0.75rem;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+      border: 1px solid #e5e7eb;
+    }
 
-/* Desktop transitions */
-@media (min-width: 640px) {
+    :global(.dark) .settings-panel {
+      border-color: #374151;
+    }
+
+    .settings-mobile-header {
+      display: flex;
+    }
+  }
+
+  /* Transitions - Mobile: Slide up */
+  .settings-panel-enter-active,
+  .settings-panel-leave-active {
+    transition: all 0.25s ease-out;
+  }
+
+  .settings-panel-enter-active .settings-panel,
+  .settings-panel-leave-active .settings-panel {
+    transition: transform 0.25s ease-out;
+  }
+
+  .settings-panel-enter-from,
+  .settings-panel-leave-to {
+    background-color: rgba(0, 0, 0, 0);
+  }
+
   .settings-panel-enter-from .settings-panel,
   .settings-panel-leave-to .settings-panel {
-    transform: translate(-50%, -50%) scale(0.95);
-    opacity: 0;
+    transform: translateY(100%);
   }
 
-  .settings-panel-enter-to .settings-panel,
-  .settings-panel-leave-from .settings-panel {
-    transform: translate(-50%, -50%) scale(1);
-    opacity: 1;
+  /* Desktop transitions */
+  @media (min-width: 640px) {
+    .settings-panel-enter-from .settings-panel,
+    .settings-panel-leave-to .settings-panel {
+      transform: translate(-50%, -50%) scale(0.95);
+      opacity: 0;
+    }
+
+    .settings-panel-enter-to .settings-panel,
+    .settings-panel-leave-from .settings-panel {
+      transform: translate(-50%, -50%) scale(1);
+      opacity: 1;
+    }
   }
-}
 </style>

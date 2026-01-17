@@ -1,109 +1,100 @@
-import { ref } from "vue";
-import type {
-  ContactsData,
-  ContactPerson,
-  ContactsUpdateRequest,
-} from "@/types/contacts";
-import {
-  getContacts,
-  updateContacts as apiUpdateContacts,
-} from "@/services/api";
+import { ref } from 'vue'
+import type { ContactsData, ContactPerson, ContactsUpdateRequest } from '@/types/contacts'
+import { getContacts, updateContacts as apiUpdateContacts } from '@/services/api'
 
 // Default contacts data (matches backend defaults)
 const DEFAULT_CONTACTS: ContactsData = {
   contacts: [
     {
-      id: "1",
-      name: "Abang Ahmad",
+      id: '1',
+      name: 'Abang Ahmad',
       role: {
-        ms: "Abang Pengantin Lelaki",
+        ms: 'Abang Pengantin Lelaki',
         en: "Groom's Brother",
-        zh: "新郎的哥哥",
-        ta: "மணமகனின் சகோதரர்",
+        zh: '新郎的哥哥',
+        ta: 'மணமகனின் சகோதரர்',
       },
-      phoneNumber: "+60123456789",
+      phoneNumber: '+60123456789',
       order: 0,
     },
     {
-      id: "2",
-      name: "Kakak Aisyah",
+      id: '2',
+      name: 'Kakak Aisyah',
       role: {
-        ms: "Kakak Pengantin Perempuan",
+        ms: 'Kakak Pengantin Perempuan',
         en: "Bride's Sister",
-        zh: "新娘的姐姐",
-        ta: "மணமகளின் சகோதரி",
+        zh: '新娘的姐姐',
+        ta: 'மணமகளின் சகோதரி',
       },
-      phoneNumber: "+60198765432",
+      phoneNumber: '+60198765432',
       order: 1,
     },
   ],
-};
+}
 
 // Singleton state
-const contacts = ref<ContactsData>(DEFAULT_CONTACTS);
-const isLoading = ref(false);
-const loadError = ref("");
-const isSaving = ref(false);
-const saveError = ref("");
-const saveSuccess = ref(false);
+const contacts = ref<ContactsData>(DEFAULT_CONTACTS)
+const isLoading = ref(false)
+const loadError = ref('')
+const isSaving = ref(false)
+const saveError = ref('')
+const saveSuccess = ref(false)
 
 export function useContacts() {
   // Fetch contacts from API
   const fetchContacts = async (): Promise<void> => {
-    isLoading.value = true;
-    loadError.value = "";
+    isLoading.value = true
+    loadError.value = ''
 
     try {
-      const data = await getContacts();
-      contacts.value = data;
+      const data = await getContacts()
+      contacts.value = data
     } catch (err) {
-      loadError.value =
-        err instanceof Error ? err.message : "Failed to load contacts";
+      loadError.value = err instanceof Error ? err.message : 'Failed to load contacts'
     } finally {
-      isLoading.value = false;
+      isLoading.value = false
     }
-  };
+  }
 
   // Update contacts
   const updateContacts = async (
-    contactsList: ContactPerson[],
+    contactsList: ContactPerson[]
   ): Promise<{ success: boolean; error?: string }> => {
-    isSaving.value = true;
-    saveError.value = "";
-    saveSuccess.value = false;
+    isSaving.value = true
+    saveError.value = ''
+    saveSuccess.value = false
 
     try {
-      const requestData: ContactsUpdateRequest = { contacts: contactsList };
-      const responseData = await apiUpdateContacts(requestData);
-      contacts.value = responseData;
-      saveSuccess.value = true;
+      const requestData: ContactsUpdateRequest = { contacts: contactsList }
+      const responseData = await apiUpdateContacts(requestData)
+      contacts.value = responseData
+      saveSuccess.value = true
       // Clear success message after 3 seconds
       setTimeout(() => {
-        saveSuccess.value = false;
-      }, 3000);
-      return { success: true };
+        saveSuccess.value = false
+      }, 3000)
+      return { success: true }
     } catch (err) {
-      const errorMessage =
-        err instanceof Error ? err.message : "Failed to update contacts";
-      saveError.value = errorMessage;
-      return { success: false, error: errorMessage };
+      const errorMessage = err instanceof Error ? err.message : 'Failed to update contacts'
+      saveError.value = errorMessage
+      return { success: false, error: errorMessage }
     } finally {
-      isSaving.value = false;
+      isSaving.value = false
     }
-  };
+  }
 
   // Generate unique ID for new items
   const generateId = (): string => {
-    return `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
-  };
+    return `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`
+  }
 
   // Reset to defaults (for form reset)
   const resetToDefaults = (): void => {
     contacts.value = {
       ...DEFAULT_CONTACTS,
       contacts: [...DEFAULT_CONTACTS.contacts],
-    };
-  };
+    }
+  }
 
   return {
     contacts,
@@ -116,5 +107,5 @@ export function useContacts() {
     updateContacts,
     generateId,
     resetToDefaults,
-  };
+  }
 }

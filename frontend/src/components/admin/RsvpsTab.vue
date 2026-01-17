@@ -1,135 +1,117 @@
 <script setup lang="ts">
-import { ref, onMounted, watch } from "vue";
-import { useRsvps } from "@/composables/useRsvps";
-import type { RsvpSubmission, AdminRsvpRequest } from "@/types/rsvp";
-import RsvpFormModal from "./RsvpFormModal.vue";
-import ConfirmModal from "./ConfirmModal.vue";
+  import { ref, onMounted, watch } from 'vue'
+  import { useRsvps } from '@/composables/useRsvps'
+  import type { RsvpSubmission, AdminRsvpRequest } from '@/types/rsvp'
+  import RsvpFormModal from './RsvpFormModal.vue'
+  import ConfirmModal from './ConfirmModal.vue'
 
-const {
-  filteredRsvps,
-  isLoading,
-  loadError,
-  filter,
-  summary,
-  fetchRsvps,
-  setFilter,
-  formatDate,
-  exportToCsv,
-  isCreating,
-  isUpdating,
-  isDeleting,
-  operationError,
-  createRsvpEntry,
-  updateRsvpEntry,
-  deleteRsvpEntry,
-  clearOperationError,
-} = useRsvps();
+  const {
+    filteredRsvps,
+    isLoading,
+    loadError,
+    filter,
+    summary,
+    fetchRsvps,
+    setFilter,
+    formatDate,
+    exportToCsv,
+    isCreating,
+    isUpdating,
+    isDeleting,
+    operationError,
+    createRsvpEntry,
+    updateRsvpEntry,
+    deleteRsvpEntry,
+    clearOperationError,
+  } = useRsvps()
 
-// Modal state
-const showFormModal = ref(false);
-const showDeleteModal = ref(false);
-const selectedRsvp = ref<RsvpSubmission | undefined>(undefined);
+  // Modal state
+  const showFormModal = ref(false)
+  const showDeleteModal = ref(false)
+  const selectedRsvp = ref<RsvpSubmission | undefined>(undefined)
 
-// Open add modal
-const openAddModal = () => {
-  selectedRsvp.value = undefined;
-  showFormModal.value = true;
-};
-
-// Open edit modal
-const openEditModal = (rsvp: RsvpSubmission) => {
-  selectedRsvp.value = rsvp;
-  showFormModal.value = true;
-};
-
-// Open delete confirmation
-const openDeleteModal = (rsvp: RsvpSubmission) => {
-  selectedRsvp.value = rsvp;
-  showDeleteModal.value = true;
-};
-
-// Handle form submit (create or update)
-const handleFormSubmit = async (data: AdminRsvpRequest) => {
-  let success: boolean;
-  if (selectedRsvp.value) {
-    success = await updateRsvpEntry(selectedRsvp.value.id, data);
-  } else {
-    success = await createRsvpEntry(data);
+  // Open add modal
+  const openAddModal = () => {
+    selectedRsvp.value = undefined
+    showFormModal.value = true
   }
-  if (success) {
-    showFormModal.value = false;
-  }
-};
 
-// Handle delete confirm
-const handleDeleteConfirm = async () => {
-  if (selectedRsvp.value) {
-    const success = await deleteRsvpEntry(selectedRsvp.value.id);
+  // Open edit modal
+  const openEditModal = (rsvp: RsvpSubmission) => {
+    selectedRsvp.value = rsvp
+    showFormModal.value = true
+  }
+
+  // Open delete confirmation
+  const openDeleteModal = (rsvp: RsvpSubmission) => {
+    selectedRsvp.value = rsvp
+    showDeleteModal.value = true
+  }
+
+  // Handle form submit (create or update)
+  const handleFormSubmit = async (data: AdminRsvpRequest) => {
+    let success: boolean
+    if (selectedRsvp.value) {
+      success = await updateRsvpEntry(selectedRsvp.value.id, data)
+    } else {
+      success = await createRsvpEntry(data)
+    }
     if (success) {
-      showDeleteModal.value = false;
+      showFormModal.value = false
     }
   }
-};
 
-// Auto-clear error after 5 seconds
-watch(operationError, (error) => {
-  if (error) {
-    setTimeout(() => {
-      clearOperationError();
-    }, 5000);
+  // Handle delete confirm
+  const handleDeleteConfirm = async () => {
+    if (selectedRsvp.value) {
+      const success = await deleteRsvpEntry(selectedRsvp.value.id)
+      if (success) {
+        showDeleteModal.value = false
+      }
+    }
   }
-});
 
-onMounted(() => {
-  fetchRsvps();
-});
+  // Auto-clear error after 5 seconds
+  watch(operationError, (error) => {
+    if (error) {
+      setTimeout(() => {
+        clearOperationError()
+      }, 5000)
+    }
+  })
+
+  onMounted(() => {
+    fetchRsvps()
+  })
 </script>
 
 <template>
   <div>
     <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
-      <div
-        class="p-4 bg-white dark:bg-dark-bg-secondary rounded-xl shadow-sm dark:shadow-lg"
-      >
-        <p
-          class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary"
-        >
+      <div class="p-4 bg-white dark:bg-dark-bg-secondary rounded-xl shadow-sm dark:shadow-lg">
+        <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary">
           Total RSVPs
         </p>
         <p class="font-heading text-2xl text-sage-dark dark:text-sage-light">
           {{ summary.total }}
         </p>
       </div>
-      <div
-        class="p-4 bg-white dark:bg-dark-bg-secondary rounded-xl shadow-sm dark:shadow-lg"
-      >
-        <p
-          class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary"
-        >
-          Attending
-        </p>
+      <div class="p-4 bg-white dark:bg-dark-bg-secondary rounded-xl shadow-sm dark:shadow-lg">
+        <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary">Attending</p>
         <p class="font-heading text-2xl text-green-600 dark:text-green-400">
           {{ summary.attending }}
         </p>
       </div>
-      <div
-        class="p-4 bg-white dark:bg-dark-bg-secondary rounded-xl shadow-sm dark:shadow-lg"
-      >
-        <p
-          class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary"
-        >
+      <div class="p-4 bg-white dark:bg-dark-bg-secondary rounded-xl shadow-sm dark:shadow-lg">
+        <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary">
           Not Attending
         </p>
         <p class="font-heading text-2xl text-red-600 dark:text-red-400">
           {{ summary.notAttending }}
         </p>
       </div>
-      <div
-        class="p-4 bg-white dark:bg-dark-bg-secondary rounded-xl shadow-sm dark:shadow-lg"
-      >
-        <p
-          class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary"
-        >
+      <div class="p-4 bg-white dark:bg-dark-bg-secondary rounded-xl shadow-sm dark:shadow-lg">
+        <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary">
           Total Guests
         </p>
         <p class="font-heading text-2xl text-sage-dark dark:text-sage-light">
@@ -138,9 +120,7 @@ onMounted(() => {
       </div>
     </div>
 
-    <div
-      class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6"
-    >
+    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
       <div class="flex gap-2 flex-wrap">
         <button
           type="button"
@@ -210,9 +190,7 @@ onMounted(() => {
             stroke="currentColor"
             stroke-width="2"
           >
-            <path
-              d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"
-            />
+            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3" />
           </svg>
           Export CSV
         </button>
@@ -223,9 +201,7 @@ onMounted(() => {
       <div
         class="inline-block w-8 h-8 border-3 border-sage border-t-transparent rounded-full animate-spin"
       ></div>
-      <p
-        class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary mt-3"
-      >
+      <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary mt-3">
         Loading RSVPs...
       </p>
     </div>
@@ -247,9 +223,7 @@ onMounted(() => {
       v-else-if="filteredRsvps.length === 0"
       class="text-center py-12 bg-white dark:bg-dark-bg-secondary rounded-xl"
     >
-      <p
-        class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary"
-      >
+      <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary">
         No RSVPs found.
       </p>
       <button
@@ -267,9 +241,7 @@ onMounted(() => {
         :key="rsvp.id"
         class="p-4 bg-white dark:bg-dark-bg-secondary rounded-xl shadow-sm dark:shadow-lg"
       >
-        <div
-          class="flex flex-col sm:flex-row sm:items-start justify-between gap-3"
-        >
+        <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
           <div class="flex-1">
             <div class="flex items-center gap-2 mb-1 flex-wrap">
               <p class="font-heading text-lg text-charcoal dark:text-dark-text">
@@ -283,7 +255,7 @@ onMounted(() => {
                     : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300'
                 "
               >
-                {{ rsvp.isAttending ? "Attending" : "Not Attending" }}
+                {{ rsvp.isAttending ? 'Attending' : 'Not Attending' }}
               </span>
               <span
                 v-if="rsvp.source === 'admin'"
@@ -292,14 +264,10 @@ onMounted(() => {
                 Manual
               </span>
             </div>
-            <p
-              class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary"
-            >
+            <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary">
               <span v-if="rsvp.phoneNumber">{{ rsvp.phoneNumber }}</span>
               <span v-if="rsvp.phoneNumber && rsvp.isAttending"> &bull; </span>
-              <span v-if="rsvp.isAttending"
-                >{{ rsvp.numberOfGuests }} guest(s)</span
-              >
+              <span v-if="rsvp.isAttending">{{ rsvp.numberOfGuests }} guest(s)</span>
               <span v-if="!rsvp.phoneNumber && !rsvp.isAttending" class="italic"
                 >No phone provided</span
               >
@@ -331,12 +299,8 @@ onMounted(() => {
                   stroke="currentColor"
                   stroke-width="2"
                 >
-                  <path
-                    d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"
-                  />
-                  <path
-                    d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"
-                  />
+                  <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" />
+                  <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" />
                 </svg>
               </button>
               <button

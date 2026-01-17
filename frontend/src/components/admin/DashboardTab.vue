@@ -1,109 +1,102 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from "vue";
-import {
-  listRsvpsAdminCached,
-  listGalleryImagesAdminCached,
-} from "@/services/api";
+  import { ref, computed, onMounted } from 'vue'
+  import { listRsvpsAdminCached, listGalleryImagesAdminCached } from '@/services/api'
 
-type TabType =
-  | "dashboard"
-  | "wedding"
-  | "venue"
-  | "schedule"
-  | "gallery"
-  | "contacts"
-  | "rsvps"
-  | "settings";
+  type TabType =
+    | 'dashboard'
+    | 'wedding'
+    | 'venue'
+    | 'schedule'
+    | 'gallery'
+    | 'contacts'
+    | 'rsvps'
+    | 'settings'
 
-const emit = defineEmits<{
-  (e: "switch-tab", tab: TabType): void;
-}>();
+  const emit = defineEmits<{
+    (e: 'switch-tab', tab: TabType): void
+  }>()
 
-// Stats
-const rsvpStats = ref({
-  total: 0,
-  attending: 0,
-  notAttending: 0,
-  totalGuests: 0,
-});
-const galleryCount = ref(0);
-const isLoading = ref(true);
+  // Stats
+  const rsvpStats = ref({
+    total: 0,
+    attending: 0,
+    notAttending: 0,
+    totalGuests: 0,
+  })
+  const galleryCount = ref(0)
+  const isLoading = ref(true)
 
-const loadStats = async (forceRefresh = false) => {
-  isLoading.value = true;
-  try {
-    // Fetch RSVP stats (cached unless force refresh)
-    const rsvpData = await listRsvpsAdminCached(forceRefresh);
-    rsvpStats.value = rsvpData.summary;
+  const loadStats = async (forceRefresh = false) => {
+    isLoading.value = true
+    try {
+      // Fetch RSVP stats (cached unless force refresh)
+      const rsvpData = await listRsvpsAdminCached(forceRefresh)
+      rsvpStats.value = rsvpData.summary
 
-    // Fetch gallery count (cached unless force refresh)
-    const galleryData = await listGalleryImagesAdminCached(forceRefresh);
-    galleryCount.value = galleryData.images.length;
-  } catch (error) {
-    console.error("Failed to load dashboard stats:", error);
-  } finally {
-    isLoading.value = false;
+      // Fetch gallery count (cached unless force refresh)
+      const galleryData = await listGalleryImagesAdminCached(forceRefresh)
+      galleryCount.value = galleryData.images.length
+    } catch (error) {
+      console.error('Failed to load dashboard stats:', error)
+    } finally {
+      isLoading.value = false
+    }
   }
-};
 
-const quickLinks = computed<
-  { label: string; tab: TabType; icon: string; description: string }[]
->(() => [
-  {
-    label: "Wedding Details",
-    tab: "wedding",
-    icon: "heart",
-    description: "Couple & event info",
-  },
-  {
-    label: "Venue",
-    tab: "venue",
-    icon: "location",
-    description: "Location settings",
-  },
-  {
-    label: "Schedule",
-    tab: "schedule",
-    icon: "calendar",
-    description: "Event timeline",
-  },
-  {
-    label: "Gallery",
-    tab: "gallery",
-    icon: "image",
-    description: "Manage photos",
-  },
-  {
-    label: "Contacts",
-    tab: "contacts",
-    icon: "phone",
-    description: "Contact people",
-  },
-  {
-    label: "RSVPs",
-    tab: "rsvps",
-    icon: "users",
-    description: "Guest responses",
-  },
-]);
+  const quickLinks = computed<{ label: string; tab: TabType; icon: string; description: string }[]>(
+    () => [
+      {
+        label: 'Wedding Details',
+        tab: 'wedding',
+        icon: 'heart',
+        description: 'Couple & event info',
+      },
+      {
+        label: 'Venue',
+        tab: 'venue',
+        icon: 'location',
+        description: 'Location settings',
+      },
+      {
+        label: 'Schedule',
+        tab: 'schedule',
+        icon: 'calendar',
+        description: 'Event timeline',
+      },
+      {
+        label: 'Gallery',
+        tab: 'gallery',
+        icon: 'image',
+        description: 'Manage photos',
+      },
+      {
+        label: 'Contacts',
+        tab: 'contacts',
+        icon: 'phone',
+        description: 'Contact people',
+      },
+      {
+        label: 'RSVPs',
+        tab: 'rsvps',
+        icon: 'users',
+        description: 'Guest responses',
+      },
+    ]
+  )
 
-onMounted(() => {
-  loadStats();
-});
+  onMounted(() => {
+    loadStats()
+  })
 </script>
 
 <template>
   <div class="max-w-5xl mx-auto">
     <!-- Header -->
     <div class="mb-6">
-      <h2
-        class="font-heading text-xl font-semibold text-charcoal dark:text-dark-text"
-      >
+      <h2 class="font-heading text-xl font-semibold text-charcoal dark:text-dark-text">
         Dashboard
       </h2>
-      <p
-        class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary mt-1"
-      >
+      <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary mt-1">
         Overview of your wedding website
       </p>
     </div>
@@ -113,9 +106,7 @@ onMounted(() => {
       <div
         class="inline-block w-8 h-8 border-3 border-sage border-t-transparent rounded-full animate-spin"
       />
-      <p
-        class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary mt-3"
-      >
+      <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary mt-3">
         Loading dashboard...
       </p>
     </div>
@@ -124,59 +115,35 @@ onMounted(() => {
     <div v-else class="space-y-6">
       <!-- Stats Cards -->
       <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
-        <div
-          class="p-4 bg-white dark:bg-dark-bg-secondary rounded-xl shadow-sm dark:shadow-lg"
-        >
-          <p
-            class="font-body text-xs sm:text-sm text-charcoal-light dark:text-dark-text-secondary"
-          >
+        <div class="p-4 bg-white dark:bg-dark-bg-secondary rounded-xl shadow-sm dark:shadow-lg">
+          <p class="font-body text-xs sm:text-sm text-charcoal-light dark:text-dark-text-secondary">
             Total RSVPs
           </p>
-          <p
-            class="font-heading text-2xl sm:text-3xl text-sage-dark dark:text-sage-light"
-          >
+          <p class="font-heading text-2xl sm:text-3xl text-sage-dark dark:text-sage-light">
             {{ rsvpStats.total }}
           </p>
         </div>
-        <div
-          class="p-4 bg-white dark:bg-dark-bg-secondary rounded-xl shadow-sm dark:shadow-lg"
-        >
-          <p
-            class="font-body text-xs sm:text-sm text-charcoal-light dark:text-dark-text-secondary"
-          >
+        <div class="p-4 bg-white dark:bg-dark-bg-secondary rounded-xl shadow-sm dark:shadow-lg">
+          <p class="font-body text-xs sm:text-sm text-charcoal-light dark:text-dark-text-secondary">
             Attending
           </p>
-          <p
-            class="font-heading text-2xl sm:text-3xl text-green-600 dark:text-green-400"
-          >
+          <p class="font-heading text-2xl sm:text-3xl text-green-600 dark:text-green-400">
             {{ rsvpStats.attending }}
           </p>
         </div>
-        <div
-          class="p-4 bg-white dark:bg-dark-bg-secondary rounded-xl shadow-sm dark:shadow-lg"
-        >
-          <p
-            class="font-body text-xs sm:text-sm text-charcoal-light dark:text-dark-text-secondary"
-          >
+        <div class="p-4 bg-white dark:bg-dark-bg-secondary rounded-xl shadow-sm dark:shadow-lg">
+          <p class="font-body text-xs sm:text-sm text-charcoal-light dark:text-dark-text-secondary">
             Total Guests
           </p>
-          <p
-            class="font-heading text-2xl sm:text-3xl text-sage-dark dark:text-sage-light"
-          >
+          <p class="font-heading text-2xl sm:text-3xl text-sage-dark dark:text-sage-light">
             {{ rsvpStats.totalGuests }}
           </p>
         </div>
-        <div
-          class="p-4 bg-white dark:bg-dark-bg-secondary rounded-xl shadow-sm dark:shadow-lg"
-        >
-          <p
-            class="font-body text-xs sm:text-sm text-charcoal-light dark:text-dark-text-secondary"
-          >
+        <div class="p-4 bg-white dark:bg-dark-bg-secondary rounded-xl shadow-sm dark:shadow-lg">
+          <p class="font-body text-xs sm:text-sm text-charcoal-light dark:text-dark-text-secondary">
             Gallery Photos
           </p>
-          <p
-            class="font-heading text-2xl sm:text-3xl text-sage-dark dark:text-sage-light"
-          >
+          <p class="font-heading text-2xl sm:text-3xl text-sage-dark dark:text-sage-light">
             {{ galleryCount }}
           </p>
         </div>
@@ -184,9 +151,7 @@ onMounted(() => {
 
       <!-- Quick Links -->
       <div>
-        <h3
-          class="font-heading text-base font-medium text-charcoal dark:text-dark-text mb-3"
-        >
+        <h3 class="font-heading text-base font-medium text-charcoal dark:text-dark-text mb-3">
           Quick Actions
         </h3>
         <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">

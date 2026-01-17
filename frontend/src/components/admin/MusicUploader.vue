@@ -1,99 +1,99 @@
 <script setup lang="ts">
-import { ref } from "vue";
+  import { ref } from 'vue'
 
-const props = defineProps<{
-  maxFileSize: number;
-  formatFileSize: (bytes: number) => string;
-}>();
+  const props = defineProps<{
+    maxFileSize: number
+    formatFileSize: (bytes: number) => string
+  }>()
 
-const emit = defineEmits<{
-  filesSelected: [files: { file: File; title: string; artist?: string }[]];
-}>();
+  const emit = defineEmits<{
+    filesSelected: [files: { file: File; title: string; artist?: string }[]]
+  }>()
 
-const isDragging = ref(false);
-const fileInput = ref<HTMLInputElement | null>(null);
-const pendingFiles = ref<{ file: File; title: string; artist: string }[]>([]);
+  const isDragging = ref(false)
+  const fileInput = ref<HTMLInputElement | null>(null)
+  const pendingFiles = ref<{ file: File; title: string; artist: string }[]>([])
 
-const ALLOWED_MIME_TYPES = [
-  "audio/mpeg",
-  "audio/mp4",
-  "audio/x-m4a",
-  "audio/wav",
-  "audio/x-wav",
-  "audio/ogg",
-];
+  const ALLOWED_MIME_TYPES = [
+    'audio/mpeg',
+    'audio/mp4',
+    'audio/x-m4a',
+    'audio/wav',
+    'audio/x-wav',
+    'audio/ogg',
+  ]
 
-const handleDragOver = (e: DragEvent): void => {
-  e.preventDefault();
-  isDragging.value = true;
-};
-
-const handleDragLeave = (): void => {
-  isDragging.value = false;
-};
-
-const handleDrop = (e: DragEvent): void => {
-  e.preventDefault();
-  isDragging.value = false;
-
-  const files = Array.from(e.dataTransfer?.files ?? []).filter((f) =>
-    ALLOWED_MIME_TYPES.includes(f.type),
-  );
-
-  if (files.length > 0) {
-    addPendingFiles(files);
-  }
-};
-
-const handleFileSelect = (e: Event): void => {
-  const target = e.target as HTMLInputElement;
-  const files = Array.from(target.files ?? []);
-
-  if (files.length > 0) {
-    addPendingFiles(files);
+  const handleDragOver = (e: DragEvent): void => {
+    e.preventDefault()
+    isDragging.value = true
   }
 
-  // Reset input
-  if (fileInput.value) {
-    fileInput.value.value = "";
+  const handleDragLeave = (): void => {
+    isDragging.value = false
   }
-};
 
-const addPendingFiles = (files: File[]): void => {
-  for (const file of files) {
-    // Extract title from filename (remove extension)
-    const title = file.name.replace(/\.[^/.]+$/, "");
-    pendingFiles.value.push({ file, title, artist: "" });
+  const handleDrop = (e: DragEvent): void => {
+    e.preventDefault()
+    isDragging.value = false
+
+    const files = Array.from(e.dataTransfer?.files ?? []).filter((f) =>
+      ALLOWED_MIME_TYPES.includes(f.type)
+    )
+
+    if (files.length > 0) {
+      addPendingFiles(files)
+    }
   }
-};
 
-const removePendingFile = (index: number): void => {
-  pendingFiles.value.splice(index, 1);
-};
+  const handleFileSelect = (e: Event): void => {
+    const target = e.target as HTMLInputElement
+    const files = Array.from(target.files ?? [])
 
-const uploadAll = (): void => {
-  if (pendingFiles.value.length === 0) return;
+    if (files.length > 0) {
+      addPendingFiles(files)
+    }
 
-  emit(
-    "filesSelected",
-    pendingFiles.value.map((p) => {
-      const result: { file: File; title: string; artist?: string } = {
-        file: p.file,
-        title: p.title,
-      };
-      if (p.artist.trim()) {
-        result.artist = p.artist;
-      }
-      return result;
-    }),
-  );
+    // Reset input
+    if (fileInput.value) {
+      fileInput.value.value = ''
+    }
+  }
 
-  pendingFiles.value = [];
-};
+  const addPendingFiles = (files: File[]): void => {
+    for (const file of files) {
+      // Extract title from filename (remove extension)
+      const title = file.name.replace(/\.[^/.]+$/, '')
+      pendingFiles.value.push({ file, title, artist: '' })
+    }
+  }
 
-const openFilePicker = (): void => {
-  fileInput.value?.click();
-};
+  const removePendingFile = (index: number): void => {
+    pendingFiles.value.splice(index, 1)
+  }
+
+  const uploadAll = (): void => {
+    if (pendingFiles.value.length === 0) return
+
+    emit(
+      'filesSelected',
+      pendingFiles.value.map((p) => {
+        const result: { file: File; title: string; artist?: string } = {
+          file: p.file,
+          title: p.title,
+        }
+        if (p.artist.trim()) {
+          result.artist = p.artist
+        }
+        return result
+      })
+    )
+
+    pendingFiles.value = []
+  }
+
+  const openFilePicker = (): void => {
+    fileInput.value?.click()
+  }
 </script>
 
 <template>
@@ -133,21 +133,16 @@ const openFilePicker = (): void => {
       </svg>
 
       <p class="font-body text-sm text-charcoal dark:text-dark-text mb-1">
-        <span class="text-sage font-medium">Click to upload</span> or drag and
-        drop
+        <span class="text-sage font-medium">Click to upload</span> or drag and drop
       </p>
-      <p
-        class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary"
-      >
+      <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary">
         MP3, M4A, WAV, OGG up to {{ formatFileSize(maxFileSize) }}
       </p>
     </div>
 
     <!-- Pending Files -->
     <div v-if="pendingFiles.length > 0" class="space-y-4">
-      <h3
-        class="font-heading text-sm font-medium text-charcoal dark:text-dark-text"
-      >
+      <h3 class="font-heading text-sm font-medium text-charcoal dark:text-dark-text">
         Files to upload ({{ pendingFiles.length }})
       </h3>
 
@@ -185,9 +180,7 @@ const openFilePicker = (): void => {
                   placeholder="Artist name"
                 />
               </div>
-              <p
-                class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary"
-              >
+              <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary">
                 {{ pending.file.name }}
               </p>
             </div>
@@ -196,12 +189,7 @@ const openFilePicker = (): void => {
               class="p-2 text-charcoal-light hover:text-red-500 dark:text-dark-text-secondary dark:hover:text-red-400 cursor-pointer"
               @click="removePendingFile(index)"
             >
-              <svg
-                class="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
                   stroke-linecap="round"
                   stroke-linejoin="round"
@@ -220,9 +208,7 @@ const openFilePicker = (): void => {
         :disabled="pendingFiles.some((p) => !p.title.trim())"
         @click="uploadAll"
       >
-        Upload {{ pendingFiles.length }} track{{
-          pendingFiles.length > 1 ? "s" : ""
-        }}
+        Upload {{ pendingFiles.length }} track{{ pendingFiles.length > 1 ? 's' : '' }}
       </button>
     </div>
   </div>

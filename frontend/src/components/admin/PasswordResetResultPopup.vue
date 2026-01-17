@@ -1,26 +1,26 @@
 <script setup lang="ts">
-import { ref, computed } from "vue";
+  import { ref, computed } from 'vue'
 
-const props = defineProps<{
-  show: boolean;
-  username: string;
-  temporaryPassword: string;
-  emailSent: boolean;
-  emailError?: string;
-  hasEmail: boolean;
-}>();
+  const props = defineProps<{
+    show: boolean
+    username: string
+    temporaryPassword: string
+    emailSent: boolean
+    emailError?: string
+    hasEmail: boolean
+  }>()
 
-const emit = defineEmits<{
-  close: [];
-}>();
+  const emit = defineEmits<{
+    close: []
+  }>()
 
-const clipboardCopied = ref(false);
+  const clipboardCopied = ref(false)
 
-const needsManualSharing = computed(() => !props.emailSent);
+  const needsManualSharing = computed(() => !props.emailSent)
 
-const copyCredentialsToClipboard = async (): Promise<void> => {
-  const subject = "Wedding Admin Portal - Password Reset";
-  const body = `Hi there!
+  const copyCredentialsToClipboard = async (): Promise<void> => {
+    const subject = 'Wedding Admin Portal - Password Reset'
+    const body = `Hi there!
 
 Your password for the Wedding Admin Portal has been reset.
 
@@ -36,18 +36,18 @@ LOGIN URL
 https://harithzainudin.github.io/wedding/admin
 
 Best regards,
-Wedding Admin Team`;
+Wedding Admin Team`
 
-  try {
-    await navigator.clipboard.writeText(`Subject: ${subject}\n\n${body}`);
-    clipboardCopied.value = true;
-    setTimeout(() => {
-      clipboardCopied.value = false;
-    }, 2000);
-  } catch (err) {
-    console.error("Failed to copy to clipboard:", err);
+    try {
+      await navigator.clipboard.writeText(`Subject: ${subject}\n\n${body}`)
+      clipboardCopied.value = true
+      setTimeout(() => {
+        clipboardCopied.value = false
+      }, 2000)
+    } catch (err) {
+      console.error('Failed to copy to clipboard:', err)
+    }
   }
-};
 </script>
 
 <template>
@@ -55,9 +55,7 @@ Wedding Admin Team`;
     v-if="show"
     class="fixed inset-0 bg-black/50 dark:bg-black/70 flex items-center justify-center z-50 px-4"
   >
-    <div
-      class="bg-white dark:bg-dark-bg-secondary rounded-xl p-6 max-w-md w-full shadow-xl"
-    >
+    <div class="bg-white dark:bg-dark-bg-secondary rounded-xl p-6 max-w-md w-full shadow-xl">
       <div class="text-center">
         <!-- Success with email sent -->
         <template v-if="!needsManualSharing">
@@ -74,16 +72,12 @@ Wedding Admin Team`;
               <path d="M20 6L9 17l-5-5" />
             </svg>
           </div>
-          <h3
-            class="font-heading text-lg text-charcoal dark:text-dark-text mb-2"
-          >
+          <h3 class="font-heading text-lg text-charcoal dark:text-dark-text mb-2">
             Password Reset Successfully
           </h3>
-          <p
-            class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary mb-4"
-          >
-            A password reset email has been sent to "{{ username }}". They will
-            be required to change their password after logging in.
+          <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary mb-4">
+            A password reset email has been sent to "{{ username }}". They will be required to
+            change their password after logging in.
           </p>
           <button
             type="button"
@@ -111,18 +105,10 @@ Wedding Admin Team`;
               />
             </svg>
           </div>
-          <h3
-            class="font-heading text-lg text-charcoal dark:text-dark-text mb-2"
-          >
-            {{
-              hasEmail
-                ? "Password Reset (Email Failed)"
-                : "Password Reset (No Email)"
-            }}
+          <h3 class="font-heading text-lg text-charcoal dark:text-dark-text mb-2">
+            {{ hasEmail ? 'Password Reset (Email Failed)' : 'Password Reset (No Email)' }}
           </h3>
-          <p
-            class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary mb-2"
-          >
+          <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary mb-2">
             Password for "{{ username }}" has been reset successfully.
             <span v-if="!hasEmail">User has no email address configured.</span>
             <span v-else>The email could not be sent.</span>
@@ -132,18 +118,14 @@ Wedding Admin Team`;
           </p>
 
           <!-- Credentials display -->
-          <div
-            class="bg-sand dark:bg-dark-bg-elevated rounded-lg p-4 mb-4 text-left"
-          >
+          <div class="bg-sand dark:bg-dark-bg-elevated rounded-lg p-4 mb-4 text-left">
             <div class="mb-3">
               <p
                 class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary uppercase tracking-wide mb-1"
               >
                 Username
               </p>
-              <p
-                class="font-body text-base text-charcoal dark:text-dark-text font-semibold"
-              >
+              <p class="font-body text-base text-charcoal dark:text-dark-text font-semibold">
                 {{ username }}
               </p>
             </div>
@@ -153,9 +135,7 @@ Wedding Admin Team`;
               >
                 Temporary Password
               </p>
-              <p
-                class="font-mono text-base text-charcoal dark:text-dark-text font-semibold"
-              >
+              <p class="font-mono text-base text-charcoal dark:text-dark-text font-semibold">
                 {{ temporaryPassword }}
               </p>
             </div>
@@ -163,8 +143,7 @@ Wedding Admin Team`;
 
           <div class="bg-amber-50 dark:bg-amber-900/20 rounded-lg p-3 mb-4">
             <p class="font-body text-xs text-amber-800 dark:text-amber-300">
-              User will be required to change their password immediately after
-              logging in.
+              User will be required to change their password immediately after logging in.
             </p>
           </div>
 
@@ -195,7 +174,7 @@ Wedding Admin Team`;
               >
                 <path d="M20 6L9 17l-5-5" />
               </svg>
-              {{ clipboardCopied ? "Copied!" : "Copy Credentials" }}
+              {{ clipboardCopied ? 'Copied!' : 'Copy Credentials' }}
             </button>
             <button
               type="button"

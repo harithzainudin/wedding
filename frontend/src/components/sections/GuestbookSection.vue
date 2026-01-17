@@ -1,46 +1,46 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from "vue";
-import { listRsvpsCached } from "@/services/api";
-import { useLanguage } from "@/composables/useLanguage";
-import type { RsvpSubmission } from "@/types/rsvp";
+  import { ref, onMounted, computed } from 'vue'
+  import { listRsvpsCached } from '@/services/api'
+  import { useLanguage } from '@/composables/useLanguage'
+  import type { RsvpSubmission } from '@/types/rsvp'
 
-const { t } = useLanguage();
+  const { t } = useLanguage()
 
-const wishes = ref<RsvpSubmission[]>([]);
-const isLoading = ref(true);
-const hasError = ref(false);
+  const wishes = ref<RsvpSubmission[]>([])
+  const isLoading = ref(true)
+  const hasError = ref(false)
 
-// Filter to only show entries with messages
-const wishesWithMessages = computed(() =>
-  wishes.value.filter((wish) => wish.message && wish.message.trim().length > 0),
-);
+  // Filter to only show entries with messages
+  const wishesWithMessages = computed(() =>
+    wishes.value.filter((wish) => wish.message && wish.message.trim().length > 0)
+  )
 
-const formatDate = (dateString: string): string => {
-  const date = new Date(dateString);
-  return date.toLocaleDateString("ms-MY", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  });
-};
-
-const fetchWishes = async (): Promise<void> => {
-  isLoading.value = true;
-  hasError.value = false;
-
-  try {
-    const response = await listRsvpsCached();
-    wishes.value = response.rsvps;
-  } catch {
-    hasError.value = true;
-  } finally {
-    isLoading.value = false;
+  const formatDate = (dateString: string): string => {
+    const date = new Date(dateString)
+    return date.toLocaleDateString('ms-MY', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+    })
   }
-};
 
-onMounted(() => {
-  fetchWishes();
-});
+  const fetchWishes = async (): Promise<void> => {
+    isLoading.value = true
+    hasError.value = false
+
+    try {
+      const response = await listRsvpsCached()
+      wishes.value = response.rsvps
+    } catch {
+      hasError.value = true
+    } finally {
+      isLoading.value = false
+    }
+  }
+
+  onMounted(() => {
+    fetchWishes()
+  })
 </script>
 
 <template>
@@ -64,9 +64,7 @@ onMounted(() => {
         <div
           class="inline-block w-8 h-8 border-3 border-sage border-t-transparent rounded-full animate-spin"
         ></div>
-        <p
-          class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary mt-3"
-        >
+        <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary mt-3">
           {{ t.guestbook.loading }}
         </p>
       </div>
@@ -97,14 +95,10 @@ onMounted(() => {
             stroke="currentColor"
             stroke-width="2"
           >
-            <path
-              d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"
-            />
+            <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
           </svg>
         </div>
-        <p
-          class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary"
-        >
+        <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary">
           {{ t.guestbook.noWishes }}
         </p>
       </div>
@@ -118,11 +112,7 @@ onMounted(() => {
         >
           <!-- Quote Icon -->
           <div class="mb-3">
-            <svg
-              class="w-6 h-6 text-sage/40"
-              viewBox="0 0 24 24"
-              fill="currentColor"
-            >
+            <svg class="w-6 h-6 text-sage/40" viewBox="0 0 24 24" fill="currentColor">
               <path
                 d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z"
               />
@@ -138,14 +128,10 @@ onMounted(() => {
 
           <!-- Author -->
           <div class="flex items-center justify-between">
-            <p
-              class="font-heading text-sm sm:text-base text-sage-dark dark:text-sage-light"
-            >
+            <p class="font-heading text-sm sm:text-base text-sage-dark dark:text-sage-light">
               — {{ wish.title }} {{ wish.fullName }}
             </p>
-            <p
-              class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary"
-            >
+            <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary">
               {{ formatDate(wish.submittedAt) }}
             </p>
           </div>

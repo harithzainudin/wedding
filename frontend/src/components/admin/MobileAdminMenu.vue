@@ -1,35 +1,33 @@
 <script setup lang="ts">
-import DarkModeToggle from "@/components/ui/DarkModeToggle.vue";
+  import DarkModeToggle from '@/components/ui/DarkModeToggle.vue'
 
-defineProps<{
-  isOpen: boolean;
-  username: string;
-  isMasterUser: boolean;
-}>();
+  defineProps<{
+    isOpen: boolean
+    username: string
+    isMasterUser: boolean
+  }>()
 
-const emit = defineEmits<{
-  close: [];
-  openProfile: [];
-  changePassword: [];
-  logout: [];
-}>();
+  const emit = defineEmits<{
+    close: []
+    openProfile: []
+    changePassword: []
+    logout: []
+  }>()
 
-const getInitial = (name: string): string => {
-  return name.charAt(0).toUpperCase();
-};
-
-const handleAction = (
-  action: "profile" | "changePassword" | "logout",
-): void => {
-  emit("close");
-  if (action === "profile") {
-    emit("openProfile");
-  } else if (action === "changePassword") {
-    emit("changePassword");
-  } else {
-    emit("logout");
+  const getInitial = (name: string): string => {
+    return name.charAt(0).toUpperCase()
   }
-};
+
+  const handleAction = (action: 'profile' | 'changePassword' | 'logout'): void => {
+    emit('close')
+    if (action === 'profile') {
+      emit('openProfile')
+    } else if (action === 'changePassword') {
+      emit('changePassword')
+    } else {
+      emit('logout')
+    }
+  }
 </script>
 
 <template>
@@ -57,15 +55,10 @@ const handleAction = (
               {{ getInitial(username) }}
             </div>
             <div>
-              <p
-                class="font-body text-sm font-medium text-charcoal dark:text-dark-text"
-              >
+              <p class="font-body text-sm font-medium text-charcoal dark:text-dark-text">
                 {{ username }}
               </p>
-              <p
-                v-if="isMasterUser"
-                class="font-body text-xs text-amber-600 dark:text-amber-400"
-              >
+              <p v-if="isMasterUser" class="font-body text-xs text-amber-600 dark:text-amber-400">
                 Master Account
               </p>
             </div>
@@ -92,9 +85,7 @@ const handleAction = (
           <div
             class="flex items-center justify-between px-4 py-3 border-b border-sand-dark dark:border-dark-border"
           >
-            <span class="font-body text-sm text-charcoal dark:text-dark-text"
-              >Dark Mode</span
-            >
+            <span class="font-body text-sm text-charcoal dark:text-dark-text">Dark Mode</span>
             <DarkModeToggle variant="light" />
           </div>
 
@@ -183,23 +174,23 @@ const handleAction = (
 </template>
 
 <style scoped>
-.overlay-enter-active,
-.overlay-leave-active {
-  transition: opacity 0.2s ease;
-}
+  .overlay-enter-active,
+  .overlay-leave-active {
+    transition: opacity 0.2s ease;
+  }
 
-.overlay-enter-from,
-.overlay-leave-to {
-  opacity: 0;
-}
+  .overlay-enter-from,
+  .overlay-leave-to {
+    opacity: 0;
+  }
 
-.slide-enter-active,
-.slide-leave-active {
-  transition: transform 0.3s ease;
-}
+  .slide-enter-active,
+  .slide-leave-active {
+    transition: transform 0.3s ease;
+  }
 
-.slide-enter-from,
-.slide-leave-to {
-  transform: translateX(100%);
-}
+  .slide-enter-from,
+  .slide-leave-to {
+    transform: translateX(100%);
+  }
 </style>

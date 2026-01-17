@@ -1,17 +1,17 @@
 <script setup lang="ts">
-defineProps<{
-  title: string;
-  message: string;
-  confirmText?: string;
-  cancelText?: string;
-  isLoading?: boolean;
-  variant?: "danger" | "warning" | "default";
-}>();
+  defineProps<{
+    title: string
+    message: string
+    confirmText?: string
+    cancelText?: string
+    isLoading?: boolean
+    variant?: 'danger' | 'warning' | 'default'
+  }>()
 
-const emit = defineEmits<{
-  confirm: [];
-  cancel: [];
-}>();
+  const emit = defineEmits<{
+    confirm: []
+    cancel: []
+  }>()
 </script>
 
 <template>
@@ -23,15 +23,11 @@ const emit = defineEmits<{
     <div
       class="relative bg-white dark:bg-dark-bg-secondary rounded-xl shadow-xl max-w-sm w-full p-6 space-y-4"
     >
-      <h3
-        class="font-heading text-lg font-semibold text-charcoal dark:text-dark-text"
-      >
+      <h3 class="font-heading text-lg font-semibold text-charcoal dark:text-dark-text">
         {{ title }}
       </h3>
 
-      <p
-        class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary"
-      >
+      <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary">
         {{ message }}
       </p>
 
@@ -43,7 +39,7 @@ const emit = defineEmits<{
           class="px-4 py-2 font-body text-sm text-charcoal dark:text-dark-text border border-sand-dark dark:border-dark-border rounded-lg hover:bg-sand dark:hover:bg-dark-bg transition-colors cursor-pointer disabled:opacity-50"
           @click="emit('cancel')"
         >
-          {{ cancelText ?? "Cancel" }}
+          {{ cancelText ?? 'Cancel' }}
         </button>
         <button
           type="button"
@@ -56,7 +52,7 @@ const emit = defineEmits<{
           }"
           @click="emit('confirm')"
         >
-          {{ isLoading ? "Please wait..." : (confirmText ?? "Confirm") }}
+          {{ isLoading ? 'Please wait...' : (confirmText ?? 'Confirm') }}
         </button>
       </div>
     </div>

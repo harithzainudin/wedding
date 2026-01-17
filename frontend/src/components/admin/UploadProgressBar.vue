@@ -1,43 +1,41 @@
 <script setup lang="ts">
-import { computed } from "vue";
-import type { UploadProgress } from "@/types/upload";
+  import { computed } from 'vue'
+  import type { UploadProgress } from '@/types/upload'
 
-const props = defineProps<{
-  uploads: UploadProgress[];
-  type?: "image" | "music";
-}>();
+  const props = defineProps<{
+    uploads: UploadProgress[]
+    type?: 'image' | 'music'
+  }>()
 
-const emit = defineEmits<{
-  cancel: [id: string];
-  dismiss: [id: string];
-}>();
+  const emit = defineEmits<{
+    cancel: [id: string]
+    dismiss: [id: string]
+  }>()
 
-const activeUploads = computed(() =>
-  props.uploads.filter((u) => u.status === "uploading"),
-);
+  const activeUploads = computed(() => props.uploads.filter((u) => u.status === 'uploading'))
 
-const getProgressLabel = (progress: number): string => {
-  if (progress <= 10) return "Preparing...";
-  if (progress <= 30) return "Getting upload URL...";
-  if (progress <= 70) return "Uploading to storage...";
-  if (progress < 100) return "Confirming...";
-  return "Complete!";
-};
-
-const getStatusLabel = (upload: UploadProgress): string => {
-  switch (upload.status) {
-    case "uploading":
-      return getProgressLabel(upload.progress);
-    case "completed":
-      return "Upload complete";
-    case "error":
-      return upload.error ?? "Upload failed";
-    case "cancelled":
-      return "Cancelled";
-    default:
-      return "";
+  const getProgressLabel = (progress: number): string => {
+    if (progress <= 10) return 'Preparing...'
+    if (progress <= 30) return 'Getting upload URL...'
+    if (progress <= 70) return 'Uploading to storage...'
+    if (progress < 100) return 'Confirming...'
+    return 'Complete!'
   }
-};
+
+  const getStatusLabel = (upload: UploadProgress): string => {
+    switch (upload.status) {
+      case 'uploading':
+        return getProgressLabel(upload.progress)
+      case 'completed':
+        return 'Upload complete'
+      case 'error':
+        return upload.error ?? 'Upload failed'
+      case 'cancelled':
+        return 'Cancelled'
+      default:
+        return ''
+    }
+  }
 </script>
 
 <template>
@@ -47,10 +45,8 @@ const getStatusLabel = (upload: UploadProgress): string => {
       <h4
         class="font-body text-xs font-medium text-charcoal-light dark:text-dark-text-secondary uppercase tracking-wider"
       >
-        {{ activeUploads.length > 0 ? "Uploading" : "Upload Complete" }}
-        <span v-if="activeUploads.length > 0"
-          >({{ activeUploads.length }})</span
-        >
+        {{ activeUploads.length > 0 ? 'Uploading' : 'Upload Complete' }}
+        <span v-if="activeUploads.length > 0">({{ activeUploads.length }})</span>
       </h4>
     </div>
 
@@ -120,9 +116,7 @@ const getStatusLabel = (upload: UploadProgress): string => {
 
             <!-- File Info -->
             <div class="flex-1 min-w-0">
-              <p
-                class="font-body text-sm text-charcoal dark:text-dark-text truncate"
-              >
+              <p class="font-body text-sm text-charcoal dark:text-dark-text truncate">
                 {{ upload.filename }}
               </p>
               <p
@@ -154,12 +148,7 @@ const getStatusLabel = (upload: UploadProgress): string => {
                 title="Cancel upload"
                 @click="emit('cancel', upload.id)"
               >
-                <svg
-                  class="w-4 h-4"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
                     stroke-linecap="round"
                     stroke-linejoin="round"
@@ -176,12 +165,7 @@ const getStatusLabel = (upload: UploadProgress): string => {
                 title="Dismiss"
                 @click="emit('dismiss', upload.id)"
               >
-                <svg
-                  class="w-4 h-4"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
                     stroke-linecap="round"
                     stroke-linejoin="round"

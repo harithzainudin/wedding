@@ -1,30 +1,30 @@
-import type { APIGatewayProxyResultV2, Context } from "aws-lambda";
+import type { APIGatewayProxyResultV2, Context } from 'aws-lambda'
 
 export interface ResponseMetadata {
-  requestId: string;
-  timestamp: string;
+  requestId: string
+  timestamp: string
 }
 
 export interface SuccessResponse<T> {
-  success: true;
-  data: T;
-  metadata: ResponseMetadata;
+  success: true
+  data: T
+  metadata: ResponseMetadata
 }
 
 export interface ErrorResponse {
-  success: false;
+  success: false
   error: {
-    message: string;
-    code?: string;
-  };
-  metadata: ResponseMetadata;
+    message: string
+    code?: string
+  }
+  metadata: ResponseMetadata
 }
 
 function createMetadata(requestId: string): ResponseMetadata {
   return {
     requestId,
     timestamp: new Date().toISOString(),
-  };
+  }
 }
 
 /**
@@ -33,21 +33,21 @@ function createMetadata(requestId: string): ResponseMetadata {
 export function createSuccessResponse<T>(
   statusCode: number,
   data: T,
-  context: Context,
+  context: Context
 ): APIGatewayProxyResultV2 {
   const response: SuccessResponse<T> = {
     success: true,
     data,
     metadata: createMetadata(context.awsRequestId),
-  };
+  }
 
   return {
     statusCode,
     headers: {
-      "Content-Type": "application/json",
+      'Content-Type': 'application/json',
     },
     body: JSON.stringify(response),
-  };
+  }
 }
 
 /**
@@ -58,18 +58,18 @@ export function createErrorResponse(
   statusCode: number,
   message: string,
   contextOrCode?: Context | string,
-  errorCode?: string,
+  errorCode?: string
 ): APIGatewayProxyResultV2 {
   // Check if third argument is a Context object (has awsRequestId property)
   const isContext =
     contextOrCode !== undefined &&
-    typeof contextOrCode === "object" &&
+    typeof contextOrCode === 'object' &&
     contextOrCode !== null &&
-    "awsRequestId" in contextOrCode;
+    'awsRequestId' in contextOrCode
 
   if (isContext) {
     // New signature: (statusCode, message, context, errorCode?)
-    const context = contextOrCode as Context;
+    const context = contextOrCode as Context
     const response: ErrorResponse = {
       success: false,
       error: {
@@ -77,27 +77,27 @@ export function createErrorResponse(
         ...(errorCode && { code: errorCode }),
       },
       metadata: createMetadata(context.awsRequestId),
-    };
+    }
 
     return {
       statusCode,
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
       },
       body: JSON.stringify(response),
-    };
+    }
   } else {
     // Legacy signature: (statusCode, message) - no context, simple error format
     return {
       statusCode,
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
       },
       body: JSON.stringify({
         success: false,
         error: message,
       }),
-    };
+    }
   }
 }
 
@@ -105,15 +105,12 @@ export function createErrorResponse(
  * @deprecated Use createSuccessResponse instead
  * Legacy function for backwards compatibility during migration
  */
-export function createResponse<T>(
-  statusCode: number,
-  body: T,
-): APIGatewayProxyResultV2 {
+export function createResponse<T>(statusCode: number, body: T): APIGatewayProxyResultV2 {
   return {
     statusCode,
     headers: {
-      "Content-Type": "application/json",
+      'Content-Type': 'application/json',
     },
     body: JSON.stringify(body),
-  };
+  }
 }

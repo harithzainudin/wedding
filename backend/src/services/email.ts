@@ -1,35 +1,31 @@
-import * as brevo from "@getbrevo/brevo";
-import { Resource } from "sst";
+import * as brevo from '@getbrevo/brevo'
+import { Resource } from 'sst'
 
-const SENDER_NAME = "Wedding Admin";
+const SENDER_NAME = 'Wedding Admin'
 
 export interface SendWelcomeEmailParams {
-  recipientEmail: string;
-  username: string;
-  password: string;
+  recipientEmail: string
+  username: string
+  password: string
 }
 
 export interface SendPasswordResetEmailParams {
-  recipientEmail: string;
-  username: string;
-  temporaryPassword: string;
+  recipientEmail: string
+  username: string
+  temporaryPassword: string
 }
 
 export interface EmailResult {
-  success: boolean;
-  messageId?: string;
-  error?: string;
+  success: boolean
+  messageId?: string
+  error?: string
 }
 
 /**
  * Generate the beautiful HTML email template
  * Uses earthy/minimalist wedding theme with sage and sand colors
  */
-function generateWelcomeEmailHtml(
-  username: string,
-  password: string,
-  loginUrl: string,
-): string {
+function generateWelcomeEmailHtml(username: string, password: string, loginUrl: string): string {
   return `
 <!DOCTYPE html>
 <html lang="en">
@@ -138,17 +134,13 @@ function generateWelcomeEmailHtml(
   </table>
 </body>
 </html>
-  `.trim();
+  `.trim()
 }
 
 /**
  * Generate plain text version of the email
  */
-function generateWelcomeEmailText(
-  username: string,
-  password: string,
-  loginUrl: string,
-): string {
+function generateWelcomeEmailText(username: string, password: string, loginUrl: string): string {
   return `
 Welcome to Wedding Admin Portal
 ================================
@@ -169,7 +161,7 @@ Please keep your credentials secure and consider changing your password after yo
 ---
 This is an automated message from the Wedding Admin System.
 Please do not reply to this email.
-  `.trim();
+  `.trim()
 }
 
 /**
@@ -178,7 +170,7 @@ Please do not reply to this email.
 function generatePasswordResetEmailHtml(
   username: string,
   temporaryPassword: string,
-  loginUrl: string,
+  loginUrl: string
 ): string {
   return `
 <!DOCTYPE html>
@@ -290,7 +282,7 @@ function generatePasswordResetEmailHtml(
   </table>
 </body>
 </html>
-  `.trim();
+  `.trim()
 }
 
 /**
@@ -299,7 +291,7 @@ function generatePasswordResetEmailHtml(
 function generatePasswordResetEmailText(
   username: string,
   temporaryPassword: string,
-  loginUrl: string,
+  loginUrl: string
 ): string {
   return `
 Password Reset - Wedding Admin Portal
@@ -321,77 +313,63 @@ ${loginUrl}
 ---
 This is an automated message from the Wedding Admin System.
 Please do not reply to this email.
-  `.trim();
+  `.trim()
 }
 
 /**
  * Send welcome email to newly created admin user
  * Returns success status - failures should not prevent user creation
  */
-export async function sendWelcomeEmail(
-  params: SendWelcomeEmailParams,
-): Promise<EmailResult> {
-  const { recipientEmail, username, password } = params;
+export async function sendWelcomeEmail(params: SendWelcomeEmailParams): Promise<EmailResult> {
+  const { recipientEmail, username, password } = params
 
   // Get configuration from SST secrets
-  const senderEmail = Resource.SenderEmail.value;
-  const adminLoginUrl = Resource.AdminLoginUrl.value;
+  const senderEmail = Resource.SenderEmail.value
+  const adminLoginUrl = Resource.AdminLoginUrl.value
 
   try {
     // Initialize Brevo API client
-    const apiInstance = new brevo.TransactionalEmailsApi();
+    const apiInstance = new brevo.TransactionalEmailsApi()
 
     // Set API key
-    apiInstance.setApiKey(
-      brevo.TransactionalEmailsApiApiKeys.apiKey,
-      Resource.BrevoApiKey.value,
-    );
+    apiInstance.setApiKey(brevo.TransactionalEmailsApiApiKeys.apiKey, Resource.BrevoApiKey.value)
 
     // Prepare the email
-    const sendSmtpEmail = new brevo.SendSmtpEmail();
+    const sendSmtpEmail = new brevo.SendSmtpEmail()
 
-    sendSmtpEmail.subject = "Wedding Admin Portal - Your Login Credentials";
-    sendSmtpEmail.htmlContent = generateWelcomeEmailHtml(
-      username,
-      password,
-      adminLoginUrl,
-    );
-    sendSmtpEmail.textContent = generateWelcomeEmailText(
-      username,
-      password,
-      adminLoginUrl,
-    );
+    sendSmtpEmail.subject = 'Wedding Admin Portal - Your Login Credentials'
+    sendSmtpEmail.htmlContent = generateWelcomeEmailHtml(username, password, adminLoginUrl)
+    sendSmtpEmail.textContent = generateWelcomeEmailText(username, password, adminLoginUrl)
 
     sendSmtpEmail.sender = {
       name: SENDER_NAME,
       email: senderEmail,
-    };
+    }
 
     sendSmtpEmail.to = [
       {
         email: recipientEmail,
         name: username,
       },
-    ];
+    ]
 
     // Send the email
-    const result = await apiInstance.sendTransacEmail(sendSmtpEmail);
+    const result = await apiInstance.sendTransacEmail(sendSmtpEmail)
 
     return {
       success: true,
       messageId: result.body.messageId,
-    };
+    }
   } catch (error) {
-    console.error("Failed to send welcome email:", error);
+    console.error('Failed to send welcome email:', error)
 
     // Extract error message
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown email error";
+    const errorMessage = error instanceof Error ? error.message : 'Unknown email error'
 
     return {
       success: false,
       error: errorMessage,
-    };
+    }
   }
 }
 
@@ -400,68 +378,64 @@ export async function sendWelcomeEmail(
  * Returns success status - failures should not prevent password reset
  */
 export async function sendPasswordResetEmail(
-  params: SendPasswordResetEmailParams,
+  params: SendPasswordResetEmailParams
 ): Promise<EmailResult> {
-  const { recipientEmail, username, temporaryPassword } = params;
+  const { recipientEmail, username, temporaryPassword } = params
 
   // Get configuration from SST secrets
-  const senderEmail = Resource.SenderEmail.value;
-  const adminLoginUrl = Resource.AdminLoginUrl.value;
+  const senderEmail = Resource.SenderEmail.value
+  const adminLoginUrl = Resource.AdminLoginUrl.value
 
   try {
     // Initialize Brevo API client
-    const apiInstance = new brevo.TransactionalEmailsApi();
+    const apiInstance = new brevo.TransactionalEmailsApi()
 
     // Set API key
-    apiInstance.setApiKey(
-      brevo.TransactionalEmailsApiApiKeys.apiKey,
-      Resource.BrevoApiKey.value,
-    );
+    apiInstance.setApiKey(brevo.TransactionalEmailsApiApiKeys.apiKey, Resource.BrevoApiKey.value)
 
     // Prepare the email
-    const sendSmtpEmail = new brevo.SendSmtpEmail();
+    const sendSmtpEmail = new brevo.SendSmtpEmail()
 
-    sendSmtpEmail.subject = "Wedding Admin Portal - Password Reset";
+    sendSmtpEmail.subject = 'Wedding Admin Portal - Password Reset'
     sendSmtpEmail.htmlContent = generatePasswordResetEmailHtml(
       username,
       temporaryPassword,
-      adminLoginUrl,
-    );
+      adminLoginUrl
+    )
     sendSmtpEmail.textContent = generatePasswordResetEmailText(
       username,
       temporaryPassword,
-      adminLoginUrl,
-    );
+      adminLoginUrl
+    )
 
     sendSmtpEmail.sender = {
       name: SENDER_NAME,
       email: senderEmail,
-    };
+    }
 
     sendSmtpEmail.to = [
       {
         email: recipientEmail,
         name: username,
       },
-    ];
+    ]
 
     // Send the email
-    const result = await apiInstance.sendTransacEmail(sendSmtpEmail);
+    const result = await apiInstance.sendTransacEmail(sendSmtpEmail)
 
     return {
       success: true,
       messageId: result.body.messageId,
-    };
+    }
   } catch (error) {
-    console.error("Failed to send password reset email:", error);
+    console.error('Failed to send password reset email:', error)
 
     // Extract error message
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown email error";
+    const errorMessage = error instanceof Error ? error.message : 'Unknown email error'
 
     return {
       success: false,
       error: errorMessage,
-    };
+    }
   }
 }

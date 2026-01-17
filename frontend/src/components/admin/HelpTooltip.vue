@@ -1,42 +1,42 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from "vue";
+  import { ref, onMounted, onUnmounted } from 'vue'
 
-defineProps<{
-  title?: string;
-}>();
+  defineProps<{
+    title?: string
+  }>()
 
-const isOpen = ref(false);
-const tooltipRef = ref<HTMLElement | null>(null);
+  const isOpen = ref(false)
+  const tooltipRef = ref<HTMLElement | null>(null)
 
-const toggleTooltip = (): void => {
-  isOpen.value = !isOpen.value;
-};
-
-const closeTooltip = (): void => {
-  isOpen.value = false;
-};
-
-const handleClickOutside = (event: MouseEvent): void => {
-  if (tooltipRef.value && !tooltipRef.value.contains(event.target as Node)) {
-    closeTooltip();
+  const toggleTooltip = (): void => {
+    isOpen.value = !isOpen.value
   }
-};
 
-const handleKeydown = (event: KeyboardEvent): void => {
-  if (event.key === "Escape" && isOpen.value) {
-    closeTooltip();
+  const closeTooltip = (): void => {
+    isOpen.value = false
   }
-};
 
-onMounted(() => {
-  document.addEventListener("click", handleClickOutside);
-  document.addEventListener("keydown", handleKeydown);
-});
+  const handleClickOutside = (event: MouseEvent): void => {
+    if (tooltipRef.value && !tooltipRef.value.contains(event.target as Node)) {
+      closeTooltip()
+    }
+  }
 
-onUnmounted(() => {
-  document.removeEventListener("click", handleClickOutside);
-  document.removeEventListener("keydown", handleKeydown);
-});
+  const handleKeydown = (event: KeyboardEvent): void => {
+    if (event.key === 'Escape' && isOpen.value) {
+      closeTooltip()
+    }
+  }
+
+  onMounted(() => {
+    document.addEventListener('click', handleClickOutside)
+    document.addEventListener('keydown', handleKeydown)
+  })
+
+  onUnmounted(() => {
+    document.removeEventListener('click', handleClickOutside)
+    document.removeEventListener('keydown', handleKeydown)
+  })
 </script>
 
 <template>
@@ -72,11 +72,7 @@ onUnmounted(() => {
       leave-from-class="opacity-100"
       leave-to-class="opacity-0"
     >
-      <div
-        v-if="isOpen"
-        class="fixed inset-0 bg-black/30 z-40 sm:hidden"
-        @click="closeTooltip"
-      />
+      <div v-if="isOpen" class="fixed inset-0 bg-black/30 z-40 sm:hidden" @click="closeTooltip" />
     </Transition>
 
     <!-- Tooltip Content -->

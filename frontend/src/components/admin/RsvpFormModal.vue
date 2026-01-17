@@ -1,130 +1,128 @@
 <script setup lang="ts">
-import { ref, computed, watch, nextTick, onMounted, onUnmounted } from "vue";
-import type { RsvpSubmission, AdminRsvpRequest } from "@/types/rsvp";
-import type { HonorificTitle } from "@/types/index";
-import { HONORIFIC_TITLES } from "@/types/index";
-import BaseFormModal from "./BaseFormModal.vue";
+  import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue'
+  import type { RsvpSubmission, AdminRsvpRequest } from '@/types/rsvp'
+  import type { HonorificTitle } from '@/types/index'
+  import { HONORIFIC_TITLES } from '@/types/index'
+  import BaseFormModal from './BaseFormModal.vue'
 
-const props = defineProps<{
-  show: boolean;
-  rsvp?: RsvpSubmission;
-  isSubmitting: boolean;
-}>();
+  const props = defineProps<{
+    show: boolean
+    rsvp?: RsvpSubmission
+    isSubmitting: boolean
+  }>()
 
-const emit = defineEmits<{
-  close: [];
-  submit: [data: AdminRsvpRequest];
-}>();
+  const emit = defineEmits<{
+    close: []
+    submit: [data: AdminRsvpRequest]
+  }>()
 
-// Template refs
-const nameInputRef = ref<HTMLInputElement | null>(null);
+  // Template refs
+  const nameInputRef = ref<HTMLInputElement | null>(null)
 
-// Form state
-const title = ref<HonorificTitle | "">("");
-const fullName = ref("");
-const isAttending = ref(true);
-const numberOfGuests = ref(1);
-const message = ref("");
+  // Form state
+  const title = ref<HonorificTitle | ''>('')
+  const fullName = ref('')
+  const isAttending = ref(true)
+  const numberOfGuests = ref(1)
+  const message = ref('')
 
-// Computed
-const isEditMode = computed(() => !!props.rsvp);
-const modalTitle = computed(() =>
-  isEditMode.value ? "Edit Guest" : "Add Guest",
-);
-const submitText = computed(() => {
-  if (props.isSubmitting) return "Saving...";
-  return isEditMode.value ? "Update" : "Add Guest";
-});
+  // Computed
+  const isEditMode = computed(() => !!props.rsvp)
+  const modalTitle = computed(() => (isEditMode.value ? 'Edit Guest' : 'Add Guest'))
+  const submitText = computed(() => {
+    if (props.isSubmitting) return 'Saving...'
+    return isEditMode.value ? 'Update' : 'Add Guest'
+  })
 
-const isValid = computed(() => {
-  return fullName.value.trim().length >= 2;
-});
+  const isValid = computed(() => {
+    return fullName.value.trim().length >= 2
+  })
 
-// Handle escape key to close modal
-const handleKeydown = (e: KeyboardEvent) => {
-  if (e.key === "Escape" && props.show && !props.isSubmitting) {
-    emit("close");
+  // Handle escape key to close modal
+  const handleKeydown = (e: KeyboardEvent) => {
+    if (e.key === 'Escape' && props.show && !props.isSubmitting) {
+      emit('close')
+    }
   }
-};
 
-onMounted(() => {
-  document.addEventListener("keydown", handleKeydown);
-});
+  onMounted(() => {
+    document.addEventListener('keydown', handleKeydown)
+  })
 
-onUnmounted(() => {
-  document.removeEventListener("keydown", handleKeydown);
-});
+  onUnmounted(() => {
+    document.removeEventListener('keydown', handleKeydown)
+  })
 
-// Reset/populate form when modal opens or rsvp changes
-watch(
-  () => [props.show, props.rsvp],
-  async () => {
-    if (props.show && props.rsvp) {
-      // Edit mode: populate from existing
-      title.value = props.rsvp.title || "";
-      fullName.value = props.rsvp.fullName;
-      isAttending.value = props.rsvp.isAttending;
-      numberOfGuests.value = props.rsvp.numberOfGuests || 1;
-      message.value = props.rsvp.message || "";
-    } else if (props.show) {
-      // Create mode: reset to defaults
-      title.value = "";
-      fullName.value = "";
-      isAttending.value = true;
-      numberOfGuests.value = 1;
-      message.value = "";
+  // Reset/populate form when modal opens or rsvp changes
+  watch(
+    () => [props.show, props.rsvp],
+    async () => {
+      if (props.show && props.rsvp) {
+        // Edit mode: populate from existing
+        title.value = props.rsvp.title || ''
+        fullName.value = props.rsvp.fullName
+        isAttending.value = props.rsvp.isAttending
+        numberOfGuests.value = props.rsvp.numberOfGuests || 1
+        message.value = props.rsvp.message || ''
+      } else if (props.show) {
+        // Create mode: reset to defaults
+        title.value = ''
+        fullName.value = ''
+        isAttending.value = true
+        numberOfGuests.value = 1
+        message.value = ''
+      }
+
+      // Auto-focus name input when modal opens
+      if (props.show) {
+        await nextTick()
+        nameInputRef.value?.focus()
+      }
+    },
+    { immediate: true }
+  )
+
+  // Handle submit
+  const handleSubmit = () => {
+    if (!isValid.value || props.isSubmitting) return
+
+    const data: AdminRsvpRequest = {
+      fullName: fullName.value.trim(),
+      isAttending: isAttending.value,
+      numberOfGuests: isAttending.value ? numberOfGuests.value : 0,
     }
 
-    // Auto-focus name input when modal opens
-    if (props.show) {
-      await nextTick();
-      nameInputRef.value?.focus();
+    if (title.value) {
+      data.title = title.value
     }
-  },
-  { immediate: true },
-);
 
-// Handle submit
-const handleSubmit = () => {
-  if (!isValid.value || props.isSubmitting) return;
+    if (message.value.trim()) {
+      data.message = message.value.trim()
+    }
 
-  const data: AdminRsvpRequest = {
-    fullName: fullName.value.trim(),
-    isAttending: isAttending.value,
-    numberOfGuests: isAttending.value ? numberOfGuests.value : 0,
-  };
-
-  if (title.value) {
-    data.title = title.value;
+    emit('submit', data)
   }
 
-  if (message.value.trim()) {
-    data.message = message.value.trim();
+  // Toggle attendance
+  const setAttending = (value: boolean) => {
+    if (props.isSubmitting) return
+    isAttending.value = value
   }
 
-  emit("submit", data);
-};
+  // Handle guest count input
+  const handleGuestInput = (e: Event) => {
+    const target = e.target as HTMLInputElement
+    let value = parseInt(target.value, 10)
 
-// Toggle attendance
-const setAttending = (value: boolean) => {
-  if (props.isSubmitting) return;
-  isAttending.value = value;
-};
+    // Clamp value between 1 and 10
+    if (isNaN(value) || value < 1) {
+      value = 1
+    } else if (value > 10) {
+      value = 10
+    }
 
-// Handle guest count input
-const handleGuestInput = (e: Event) => {
-  const target = e.target as HTMLInputElement;
-  let value = parseInt(target.value, 10);
-
-  // Clamp value between 1 and 10
-  if (isNaN(value) || value < 1) {
-    value = 1;
-  } else if (value > 10) {
-    value = 10;
+    numberOfGuests.value = value
   }
-
-  numberOfGuests.value = value;
-};
 </script>
 
 <template>
@@ -137,9 +135,7 @@ const handleGuestInput = (e: Event) => {
   >
     <!-- Title (honorific) - Optional -->
     <div>
-      <label
-        class="block font-body text-sm text-charcoal dark:text-dark-text mb-1"
-      >
+      <label class="block font-body text-sm text-charcoal dark:text-dark-text mb-1">
         Title (Optional)
       </label>
       <select
@@ -156,9 +152,7 @@ const handleGuestInput = (e: Event) => {
 
     <!-- Full Name - Required -->
     <div>
-      <label
-        class="block font-body text-sm text-charcoal dark:text-dark-text mb-1"
-      >
+      <label class="block font-body text-sm text-charcoal dark:text-dark-text mb-1">
         Full Name <span class="text-red-500">*</span>
       </label>
       <input
@@ -171,24 +165,17 @@ const handleGuestInput = (e: Event) => {
         class="w-full px-3 py-2 font-body text-sm border border-sand-dark dark:border-dark-border rounded-lg bg-white dark:bg-dark-bg focus:outline-none focus:ring-2 focus:ring-sage/50 dark:text-dark-text disabled:opacity-50"
         placeholder="Enter full name"
       />
-      <p
-        v-if="fullName && fullName.trim().length < 2"
-        class="mt-1 font-body text-xs text-red-500"
-      >
+      <p v-if="fullName && fullName.trim().length < 2" class="mt-1 font-body text-xs text-red-500">
         Name must be at least 2 characters
       </p>
     </div>
 
     <!-- Attendance Status - Visual Toggle -->
     <div>
-      <label
-        class="block font-body text-sm text-charcoal dark:text-dark-text mb-2"
-      >
+      <label class="block font-body text-sm text-charcoal dark:text-dark-text mb-2">
         Attendance
       </label>
-      <div
-        class="flex rounded-lg overflow-hidden border border-sand-dark dark:border-dark-border"
-      >
+      <div class="flex rounded-lg overflow-hidden border border-sand-dark dark:border-dark-border">
         <button
           type="button"
           :disabled="isSubmitting"
@@ -247,9 +234,7 @@ const handleGuestInput = (e: Event) => {
       leave-to-class="opacity-0 -translate-y-2 max-h-0"
     >
       <div v-if="isAttending" class="overflow-hidden">
-        <label
-          class="block font-body text-sm text-charcoal dark:text-dark-text mb-1"
-        >
+        <label class="block font-body text-sm text-charcoal dark:text-dark-text mb-1">
           Number of Guests
         </label>
         <div class="flex items-center gap-2">
@@ -309,9 +294,7 @@ const handleGuestInput = (e: Event) => {
 
     <!-- Message - Optional -->
     <div>
-      <label
-        class="block font-body text-sm text-charcoal dark:text-dark-text mb-1"
-      >
+      <label class="block font-body text-sm text-charcoal dark:text-dark-text mb-1">
         Message (Optional)
       </label>
       <textarea
@@ -334,10 +317,7 @@ const handleGuestInput = (e: Event) => {
       class="hidden sm:block text-xs text-charcoal-light dark:text-dark-text-secondary text-center pt-2"
     >
       Press
-      <kbd
-        class="px-1.5 py-0.5 bg-sand dark:bg-dark-border rounded text-xs font-mono"
-        >Esc</kbd
-      >
+      <kbd class="px-1.5 py-0.5 bg-sand dark:bg-dark-border rounded text-xs font-mono">Esc</kbd>
       to close
     </p>
   </BaseFormModal>

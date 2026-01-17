@@ -1,27 +1,27 @@
 <script setup lang="ts">
-defineProps<{
-  show: boolean;
-  currentPassword: string;
-  newPassword: string;
-  confirmNewPassword: string;
-  showCurrentPassword: boolean;
-  showNewPassword: boolean;
-  showConfirmNewPassword: boolean;
-  passwordChangeError: string;
-  passwordChangeSuccess: boolean;
-  isChangingPassword: boolean;
-}>();
+  defineProps<{
+    show: boolean
+    currentPassword: string
+    newPassword: string
+    confirmNewPassword: string
+    showCurrentPassword: boolean
+    showNewPassword: boolean
+    showConfirmNewPassword: boolean
+    passwordChangeError: string
+    passwordChangeSuccess: boolean
+    isChangingPassword: boolean
+  }>()
 
-const emit = defineEmits<{
-  "update:currentPassword": [value: string];
-  "update:newPassword": [value: string];
-  "update:confirmNewPassword": [value: string];
-  "update:showCurrentPassword": [value: boolean];
-  "update:showNewPassword": [value: boolean];
-  "update:showConfirmNewPassword": [value: boolean];
-  close: [];
-  submit: [];
-}>();
+  const emit = defineEmits<{
+    'update:currentPassword': [value: string]
+    'update:newPassword': [value: string]
+    'update:confirmNewPassword': [value: string]
+    'update:showCurrentPassword': [value: boolean]
+    'update:showNewPassword': [value: boolean]
+    'update:showConfirmNewPassword': [value: boolean]
+    close: []
+    submit: []
+  }>()
 </script>
 
 <template>
@@ -30,9 +30,7 @@ const emit = defineEmits<{
     class="fixed inset-0 bg-black/50 dark:bg-black/70 flex items-center justify-center z-50 px-4"
     @click.self="emit('close')"
   >
-    <div
-      class="bg-white dark:bg-dark-bg-secondary rounded-xl p-6 max-w-md w-full shadow-xl"
-    >
+    <div class="bg-white dark:bg-dark-bg-secondary rounded-xl p-6 max-w-md w-full shadow-xl">
       <div v-if="passwordChangeSuccess" class="text-center">
         <div
           class="w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-4"
@@ -50,9 +48,7 @@ const emit = defineEmits<{
         <h3 class="font-heading text-lg text-charcoal dark:text-dark-text mb-2">
           Password Changed
         </h3>
-        <p
-          class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary"
-        >
+        <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary">
           Your password has been updated successfully.
         </p>
       </div>
@@ -94,19 +90,12 @@ const emit = defineEmits<{
                 class="w-full px-3 py-2.5 pr-10 font-body text-base border border-sand-dark rounded-lg bg-sand text-charcoal focus:outline-none focus:border-sage"
                 placeholder="Enter current password"
                 required
-                @input="
-                  emit(
-                    'update:currentPassword',
-                    ($event.target as HTMLInputElement).value,
-                  )
-                "
+                @input="emit('update:currentPassword', ($event.target as HTMLInputElement).value)"
               />
               <button
                 type="button"
                 class="absolute right-3 top-1/2 -translate-y-1/2 text-charcoal-light hover:text-charcoal transition-colors cursor-pointer"
-                @click="
-                  emit('update:showCurrentPassword', !showCurrentPassword)
-                "
+                @click="emit('update:showCurrentPassword', !showCurrentPassword)"
               >
                 <svg
                   v-if="showCurrentPassword"
@@ -137,10 +126,7 @@ const emit = defineEmits<{
           </div>
 
           <div>
-            <label
-              for="newPassword"
-              class="block font-body text-sm font-medium text-charcoal mb-1"
-            >
+            <label for="newPassword" class="block font-body text-sm font-medium text-charcoal mb-1">
               New Password
             </label>
             <div class="relative">
@@ -152,12 +138,7 @@ const emit = defineEmits<{
                 placeholder="Enter new password"
                 required
                 minlength="6"
-                @input="
-                  emit(
-                    'update:newPassword',
-                    ($event.target as HTMLInputElement).value,
-                  )
-                "
+                @input="emit('update:newPassword', ($event.target as HTMLInputElement).value)"
               />
               <button
                 type="button"
@@ -209,18 +190,13 @@ const emit = defineEmits<{
                 required
                 minlength="6"
                 @input="
-                  emit(
-                    'update:confirmNewPassword',
-                    ($event.target as HTMLInputElement).value,
-                  )
+                  emit('update:confirmNewPassword', ($event.target as HTMLInputElement).value)
                 "
               />
               <button
                 type="button"
                 class="absolute right-3 top-1/2 -translate-y-1/2 text-charcoal-light hover:text-charcoal transition-colors cursor-pointer"
-                @click="
-                  emit('update:showConfirmNewPassword', !showConfirmNewPassword)
-                "
+                @click="emit('update:showConfirmNewPassword', !showConfirmNewPassword)"
               >
                 <svg
                   v-if="showConfirmNewPassword"
@@ -264,7 +240,7 @@ const emit = defineEmits<{
               class="px-4 py-2 font-body text-sm text-white bg-sage rounded-lg hover:bg-sage-dark transition-colors cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed"
               :disabled="isChangingPassword"
             >
-              {{ isChangingPassword ? "Changing..." : "Change Password" }}
+              {{ isChangingPassword ? 'Changing...' : 'Change Password' }}
             </button>
             <button
               type="button"

@@ -1,151 +1,142 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted, ref, watch } from "vue";
-import { useMusic } from "@/composables/useMusic";
-import type { MusicTrack } from "@/types/music";
-import MusicUploader from "./MusicUploader.vue";
-import MusicTrackList from "./MusicTrackList.vue";
-import MusicSettings from "./MusicSettings.vue";
-import DeleteConfirmModal from "./DeleteConfirmModal.vue";
-import UploadProgressBar from "./UploadProgressBar.vue";
+  import { onMounted, onUnmounted, ref, watch } from 'vue'
+  import { useMusic } from '@/composables/useMusic'
+  import type { MusicTrack } from '@/types/music'
+  import MusicUploader from './MusicUploader.vue'
+  import MusicTrackList from './MusicTrackList.vue'
+  import MusicSettings from './MusicSettings.vue'
+  import DeleteConfirmModal from './DeleteConfirmModal.vue'
+  import UploadProgressBar from './UploadProgressBar.vue'
 
-const {
-  tracks,
-  settings,
-  isLoading,
-  loadError,
-  activeUploads,
-  canUploadMore,
-  remainingSlots,
-  fetchTracks,
-  uploadTrack,
-  cancelUpload,
-  dismissUpload,
-  removeTrack,
-  updateOrder,
-  saveSettings,
-  formatDuration,
-  formatFileSize,
-} = useMusic();
+  const {
+    tracks,
+    settings,
+    isLoading,
+    loadError,
+    activeUploads,
+    canUploadMore,
+    remainingSlots,
+    fetchTracks,
+    uploadTrack,
+    cancelUpload,
+    dismissUpload,
+    removeTrack,
+    updateOrder,
+    saveSettings,
+    formatDuration,
+    formatFileSize,
+  } = useMusic()
 
-const showSettings = ref(false);
-const deleteConfirmId = ref<string | null>(null);
-const isDeleting = ref(false);
-const uploadErrors = ref<{ file: string; error: string }[]>([]);
+  const showSettings = ref(false)
+  const deleteConfirmId = ref<string | null>(null)
+  const isDeleting = ref(false)
+  const uploadErrors = ref<{ file: string; error: string }[]>([])
 
-onMounted(() => {
-  fetchTracks();
-});
+  onMounted(() => {
+    fetchTracks()
+  })
 
-const handleFilesSelected = async (
-  files: { file: File; title: string; artist?: string }[],
-): Promise<void> => {
-  uploadErrors.value = [];
+  const handleFilesSelected = async (
+    files: { file: File; title: string; artist?: string }[]
+  ): Promise<void> => {
+    uploadErrors.value = []
 
-  for (const { file, title, artist } of files) {
-    const result = await uploadTrack(file, title, artist);
-    if (!result.success) {
-      uploadErrors.value.push({
-        file: file.name,
-        error: result.error ?? "Upload failed",
-      });
+    for (const { file, title, artist } of files) {
+      const result = await uploadTrack(file, title, artist)
+      if (!result.success) {
+        uploadErrors.value.push({
+          file: file.name,
+          error: result.error ?? 'Upload failed',
+        })
+      }
     }
   }
-};
 
-const handleReorder = async (newOrder: string[]): Promise<void> => {
-  const result = await updateOrder(newOrder);
-  if (!result.success) {
-    console.error("Reorder failed:", result.error);
-  }
-};
-
-const handleDeleteClick = (trackId: string): void => {
-  deleteConfirmId.value = trackId;
-};
-
-const handleDeleteConfirm = async (): Promise<void> => {
-  if (!deleteConfirmId.value) return;
-
-  isDeleting.value = true;
-  const result = await removeTrack(deleteConfirmId.value);
-  isDeleting.value = false;
-
-  if (!result.success) {
-    console.error("Delete failed:", result.error);
+  const handleReorder = async (newOrder: string[]): Promise<void> => {
+    const result = await updateOrder(newOrder)
+    if (!result.success) {
+      console.error('Reorder failed:', result.error)
+    }
   }
 
-  deleteConfirmId.value = null;
-};
-
-const handleDeleteCancel = (): void => {
-  deleteConfirmId.value = null;
-};
-
-const handleSettingsUpdate = async (
-  newSettings: Record<string, unknown>,
-): Promise<void> => {
-  const result = await saveSettings(newSettings);
-  if (!result.success) {
-    console.error("Settings update failed:", result.error);
+  const handleDeleteClick = (trackId: string): void => {
+    deleteConfirmId.value = trackId
   }
-};
 
-const handleSelectTrack = async (trackId: string): Promise<void> => {
-  // Toggle selection: if clicking the already selected track, deselect it
-  const newSelectedId =
-    settings.value.selectedTrackId === trackId ? null : trackId;
-  const result = await saveSettings({ selectedTrackId: newSelectedId });
-  if (!result.success) {
-    console.error("Failed to select track:", result.error);
+  const handleDeleteConfirm = async (): Promise<void> => {
+    if (!deleteConfirmId.value) return
+
+    isDeleting.value = true
+    const result = await removeTrack(deleteConfirmId.value)
+    isDeleting.value = false
+
+    if (!result.success) {
+      console.error('Delete failed:', result.error)
+    }
+
+    deleteConfirmId.value = null
   }
-};
 
-const dismissError = (index: number): void => {
-  uploadErrors.value.splice(index, 1);
-};
-
-const getTrackToDelete = (): MusicTrack | undefined => {
-  return tracks.value.find((t) => t.id === deleteConfirmId.value);
-};
-
-// Handle Escape key to close modals
-const handleEscapeKey = (e: KeyboardEvent): void => {
-  if (e.key === "Escape") {
-    if (showSettings.value) showSettings.value = false;
+  const handleDeleteCancel = (): void => {
+    deleteConfirmId.value = null
   }
-};
 
-watch(showSettings, (settingsOpen) => {
-  if (settingsOpen) {
-    document.addEventListener("keydown", handleEscapeKey);
-    document.body.style.overflow = "hidden";
-  } else {
-    document.removeEventListener("keydown", handleEscapeKey);
-    document.body.style.overflow = "";
+  const handleSettingsUpdate = async (newSettings: Record<string, unknown>): Promise<void> => {
+    const result = await saveSettings(newSettings)
+    if (!result.success) {
+      console.error('Settings update failed:', result.error)
+    }
   }
-});
 
-onUnmounted(() => {
-  document.removeEventListener("keydown", handleEscapeKey);
-  document.body.style.overflow = "";
-});
+  const handleSelectTrack = async (trackId: string): Promise<void> => {
+    // Toggle selection: if clicking the already selected track, deselect it
+    const newSelectedId = settings.value.selectedTrackId === trackId ? null : trackId
+    const result = await saveSettings({ selectedTrackId: newSelectedId })
+    if (!result.success) {
+      console.error('Failed to select track:', result.error)
+    }
+  }
+
+  const dismissError = (index: number): void => {
+    uploadErrors.value.splice(index, 1)
+  }
+
+  const getTrackToDelete = (): MusicTrack | undefined => {
+    return tracks.value.find((t) => t.id === deleteConfirmId.value)
+  }
+
+  // Handle Escape key to close modals
+  const handleEscapeKey = (e: KeyboardEvent): void => {
+    if (e.key === 'Escape') {
+      if (showSettings.value) showSettings.value = false
+    }
+  }
+
+  watch(showSettings, (settingsOpen) => {
+    if (settingsOpen) {
+      document.addEventListener('keydown', handleEscapeKey)
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.removeEventListener('keydown', handleEscapeKey)
+      document.body.style.overflow = ''
+    }
+  })
+
+  onUnmounted(() => {
+    document.removeEventListener('keydown', handleEscapeKey)
+    document.body.style.overflow = ''
+  })
 </script>
 
 <template>
   <div class="space-y-6">
     <!-- Header -->
-    <div
-      class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
-    >
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
       <div>
-        <h2
-          class="font-heading text-xl font-semibold text-charcoal dark:text-dark-text"
-        >
+        <h2 class="font-heading text-xl font-semibold text-charcoal dark:text-dark-text">
           Music Management
         </h2>
-        <p
-          class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary mt-1"
-        >
+        <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary mt-1">
           {{ tracks.length }} / {{ settings.maxTracks }} tracks
           <span v-if="canUploadMore" class="text-sage">
             ({{ remainingSlots }} slots remaining)
@@ -160,12 +151,7 @@ onUnmounted(() => {
           class="flex items-center gap-2 px-4 py-2 font-body text-sm text-charcoal dark:text-dark-text border border-sand-dark dark:border-dark-border rounded-lg hover:bg-sand dark:hover:bg-dark-bg-secondary transition-colors cursor-pointer"
           @click="showSettings = !showSettings"
         >
-          <svg
-            class="w-4 h-4"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
               stroke-linecap="round"
               stroke-linejoin="round"
@@ -201,12 +187,7 @@ onUnmounted(() => {
         class="flex items-center justify-between p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg"
       >
         <div class="flex items-center gap-2">
-          <svg
-            class="w-5 h-5 text-red-500"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
+          <svg class="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
               stroke-linecap="round"
               stroke-linejoin="round"
@@ -223,12 +204,7 @@ onUnmounted(() => {
           class="p-1 text-red-500 hover:text-red-700 dark:hover:text-red-300 cursor-pointer"
           @click="dismissError(index)"
         >
-          <svg
-            class="w-4 h-4"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
               stroke-linecap="round"
               stroke-linejoin="round"
@@ -245,9 +221,7 @@ onUnmounted(() => {
       <div
         class="inline-block w-8 h-8 border-3 border-sage border-t-transparent rounded-full animate-spin"
       ></div>
-      <p
-        class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary mt-3"
-      >
+      <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary mt-3">
         Loading music...
       </p>
     </div>
@@ -281,8 +255,8 @@ onUnmounted(() => {
         class="p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg"
       >
         <p class="font-body text-sm text-amber-700 dark:text-amber-300">
-          Maximum number of tracks ({{ settings.maxTracks }}) reached. Delete
-          some tracks to upload more.
+          Maximum number of tracks ({{ settings.maxTracks }}) reached. Delete some tracks to upload
+          more.
         </p>
       </div>
 
@@ -302,14 +276,10 @@ onUnmounted(() => {
           <circle cx="6" cy="18" r="3" />
           <circle cx="18" cy="16" r="3" />
         </svg>
-        <p
-          class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary"
-        >
+        <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary">
           No music tracks yet.
         </p>
-        <p
-          class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary mt-2"
-        >
+        <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary mt-2">
           Upload your first track to add background music.
         </p>
       </div>
@@ -330,16 +300,10 @@ onUnmounted(() => {
     <!-- Settings Modal -->
     <Teleport to="body">
       <Transition name="modal">
-        <div
-          v-if="showSettings"
-          class="modal-backdrop"
-          @click.self="showSettings = false"
-        >
+        <div v-if="showSettings" class="modal-backdrop" @click.self="showSettings = false">
           <div class="modal-content">
             <div class="modal-header">
-              <h3
-                class="font-heading text-lg font-medium text-charcoal dark:text-dark-text"
-              >
+              <h3 class="font-heading text-lg font-medium text-charcoal dark:text-dark-text">
                 Music Settings
               </h3>
               <button
@@ -347,12 +311,7 @@ onUnmounted(() => {
                 class="p-2 -m-2 text-charcoal-light hover:text-charcoal dark:text-dark-text-secondary dark:hover:text-dark-text cursor-pointer"
                 @click="showSettings = false"
               >
-                <svg
-                  class="w-5 h-5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
                     stroke-linecap="round"
                     stroke-linejoin="round"
@@ -362,10 +321,7 @@ onUnmounted(() => {
                 </svg>
               </button>
             </div>
-            <MusicSettings
-              :settings="settings"
-              @update="handleSettingsUpdate"
-            />
+            <MusicSettings :settings="settings" @update="handleSettingsUpdate" />
           </div>
         </div>
       </Transition>
@@ -384,56 +340,56 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
-.modal-backdrop {
-  position: fixed;
-  inset: 0;
-  z-index: 50;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: rgba(0, 0, 0, 0.5);
-  padding: 1rem;
-}
+  .modal-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(0, 0, 0, 0.5);
+    padding: 1rem;
+  }
 
-.modal-content {
-  width: 100%;
-  max-width: 500px;
-  max-height: 90vh;
-  overflow-y: auto;
-  background-color: white;
-  border-radius: 0.75rem;
-  padding: 1.5rem;
-}
+  .modal-content {
+    width: 100%;
+    max-width: 500px;
+    max-height: 90vh;
+    overflow-y: auto;
+    background-color: white;
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+  }
 
-.modal-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding-bottom: 1rem;
-  margin-bottom: 1rem;
-  border-bottom: 1px solid #e5e7eb;
-}
+  .modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 1rem;
+    margin-bottom: 1rem;
+    border-bottom: 1px solid #e5e7eb;
+  }
 
-:global(.dark) .modal-content {
-  background-color: #1f2937;
-}
+  :global(.dark) .modal-content {
+    background-color: #1f2937;
+  }
 
-:global(.dark) .modal-header {
-  border-bottom-color: #374151;
-}
+  :global(.dark) .modal-header {
+    border-bottom-color: #374151;
+  }
 
-.modal-enter-active,
-.modal-leave-active {
-  transition: all 0.2s ease-out;
-}
+  .modal-enter-active,
+  .modal-leave-active {
+    transition: all 0.2s ease-out;
+  }
 
-.modal-enter-from,
-.modal-leave-to {
-  opacity: 0;
-}
+  .modal-enter-from,
+  .modal-leave-to {
+    opacity: 0;
+  }
 
-.modal-enter-from .modal-content,
-.modal-leave-to .modal-content {
-  transform: scale(0.95);
-}
+  .modal-enter-from .modal-content,
+  .modal-leave-to .modal-content {
+    transform: scale(0.95);
+  }
 </style>

@@ -1,104 +1,76 @@
-import type { APIGatewayProxyHandlerV2 } from "aws-lambda";
-import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocumentClient, PutCommand } from "@aws-sdk/lib-dynamodb";
-import { Resource } from "sst";
-import { createSuccessResponse, createErrorResponse } from "../shared/response";
-import { requireAuth } from "../shared/auth";
-import { logError } from "../shared/logger";
-import {
-  validateContactsUpdate,
-  type ContactsData,
-} from "../shared/contacts-validation";
+import type { APIGatewayProxyHandlerV2 } from 'aws-lambda'
+import { DynamoDBClient } from '@aws-sdk/client-dynamodb'
+import { DynamoDBDocumentClient, PutCommand } from '@aws-sdk/lib-dynamodb'
+import { Resource } from 'sst'
+import { createSuccessResponse, createErrorResponse } from '../shared/response'
+import { requireAuth } from '../shared/auth'
+import { logError } from '../shared/logger'
+import { validateContactsUpdate, type ContactsData } from '../shared/contacts-validation'
 
-const dynamoClient = new DynamoDBClient({});
+const dynamoClient = new DynamoDBClient({})
 const docClient = DynamoDBDocumentClient.from(dynamoClient, {
   marshallOptions: {
     removeUndefinedValues: true,
   },
-});
+})
 
 export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
-  const authResult = requireAuth(event);
+  const authResult = requireAuth(event)
   if (!authResult.authenticated) {
-    return createErrorResponse(
-      authResult.statusCode,
-      authResult.error,
-      context,
-      "AUTH_ERROR",
-    );
+    return createErrorResponse(authResult.statusCode, authResult.error, context, 'AUTH_ERROR')
   }
 
   if (!event.body) {
-    return createErrorResponse(
-      400,
-      "Missing request body",
-      context,
-      "MISSING_BODY",
-    );
+    return createErrorResponse(400, 'Missing request body', context, 'MISSING_BODY')
   }
 
-  let body: unknown;
+  let body: unknown
   try {
-    body = JSON.parse(event.body);
+    body = JSON.parse(event.body)
   } catch {
-    return createErrorResponse(
-      400,
-      "Invalid JSON body",
-      context,
-      "INVALID_JSON",
-    );
+    return createErrorResponse(400, 'Invalid JSON body', context, 'INVALID_JSON')
   }
 
-  const validation = validateContactsUpdate(body);
+  const validation = validateContactsUpdate(body)
   if (!validation.valid) {
-    return createErrorResponse(
-      400,
-      validation.error,
-      context,
-      "VALIDATION_ERROR",
-    );
+    return createErrorResponse(400, validation.error, context, 'VALIDATION_ERROR')
   }
 
   try {
-    const now = new Date().toISOString();
+    const now = new Date().toISOString()
 
     const contactsItem = {
-      pk: "SETTINGS",
-      sk: "CONTACTS",
+      pk: 'SETTINGS',
+      sk: 'CONTACTS',
       contacts: validation.data.contacts,
       updatedAt: now,
       updatedBy: authResult.user.username,
-    };
+    }
 
     await docClient.send(
       new PutCommand({
         TableName: Resource.AppDataTable.name,
         Item: contactsItem,
-      }),
-    );
+      })
+    )
 
     const responseData: ContactsData = {
       contacts: contactsItem.contacts,
       updatedAt: contactsItem.updatedAt,
       updatedBy: contactsItem.updatedBy,
-    };
+    }
 
-    return createSuccessResponse(200, responseData, context);
+    return createSuccessResponse(200, responseData, context)
   } catch (error) {
     logError(
       {
-        endpoint: "PUT /contacts",
-        operation: "updateContacts",
+        endpoint: 'PUT /contacts',
+        operation: 'updateContacts',
         requestId: context.awsRequestId,
         input: { contactCount: validation.data.contacts?.length },
       },
-      error,
-    );
-    return createErrorResponse(
-      500,
-      "Failed to update contacts",
-      context,
-      "DB_ERROR",
-    );
+      error
+    )
+    return createErrorResponse(500, 'Failed to update contacts', context, 'DB_ERROR')
   }
-};
+}

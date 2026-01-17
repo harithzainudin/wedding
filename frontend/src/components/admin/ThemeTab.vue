@@ -1,210 +1,193 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from "vue";
-import type { ThemeId, CustomThemeData, ThemeDefinition } from "@/types/theme";
-import { useTheme } from "@/composables/useTheme";
-import { useThemePreview } from "@/composables/useThemePreview";
-import { DEFAULT_THEMES, PRESET_THEME_IDS } from "@/constants/themes";
-import ThemeCard from "./ThemeCard.vue";
-import ThemeCustomizer from "./ThemeCustomizer.vue";
+  import { ref, computed, onMounted, watch } from 'vue'
+  import type { ThemeId, CustomThemeData, ThemeDefinition } from '@/types/theme'
+  import { useTheme } from '@/composables/useTheme'
+  import { useThemePreview } from '@/composables/useThemePreview'
+  import { DEFAULT_THEMES, PRESET_THEME_IDS } from '@/constants/themes'
+  import ThemeCard from './ThemeCard.vue'
+  import ThemeCustomizer from './ThemeCustomizer.vue'
 
-const {
-  themeSettings,
-  isLoading,
-  isSaving,
-  error,
-  loadTheme,
-  saveTheme,
-  restoreTheme,
-} = useTheme();
-const { isPreviewMode, startPreview, endPreview } = useThemePreview();
+  const { themeSettings, isLoading, isSaving, error, loadTheme, saveTheme, restoreTheme } =
+    useTheme()
+  const { isPreviewMode, startPreview, endPreview } = useThemePreview()
 
-// Local state
-const selectedThemeId = ref<ThemeId>("earthy-minimalist");
-const customThemeData = ref<CustomThemeData | undefined>(undefined);
-const showCustomizer = ref(false);
-const saveError = ref<string | null>(null);
-const saveSuccess = ref(false);
+  // Local state
+  const selectedThemeId = ref<ThemeId>('earthy-minimalist')
+  const customThemeData = ref<CustomThemeData | undefined>(undefined)
+  const showCustomizer = ref(false)
+  const saveError = ref<string | null>(null)
+  const saveSuccess = ref(false)
 
-// Get preset themes as array
-const presetThemes = computed<ThemeDefinition[]>(() =>
-  PRESET_THEME_IDS.map((id) => DEFAULT_THEMES[id]),
-);
+  // Get preset themes as array
+  const presetThemes = computed<ThemeDefinition[]>(() =>
+    PRESET_THEME_IDS.map((id) => DEFAULT_THEMES[id])
+  )
 
-// Check if there are unsaved changes
-const hasChanges = computed(() => {
-  const savedId = themeSettings.value.activeThemeId;
-  const savedCustom = themeSettings.value.customTheme;
+  // Check if there are unsaved changes
+  const hasChanges = computed(() => {
+    const savedId = themeSettings.value.activeThemeId
+    const savedCustom = themeSettings.value.customTheme
 
-  if (selectedThemeId.value !== savedId) return true;
+    if (selectedThemeId.value !== savedId) return true
 
-  if (selectedThemeId.value === "custom" && customThemeData.value) {
-    if (!savedCustom) return true;
-    // Deep compare custom themes
-    return (
-      JSON.stringify(customThemeData.value) !== JSON.stringify(savedCustom)
-    );
-  }
-
-  return false;
-});
-
-// Initialize from saved settings
-onMounted(async () => {
-  await loadTheme();
-  selectedThemeId.value = themeSettings.value.activeThemeId;
-  customThemeData.value = themeSettings.value.customTheme;
-  showCustomizer.value = themeSettings.value.activeThemeId === "custom";
-});
-
-// Watch for settings changes (e.g., from other tabs)
-watch(
-  () => themeSettings.value,
-  (newSettings) => {
-    if (!hasChanges.value) {
-      selectedThemeId.value = newSettings.activeThemeId;
-      customThemeData.value = newSettings.customTheme;
+    if (selectedThemeId.value === 'custom' && customThemeData.value) {
+      if (!savedCustom) return true
+      // Deep compare custom themes
+      return JSON.stringify(customThemeData.value) !== JSON.stringify(savedCustom)
     }
-  },
-  { deep: true },
-);
 
-// Select a preset theme
-const selectTheme = (themeId: ThemeId): void => {
-  selectedThemeId.value = themeId;
-  showCustomizer.value = themeId === "custom";
-  saveError.value = null;
-  saveSuccess.value = false;
+    return false
+  })
 
-  // Start preview when selecting
-  if (themeId === "custom") {
-    if (!customThemeData.value) {
-      // Initialize custom theme from current earthy-minimalist
-      customThemeData.value = {
-        name: "My Custom Theme",
-        colors: { ...DEFAULT_THEMES["earthy-minimalist"].colors },
-        fonts: { ...DEFAULT_THEMES["earthy-minimalist"].fonts },
-      };
+  // Initialize from saved settings
+  onMounted(async () => {
+    await loadTheme()
+    selectedThemeId.value = themeSettings.value.activeThemeId
+    customThemeData.value = themeSettings.value.customTheme
+    showCustomizer.value = themeSettings.value.activeThemeId === 'custom'
+  })
+
+  // Watch for settings changes (e.g., from other tabs)
+  watch(
+    () => themeSettings.value,
+    (newSettings) => {
+      if (!hasChanges.value) {
+        selectedThemeId.value = newSettings.activeThemeId
+        customThemeData.value = newSettings.customTheme
+      }
+    },
+    { deep: true }
+  )
+
+  // Select a preset theme
+  const selectTheme = (themeId: ThemeId): void => {
+    selectedThemeId.value = themeId
+    showCustomizer.value = themeId === 'custom'
+    saveError.value = null
+    saveSuccess.value = false
+
+    // Start preview when selecting
+    if (themeId === 'custom') {
+      if (!customThemeData.value) {
+        // Initialize custom theme from current earthy-minimalist
+        customThemeData.value = {
+          name: 'My Custom Theme',
+          colors: { ...DEFAULT_THEMES['earthy-minimalist'].colors },
+          fonts: { ...DEFAULT_THEMES['earthy-minimalist'].fonts },
+        }
+      }
+      startPreview(
+        'custom',
+        customThemeData.value,
+        themeSettings.value.activeThemeId,
+        themeSettings.value.customTheme
+      )
+    } else {
+      startPreview(
+        themeId,
+        undefined,
+        themeSettings.value.activeThemeId,
+        themeSettings.value.customTheme
+      )
     }
-    startPreview(
-      "custom",
-      customThemeData.value,
-      themeSettings.value.activeThemeId,
-      themeSettings.value.customTheme,
-    );
-  } else {
-    startPreview(
-      themeId,
-      undefined,
-      themeSettings.value.activeThemeId,
-      themeSettings.value.customTheme,
-    );
   }
-};
 
-// Preview a theme without selecting
-const previewTheme = (themeId: ThemeId): void => {
-  if (themeId === "custom") {
-    startPreview(
-      "custom",
-      customThemeData.value,
-      themeSettings.value.activeThemeId,
-      themeSettings.value.customTheme,
-    );
-  } else {
-    startPreview(
-      themeId,
-      undefined,
-      themeSettings.value.activeThemeId,
-      themeSettings.value.customTheme,
-    );
+  // Preview a theme without selecting
+  const previewTheme = (themeId: ThemeId): void => {
+    if (themeId === 'custom') {
+      startPreview(
+        'custom',
+        customThemeData.value,
+        themeSettings.value.activeThemeId,
+        themeSettings.value.customTheme
+      )
+    } else {
+      startPreview(
+        themeId,
+        undefined,
+        themeSettings.value.activeThemeId,
+        themeSettings.value.customTheme
+      )
+    }
   }
-};
 
-// Handle custom theme updates
-const handleCustomThemeUpdate = (theme: CustomThemeData): void => {
-  customThemeData.value = theme;
-  saveError.value = null;
-  saveSuccess.value = false;
+  // Handle custom theme updates
+  const handleCustomThemeUpdate = (theme: CustomThemeData): void => {
+    customThemeData.value = theme
+    saveError.value = null
+    saveSuccess.value = false
 
-  // Update preview in real-time
-  if (selectedThemeId.value === "custom") {
-    startPreview(
-      "custom",
-      theme,
-      themeSettings.value.activeThemeId,
-      themeSettings.value.customTheme,
-    );
+    // Update preview in real-time
+    if (selectedThemeId.value === 'custom') {
+      startPreview(
+        'custom',
+        theme,
+        themeSettings.value.activeThemeId,
+        themeSettings.value.customTheme
+      )
+    }
   }
-};
 
-// Cancel changes and restore saved theme
-const cancelChanges = (): void => {
-  selectedThemeId.value = themeSettings.value.activeThemeId;
-  customThemeData.value = themeSettings.value.customTheme;
-  showCustomizer.value = themeSettings.value.activeThemeId === "custom";
-  saveError.value = null;
-  saveSuccess.value = false;
+  // Cancel changes and restore saved theme
+  const cancelChanges = (): void => {
+    selectedThemeId.value = themeSettings.value.activeThemeId
+    customThemeData.value = themeSettings.value.customTheme
+    showCustomizer.value = themeSettings.value.activeThemeId === 'custom'
+    saveError.value = null
+    saveSuccess.value = false
 
-  // End preview and restore saved theme
-  endPreview();
-  restoreTheme();
-};
-
-// Save theme
-const handleSave = async (): Promise<void> => {
-  saveError.value = null;
-  saveSuccess.value = false;
-
-  const result = await saveTheme({
-    activeThemeId: selectedThemeId.value,
-    customTheme:
-      selectedThemeId.value === "custom" ? customThemeData.value : undefined,
-  });
-
-  if (result.success) {
-    saveSuccess.value = true;
-    // End preview mode since we've saved
-    endPreview();
-    setTimeout(() => {
-      saveSuccess.value = false;
-    }, 3000);
-  } else {
-    saveError.value = result.error ?? "Failed to save theme";
+    // End preview and restore saved theme
+    endPreview()
+    restoreTheme()
   }
-};
 
-// Toggle custom theme section
-const toggleCustomizer = (): void => {
-  if (selectedThemeId.value === "custom") {
-    showCustomizer.value = !showCustomizer.value;
-  } else {
-    selectTheme("custom");
+  // Save theme
+  const handleSave = async (): Promise<void> => {
+    saveError.value = null
+    saveSuccess.value = false
+
+    const result = await saveTheme({
+      activeThemeId: selectedThemeId.value,
+      customTheme: selectedThemeId.value === 'custom' ? customThemeData.value : undefined,
+    })
+
+    if (result.success) {
+      saveSuccess.value = true
+      // End preview mode since we've saved
+      endPreview()
+      setTimeout(() => {
+        saveSuccess.value = false
+      }, 3000)
+    } else {
+      saveError.value = result.error ?? 'Failed to save theme'
+    }
   }
-};
+
+  // Toggle custom theme section
+  const toggleCustomizer = (): void => {
+    if (selectedThemeId.value === 'custom') {
+      showCustomizer.value = !showCustomizer.value
+    } else {
+      selectTheme('custom')
+    }
+  }
 </script>
 
 <template>
   <div class="space-y-6">
     <!-- Header -->
     <div>
-      <h2
-        class="font-heading text-xl font-medium text-charcoal dark:text-dark-text mb-1"
-      >
+      <h2 class="font-heading text-xl font-medium text-charcoal dark:text-dark-text mb-1">
         Theme Settings
       </h2>
-      <p
-        class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary"
-      >
-        Choose a theme for your wedding website. Changes will be reflected on
-        the public site.
+      <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary">
+        Choose a theme for your wedding website. Changes will be reflected on the public site.
       </p>
     </div>
 
     <!-- Loading State -->
     <div v-if="isLoading" class="flex items-center justify-center py-12">
-      <div
-        class="animate-spin rounded-full h-8 w-8 border-b-2 border-sage"
-      ></div>
+      <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-sage"></div>
     </div>
 
     <template v-else>
@@ -227,9 +210,7 @@ const toggleCustomizer = (): void => {
 
       <!-- Preset Themes Grid -->
       <div>
-        <h3
-          class="font-body text-sm font-medium text-charcoal dark:text-dark-text mb-3"
-        >
+        <h3 class="font-body text-sm font-medium text-charcoal dark:text-dark-text mb-3">
           Preset Themes
         </h3>
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -245,9 +226,7 @@ const toggleCustomizer = (): void => {
       </div>
 
       <!-- Custom Theme Section -->
-      <div
-        class="border border-sand-dark dark:border-dark-border rounded-lg overflow-hidden"
-      >
+      <div class="border border-sand-dark dark:border-dark-border rounded-lg overflow-hidden">
         <button
           type="button"
           class="w-full flex items-center justify-between px-4 py-4 bg-sand/30 dark:bg-dark-bg-secondary text-left cursor-pointer hover:bg-sand/50 dark:hover:bg-dark-bg-elevated transition-colors"
@@ -262,12 +241,7 @@ const toggleCustomizer = (): void => {
               v-if="selectedThemeId === 'custom'"
               class="w-6 h-6 bg-sage rounded-full flex items-center justify-center flex-shrink-0"
             >
-              <svg
-                class="w-4 h-4 text-white"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
+              <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
                   stroke-linecap="round"
                   stroke-linejoin="round"
@@ -281,14 +255,10 @@ const toggleCustomizer = (): void => {
               class="w-6 h-6 border-2 border-sand-dark dark:border-dark-border rounded-full flex-shrink-0"
             />
             <div>
-              <span
-                class="font-heading text-base font-medium text-charcoal dark:text-dark-text"
-              >
+              <span class="font-heading text-base font-medium text-charcoal dark:text-dark-text">
                 Custom Theme
               </span>
-              <p
-                class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary"
-              >
+              <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary">
                 Create your own color scheme and font pairing
               </p>
             </div>
@@ -316,10 +286,7 @@ const toggleCustomizer = (): void => {
           v-show="showCustomizer && selectedThemeId === 'custom'"
           class="p-4 border-t border-sand-dark dark:border-dark-border"
         >
-          <ThemeCustomizer
-            :custom-theme="customThemeData"
-            @update="handleCustomThemeUpdate"
-          />
+          <ThemeCustomizer :custom-theme="customThemeData" @update="handleCustomThemeUpdate" />
         </div>
       </div>
 
@@ -344,9 +311,7 @@ const toggleCustomizer = (): void => {
       </div>
 
       <!-- Action Buttons -->
-      <div
-        class="flex justify-end gap-3 pt-4 border-t border-sand-dark dark:border-dark-border"
-      >
+      <div class="flex justify-end gap-3 pt-4 border-t border-sand-dark dark:border-dark-border">
         <button
           v-if="hasChanges"
           type="button"
@@ -385,13 +350,9 @@ const toggleCustomizer = (): void => {
 
       <!-- Last Updated Info -->
       <div v-if="themeSettings.updatedAt" class="text-right">
-        <p
-          class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary"
-        >
+        <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary">
           Last updated: {{ new Date(themeSettings.updatedAt).toLocaleString() }}
-          <span v-if="themeSettings.updatedBy"
-            >by {{ themeSettings.updatedBy }}</span
-          >
+          <span v-if="themeSettings.updatedBy">by {{ themeSettings.updatedBy }}</span>
         </p>
       </div>
     </template>

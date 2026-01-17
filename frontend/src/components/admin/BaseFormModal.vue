@@ -1,14 +1,14 @@
 <script setup lang="ts">
-defineProps<{
-  show: boolean;
-  title: string;
-  submitText?: string;
-}>();
+  defineProps<{
+    show: boolean
+    title: string
+    submitText?: string
+  }>()
 
-const emit = defineEmits<{
-  close: [];
-  submit: [];
-}>();
+  const emit = defineEmits<{
+    close: []
+    submit: []
+  }>()
 </script>
 
 <template>
@@ -40,9 +40,7 @@ const emit = defineEmits<{
             class="bg-white dark:bg-dark-bg-secondary rounded-xl p-6 max-w-md w-full max-h-[90vh] overflow-y-auto shadow-xl"
           >
             <div class="flex items-center justify-between mb-4">
-              <h3
-                class="font-heading text-lg text-charcoal dark:text-dark-text"
-              >
+              <h3 class="font-heading text-lg text-charcoal dark:text-dark-text">
                 {{ title }}
               </h3>
               <button
@@ -70,7 +68,7 @@ const emit = defineEmits<{
                   type="submit"
                   class="flex-1 px-4 py-2.5 font-body text-sm text-white bg-sage rounded-lg hover:bg-sage-dark transition-colors cursor-pointer"
                 >
-                  {{ submitText ?? "Save" }}
+                  {{ submitText ?? 'Save' }}
                 </button>
                 <button
                   type="button"

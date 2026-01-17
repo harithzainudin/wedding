@@ -1,106 +1,100 @@
 <script setup lang="ts">
-import { ref, computed, onUnmounted } from "vue";
-import type { MusicTrack, PlayMode } from "@/types/music";
+  import { ref, computed, onUnmounted } from 'vue'
+  import type { MusicTrack, PlayMode } from '@/types/music'
 
-const props = defineProps<{
-  tracks: MusicTrack[];
-  mode: PlayMode;
-  selectedTrackId?: string | undefined;
-  formatDuration: (seconds: number) => string;
-}>();
+  const props = defineProps<{
+    tracks: MusicTrack[]
+    mode: PlayMode
+    selectedTrackId?: string | undefined
+    formatDuration: (seconds: number) => string
+  }>()
 
-const emit = defineEmits<{
-  reorder: [newOrder: string[]];
-  delete: [trackId: string];
-  select: [trackId: string];
-}>();
+  const emit = defineEmits<{
+    reorder: [newOrder: string[]]
+    delete: [trackId: string]
+    select: [trackId: string]
+  }>()
 
-const draggedIndex = ref<number | null>(null);
-const dragOverIndex = ref<number | null>(null);
-const previewingId = ref<string | null>(null);
-const audioElement = ref<HTMLAudioElement | null>(null);
+  const draggedIndex = ref<number | null>(null)
+  const dragOverIndex = ref<number | null>(null)
+  const previewingId = ref<string | null>(null)
+  const audioElement = ref<HTMLAudioElement | null>(null)
 
-const sortedTracks = computed(() =>
-  [...props.tracks].sort((a, b) => a.order - b.order),
-);
+  const sortedTracks = computed(() => [...props.tracks].sort((a, b) => a.order - b.order))
 
-const handleDragStart = (index: number): void => {
-  draggedIndex.value = index;
-};
+  const handleDragStart = (index: number): void => {
+    draggedIndex.value = index
+  }
 
-const handleDragOver = (e: DragEvent, index: number): void => {
-  e.preventDefault();
-  if (draggedIndex.value === null || draggedIndex.value === index) return;
-  dragOverIndex.value = index;
-};
+  const handleDragOver = (e: DragEvent, index: number): void => {
+    e.preventDefault()
+    if (draggedIndex.value === null || draggedIndex.value === index) return
+    dragOverIndex.value = index
+  }
 
-const handleDragLeave = (): void => {
-  dragOverIndex.value = null;
-};
+  const handleDragLeave = (): void => {
+    dragOverIndex.value = null
+  }
 
-const handleDrop = (index: number): void => {
-  if (draggedIndex.value === null || draggedIndex.value === index) return;
+  const handleDrop = (index: number): void => {
+    if (draggedIndex.value === null || draggedIndex.value === index) return
 
-  const newTracks = [...sortedTracks.value];
-  const draggedItems = newTracks.splice(draggedIndex.value, 1);
-  const draggedItem = draggedItems[0];
-  if (!draggedItem) return;
-  newTracks.splice(index, 0, draggedItem);
+    const newTracks = [...sortedTracks.value]
+    const draggedItems = newTracks.splice(draggedIndex.value, 1)
+    const draggedItem = draggedItems[0]
+    if (!draggedItem) return
+    newTracks.splice(index, 0, draggedItem)
 
-  emit(
-    "reorder",
-    newTracks.map((t) => t.id),
-  );
-};
+    emit(
+      'reorder',
+      newTracks.map((t) => t.id)
+    )
+  }
 
-const handleDragEnd = (): void => {
-  draggedIndex.value = null;
-  dragOverIndex.value = null;
-};
+  const handleDragEnd = (): void => {
+    draggedIndex.value = null
+    dragOverIndex.value = null
+  }
 
-const togglePreview = (track: MusicTrack): void => {
-  if (previewingId.value === track.id) {
-    // Stop preview
-    audioElement.value?.pause();
-    previewingId.value = null;
-  } else {
-    // Start preview
-    if (audioElement.value) {
-      audioElement.value.pause();
+  const togglePreview = (track: MusicTrack): void => {
+    if (previewingId.value === track.id) {
+      // Stop preview
+      audioElement.value?.pause()
+      previewingId.value = null
+    } else {
+      // Start preview
+      if (audioElement.value) {
+        audioElement.value.pause()
+      }
+      audioElement.value = new Audio(track.url)
+      audioElement.value.volume = 0.5
+      audioElement.value.play()
+      audioElement.value.onended = () => {
+        previewingId.value = null
+      }
+      previewingId.value = track.id
     }
-    audioElement.value = new Audio(track.url);
-    audioElement.value.volume = 0.5;
-    audioElement.value.play();
-    audioElement.value.onended = () => {
-      previewingId.value = null;
-    };
-    previewingId.value = track.id;
   }
-};
 
-const stopPreview = (): void => {
-  audioElement.value?.pause();
-  previewingId.value = null;
-};
-
-onUnmounted(() => {
-  if (audioElement.value) {
-    audioElement.value.pause();
-    audioElement.value = null;
+  const stopPreview = (): void => {
+    audioElement.value?.pause()
+    previewingId.value = null
   }
-  previewingId.value = null;
-});
+
+  onUnmounted(() => {
+    if (audioElement.value) {
+      audioElement.value.pause()
+      audioElement.value = null
+    }
+    previewingId.value = null
+  })
 </script>
 
 <template>
   <div class="space-y-2">
     <div class="flex items-center justify-between mb-4">
-      <h3
-        class="font-heading text-sm font-medium text-charcoal dark:text-dark-text"
-      >
-        {{
-          mode === "single" ? "Select a track" : "Playlist (drag to reorder)"
-        }}
+      <h3 class="font-heading text-sm font-medium text-charcoal dark:text-dark-text">
+        {{ mode === 'single' ? 'Select a track' : 'Playlist (drag to reorder)' }}
       </h3>
       <button
         v-if="previewingId"
@@ -123,11 +117,7 @@ onUnmounted(() => {
       >
         <!-- Drop indicator line - shows above target item -->
         <div
-          v-if="
-            dragOverIndex === index &&
-            draggedIndex !== null &&
-            draggedIndex !== index
-          "
+          v-if="dragOverIndex === index && draggedIndex !== null && draggedIndex !== index"
           class="absolute -top-1 left-0 right-0 z-20 flex items-center gap-2 pointer-events-none"
         >
           <div
@@ -152,9 +142,7 @@ onUnmounted(() => {
           @dragend="handleDragEnd"
         >
           <!-- Drag Handle -->
-          <div
-            class="cursor-grab text-charcoal-light dark:text-dark-text-secondary"
-          >
+          <div class="cursor-grab text-charcoal-light dark:text-dark-text-secondary">
             <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
               <circle cx="9" cy="6" r="1.5" />
               <circle cx="15" cy="6" r="1.5" />
@@ -207,27 +195,18 @@ onUnmounted(() => {
               <rect x="6" y="5" width="4" height="14" rx="1" />
               <rect x="14" y="5" width="4" height="14" rx="1" />
             </svg>
-            <svg
-              v-else
-              class="w-5 h-5 ml-0.5"
-              fill="currentColor"
-              viewBox="0 0 24 24"
-            >
+            <svg v-else class="w-5 h-5 ml-0.5" fill="currentColor" viewBox="0 0 24 24">
               <path d="M8 5v14l11-7z" />
             </svg>
           </button>
 
           <!-- Track Info -->
           <div class="flex-1 min-w-0">
-            <p
-              class="font-body text-sm font-medium text-charcoal dark:text-dark-text truncate"
-            >
+            <p class="font-body text-sm font-medium text-charcoal dark:text-dark-text truncate">
               {{ track.title }}
             </p>
-            <p
-              class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary truncate"
-            >
-              {{ track.artist || "Unknown artist" }} ·
+            <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary truncate">
+              {{ track.artist || 'Unknown artist' }} ·
               {{ formatDuration(track.duration) }}
             </p>
           </div>
@@ -238,12 +217,7 @@ onUnmounted(() => {
             class="p-2 text-charcoal-light hover:text-red-500 dark:text-dark-text-secondary dark:hover:text-red-400 cursor-pointer"
             @click="emit('delete', track.id)"
           >
-            <svg
-              class="w-5 h-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
                 stroke-linecap="round"
                 stroke-linejoin="round"

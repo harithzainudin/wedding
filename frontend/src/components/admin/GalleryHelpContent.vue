@@ -1,16 +1,16 @@
 <script setup lang="ts">
-defineProps<{
-  maxFileSize: string;
-  allowedFormats: string[];
-  maxImages: number;
-}>();
+  defineProps<{
+    maxFileSize: string
+    allowedFormats: string[]
+    maxImages: number
+  }>()
 
-const formatLabels: Record<string, string> = {
-  "image/jpeg": "JPG",
-  "image/png": "PNG",
-  "image/webp": "WebP",
-  "image/gif": "GIF",
-};
+  const formatLabels: Record<string, string> = {
+    'image/jpeg': 'JPG',
+    'image/png': 'PNG',
+    'image/webp': 'WebP',
+    'image/gif': 'GIF',
+  }
 </script>
 
 <template>
@@ -31,9 +31,7 @@ const formatLabels: Record<string, string> = {
         </svg>
       </div>
       <div>
-        <p class="font-medium text-charcoal dark:text-dark-text">
-          Reorder Images
-        </p>
+        <p class="font-medium text-charcoal dark:text-dark-text">Reorder Images</p>
         <p class="text-charcoal-light dark:text-dark-text-secondary mt-0.5">
           <span class="hidden sm:inline">Drag and drop images to reorder.</span>
           <span class="sm:hidden">Touch, hold, and drag to reorder.</span>
@@ -59,9 +57,7 @@ const formatLabels: Record<string, string> = {
         </svg>
       </div>
       <div>
-        <p class="font-medium text-charcoal dark:text-dark-text">
-          Featured Image
-        </p>
+        <p class="font-medium text-charcoal dark:text-dark-text">Featured Image</p>
         <p class="text-charcoal-light dark:text-dark-text-secondary mt-0.5">
           Image #1 appears as the main/featured image on your site.
         </p>
@@ -86,15 +82,13 @@ const formatLabels: Record<string, string> = {
         </svg>
       </div>
       <div>
-        <p class="font-medium text-charcoal dark:text-dark-text">
-          Upload Limits
-        </p>
+        <p class="font-medium text-charcoal dark:text-dark-text">Upload Limits</p>
         <p class="text-charcoal-light dark:text-dark-text-secondary mt-0.5">
           Max {{ maxFileSize }} per file. Up to {{ maxImages }} images total.
         </p>
         <p class="text-charcoal-light dark:text-dark-text-secondary mt-0.5">
           Formats:
-          {{ allowedFormats.map((f) => formatLabels[f] ?? f).join(", ") }}
+          {{ allowedFormats.map((f) => formatLabels[f] ?? f).join(', ') }}
         </p>
       </div>
     </div>
@@ -117,12 +111,9 @@ const formatLabels: Record<string, string> = {
         </svg>
       </div>
       <div>
-        <p class="font-medium text-charcoal dark:text-dark-text">
-          Public Display
-        </p>
+        <p class="font-medium text-charcoal dark:text-dark-text">Public Display</p>
         <p class="text-charcoal-light dark:text-dark-text-secondary mt-0.5">
-          First 6 images show on the homepage. Visitors can view all in a
-          lightbox gallery.
+          First 6 images show on the homepage. Visitors can view all in a lightbox gallery.
         </p>
       </div>
     </div>

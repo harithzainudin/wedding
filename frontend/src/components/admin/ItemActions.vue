@@ -1,24 +1,20 @@
 <script setup lang="ts">
-defineProps<{
-  index: number;
-  totalItems: number;
-  layout?: "vertical" | "horizontal";
-}>();
+  defineProps<{
+    index: number
+    totalItems: number
+    layout?: 'vertical' | 'horizontal'
+  }>()
 
-const emit = defineEmits<{
-  moveUp: [];
-  moveDown: [];
-  edit: [];
-  delete: [];
-}>();
+  const emit = defineEmits<{
+    moveUp: []
+    moveDown: []
+    edit: []
+    delete: []
+  }>()
 </script>
 
 <template>
-  <div
-    :class="
-      layout === 'vertical' ? 'flex flex-col gap-1' : 'flex items-center gap-1'
-    "
-  >
+  <div :class="layout === 'vertical' ? 'flex flex-col gap-1' : 'flex items-center gap-1'">
     <button
       type="button"
       class="p-1.5 text-charcoal-light hover:text-charcoal dark:text-dark-text-secondary dark:hover:text-dark-text transition-colors cursor-pointer disabled:opacity-50"
@@ -26,18 +22,8 @@ const emit = defineEmits<{
       title="Move up"
       @click="emit('moveUp')"
     >
-      <svg
-        class="w-4 h-4"
-        fill="none"
-        stroke="currentColor"
-        viewBox="0 0 24 24"
-      >
-        <path
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          stroke-width="2"
-          d="M5 15l7-7 7 7"
-        />
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
       </svg>
     </button>
     <button
@@ -47,18 +33,8 @@ const emit = defineEmits<{
       title="Move down"
       @click="emit('moveDown')"
     >
-      <svg
-        class="w-4 h-4"
-        fill="none"
-        stroke="currentColor"
-        viewBox="0 0 24 24"
-      >
-        <path
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          stroke-width="2"
-          d="M19 9l-7 7-7-7"
-        />
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
       </svg>
     </button>
     <button
@@ -67,12 +43,7 @@ const emit = defineEmits<{
       title="Edit"
       @click="emit('edit')"
     >
-      <svg
-        class="w-4 h-4"
-        fill="none"
-        stroke="currentColor"
-        viewBox="0 0 24 24"
-      >
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path
           stroke-linecap="round"
           stroke-linejoin="round"
@@ -87,12 +58,7 @@ const emit = defineEmits<{
       title="Delete"
       @click="emit('delete')"
     >
-      <svg
-        class="w-4 h-4"
-        fill="none"
-        stroke="currentColor"
-        viewBox="0 0 24 24"
-      >
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path
           stroke-linecap="round"
           stroke-linejoin="round"

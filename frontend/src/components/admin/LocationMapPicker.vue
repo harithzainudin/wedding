@@ -1,184 +1,185 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, watch } from "vue";
-import L from "leaflet";
-import "leaflet/dist/leaflet.css";
-import type { NominatimResult } from "@/types/venue";
+  import { ref, onMounted, onUnmounted, watch } from 'vue'
+  import L from 'leaflet'
+  import 'leaflet/dist/leaflet.css'
+  import type { NominatimResult } from '@/types/venue'
 
-const props = defineProps<{
-  coordinates: { lat: number; lng: number };
-  disabled?: boolean;
-}>();
+  const props = defineProps<{
+    coordinates: { lat: number; lng: number }
+    disabled?: boolean
+  }>()
 
-const emit = defineEmits<{
-  "update:coordinates": [coords: { lat: number; lng: number }];
-  "address-selected": [address: string];
-}>();
+  const emit = defineEmits<{
+    'update:coordinates': [coords: { lat: number; lng: number }]
+    'address-selected': [address: string]
+  }>()
 
-const mapContainer = ref<HTMLDivElement>();
-let map: L.Map | null = null;
-let marker: L.Marker | null = null;
+  const mapContainer = ref<HTMLDivElement>()
+  let map: L.Map | null = null
+  let marker: L.Marker | null = null
 
-const searchQuery = ref("");
-const searchResults = ref<NominatimResult[]>([]);
-const isSearching = ref(false);
-const showResults = ref(false);
-let searchTimeout: ReturnType<typeof setTimeout> | null = null;
+  const searchQuery = ref('')
+  const searchResults = ref<NominatimResult[]>([])
+  const isSearching = ref(false)
+  const showResults = ref(false)
+  let searchTimeout: ReturnType<typeof setTimeout> | null = null
 
-const fixLeafletIcons = () => {
-  delete (L.Icon.Default.prototype as unknown as { _getIconUrl?: unknown })
-    ._getIconUrl;
-  L.Icon.Default.mergeOptions({
-    iconRetinaUrl:
-      "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png",
-    iconUrl:
-      "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png",
-    shadowUrl:
-      "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png",
-  });
-};
-
-const initMap = () => {
-  if (!mapContainer.value || map) return;
-
-  fixLeafletIcons();
-
-  map = L.map(mapContainer.value).setView(
-    [props.coordinates.lat, props.coordinates.lng],
-    15,
-  );
-
-  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-    attribution:
-      '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-  }).addTo(map);
-
-  marker = L.marker([props.coordinates.lat, props.coordinates.lng], {
-    draggable: !props.disabled,
-  }).addTo(map);
-
-  marker.on("dragend", () => {
-    if (!marker) return;
-    const latlng = marker.getLatLng();
-    emit("update:coordinates", { lat: latlng.lat, lng: latlng.lng });
-  });
-
-  map.on("click", (e) => {
-    if (props.disabled) return;
-    const { lat, lng } = e.latlng;
-    updateMarkerPosition(lat, lng);
-    emit("update:coordinates", { lat, lng });
-  });
-};
-
-const updateMarkerPosition = (lat: number, lng: number) => {
-  if (!marker || !map) return;
-  marker.setLatLng([lat, lng]);
-  map.panTo([lat, lng]);
-};
-
-const searchLocation = async () => {
-  showResults.value = searchQuery.value.length > 0;
-
-  if (searchQuery.value.length < 3) {
-    searchResults.value = [];
-    return;
+  const fixLeafletIcons = () => {
+    delete (L.Icon.Default.prototype as unknown as { _getIconUrl?: unknown })._getIconUrl
+    L.Icon.Default.mergeOptions({
+      iconRetinaUrl:
+        'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png',
+      iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
+      shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
+    })
   }
 
-  isSearching.value = true;
+  const initMap = () => {
+    if (!mapContainer.value || map) return
 
-  try {
-    const response = await fetch(
-      `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery.value)}&limit=5`,
-      {
-        headers: {
-          "Accept-Language": "en",
-        },
-      },
-    );
-    const data = (await response.json()) as NominatimResult[];
-    searchResults.value = data;
-  } catch (error) {
-    console.error("Search error:", error);
-    searchResults.value = [];
-  } finally {
-    isSearching.value = false;
+    fixLeafletIcons()
+
+    map = L.map(mapContainer.value).setView([props.coordinates.lat, props.coordinates.lng], 15)
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution:
+        '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+    }).addTo(map)
+
+    marker = L.marker([props.coordinates.lat, props.coordinates.lng], {
+      draggable: !props.disabled,
+    }).addTo(map)
+
+    marker.on('dragend', () => {
+      if (!marker) return
+      const latlng = marker.getLatLng()
+      emit('update:coordinates', { lat: latlng.lat, lng: latlng.lng })
+    })
+
+    map.on('click', (e) => {
+      if (props.disabled) return
+      const { lat, lng } = e.latlng
+      updateMarkerPosition(lat, lng)
+      emit('update:coordinates', { lat, lng })
+    })
   }
-};
 
-// Debounced search
-const handleSearchInput = () => {
-  // Show dropdown immediately when typing (for instant feedback)
-  showResults.value = searchQuery.value.length > 0;
-
-  if (searchTimeout) {
-    clearTimeout(searchTimeout);
+  const updateMarkerPosition = (lat: number, lng: number) => {
+    if (!marker || !map) return
+    marker.setLatLng([lat, lng])
+    map.panTo([lat, lng])
   }
-  searchTimeout = setTimeout(searchLocation, 500);
-};
 
-// Select a search result
-const selectResult = (result: NominatimResult) => {
-  const lat = parseFloat(result.lat);
-  const lng = parseFloat(result.lon);
+  const searchLocation = async () => {
+    showResults.value = searchQuery.value.length > 0
 
-  updateMarkerPosition(lat, lng);
-  emit("update:coordinates", { lat, lng });
-  emit("address-selected", result.display_name);
-
-  searchQuery.value = "";
-  searchResults.value = [];
-  showResults.value = false;
-};
-
-// Close results when clicking outside
-const handleClickOutside = (event: MouseEvent) => {
-  const target = event.target as HTMLElement;
-  if (!target.closest(".search-container")) {
-    showResults.value = false;
-  }
-};
-
-// Watch for external coordinate changes
-watch(
-  () => props.coordinates,
-  (newCoords) => {
-    if (marker && map) {
-      updateMarkerPosition(newCoords.lat, newCoords.lng);
+    if (searchQuery.value.length < 3) {
+      searchResults.value = []
+      return
     }
-  },
-  { deep: true },
-);
 
-// Watch for disabled state changes
-watch(
-  () => props.disabled,
-  (disabled) => {
-    if (marker) {
-      if (disabled) {
-        marker.dragging?.disable();
-      } else {
-        marker.dragging?.enable();
+    isSearching.value = true
+
+    try {
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery.value)}&limit=5`,
+        {
+          headers: {
+            'Accept-Language': 'en',
+          },
+        }
+      )
+      const data = (await response.json()) as NominatimResult[]
+      searchResults.value = data
+    } catch (error) {
+      console.error('Search error:', error)
+      searchResults.value = []
+    } finally {
+      isSearching.value = false
+    }
+  }
+
+  // Debounced search
+  const handleSearchInput = () => {
+    // Show dropdown immediately when typing (for instant feedback)
+    showResults.value = searchQuery.value.length > 0
+
+    if (searchTimeout) {
+      clearTimeout(searchTimeout)
+    }
+    searchTimeout = setTimeout(searchLocation, 500)
+  }
+
+  // Select a search result
+  const selectResult = (result: NominatimResult) => {
+    const lat = parseFloat(result.lat)
+    const lng = parseFloat(result.lon)
+
+    updateMarkerPosition(lat, lng)
+    emit('update:coordinates', { lat, lng })
+    emit('address-selected', result.display_name)
+
+    searchQuery.value = ''
+    searchResults.value = []
+    showResults.value = false
+  }
+
+  // Close results when clicking outside
+  const handleClickOutside = (event: MouseEvent) => {
+    const target = event.target as HTMLElement
+    if (!target.closest('.search-container')) {
+      showResults.value = false
+    }
+  }
+
+  // Clear search query and results
+  const clearSearch = () => {
+    searchQuery.value = ''
+    searchResults.value = []
+    showResults.value = false
+  }
+
+  // Watch for external coordinate changes
+  watch(
+    () => props.coordinates,
+    (newCoords) => {
+      if (marker && map) {
+        updateMarkerPosition(newCoords.lat, newCoords.lng)
+      }
+    },
+    { deep: true }
+  )
+
+  // Watch for disabled state changes
+  watch(
+    () => props.disabled,
+    (disabled) => {
+      if (marker) {
+        if (disabled) {
+          marker.dragging?.disable()
+        } else {
+          marker.dragging?.enable()
+        }
       }
     }
-  },
-);
+  )
 
-onMounted(() => {
-  initMap();
-  document.addEventListener("click", handleClickOutside);
-});
+  onMounted(() => {
+    initMap()
+    document.addEventListener('click', handleClickOutside)
+  })
 
-onUnmounted(() => {
-  if (map) {
-    map.remove();
-    map = null;
-    marker = null;
-  }
-  if (searchTimeout) {
-    clearTimeout(searchTimeout);
-  }
-  document.removeEventListener("click", handleClickOutside);
-});
+  onUnmounted(() => {
+    if (map) {
+      map.remove()
+      map = null
+      marker = null
+    }
+    if (searchTimeout) {
+      clearTimeout(searchTimeout)
+    }
+    document.removeEventListener('click', handleClickOutside)
+  })
 </script>
 
 <template>
@@ -213,15 +214,8 @@ onUnmounted(() => {
           @input="handleSearchInput"
           @focus="showResults = true"
         />
-        <div
-          v-if="isSearching"
-          class="absolute right-3 top-1/2 -translate-y-1/2"
-        >
-          <svg
-            class="w-5 h-5 text-sage animate-spin"
-            viewBox="0 0 24 24"
-            fill="none"
-          >
+        <div v-if="isSearching" class="absolute right-3 top-1/2 -translate-y-1/2">
+          <svg class="w-5 h-5 text-sage animate-spin" viewBox="0 0 24 24" fill="none">
             <circle
               cx="12"
               cy="12"
@@ -241,18 +235,9 @@ onUnmounted(() => {
           v-else-if="searchQuery.length > 0"
           type="button"
           class="absolute right-3 top-1/2 -translate-y-1/2 text-charcoal-light dark:text-dark-text-secondary hover:text-charcoal dark:hover:text-dark-text"
-          @click="
-            searchQuery = '';
-            searchResults = [];
-            showResults = false;
-          "
+          @click="clearSearch"
         >
-          <svg
-            class="w-5 h-5"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
               stroke-linecap="round"
               stroke-linejoin="round"
@@ -273,12 +258,7 @@ onUnmounted(() => {
           v-if="searchQuery.length < 3"
           class="px-4 py-3 flex items-center gap-2 text-charcoal-light dark:text-dark-text-secondary"
         >
-          <svg
-            class="w-4 h-4"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
               stroke-linecap="round"
               stroke-linejoin="round"
@@ -290,15 +270,8 @@ onUnmounted(() => {
         </div>
 
         <!-- Searching indicator -->
-        <div
-          v-else-if="isSearching"
-          class="px-4 py-4 flex items-center justify-center gap-2"
-        >
-          <svg
-            class="w-5 h-5 text-sage animate-spin"
-            viewBox="0 0 24 24"
-            fill="none"
-          >
+        <div v-else-if="isSearching" class="px-4 py-4 flex items-center justify-center gap-2">
+          <svg class="w-5 h-5 text-sage animate-spin" viewBox="0 0 24 24" fill="none">
             <circle
               cx="12"
               cy="12"
@@ -313,24 +286,17 @@ onUnmounted(() => {
               class="opacity-75"
             />
           </svg>
-          <p
-            class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary"
-          >
+          <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary">
             Searching for "{{ searchQuery }}"...
           </p>
         </div>
 
         <!-- Search Results -->
-        <div
-          v-else-if="searchResults.length > 0"
-          class="max-h-60 overflow-y-auto"
-        >
+        <div v-else-if="searchResults.length > 0" class="max-h-60 overflow-y-auto">
           <p
             class="px-4 py-2 font-body text-xs text-charcoal-light dark:text-dark-text-secondary bg-sand/50 dark:bg-dark-bg-elevated border-b border-sand-dark/30 dark:border-dark-border/30"
           >
-            {{ searchResults.length }} location{{
-              searchResults.length > 1 ? "s" : ""
-            }}
+            {{ searchResults.length }} location{{ searchResults.length > 1 ? 's' : '' }}
             found
           </p>
           <button
@@ -349,9 +315,7 @@ onUnmounted(() => {
                 d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"
               />
             </svg>
-            <p
-              class="font-body text-sm text-charcoal dark:text-dark-text line-clamp-2"
-            >
+            <p class="font-body text-sm text-charcoal dark:text-dark-text line-clamp-2">
               {{ result.display_name }}
             </p>
           </button>
@@ -372,14 +336,10 @@ onUnmounted(() => {
               d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
             />
           </svg>
-          <p
-            class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary"
-          >
+          <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary">
             No locations found for "{{ searchQuery }}"
           </p>
-          <p
-            class="font-body text-xs text-charcoal-light/70 dark:text-dark-text-secondary/70 mt-1"
-          >
+          <p class="font-body text-xs text-charcoal-light/70 dark:text-dark-text-secondary/70 mt-1">
             Try a different search term
           </p>
         </div>
@@ -394,19 +354,17 @@ onUnmounted(() => {
     />
 
     <!-- Instructions -->
-    <p
-      class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary"
-    >
+    <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary">
       Click on the map or drag the marker to set the exact location
     </p>
   </div>
 </template>
 
 <style scoped>
-.line-clamp-2 {
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
 </style>

@@ -1,18 +1,18 @@
-export const table = new sst.aws.Dynamo("AppDataTable", {
+export const table = new sst.aws.Dynamo('AppDataTable', {
   fields: {
-    pk: "string",
-    sk: "string",
-    gsi1pk: "string",
-    gsi1sk: "string",
+    pk: 'string',
+    sk: 'string',
+    gsi1pk: 'string',
+    gsi1sk: 'string',
   },
   primaryIndex: {
-    hashKey: "pk",
-    rangeKey: "sk",
+    hashKey: 'pk',
+    rangeKey: 'sk',
   },
   globalIndexes: {
     byStatus: {
-      hashKey: "gsi1pk",
-      rangeKey: "gsi1sk",
+      hashKey: 'gsi1pk',
+      rangeKey: 'gsi1sk',
     },
   },
-});
+})

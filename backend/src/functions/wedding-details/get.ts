@@ -1,29 +1,26 @@
-import type { APIGatewayProxyHandlerV2 } from "aws-lambda";
-import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocumentClient, GetCommand } from "@aws-sdk/lib-dynamodb";
-import { Resource } from "sst";
-import { createSuccessResponse, createErrorResponse } from "../shared/response";
-import { logError } from "../shared/logger";
-import {
-  DEFAULT_WEDDING_DETAILS,
-  type WeddingDetailsData,
-} from "../shared/wedding-validation";
+import type { APIGatewayProxyHandlerV2 } from 'aws-lambda'
+import { DynamoDBClient } from '@aws-sdk/client-dynamodb'
+import { DynamoDBDocumentClient, GetCommand } from '@aws-sdk/lib-dynamodb'
+import { Resource } from 'sst'
+import { createSuccessResponse, createErrorResponse } from '../shared/response'
+import { logError } from '../shared/logger'
+import { DEFAULT_WEDDING_DETAILS, type WeddingDetailsData } from '../shared/wedding-validation'
 
-const dynamoClient = new DynamoDBClient({});
-const docClient = DynamoDBDocumentClient.from(dynamoClient);
+const dynamoClient = new DynamoDBClient({})
+const docClient = DynamoDBDocumentClient.from(dynamoClient)
 
 export const handler: APIGatewayProxyHandlerV2 = async (_event, context) => {
   try {
     const result = await docClient.send(
       new GetCommand({
         TableName: Resource.AppDataTable.name,
-        Key: { pk: "SETTINGS", sk: "WEDDING" },
-      }),
-    );
+        Key: { pk: 'SETTINGS', sk: 'WEDDING' },
+      })
+    )
 
     if (!result.Item) {
       // Return default wedding details if none exists in database
-      return createSuccessResponse(200, DEFAULT_WEDDING_DETAILS, context);
+      return createSuccessResponse(200, DEFAULT_WEDDING_DETAILS, context)
     }
 
     const weddingData: WeddingDetailsData = {
@@ -40,23 +37,18 @@ export const handler: APIGatewayProxyHandlerV2 = async (_event, context) => {
       qrCodeUrl: result.Item.qrCodeUrl,
       updatedAt: result.Item.updatedAt,
       updatedBy: result.Item.updatedBy,
-    };
+    }
 
-    return createSuccessResponse(200, weddingData, context);
+    return createSuccessResponse(200, weddingData, context)
   } catch (error) {
     logError(
       {
-        endpoint: "GET /wedding-details",
-        operation: "fetchWeddingDetails",
+        endpoint: 'GET /wedding-details',
+        operation: 'fetchWeddingDetails',
         requestId: context.awsRequestId,
       },
-      error,
-    );
-    return createErrorResponse(
-      500,
-      "Failed to fetch wedding details",
-      context,
-      "DB_ERROR",
-    );
+      error
+    )
+    return createErrorResponse(500, 'Failed to fetch wedding details', context, 'DB_ERROR')
   }
-};
+}

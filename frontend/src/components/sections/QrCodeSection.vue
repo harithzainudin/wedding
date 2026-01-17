@@ -1,107 +1,107 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from "vue";
-import QRCode from "qrcode";
-import { useLanguage } from "@/composables/useLanguage";
-import { usePublicWeddingData } from "@/composables/usePublicWeddingData";
-import { useNameOrder } from "@/composables/useNameOrder";
+  import { ref, computed, onMounted, onUnmounted } from 'vue'
+  import QRCode from 'qrcode'
+  import { useLanguage } from '@/composables/useLanguage'
+  import { usePublicWeddingData } from '@/composables/usePublicWeddingData'
+  import { useNameOrder } from '@/composables/useNameOrder'
 
-const { t } = useLanguage();
-const { getQrCodeUrl, isLoadingWeddingDetails } = usePublicWeddingData();
-const { orderedCouple, getOrderedNicknamesString } = useNameOrder();
+  const { t } = useLanguage()
+  const { getQrCodeUrl, isLoadingWeddingDetails } = usePublicWeddingData()
+  const { orderedCouple, getOrderedNicknamesString } = useNameOrder()
 
-const websiteUrl = computed(() => getQrCodeUrl());
+  const websiteUrl = computed(() => getQrCodeUrl())
 
-const qrCodeDataUrl = ref<string>("");
-const largeQrCodeDataUrl = ref<string>("");
-const linkCopied = ref(false);
-const isModalOpen = ref(false);
+  const qrCodeDataUrl = ref<string>('')
+  const largeQrCodeDataUrl = ref<string>('')
+  const linkCopied = ref(false)
+  const isModalOpen = ref(false)
 
-const generateQrCode = async (): Promise<void> => {
-  try {
-    qrCodeDataUrl.value = await QRCode.toDataURL(websiteUrl.value, {
-      width: 200,
-      margin: 2,
-      color: {
-        dark: "#333333",
-        light: "#FFFFFF",
-      },
-    });
-  } catch (error) {
-    console.error("Failed to generate QR code:", error);
-  }
-};
-
-const generateLargeQrCode = async (): Promise<void> => {
-  try {
-    largeQrCodeDataUrl.value = await QRCode.toDataURL(websiteUrl.value, {
-      width: 400,
-      margin: 2,
-      color: {
-        dark: "#333333",
-        light: "#FFFFFF",
-      },
-    });
-  } catch (error) {
-    console.error("Failed to generate large QR code:", error);
-  }
-};
-
-const openModal = async (): Promise<void> => {
-  await generateLargeQrCode();
-  isModalOpen.value = true;
-  document.body.style.overflow = "hidden";
-};
-
-const closeModal = (): void => {
-  isModalOpen.value = false;
-  document.body.style.overflow = "";
-};
-
-const handleKeydown = (e: KeyboardEvent): void => {
-  if (e.key === "Escape" && isModalOpen.value) {
-    closeModal();
-  }
-};
-
-const downloadQrCode = (): void => {
-  if (!qrCodeDataUrl.value) return;
-
-  const link = document.createElement("a");
-  const filename = `${orderedCouple.value.first.nickname}-${orderedCouple.value.second.nickname}-wedding-qr.png`;
-  link.download = filename;
-  link.href = qrCodeDataUrl.value;
-  link.click();
-};
-
-const shareQrCode = async (): Promise<void> => {
-  if (navigator.share) {
+  const generateQrCode = async (): Promise<void> => {
     try {
-      await navigator.share({
-        title: getOrderedNicknamesString(" & "),
-        text: t.value.qrCode.subtitle,
-        url: websiteUrl.value,
-      });
-    } catch {
-      // User cancelled or share failed
+      qrCodeDataUrl.value = await QRCode.toDataURL(websiteUrl.value, {
+        width: 200,
+        margin: 2,
+        color: {
+          dark: '#333333',
+          light: '#FFFFFF',
+        },
+      })
+    } catch (error) {
+      console.error('Failed to generate QR code:', error)
     }
-  } else {
-    // Fallback: copy URL to clipboard
-    await navigator.clipboard.writeText(websiteUrl.value);
-    linkCopied.value = true;
-    setTimeout(() => {
-      linkCopied.value = false;
-    }, 2000);
   }
-};
 
-onMounted(() => {
-  generateQrCode();
-  window.addEventListener("keydown", handleKeydown);
-});
+  const generateLargeQrCode = async (): Promise<void> => {
+    try {
+      largeQrCodeDataUrl.value = await QRCode.toDataURL(websiteUrl.value, {
+        width: 400,
+        margin: 2,
+        color: {
+          dark: '#333333',
+          light: '#FFFFFF',
+        },
+      })
+    } catch (error) {
+      console.error('Failed to generate large QR code:', error)
+    }
+  }
 
-onUnmounted(() => {
-  window.removeEventListener("keydown", handleKeydown);
-});
+  const openModal = async (): Promise<void> => {
+    await generateLargeQrCode()
+    isModalOpen.value = true
+    document.body.style.overflow = 'hidden'
+  }
+
+  const closeModal = (): void => {
+    isModalOpen.value = false
+    document.body.style.overflow = ''
+  }
+
+  const handleKeydown = (e: KeyboardEvent): void => {
+    if (e.key === 'Escape' && isModalOpen.value) {
+      closeModal()
+    }
+  }
+
+  const downloadQrCode = (): void => {
+    if (!qrCodeDataUrl.value) return
+
+    const link = document.createElement('a')
+    const filename = `${orderedCouple.value.first.nickname}-${orderedCouple.value.second.nickname}-wedding-qr.png`
+    link.download = filename
+    link.href = qrCodeDataUrl.value
+    link.click()
+  }
+
+  const shareQrCode = async (): Promise<void> => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: getOrderedNicknamesString(' & '),
+          text: t.value.qrCode.subtitle,
+          url: websiteUrl.value,
+        })
+      } catch {
+        // User cancelled or share failed
+      }
+    } else {
+      // Fallback: copy URL to clipboard
+      await navigator.clipboard.writeText(websiteUrl.value)
+      linkCopied.value = true
+      setTimeout(() => {
+        linkCopied.value = false
+      }, 2000)
+    }
+  }
+
+  onMounted(() => {
+    generateQrCode()
+    window.addEventListener('keydown', handleKeydown)
+  })
+
+  onUnmounted(() => {
+    window.removeEventListener('keydown', handleKeydown)
+  })
 </script>
 
 <template>
@@ -135,17 +135,14 @@ onUnmounted(() => {
           v-else
           class="w-40 h-40 sm:w-48 sm:h-48 flex items-center justify-center bg-sand dark:bg-dark-bg-elevated rounded-lg"
         >
-          <span
-            class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary"
+          <span class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary"
             >Loading...</span
           >
         </div>
       </div>
 
       <!-- Tap to enlarge hint -->
-      <p
-        class="font-body text-xs text-charcoal-light/70 dark:text-dark-text-secondary/70 mb-4"
-      >
+      <p class="font-body text-xs text-charcoal-light/70 dark:text-dark-text-secondary/70 mb-4">
         {{ t.qrCode.tapToEnlarge }}
       </p>
 
@@ -153,10 +150,7 @@ onUnmounted(() => {
       <div v-if="isLoadingWeddingDetails" class="mb-6 flex justify-center">
         <div class="h-6 w-40 bg-sage/20 rounded animate-pulse"></div>
       </div>
-      <p
-        v-else
-        class="font-heading text-base sm:text-lg text-sage-dark dark:text-sage-light mb-6"
-      >
+      <p v-else class="font-heading text-base sm:text-lg text-sage-dark dark:text-sage-light mb-6">
         {{ orderedCouple.first.nickname }} & {{ orderedCouple.second.nickname }}
       </p>
 
@@ -175,9 +169,7 @@ onUnmounted(() => {
             stroke="currentColor"
             stroke-width="2"
           >
-            <path
-              d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"
-            />
+            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3" />
           </svg>
           <span>{{ t.qrCode.download }}</span>
         </button>
@@ -224,9 +216,7 @@ onUnmounted(() => {
         <div class="absolute inset-0 bg-black/90" @click="closeModal"></div>
 
         <!-- Modal Content -->
-        <div
-          class="relative bg-white rounded-3xl p-6 sm:p-8 shadow-2xl max-w-sm w-full"
-        >
+        <div class="relative bg-white rounded-3xl p-6 sm:p-8 shadow-2xl max-w-sm w-full">
           <!-- Close Button -->
           <button
             type="button"
@@ -277,13 +267,13 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.3s ease;
-}
+  .fade-enter-active,
+  .fade-leave-active {
+    transition: opacity 0.3s ease;
+  }
 
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
-}
+  .fade-enter-from,
+  .fade-leave-to {
+    opacity: 0;
+  }
 </style>

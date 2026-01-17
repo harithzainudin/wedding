@@ -34,7 +34,15 @@ import type {
   UpdateSettingsRequest,
   SettingsResponse,
 } from '@/types/gallery'
-import type { VenueData, VenueUpdateRequest } from '@/types/venue'
+import type {
+  VenueData,
+  VenueUpdateRequest,
+  ParkingImageUploadRequest,
+  ParkingPresignedUrlResponse,
+  ParkingConfirmUploadRequest,
+  ParkingImage,
+  ParkingImagesResponse,
+} from '@/types/venue'
 import type { WeddingDetailsData, WeddingDetailsUpdateRequest } from '@/types/weddingDetails'
 import type { ScheduleData, ScheduleUpdateRequest } from '@/types/schedule'
 import type { ContactsData, ContactsUpdateRequest } from '@/types/contacts'
@@ -368,6 +376,57 @@ export async function updateVenue(data: VenueUpdateRequest): Promise<VenueData> 
     method: 'PUT',
     body: JSON.stringify(data),
   })
+}
+
+// Parking Images API functions
+
+export async function listParkingImages(): Promise<ParkingImagesResponse> {
+  const response = await fetch(`${API_URL}/parking/images`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  })
+
+  const json = (await response.json()) as ApiResponse<ParkingImagesResponse>
+  return unwrapResponse(json)
+}
+
+export async function getParkingPresignedUrl(
+  data: ParkingImageUploadRequest
+): Promise<ParkingPresignedUrlResponse> {
+  return authenticatedFetch<ParkingPresignedUrlResponse>(`${API_URL}/parking/presigned-url`, {
+    method: 'POST',
+    body: JSON.stringify(data),
+  })
+}
+
+export async function confirmParkingUpload(
+  data: ParkingConfirmUploadRequest
+): Promise<ParkingImage> {
+  return authenticatedFetch<ParkingImage>(`${API_URL}/parking/confirm`, {
+    method: 'POST',
+    body: JSON.stringify(data),
+  })
+}
+
+export async function deleteParkingImage(imageId: string): Promise<{ message: string }> {
+  return authenticatedFetch<{ message: string }>(
+    `${API_URL}/parking/images/${encodeURIComponent(imageId)}`,
+    { method: 'DELETE' }
+  )
+}
+
+export async function reorderParkingImages(
+  imageIds: string[]
+): Promise<{ message: string; newOrder: string[] }> {
+  return authenticatedFetch<{ message: string; newOrder: string[] }>(
+    `${API_URL}/parking/images/reorder`,
+    {
+      method: 'PUT',
+      body: JSON.stringify({ imageIds }),
+    }
+  )
 }
 
 // Wedding Details API functions
