@@ -3,9 +3,12 @@
   import type { ThemeId, CustomThemeData, ThemeDefinition } from '@/types/theme'
   import { useTheme } from '@/composables/useTheme'
   import { useThemePreview } from '@/composables/useThemePreview'
+  import { useAdminLanguage } from '@/composables/useAdminLanguage'
   import { DEFAULT_THEMES, PRESET_THEME_IDS } from '@/constants/themes'
   import ThemeCard from './ThemeCard.vue'
   import ThemeCustomizer from './ThemeCustomizer.vue'
+
+  const { adminT } = useAdminLanguage()
 
   const { themeSettings, isLoading, isSaving, error, loadTheme, saveTheme, restoreTheme } =
     useTheme()
@@ -178,10 +181,10 @@
     <!-- Header -->
     <div>
       <h2 class="font-heading text-xl font-medium text-charcoal dark:text-dark-text mb-1">
-        Theme Settings
+        {{ adminT.theme.title }}
       </h2>
       <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary">
-        Choose a theme for your wedding website. Changes will be reflected on the public site.
+        {{ adminT.theme.subtitle }}
       </p>
     </div>
 
@@ -197,21 +200,21 @@
         class="p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg flex items-center justify-between"
       >
         <p class="font-body text-sm text-amber-700 dark:text-amber-300">
-          Preview mode active. Changes have not been saved yet.
+          {{ adminT.theme.previewModeActive }}
         </p>
         <button
           type="button"
           class="px-3 py-1 font-body text-sm font-medium bg-amber-100 dark:bg-amber-800 text-amber-700 dark:text-amber-200 rounded hover:bg-amber-200 dark:hover:bg-amber-700 transition-colors cursor-pointer"
           @click="cancelChanges"
         >
-          Cancel Preview
+          {{ adminT.theme.cancelPreview }}
         </button>
       </div>
 
       <!-- Preset Themes Grid -->
       <div>
         <h3 class="font-body text-sm font-medium text-charcoal dark:text-dark-text mb-3">
-          Preset Themes
+          {{ adminT.theme.presetThemes }}
         </h3>
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           <ThemeCard
@@ -256,10 +259,10 @@
             />
             <div>
               <span class="font-heading text-base font-medium text-charcoal dark:text-dark-text">
-                Custom Theme
+                {{ adminT.theme.customTheme }}
               </span>
               <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary">
-                Create your own color scheme and font pairing
+                {{ adminT.theme.customThemeDescription }}
               </p>
             </div>
           </div>
@@ -306,7 +309,7 @@
         class="p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg"
       >
         <p class="font-body text-sm text-green-700 dark:text-green-300">
-          Theme saved successfully!
+          {{ adminT.theme.savedSuccess }}
         </p>
       </div>
 
@@ -318,7 +321,7 @@
           class="px-4 py-2 font-body text-sm font-medium bg-sand dark:bg-dark-bg-secondary text-charcoal dark:text-dark-text rounded-lg hover:bg-sand-dark dark:hover:bg-dark-bg-elevated transition-colors cursor-pointer"
           @click="cancelChanges"
         >
-          Cancel
+          {{ adminT.common.cancel }}
         </button>
         <button
           type="button"
@@ -342,17 +345,20 @@
                 d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
               />
             </svg>
-            Saving...
+            {{ adminT.common.saving }}
           </span>
-          <span v-else>Save Theme</span>
+          <span v-else>{{ adminT.theme.saveTheme }}</span>
         </button>
       </div>
 
       <!-- Last Updated Info -->
       <div v-if="themeSettings.updatedAt" class="text-right">
         <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary">
-          Last updated: {{ new Date(themeSettings.updatedAt).toLocaleString() }}
-          <span v-if="themeSettings.updatedBy">by {{ themeSettings.updatedBy }}</span>
+          {{ adminT.messages.lastUpdated }}:
+          {{ new Date(themeSettings.updatedAt).toLocaleString() }}
+          <span v-if="themeSettings.updatedBy"
+            >{{ adminT.messages.by }} {{ themeSettings.updatedBy }}</span
+          >
         </p>
       </div>
     </template>

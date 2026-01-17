@@ -1,6 +1,9 @@
 <script setup lang="ts">
   import { ref, computed, onUnmounted } from 'vue'
   import type { MusicTrack, PlayMode } from '@/types/music'
+  import { useAdminLanguage } from '@/composables/useAdminLanguage'
+
+  const { adminT } = useAdminLanguage()
 
   const props = defineProps<{
     tracks: MusicTrack[]
@@ -94,7 +97,7 @@
   <div class="space-y-2">
     <div class="flex items-center justify-between mb-4">
       <h3 class="font-heading text-sm font-medium text-charcoal dark:text-dark-text">
-        {{ mode === 'single' ? 'Select a track' : 'Playlist (drag to reorder)' }}
+        {{ mode === 'single' ? adminT.music.selectTrack : adminT.music.playlistDragToReorder }}
       </h3>
       <button
         v-if="previewingId"
@@ -102,7 +105,7 @@
         class="text-xs text-sage hover:text-sage-dark cursor-pointer"
         @click="stopPreview"
       >
-        Stop preview
+        {{ adminT.music.stopPreview }}
       </button>
     </div>
 
@@ -206,7 +209,7 @@
               {{ track.title }}
             </p>
             <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary truncate">
-              {{ track.artist || 'Unknown artist' }} ·
+              {{ track.artist || adminT.music.unknownArtist }} ·
               {{ formatDuration(track.duration) }}
             </p>
           </div>

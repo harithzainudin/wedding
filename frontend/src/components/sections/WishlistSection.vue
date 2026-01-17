@@ -96,16 +96,10 @@
     }
   }
 
-  // Get category label
+  // Get category label from translations
   const getCategoryLabel = (category: string): string => {
-    const labels: Record<string, Record<string, string>> = {
-      home: { en: 'Home', ms: 'Rumah' },
-      kitchen: { en: 'Kitchen', ms: 'Dapur' },
-      electronics: { en: 'Electronics', ms: 'Elektronik' },
-      experiences: { en: 'Experiences', ms: 'Pengalaman' },
-      other: { en: 'Other', ms: 'Lain-lain' },
-    }
-    return labels[category]?.[currentLanguage.value] || labels[category]?.en || category
+    const categories = t.value.wishlist?.categories as Record<string, string> | undefined
+    return categories?.[category] || category
   }
 
   onMounted(() => {
@@ -151,7 +145,7 @@
           @click="fetchGifts(true)"
           class="mt-4 px-4 py-2 text-sm font-body text-sage hover:text-sage-dark dark:text-sage-light"
         >
-          Try Again
+          {{ t.wishlist?.tryAgain || 'Try Again' }}
         </button>
       </div>
 
@@ -223,7 +217,7 @@
                   getPriorityColor(gift.priority),
                 ]"
               >
-                {{ currentLanguage === 'ms' ? 'Penting' : 'Needed' }}
+                {{ t.wishlist?.needed || 'Needed' }}
               </span>
 
               <!-- Fully Reserved Overlay -->
@@ -349,7 +343,7 @@
                 @click="closeModal"
                 class="px-6 py-2 font-body text-sm bg-sage text-white rounded-lg hover:bg-sage-dark transition-colors"
               >
-                {{ currentLanguage === 'ms' ? 'Tutup' : 'Close' }}
+                {{ t.wishlist?.close || 'Close' }}
               </button>
             </div>
 
@@ -429,7 +423,7 @@
                     @click="closeModal"
                     class="flex-1 py-2.5 px-4 font-body text-sm text-charcoal dark:text-dark-text border border-sand-dark dark:border-gray-600 rounded-lg hover:bg-sand dark:hover:bg-dark-bg transition-colors"
                   >
-                    {{ currentLanguage === 'ms' ? 'Batal' : 'Cancel' }}
+                    {{ t.wishlist?.cancel || 'Cancel' }}
                   </button>
                   <button
                     type="submit"

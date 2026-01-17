@@ -1,4 +1,8 @@
 <script setup lang="ts">
+  import { useAdminLanguage } from '@/composables/useAdminLanguage'
+
+  const { adminT } = useAdminLanguage()
+
   defineProps<{
     show: boolean
     username: string
@@ -39,15 +43,15 @@
             <path d="M20 6L9 17l-5-5" />
           </svg>
         </div>
-        <h3 class="font-heading text-lg text-charcoal dark:text-dark-text mb-2">Profile Updated</h3>
+        <h3 class="font-heading text-lg text-charcoal dark:text-dark-text mb-2">{{ adminT.profile.profileUpdated }}</h3>
         <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary">
-          Your profile has been updated successfully.
+          {{ adminT.profile.updateSuccess }}
         </p>
       </div>
 
       <div v-else>
         <div class="flex items-center justify-between mb-6">
-          <h3 class="font-heading text-lg text-charcoal dark:text-dark-text">Profile Settings</h3>
+          <h3 class="font-heading text-lg text-charcoal dark:text-dark-text">{{ adminT.profile.title }}</h3>
           <button
             type="button"
             class="text-charcoal-light dark:text-dark-text-secondary hover:text-charcoal dark:hover:text-dark-text transition-colors cursor-pointer"
@@ -71,7 +75,7 @@
             class="inline-block w-8 h-8 border-3 border-sage border-t-transparent rounded-full animate-spin"
           ></div>
           <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary mt-3">
-            Loading profile...
+            {{ adminT.profile.loadingProfile }}
           </p>
         </div>
 
@@ -80,7 +84,7 @@
             <label
               class="block font-body text-sm font-medium text-charcoal dark:text-dark-text mb-1"
             >
-              Username
+              {{ adminT.profile.username }}
             </label>
             <div
               class="w-full px-3 py-2.5 font-body text-base border border-sand-dark dark:border-dark-border rounded-lg bg-sand-dark/30 dark:bg-dark-bg-elevated text-charcoal-light dark:text-dark-text-secondary"
@@ -88,7 +92,7 @@
               {{ username }}
             </div>
             <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary mt-1">
-              Username cannot be changed.
+              {{ adminT.profile.usernameCannotChange }}
             </p>
           </div>
 
@@ -97,18 +101,18 @@
               for="profileEmail"
               class="block font-body text-sm font-medium text-charcoal dark:text-dark-text mb-1"
             >
-              Email
+              {{ adminT.profile.email }}
             </label>
             <input
               id="profileEmail"
               :value="email"
               type="email"
               class="w-full px-3 py-2.5 font-body text-base border border-sand-dark dark:border-dark-border rounded-lg bg-sand dark:bg-dark-bg-elevated text-charcoal dark:text-dark-text focus:outline-none focus:border-sage placeholder:text-charcoal-light/60 dark:placeholder:text-dark-text-secondary/60"
-              placeholder="Enter your email"
+              :placeholder="adminT.profile.emailPlaceholder"
               @input="emit('update:email', ($event.target as HTMLInputElement).value)"
             />
             <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary mt-1">
-              Used for account recovery and notifications.
+              {{ adminT.profile.emailRecoveryHint }}
             </p>
           </div>
 
@@ -137,7 +141,7 @@
                 <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
                 <path d="M7 11V7a5 5 0 0110 0v4" />
               </svg>
-              Change Password
+              {{ adminT.auth.changePassword }}
             </button>
           </div>
 
@@ -151,14 +155,14 @@
               class="px-4 py-2 font-body text-sm text-white bg-sage rounded-lg hover:bg-sage-dark transition-colors cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed"
               :disabled="isSaving"
             >
-              {{ isSaving ? 'Saving...' : 'Save Changes' }}
+              {{ isSaving ? adminT.common.saving : adminT.common.saveChanges }}
             </button>
             <button
               type="button"
               class="px-4 py-2 font-body text-sm text-charcoal dark:text-dark-text border border-charcoal-light dark:border-dark-border rounded-lg hover:bg-sand-dark dark:hover:bg-dark-bg-elevated transition-colors cursor-pointer"
               @click="emit('close')"
             >
-              Cancel
+              {{ adminT.common.cancel }}
             </button>
           </div>
 
@@ -168,7 +172,7 @@
               class="px-4 py-2 font-body text-sm text-charcoal dark:text-dark-text border border-charcoal-light dark:border-dark-border rounded-lg hover:bg-sand-dark dark:hover:bg-dark-bg-elevated transition-colors cursor-pointer"
               @click="emit('close')"
             >
-              Close
+              {{ adminT.common.close }}
             </button>
           </div>
         </form>

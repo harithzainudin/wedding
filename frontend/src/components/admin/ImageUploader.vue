@@ -1,5 +1,9 @@
 <script setup lang="ts">
-  import { ref } from 'vue'
+  import { ref, computed } from 'vue'
+  import { useAdminLanguage } from '@/composables/useAdminLanguage'
+  import { interpolate } from '@/i18n/translations'
+
+  const { adminT } = useAdminLanguage()
 
   const props = defineProps<{
     maxFileSize: number
@@ -21,9 +25,9 @@
     'image/gif': 'GIF',
   }
 
-  const allowedFormatsLabel = props.allowedFormats
-    .map((format) => formatLabels[format] ?? format)
-    .join(', ')
+  const allowedFormatsLabel = computed(() =>
+    props.allowedFormats.map((format) => formatLabels[format] ?? format).join(', ')
+  )
 
   const handleDragOver = (event: DragEvent): void => {
     event.preventDefault()
@@ -101,10 +105,10 @@
         />
       </svg>
       <p class="font-body text-sm sm:text-base text-charcoal dark:text-dark-text mb-2">
-        Drag & drop images here or click to browse
+        {{ adminT.gallery.dragDropImages }}
       </p>
       <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary">
-        {{ allowedFormatsLabel }} up to {{ formatFileSize(maxFileSize) }}
+        {{ interpolate(adminT.gallery.upToSize, { formats: allowedFormatsLabel, size: formatFileSize(maxFileSize) }) }}
       </p>
     </div>
   </div>

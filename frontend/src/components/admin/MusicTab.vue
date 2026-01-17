@@ -1,12 +1,16 @@
 <script setup lang="ts">
   import { onMounted, onUnmounted, ref, watch } from 'vue'
   import { useMusic } from '@/composables/useMusic'
+  import { useAdminLanguage } from '@/composables/useAdminLanguage'
+  import { interpolate } from '@/i18n/translations'
   import type { MusicTrack } from '@/types/music'
   import MusicUploader from './MusicUploader.vue'
   import MusicTrackList from './MusicTrackList.vue'
   import MusicSettings from './MusicSettings.vue'
   import DeleteConfirmModal from './DeleteConfirmModal.vue'
   import UploadProgressBar from './UploadProgressBar.vue'
+
+  const { adminT } = useAdminLanguage()
 
   const {
     tracks,
@@ -134,12 +138,14 @@
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
       <div>
         <h2 class="font-heading text-xl font-semibold text-charcoal dark:text-dark-text">
-          Music Management
+          {{ adminT.music.title }}
         </h2>
         <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary mt-1">
-          {{ tracks.length }} / {{ settings.maxTracks }} tracks
+          {{
+            interpolate(adminT.music.tracksCount, { count: tracks.length, max: settings.maxTracks })
+          }}
           <span v-if="canUploadMore" class="text-sage">
-            ({{ remainingSlots }} slots remaining)
+            {{ interpolate(adminT.music.slotsRemaining, { remaining: remainingSlots }) }}
           </span>
         </p>
       </div>
@@ -165,7 +171,7 @@
               d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
             />
           </svg>
-          <span>Settings</span>
+          <span>{{ adminT.common.settings }}</span>
         </button>
       </div>
     </div>
@@ -222,7 +228,7 @@
         class="inline-block w-8 h-8 border-3 border-sage border-t-transparent rounded-full animate-spin"
       ></div>
       <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary mt-3">
-        Loading music...
+        {{ adminT.music.loadingMusic }}
       </p>
     </div>
 
@@ -236,7 +242,7 @@
         class="mt-3 px-4 py-2 font-body text-sm text-sage border border-sage rounded-full hover:bg-sage hover:text-white transition-colors cursor-pointer"
         @click="fetchTracks"
       >
-        Try Again
+        {{ adminT.common.tryAgain }}
       </button>
     </div>
 
@@ -255,8 +261,7 @@
         class="p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg"
       >
         <p class="font-body text-sm text-amber-700 dark:text-amber-300">
-          Maximum number of tracks ({{ settings.maxTracks }}) reached. Delete some tracks to upload
-          more.
+          {{ interpolate(adminT.music.maxReached, { max: settings.maxTracks }) }}
         </p>
       </div>
 
@@ -277,10 +282,10 @@
           <circle cx="18" cy="16" r="3" />
         </svg>
         <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary">
-          No music tracks yet.
+          {{ adminT.music.noTracks }}
         </p>
         <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary mt-2">
-          Upload your first track to add background music.
+          {{ adminT.music.uploadFirst }}
         </p>
       </div>
 
@@ -304,7 +309,7 @@
           <div class="modal-content">
             <div class="modal-header">
               <h3 class="font-heading text-lg font-medium text-charcoal dark:text-dark-text">
-                Music Settings
+                {{ adminT.music.musicSettings }}
               </h3>
               <button
                 type="button"
@@ -330,8 +335,10 @@
     <!-- Delete Confirmation Modal -->
     <DeleteConfirmModal
       v-if="deleteConfirmId"
-      :title="'Delete Track'"
-      :message="`Are you sure you want to delete '${getTrackToDelete()?.title}'?`"
+      :title="adminT.music.deleteTrack"
+      :message="
+        interpolate(adminT.music.deleteTrackConfirm, { title: getTrackToDelete()?.title || '' })
+      "
       :is-deleting="isDeleting"
       @confirm="handleDeleteConfirm"
       @cancel="handleDeleteCancel"

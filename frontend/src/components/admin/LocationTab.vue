@@ -1,11 +1,14 @@
 <script setup lang="ts">
   import { ref, computed, onMounted, watch } from 'vue'
   import { useVenue } from '@/composables/useVenue'
+  import { useAdminLanguage } from '@/composables/useAdminLanguage'
   import type { ParkingStep } from '@/types/venue'
   import LocationMapPicker from './LocationMapPicker.vue'
   import LocationForm from './LocationForm.vue'
   import LocationPreview from './LocationPreview.vue'
   import ParkingForm from './ParkingForm.vue'
+
+  const { adminT } = useAdminLanguage()
 
   const {
     venue,
@@ -145,10 +148,10 @@
     <!-- Header -->
     <div class="mb-6">
       <h2 class="font-heading text-xl font-semibold text-charcoal dark:text-dark-text">
-        Location Management
+        {{ adminT.venue.title }}
       </h2>
       <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary mt-1">
-        Update the venue location for guests to find your wedding
+        {{ adminT.venue.subtitle }}
       </p>
     </div>
 
@@ -158,7 +161,7 @@
         class="inline-block w-8 h-8 border-3 border-sage border-t-transparent rounded-full animate-spin"
       />
       <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary mt-3">
-        Loading venue settings...
+        {{ adminT.venue.loadingVenue }}
       </p>
     </div>
 
@@ -189,7 +192,7 @@
         class="px-4 py-2 rounded-lg bg-sage text-white font-body text-sm hover:bg-sage-dark transition-colors"
         @click="fetchVenue"
       >
-        Try Again
+        {{ adminT.common.tryAgain }}
       </button>
     </div>
 
@@ -201,7 +204,7 @@
           class="bg-white dark:bg-dark-bg-secondary rounded-lg border border-sand-dark dark:border-dark-border p-4"
         >
           <h3 class="font-heading text-base font-medium text-charcoal dark:text-dark-text mb-3">
-            Select Location
+            {{ adminT.venue.selectLocation }}
           </h3>
           <LocationMapPicker
             :coordinates="formData.coordinates"
@@ -230,7 +233,7 @@
           class="bg-white dark:bg-dark-bg-secondary rounded-lg border border-sand-dark dark:border-dark-border p-4"
         >
           <h3 class="font-heading text-base font-medium text-charcoal dark:text-dark-text mb-3">
-            Venue Details
+            {{ adminT.venue.venueDetails }}
           </h3>
           <LocationForm
             v-model:venue-name="formData.venueName"
@@ -285,7 +288,7 @@
               d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
             />
           </svg>
-          You have unsaved changes
+          {{ adminT.messages.unsavedChanges }}
         </p>
       </div>
 
@@ -300,7 +303,7 @@
               d="M5 13l4 4L19 7"
             />
           </svg>
-          All changes saved successfully!
+          {{ adminT.messages.savedSuccess }}
         </p>
       </div>
 
@@ -319,7 +322,7 @@
           class="px-4 py-2.5 rounded-lg border border-sand-dark dark:border-dark-border font-body text-sm text-charcoal dark:text-dark-text hover:bg-sand/50 dark:hover:bg-dark-bg transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
           @click="syncFormData"
         >
-          Reset Changes
+          {{ adminT.common.resetChanges }}
         </button>
         <button
           type="button"
@@ -347,7 +350,7 @@
               class="opacity-75"
             />
           </svg>
-          <span>{{ isSaving ? 'Saving...' : 'Save All Changes' }}</span>
+          <span>{{ isSaving ? adminT.common.saving : adminT.common.saveAllChanges }}</span>
         </button>
       </div>
     </div>
@@ -358,8 +361,8 @@
       class="mt-6 p-3 bg-sand/30 dark:bg-dark-bg-elevated rounded-lg"
     >
       <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary">
-        Last updated: {{ new Date(venue.updatedAt).toLocaleString() }}
-        <span v-if="venue.updatedBy"> by {{ venue.updatedBy }}</span>
+        {{ adminT.messages.lastUpdated }}: {{ new Date(venue.updatedAt).toLocaleString() }}
+        <span v-if="venue.updatedBy"> {{ adminT.messages.by }} {{ venue.updatedBy }}</span>
       </p>
     </div>
   </div>

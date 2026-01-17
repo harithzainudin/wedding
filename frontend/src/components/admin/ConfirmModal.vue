@@ -1,4 +1,6 @@
 <script setup lang="ts">
+  import { useAdminLanguage } from '@/composables/useAdminLanguage'
+
   defineProps<{
     title: string
     message: string
@@ -12,6 +14,8 @@
     confirm: []
     cancel: []
   }>()
+
+  const { adminT } = useAdminLanguage()
 </script>
 
 <template>
@@ -39,7 +43,7 @@
           class="px-4 py-2 font-body text-sm text-charcoal dark:text-dark-text border border-sand-dark dark:border-dark-border rounded-lg hover:bg-sand dark:hover:bg-dark-bg transition-colors cursor-pointer disabled:opacity-50"
           @click="emit('cancel')"
         >
-          {{ cancelText ?? 'Cancel' }}
+          {{ cancelText ?? adminT.common.cancel }}
         </button>
         <button
           type="button"
@@ -52,7 +56,7 @@
           }"
           @click="emit('confirm')"
         >
-          {{ isLoading ? 'Please wait...' : (confirmText ?? 'Confirm') }}
+          {{ isLoading ? adminT.modals.pleaseWait : (confirmText ?? adminT.common.confirm) }}
         </button>
       </div>
     </div>

@@ -4,6 +4,9 @@
   import type { GalleryImage } from '@/types/gallery'
   import ImageCard from './ImageCard.vue'
   import MoveImageModal from './MoveImageModal.vue'
+  import { useAdminLanguage } from '@/composables/useAdminLanguage'
+
+  const { adminT } = useAdminLanguage()
 
   const props = defineProps<{
     images: GalleryImage[]
@@ -132,10 +135,10 @@
       v-if="isTouchDevice"
       class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary mb-3"
     >
-      Tap an image to move or view it.
+      {{ adminT.gallery.tapToMoveOrView }}
     </p>
     <p v-else class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary mb-3">
-      Drag images to reorder them.
+      {{ adminT.gallery.dragToReorder }}
     </p>
 
     <draggable

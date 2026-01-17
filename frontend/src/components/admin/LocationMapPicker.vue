@@ -3,6 +3,9 @@
   import L from 'leaflet'
   import 'leaflet/dist/leaflet.css'
   import type { NominatimResult } from '@/types/venue'
+  import { useAdminLanguage } from '@/composables/useAdminLanguage'
+
+  const { adminT } = useAdminLanguage()
 
   const props = defineProps<{
     coordinates: { lat: number; lng: number }
@@ -189,7 +192,7 @@
       <label
         class="block font-body text-xs font-medium text-charcoal-light dark:text-dark-text-secondary mb-1.5"
       >
-        Search Location
+        {{ adminT.venue.searchLocation }}
       </label>
       <div class="relative">
         <svg
@@ -208,7 +211,7 @@
         <input
           v-model="searchQuery"
           type="text"
-          placeholder="Type venue name or address..."
+          :placeholder="adminT.venue.searchPlaceholder"
           :disabled="disabled"
           class="w-full pl-10 pr-10 py-2.5 rounded-lg border border-sand-dark dark:border-dark-border bg-white dark:bg-dark-bg-secondary text-charcoal dark:text-dark-text font-body text-sm focus:outline-none focus:ring-2 focus:ring-sage/50 disabled:opacity-50 disabled:cursor-not-allowed"
           @input="handleSearchInput"
@@ -266,7 +269,7 @@
               d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
             />
           </svg>
-          <p class="font-body text-sm">Type at least 3 characters to search</p>
+          <p class="font-body text-sm">{{ adminT.venue.typeAtLeast3Chars }}</p>
         </div>
 
         <!-- Searching indicator -->
@@ -287,7 +290,7 @@
             />
           </svg>
           <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary">
-            Searching for "{{ searchQuery }}"...
+            {{ adminT.venue.searchingFor.replace('{query}', searchQuery) }}
           </p>
         </div>
 
@@ -296,8 +299,12 @@
           <p
             class="px-4 py-2 font-body text-xs text-charcoal-light dark:text-dark-text-secondary bg-sand/50 dark:bg-dark-bg-elevated border-b border-sand-dark/30 dark:border-dark-border/30"
           >
-            {{ searchResults.length }} location{{ searchResults.length > 1 ? 's' : '' }}
-            found
+            {{
+              (searchResults.length > 1
+                ? adminT.venue.locationsFound
+                : adminT.venue.locationFound
+              ).replace('{count}', String(searchResults.length))
+            }}
           </p>
           <button
             v-for="result in searchResults"
@@ -337,10 +344,10 @@
             />
           </svg>
           <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary">
-            No locations found for "{{ searchQuery }}"
+            {{ adminT.venue.noLocationsFound.replace('{query}', searchQuery) }}
           </p>
           <p class="font-body text-xs text-charcoal-light/70 dark:text-dark-text-secondary/70 mt-1">
-            Try a different search term
+            {{ adminT.venue.tryDifferentSearch }}
           </p>
         </div>
       </div>
@@ -355,7 +362,7 @@
 
     <!-- Instructions -->
     <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary">
-      Click on the map or drag the marker to set the exact location
+      {{ adminT.venue.clickMapOrDragMarker }}
     </p>
   </div>
 </template>

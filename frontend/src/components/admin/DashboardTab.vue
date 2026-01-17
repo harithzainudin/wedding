@@ -1,6 +1,9 @@
 <script setup lang="ts">
   import { ref, computed, onMounted } from 'vue'
   import { listRsvpsAdminCached, listGalleryImagesAdminCached } from '@/services/api'
+  import { useAdminLanguage } from '@/composables/useAdminLanguage'
+
+  const { adminT } = useAdminLanguage()
 
   type TabType =
     | 'dashboard'
@@ -46,40 +49,40 @@
   const quickLinks = computed<{ label: string; tab: TabType; icon: string; description: string }[]>(
     () => [
       {
-        label: 'Wedding Details',
+        label: adminT.value.dashboard.weddingDetails,
         tab: 'wedding',
         icon: 'heart',
-        description: 'Couple & event info',
+        description: adminT.value.dashboard.coupleEventInfo,
       },
       {
-        label: 'Venue',
+        label: adminT.value.nav.venue,
         tab: 'venue',
         icon: 'location',
-        description: 'Location settings',
+        description: adminT.value.dashboard.locationSettings,
       },
       {
-        label: 'Schedule',
+        label: adminT.value.nav.schedule,
         tab: 'schedule',
         icon: 'calendar',
-        description: 'Event timeline',
+        description: adminT.value.dashboard.eventTimeline,
       },
       {
-        label: 'Gallery',
+        label: adminT.value.nav.gallery,
         tab: 'gallery',
         icon: 'image',
-        description: 'Manage photos',
+        description: adminT.value.dashboard.managePhotos,
       },
       {
-        label: 'Contacts',
+        label: adminT.value.nav.contacts,
         tab: 'contacts',
         icon: 'phone',
-        description: 'Contact people',
+        description: adminT.value.dashboard.contactPeople,
       },
       {
-        label: 'RSVPs',
+        label: adminT.value.nav.rsvps,
         tab: 'rsvps',
         icon: 'users',
-        description: 'Guest responses',
+        description: adminT.value.dashboard.guestResponses,
       },
     ]
   )
@@ -94,10 +97,10 @@
     <!-- Header -->
     <div class="mb-6">
       <h2 class="font-heading text-xl font-semibold text-charcoal dark:text-dark-text">
-        Dashboard
+        {{ adminT.dashboard.title }}
       </h2>
       <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary mt-1">
-        Overview of your wedding website
+        {{ adminT.dashboard.subtitle }}
       </p>
     </div>
 
@@ -107,7 +110,7 @@
         class="inline-block w-8 h-8 border-3 border-sage border-t-transparent rounded-full animate-spin"
       />
       <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary mt-3">
-        Loading dashboard...
+        {{ adminT.dashboard.loadingDashboard }}
       </p>
     </div>
 
@@ -117,7 +120,7 @@
       <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
         <div class="p-4 bg-white dark:bg-dark-bg-secondary rounded-xl shadow-sm dark:shadow-lg">
           <p class="font-body text-xs sm:text-sm text-charcoal-light dark:text-dark-text-secondary">
-            Total RSVPs
+            {{ adminT.dashboard.totalRsvps }}
           </p>
           <p class="font-heading text-2xl sm:text-3xl text-sage-dark dark:text-sage-light">
             {{ rsvpStats.total }}
@@ -125,7 +128,7 @@
         </div>
         <div class="p-4 bg-white dark:bg-dark-bg-secondary rounded-xl shadow-sm dark:shadow-lg">
           <p class="font-body text-xs sm:text-sm text-charcoal-light dark:text-dark-text-secondary">
-            Attending
+            {{ adminT.dashboard.attending }}
           </p>
           <p class="font-heading text-2xl sm:text-3xl text-green-600 dark:text-green-400">
             {{ rsvpStats.attending }}
@@ -133,7 +136,7 @@
         </div>
         <div class="p-4 bg-white dark:bg-dark-bg-secondary rounded-xl shadow-sm dark:shadow-lg">
           <p class="font-body text-xs sm:text-sm text-charcoal-light dark:text-dark-text-secondary">
-            Total Guests
+            {{ adminT.dashboard.totalGuests }}
           </p>
           <p class="font-heading text-2xl sm:text-3xl text-sage-dark dark:text-sage-light">
             {{ rsvpStats.totalGuests }}
@@ -141,7 +144,7 @@
         </div>
         <div class="p-4 bg-white dark:bg-dark-bg-secondary rounded-xl shadow-sm dark:shadow-lg">
           <p class="font-body text-xs sm:text-sm text-charcoal-light dark:text-dark-text-secondary">
-            Gallery Photos
+            {{ adminT.dashboard.galleryPhotos }}
           </p>
           <p class="font-heading text-2xl sm:text-3xl text-sage-dark dark:text-sage-light">
             {{ galleryCount }}
@@ -152,7 +155,7 @@
       <!-- Quick Links -->
       <div>
         <h3 class="font-heading text-base font-medium text-charcoal dark:text-dark-text mb-3">
-          Quick Actions
+          {{ adminT.dashboard.quickActions }}
         </h3>
         <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
           <button
@@ -282,7 +285,7 @@
           class="px-4 py-2 font-body text-sm text-sage hover:text-sage-dark transition-colors cursor-pointer"
           @click="loadStats(true)"
         >
-          Refresh Stats
+          {{ adminT.dashboard.refreshStats }}
         </button>
       </div>
     </div>

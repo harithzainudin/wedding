@@ -1,10 +1,13 @@
 <script setup lang="ts">
   import { ref, onMounted, onUnmounted } from 'vue'
+  import { useAdminLanguage } from '@/composables/useAdminLanguage'
 
   defineProps<{
     username: string
     isMasterUser: boolean
   }>()
+
+  const { adminT } = useAdminLanguage()
 
   const emit = defineEmits<{
     openProfile: []
@@ -72,7 +75,7 @@
         v-if="isMasterUser"
         class="hidden sm:inline px-1.5 py-0.5 text-xs bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 rounded-full"
       >
-        Master
+        {{ adminT.header.masterAccount }}
       </span>
       <svg
         class="w-4 h-4 text-charcoal-light dark:text-dark-text-secondary transition-transform"
@@ -103,7 +106,7 @@
             {{ username }}
           </p>
           <p v-if="isMasterUser" class="font-body text-xs text-amber-600 dark:text-amber-400">
-            Master Account
+            {{ adminT.header.masterAccount }}
           </p>
         </div>
 
@@ -122,7 +125,7 @@
             <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
             <circle cx="12" cy="7" r="4" />
           </svg>
-          Profile Settings
+          {{ adminT.header.profileSettings }}
         </button>
 
         <button
@@ -141,7 +144,7 @@
             <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
             <path d="M7 11V7a5 5 0 0110 0v4" />
           </svg>
-          Change Password
+          {{ adminT.auth.changePassword }}
         </button>
 
         <div class="border-t border-sand-dark dark:border-dark-border mt-1 pt-1">
@@ -161,7 +164,7 @@
               <polyline points="16,17 21,12 16,7" />
               <line x1="21" y1="12" x2="9" y2="12" />
             </svg>
-            Logout
+            {{ adminT.common.logout }}
           </button>
         </div>
       </div>

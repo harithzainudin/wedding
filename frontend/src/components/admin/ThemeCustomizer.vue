@@ -2,6 +2,9 @@
   import { ref, watch, computed } from 'vue'
   import type { CustomThemeData, ThemeColors, ThemeDarkColors } from '@/types/theme'
   import { FONT_PRESETS, DEFAULT_THEMES } from '@/constants/themes'
+  import { useAdminLanguage } from '@/composables/useAdminLanguage'
+
+  const { adminT } = useAdminLanguage()
 
   const props = defineProps<{
     customTheme?: CustomThemeData | undefined
@@ -88,70 +91,26 @@
     expandedSections.value[section] = !expandedSections.value[section]
   }
 
-  // Color field definitions
-  const lightColorFields: {
-    key: keyof ThemeColors
-    label: string
-    description: string
-  }[] = [
-    { key: 'primary', label: 'Primary', description: 'Main accent color' },
-    {
-      key: 'primaryLight',
-      label: 'Primary Light',
-      description: 'Lighter variant of primary',
-    },
-    {
-      key: 'primaryDark',
-      label: 'Primary Dark',
-      description: 'Darker variant of primary',
-    },
-    {
-      key: 'secondary',
-      label: 'Secondary',
-      description: 'Background and card color',
-    },
-    {
-      key: 'secondaryDark',
-      label: 'Secondary Dark',
-      description: 'Darker secondary',
-    },
-    { key: 'text', label: 'Text', description: 'Primary text color' },
-    {
-      key: 'textLight',
-      label: 'Text Light',
-      description: 'Secondary text color',
-    },
-    { key: 'background', label: 'Background', description: 'Page background' },
-  ]
+  // Color field definitions (computed for translations)
+  const lightColorFields = computed(() => [
+    { key: 'primary' as keyof ThemeColors, label: adminT.value.theme.primary, description: adminT.value.theme.primaryDesc },
+    { key: 'primaryLight' as keyof ThemeColors, label: adminT.value.theme.primaryLight, description: adminT.value.theme.primaryLightDesc },
+    { key: 'primaryDark' as keyof ThemeColors, label: adminT.value.theme.primaryDark, description: adminT.value.theme.primaryDarkDesc },
+    { key: 'secondary' as keyof ThemeColors, label: adminT.value.theme.secondary, description: adminT.value.theme.secondaryDesc },
+    { key: 'secondaryDark' as keyof ThemeColors, label: adminT.value.theme.secondaryDark, description: adminT.value.theme.secondaryDarkDesc },
+    { key: 'text' as keyof ThemeColors, label: adminT.value.theme.text, description: adminT.value.theme.textDesc },
+    { key: 'textLight' as keyof ThemeColors, label: adminT.value.theme.textLight, description: adminT.value.theme.textLightDesc },
+    { key: 'background' as keyof ThemeColors, label: adminT.value.theme.background, description: adminT.value.theme.backgroundDesc },
+  ])
 
-  const darkColorFields: {
-    key: keyof ThemeDarkColors
-    label: string
-    description: string
-  }[] = [
-    {
-      key: 'background',
-      label: 'Background',
-      description: 'Main dark background',
-    },
-    {
-      key: 'backgroundSecondary',
-      label: 'Background Secondary',
-      description: 'Card background',
-    },
-    {
-      key: 'backgroundElevated',
-      label: 'Background Elevated',
-      description: 'Modal/popup background',
-    },
-    { key: 'border', label: 'Border', description: 'Border color' },
-    { key: 'text', label: 'Text', description: 'Primary text in dark mode' },
-    {
-      key: 'textSecondary',
-      label: 'Text Secondary',
-      description: 'Secondary text in dark mode',
-    },
-  ]
+  const darkColorFields = computed(() => [
+    { key: 'background' as keyof ThemeDarkColors, label: adminT.value.theme.background, description: adminT.value.theme.backgroundDesc },
+    { key: 'backgroundSecondary' as keyof ThemeDarkColors, label: adminT.value.theme.backgroundSecondary, description: adminT.value.theme.backgroundSecondaryDesc },
+    { key: 'backgroundElevated' as keyof ThemeDarkColors, label: adminT.value.theme.backgroundElevated, description: adminT.value.theme.backgroundElevatedDesc },
+    { key: 'border' as keyof ThemeDarkColors, label: adminT.value.theme.border, description: adminT.value.theme.borderDesc },
+    { key: 'text' as keyof ThemeDarkColors, label: adminT.value.theme.darkModeText, description: adminT.value.theme.darkModeTextDesc },
+    { key: 'textSecondary' as keyof ThemeDarkColors, label: adminT.value.theme.textSecondary, description: adminT.value.theme.textSecondaryDesc },
+  ])
 </script>
 
 <template>
@@ -159,14 +118,14 @@
     <!-- Theme Name -->
     <div>
       <label class="block font-body text-sm font-medium text-charcoal dark:text-dark-text mb-1">
-        Theme Name
+        {{ adminT.theme.themeName }}
       </label>
       <input
         type="text"
         :value="localTheme.name"
         @input="updateName(($event.target as HTMLInputElement).value)"
         class="w-full px-3 py-2 font-body text-sm border border-sand-dark dark:border-dark-border rounded-lg bg-white dark:bg-dark-bg-secondary text-charcoal dark:text-dark-text focus:border-sage focus:outline-none"
-        placeholder="My Custom Theme"
+        :placeholder="adminT.theme.myCustomTheme"
         maxlength="50"
       />
     </div>
@@ -179,7 +138,7 @@
         @click="toggleSection('lightColors')"
       >
         <span class="font-body text-sm font-medium text-charcoal dark:text-dark-text">
-          Light Mode Colors
+          {{ adminT.theme.lightModeColors }}
         </span>
         <svg
           class="w-5 h-5 text-charcoal-light dark:text-dark-text-secondary transition-transform"
@@ -231,7 +190,7 @@
         @click="toggleSection('darkColors')"
       >
         <span class="font-body text-sm font-medium text-charcoal dark:text-dark-text">
-          Dark Mode Colors
+          {{ adminT.theme.darkModeColors }}
         </span>
         <svg
           class="w-5 h-5 text-charcoal-light dark:text-dark-text-secondary transition-transform"
@@ -282,7 +241,7 @@
         class="w-full flex items-center justify-between px-4 py-3 bg-sand/50 dark:bg-dark-bg-secondary text-left cursor-pointer hover:bg-sand dark:hover:bg-dark-bg-elevated transition-colors"
         @click="toggleSection('fonts')"
       >
-        <span class="font-body text-sm font-medium text-charcoal dark:text-dark-text"> Fonts </span>
+        <span class="font-body text-sm font-medium text-charcoal dark:text-dark-text">{{ adminT.theme.fonts }}</span>
         <svg
           class="w-5 h-5 text-charcoal-light dark:text-dark-text-secondary transition-transform"
           :class="{ 'rotate-180': expandedSections.fonts }"
@@ -300,7 +259,7 @@
       </button>
       <div v-show="expandedSections.fonts" class="p-4 space-y-4">
         <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary">
-          Select a font pairing preset:
+          {{ adminT.theme.selectFontPairing }}
         </p>
         <div class="grid grid-cols-2 gap-2">
           <button
@@ -330,14 +289,14 @@
         <!-- Current Font Display -->
         <div class="mt-4 p-3 bg-sand/50 dark:bg-dark-bg-secondary rounded-lg">
           <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary mb-2">
-            Current selection:
+            {{ adminT.theme.currentSelection }}
           </p>
           <p class="text-charcoal dark:text-dark-text">
-            <span class="font-medium">Heading:</span>
+            <span class="font-medium">{{ adminT.theme.headingFont }}</span>
             {{ localTheme.fonts.heading }}
           </p>
           <p class="text-charcoal dark:text-dark-text">
-            <span class="font-medium">Body:</span> {{ localTheme.fonts.body }}
+            <span class="font-medium">{{ adminT.theme.bodyFont }}</span> {{ localTheme.fonts.body }}
           </p>
         </div>
       </div>

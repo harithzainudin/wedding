@@ -1,5 +1,7 @@
 <script setup lang="ts">
   import DarkModeToggle from '@/components/ui/DarkModeToggle.vue'
+  import AdminLanguageToggle from '@/components/admin/AdminLanguageToggle.vue'
+  import { useAdminLanguage } from '@/composables/useAdminLanguage'
 
   defineProps<{
     username: string
@@ -15,16 +17,19 @@
     'update:showPassword': [value: boolean]
     submit: []
   }>()
+
+  const { adminT } = useAdminLanguage()
 </script>
 
 <template>
   <div class="relative flex items-center justify-center min-h-screen px-4">
-    <div class="absolute top-4 right-4">
+    <div class="absolute top-4 right-4 flex items-center gap-2">
+      <AdminLanguageToggle />
       <DarkModeToggle variant="light" />
     </div>
     <div class="w-full max-w-sm p-6 bg-white dark:bg-dark-bg-secondary rounded-xl shadow-lg">
       <h1 class="font-heading text-2xl text-center text-sage-dark dark:text-sage-light mb-6">
-        Admin Login
+        {{ adminT.auth.adminLogin }}
       </h1>
 
       <form @submit.prevent="emit('submit')" class="space-y-4">
@@ -33,14 +38,14 @@
             for="username"
             class="block font-body text-sm font-medium text-charcoal dark:text-dark-text mb-1"
           >
-            Username
+            {{ adminT.auth.username }}
           </label>
           <input
             id="username"
             :value="username"
             type="text"
             class="w-full px-3 py-2.5 font-body text-base border border-sand-dark dark:border-dark-border rounded-lg bg-sand dark:bg-dark-bg-elevated text-charcoal dark:text-dark-text focus:outline-none focus:border-sage placeholder:text-charcoal-light/60 dark:placeholder:text-dark-text-secondary/60"
-            placeholder="Enter username"
+            :placeholder="adminT.auth.enterUsername"
             required
             autofocus
             @input="emit('update:username', ($event.target as HTMLInputElement).value)"
@@ -52,7 +57,7 @@
             for="password"
             class="block font-body text-sm font-medium text-charcoal dark:text-dark-text mb-1"
           >
-            Password
+            {{ adminT.auth.password }}
           </label>
           <div class="relative">
             <input
@@ -60,7 +65,7 @@
               :value="password"
               :type="showPassword ? 'text' : 'password'"
               class="w-full px-3 py-2.5 pr-10 font-body text-base border border-sand-dark dark:border-dark-border rounded-lg bg-sand dark:bg-dark-bg-elevated text-charcoal dark:text-dark-text focus:outline-none focus:border-sage placeholder:text-charcoal-light/60 dark:placeholder:text-dark-text-secondary/60"
-              placeholder="Enter password"
+              :placeholder="adminT.auth.enterPassword"
               required
               @input="emit('update:password', ($event.target as HTMLInputElement).value)"
             />
@@ -98,7 +103,7 @@
         </div>
 
         <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary text-center">
-          Use "master" as username with the master password for initial setup.
+          {{ adminT.auth.masterHint }}
         </p>
 
         <p v-if="loginError" class="text-red-600 dark:text-red-400 font-body text-sm text-center">
@@ -110,7 +115,7 @@
           class="w-full py-3 px-6 font-body text-base font-medium text-white bg-sage rounded-lg cursor-pointer transition-colors hover:bg-sage-dark disabled:opacity-70 disabled:cursor-not-allowed"
           :disabled="isLoggingIn"
         >
-          {{ isLoggingIn ? 'Logging in...' : 'Login' }}
+          {{ isLoggingIn ? adminT.auth.loggingIn : adminT.auth.login }}
         </button>
       </form>
     </div>

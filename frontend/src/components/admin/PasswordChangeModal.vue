@@ -1,4 +1,8 @@
 <script setup lang="ts">
+  import { useAdminLanguage } from '@/composables/useAdminLanguage'
+
+  const { adminT } = useAdminLanguage()
+
   defineProps<{
     show: boolean
     currentPassword: string
@@ -46,16 +50,16 @@
           </svg>
         </div>
         <h3 class="font-heading text-lg text-charcoal dark:text-dark-text mb-2">
-          Password Changed
+          {{ adminT.auth.passwordChanged }}
         </h3>
         <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary">
-          Your password has been updated successfully.
+          {{ adminT.auth.passwordChangedSuccessMessage }}
         </p>
       </div>
 
       <div v-else>
         <div class="flex items-center justify-between mb-4">
-          <h3 class="font-heading text-lg text-charcoal">Change Password</h3>
+          <h3 class="font-heading text-lg text-charcoal">{{ adminT.auth.changePassword }}</h3>
           <button
             type="button"
             class="text-charcoal-light hover:text-charcoal transition-colors cursor-pointer"
@@ -80,7 +84,7 @@
               for="currentPassword"
               class="block font-body text-sm font-medium text-charcoal mb-1"
             >
-              Current Password
+              {{ adminT.auth.currentPassword }}
             </label>
             <div class="relative">
               <input
@@ -88,7 +92,7 @@
                 :value="currentPassword"
                 :type="showCurrentPassword ? 'text' : 'password'"
                 class="w-full px-3 py-2.5 pr-10 font-body text-base border border-sand-dark rounded-lg bg-sand text-charcoal focus:outline-none focus:border-sage"
-                placeholder="Enter current password"
+                :placeholder="adminT.auth.enterCurrentPassword"
                 required
                 @input="emit('update:currentPassword', ($event.target as HTMLInputElement).value)"
               />
@@ -127,7 +131,7 @@
 
           <div>
             <label for="newPassword" class="block font-body text-sm font-medium text-charcoal mb-1">
-              New Password
+              {{ adminT.auth.newPassword }}
             </label>
             <div class="relative">
               <input
@@ -135,7 +139,7 @@
                 :value="newPassword"
                 :type="showNewPassword ? 'text' : 'password'"
                 class="w-full px-3 py-2.5 pr-10 font-body text-base border border-sand-dark rounded-lg bg-sand text-charcoal focus:outline-none focus:border-sage"
-                placeholder="Enter new password"
+                :placeholder="adminT.auth.enterNewPassword"
                 required
                 minlength="6"
                 @input="emit('update:newPassword', ($event.target as HTMLInputElement).value)"
@@ -178,7 +182,7 @@
               for="confirmNewPassword"
               class="block font-body text-sm font-medium text-charcoal mb-1"
             >
-              Confirm New Password
+              {{ adminT.auth.confirmPassword }}
             </label>
             <div class="relative">
               <input
@@ -186,7 +190,7 @@
                 :value="confirmNewPassword"
                 :type="showConfirmNewPassword ? 'text' : 'password'"
                 class="w-full px-3 py-2.5 pr-10 font-body text-base border border-sand-dark rounded-lg bg-sand text-charcoal focus:outline-none focus:border-sage"
-                placeholder="Confirm new password"
+                :placeholder="adminT.auth.confirmNewPassword"
                 required
                 minlength="6"
                 @input="
@@ -227,7 +231,7 @@
           </div>
 
           <p class="font-body text-xs text-charcoal-light">
-            Password must be at least 6 characters.
+            {{ adminT.auth.passwordMinLength }}
           </p>
 
           <p v-if="passwordChangeError" class="text-red-600 font-body text-sm">
@@ -240,14 +244,14 @@
               class="px-4 py-2 font-body text-sm text-white bg-sage rounded-lg hover:bg-sage-dark transition-colors cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed"
               :disabled="isChangingPassword"
             >
-              {{ isChangingPassword ? 'Changing...' : 'Change Password' }}
+              {{ isChangingPassword ? adminT.auth.changingPassword : adminT.auth.changePassword }}
             </button>
             <button
               type="button"
               class="px-4 py-2 font-body text-sm text-charcoal border border-charcoal-light rounded-lg hover:bg-sand-dark transition-colors cursor-pointer"
               @click="emit('close')"
             >
-              Cancel
+              {{ adminT.common.cancel }}
             </button>
           </div>
         </form>

@@ -1,5 +1,8 @@
 <script setup lang="ts">
   import { computed } from 'vue'
+  import { useAdminLanguage } from '@/composables/useAdminLanguage'
+
+  const { adminT } = useAdminLanguage()
 
   const props = defineProps<{
     venueName: string
@@ -24,9 +27,11 @@
     <div
       class="px-4 py-3 bg-sand/50 dark:bg-dark-bg-elevated border-b border-sand-dark dark:border-dark-border"
     >
-      <h4 class="font-heading text-sm font-medium text-charcoal dark:text-dark-text">Preview</h4>
+      <h4 class="font-heading text-sm font-medium text-charcoal dark:text-dark-text">
+        {{ adminT.venue.previewTitle }}
+      </h4>
       <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary mt-0.5">
-        How guests will see the venue
+        {{ adminT.venue.howGuestsWillSee }}
       </p>
     </div>
 
@@ -36,7 +41,7 @@
         <!-- Venue Name -->
         <div v-if="venueName.trim()">
           <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary mb-1">
-            Venue
+            {{ adminT.venue.venueLabel }}
           </p>
           <p class="font-heading text-base text-charcoal dark:text-dark-text">
             {{ venueName }}
@@ -46,7 +51,7 @@
         <!-- Address -->
         <div v-if="address.trim()">
           <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary mb-1">
-            Address
+            {{ adminT.venue.addressLabel }}
           </p>
           <p class="font-body text-sm text-charcoal dark:text-dark-text whitespace-pre-line">
             {{ address }}
@@ -56,7 +61,7 @@
         <!-- Parking Info -->
         <div v-if="parkingInfo.trim()">
           <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary mb-1">
-            Parking
+            {{ adminT.venue.parkingLabel }}
           </p>
           <p class="font-body text-sm text-charcoal dark:text-dark-text whitespace-pre-line">
             {{ parkingInfo }}
@@ -67,14 +72,14 @@
       <!-- Empty State -->
       <div v-else class="text-center py-4">
         <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary">
-          Enter venue details to see preview
+          {{ adminT.venue.enterDetailsToPreview }}
         </p>
       </div>
 
       <!-- Navigation Buttons -->
       <div class="pt-3 border-t border-sand-dark/50 dark:border-dark-border/50 space-y-2">
         <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary mb-2">
-          Test navigation links:
+          {{ adminT.venue.testNavigationLinks }}
         </p>
 
         <div class="flex gap-2">
@@ -89,9 +94,9 @@
                 d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"
               />
             </svg>
-            <span class="font-body text-xs font-medium text-charcoal dark:text-dark-text"
-              >Maps</span
-            >
+            <span class="font-body text-xs font-medium text-charcoal dark:text-dark-text">{{
+              adminT.venue.googleMaps
+            }}</span>
             <svg
               class="w-3 h-3 text-charcoal-light dark:text-dark-text-secondary"
               fill="none"
@@ -121,9 +126,9 @@
               <circle cx="15.5" cy="11" r="1.5" />
               <path d="M12 17c2 0 3.7-1.2 4.5-3h-9c.8 1.8 2.5 3 4.5 3z" />
             </svg>
-            <span class="font-body text-xs font-medium text-charcoal dark:text-dark-text"
-              >Waze</span
-            >
+            <span class="font-body text-xs font-medium text-charcoal dark:text-dark-text">{{
+              adminT.venue.waze
+            }}</span>
             <svg
               class="w-3 h-3 text-charcoal-light dark:text-dark-text-secondary"
               fill="none"

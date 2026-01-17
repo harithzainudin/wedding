@@ -2,11 +2,15 @@
   import { ref, watch, onMounted } from 'vue'
   import { useContacts } from '@/composables/useContacts'
   import { useCrudList } from '@/composables/useCrudList'
+  import { useAdminLanguage } from '@/composables/useAdminLanguage'
+  import { interpolate } from '@/i18n/translations'
   import ConfirmModal from './ConfirmModal.vue'
   import ItemActions from './ItemActions.vue'
   import MultilingualInput from './MultilingualInput.vue'
   import BaseFormModal from './BaseFormModal.vue'
   import type { ContactPerson, MultilingualText } from '@/types/contacts'
+
+  const { adminT } = useAdminLanguage()
 
   const {
     contacts,
@@ -110,10 +114,10 @@
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
       <div>
         <h2 class="font-heading text-xl font-semibold text-charcoal dark:text-dark-text">
-          Contacts
+          {{ adminT.contacts.title }}
         </h2>
         <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary mt-1">
-          Manage contact people for guests to reach
+          {{ adminT.contacts.subtitle }}
         </p>
       </div>
       <button
@@ -129,7 +133,7 @@
             d="M12 4v16m8-8H4"
           />
         </svg>
-        Add Contact
+        {{ adminT.contacts.addContact }}
       </button>
     </div>
 
@@ -138,7 +142,7 @@
         class="inline-block w-8 h-8 border-3 border-sage border-t-transparent rounded-full animate-spin"
       />
       <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary mt-3">
-        Loading contacts...
+        {{ adminT.contacts.loadingContacts }}
       </p>
     </div>
 
@@ -151,7 +155,7 @@
         class="px-4 py-2 rounded-lg bg-sage text-white font-body text-sm hover:bg-sage-dark transition-colors"
         @click="fetchContacts"
       >
-        Try Again
+        {{ adminT.common.tryAgain }}
       </button>
     </div>
 
@@ -161,7 +165,7 @@
         class="p-8 bg-white dark:bg-dark-bg-secondary rounded-lg border border-sand-dark dark:border-dark-border text-center"
       >
         <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary">
-          No contacts yet. Click "Add Contact" to create one.
+          {{ adminT.contacts.noContacts }}
         </p>
       </div>
       <TransitionGroup v-else name="list" tag="div" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -227,7 +231,7 @@
                   d="M5 13l4 4L19 7"
                 />
               </svg>
-              Contacts saved successfully!
+              {{ adminT.contacts.savedSuccess }}
             </p>
           </div>
           <div
@@ -243,7 +247,7 @@
                   d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
                 />
               </svg>
-              You have unsaved changes
+              {{ adminT.messages.unsavedChanges }}
             </p>
           </div>
         </div>
@@ -254,7 +258,7 @@
             class="px-4 py-2 font-body text-sm text-charcoal border border-charcoal-light rounded-lg hover:bg-sand-dark transition-colors cursor-pointer"
             @click="discardChanges"
           >
-            Discard
+            {{ adminT.common.discard }}
           </button>
           <button
             type="button"
@@ -262,42 +266,42 @@
             :disabled="isSaving || !hasChanges"
             @click="handleSave"
           >
-            {{ isSaving ? 'Saving...' : 'Save Changes' }}
+            {{ isSaving ? adminT.common.saving : adminT.common.saveChanges }}
           </button>
         </div>
       </div>
 
       <div v-if="contacts.updatedAt" class="p-3 bg-sand/30 dark:bg-dark-bg-elevated rounded-lg">
         <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary">
-          Last updated: {{ new Date(contacts.updatedAt).toLocaleString() }}
-          <span v-if="contacts.updatedBy"> by {{ contacts.updatedBy }}</span>
+          {{ adminT.messages.lastUpdated }}: {{ new Date(contacts.updatedAt).toLocaleString() }}
+          <span v-if="contacts.updatedBy"> {{ adminT.messages.by }} {{ contacts.updatedBy }}</span>
         </p>
       </div>
     </div>
 
     <BaseFormModal
       :show="showModal"
-      :title="editingContact ? 'Edit Contact' : 'Add Contact'"
-      :submit-text="editingContact ? 'Update' : 'Add'"
+      :title="editingContact ? adminT.contacts.editContact : adminT.contacts.addContact"
+      :submit-text="editingContact ? adminT.common.update : adminT.common.add"
       @close="closeModal"
       @submit="saveModalForm"
     >
       <div>
-        <label class="block font-body text-sm font-medium text-charcoal dark:text-dark-text mb-1"
-          >Name</label
-        >
+        <label class="block font-body text-sm font-medium text-charcoal dark:text-dark-text mb-1">{{
+          adminT.contacts.contactName
+        }}</label>
         <input
           v-model="modalForm.name"
           type="text"
           class="w-full px-3 py-2.5 font-body text-base border border-sand-dark dark:border-dark-border rounded-lg bg-sand dark:bg-dark-bg-elevated text-charcoal dark:text-dark-text focus:outline-none focus:border-sage"
-          placeholder="Contact name"
+          :placeholder="adminT.contacts.contactNamePlaceholder"
           required
         />
       </div>
       <div>
-        <label class="block font-body text-sm font-medium text-charcoal dark:text-dark-text mb-1"
-          >Phone Number</label
-        >
+        <label class="block font-body text-sm font-medium text-charcoal dark:text-dark-text mb-1">{{
+          adminT.contacts.phoneNumber
+        }}</label>
         <input
           v-model="modalForm.phoneNumber"
           type="tel"
@@ -308,16 +312,18 @@
       </div>
       <MultilingualInput
         v-model="modalForm.role"
-        label="Role"
-        placeholder="e.g., Groom's Brother"
+        :label="adminT.contacts.role"
+        :placeholder="adminT.contacts.rolePlaceholder"
       />
     </BaseFormModal>
 
     <ConfirmModal
       v-if="showDeleteModal"
-      title="Delete Contact"
-      :message="`Are you sure you want to delete '${contactToDelete?.name || ''}'? This action cannot be undone.`"
-      confirm-text="Delete"
+      :title="adminT.contacts.deleteContact"
+      :message="
+        interpolate(adminT.contacts.deleteContactConfirm, { name: contactToDelete?.name || '' })
+      "
+      :confirm-text="adminT.common.delete"
       variant="danger"
       @confirm="deleteContact"
       @cancel="cancelDelete"

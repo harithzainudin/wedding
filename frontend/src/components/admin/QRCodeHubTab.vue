@@ -14,6 +14,9 @@
     VALID_WIFI_ENCRYPTIONS,
   } from '@/types/qrCodeHub'
   import { useQRCodeHub } from '@/composables/useQRCodeHub'
+  import { useAdminLanguage } from '@/composables/useAdminLanguage'
+
+  const { adminT } = useAdminLanguage()
 
   const {
     settings,
@@ -37,58 +40,64 @@
   // File input ref
   const fileInputRef = ref<HTMLInputElement | null>(null)
 
-  // QR Code type labels
-  const qrTypeLabels: Record<QRCodeType, { title: string; subtitle: string; icon: string }> = {
-    website: {
-      title: 'Website',
-      subtitle: 'Share wedding invitation',
-      icon: '🌐',
-    },
-    restuDigital: {
-      title: 'Digital Blessing',
-      subtitle: 'For those who wish to give blessings',
-      icon: '💝',
-    },
-    location: {
-      title: 'Location',
-      subtitle: 'Navigate to venue',
-      icon: '📍',
-    },
-    wifi: {
-      title: 'Venue WiFi',
-      subtitle: 'Internet connection for guests',
-      icon: '📶',
-    },
-    rsvp: {
-      title: 'RSVP',
-      subtitle: 'For sharing - guests can also use RSVP button on page',
-      icon: '✉️',
-    },
-    calendar: {
-      title: 'Calendar',
-      subtitle: 'Save the date',
-      icon: '📅',
-    },
-    hashtag: {
-      title: 'Instagram Hashtag',
-      subtitle: 'Opens Instagram hashtag search',
-      icon: '📸',
-    },
-  }
+  // QR Code type labels (computed for translations)
+  const qrTypeLabels = computed(
+    (): Record<QRCodeType, { title: string; subtitle: string; icon: string }> => ({
+      website: {
+        title: adminT.value.qrHub.websiteTitle,
+        subtitle: adminT.value.qrHub.websiteSubtitle,
+        icon: '🌐',
+      },
+      restuDigital: {
+        title: adminT.value.qrHub.restuDigitalTitle,
+        subtitle: adminT.value.qrHub.restuDigitalSubtitle,
+        icon: '💝',
+      },
+      location: {
+        title: adminT.value.qrHub.locationTitle,
+        subtitle: adminT.value.qrHub.locationSubtitle,
+        icon: '📍',
+      },
+      wifi: {
+        title: adminT.value.qrHub.wifiTitle,
+        subtitle: adminT.value.qrHub.wifiSubtitle,
+        icon: '📶',
+      },
+      rsvp: {
+        title: adminT.value.qrHub.rsvpTitle,
+        subtitle: adminT.value.qrHub.rsvpSubtitle,
+        icon: '✉️',
+      },
+      calendar: {
+        title: adminT.value.qrHub.calendarTitle,
+        subtitle: adminT.value.qrHub.calendarSubtitle,
+        icon: '📅',
+      },
+      hashtag: {
+        title: adminT.value.qrHub.hashtagTitle,
+        subtitle: adminT.value.qrHub.hashtagSubtitle,
+        icon: '📸',
+      },
+    })
+  )
 
-  // Location app labels
-  const locationAppLabels: Record<LocationApp, string> = {
-    google_maps: 'Google Maps only',
-    waze: 'Waze only',
-    both: 'Google Maps & Waze',
-  }
+  // Location app labels (computed for translations)
+  const locationAppLabels = computed(
+    (): Record<LocationApp, string> => ({
+      google_maps: adminT.value.qrHub.googleMapsOnly,
+      waze: adminT.value.qrHub.wazeOnly,
+      both: adminT.value.qrHub.googleMapsAndWaze,
+    })
+  )
 
-  // WiFi encryption labels
-  const wifiEncryptionLabels: Record<WifiEncryption, string> = {
-    WPA: 'WPA/WPA2 (Recommended)',
-    WEP: 'WEP',
-    nopass: 'No password',
-  }
+  // WiFi encryption labels (computed for translations)
+  const wifiEncryptionLabels = computed(
+    (): Record<WifiEncryption, string> => ({
+      WPA: adminT.value.qrHub.wpaRecommended,
+      WEP: adminT.value.qrHub.wep,
+      nopass: adminT.value.qrHub.noPassword,
+    })
+  )
 
   // Check if there are unsaved changes
   const hasChanges = computed(() => {
@@ -101,7 +110,7 @@
 
     if (formData.value.restuDigital.useImage) {
       if (!formData.value.restuDigital.qrImageUrl) {
-        return 'Please upload a QR image or disable this feature'
+        return adminT.value.qrHub.uploadOrDisable
       }
     } else {
       const hasAllBankDetails =
@@ -109,7 +118,7 @@
         formData.value.restuDigital.bankAccountName &&
         formData.value.restuDigital.bankAccountNumber
       if (!hasAllBankDetails) {
-        return 'Please fill in all bank details or disable this feature'
+        return adminT.value.qrHub.fillBankDetails
       }
     }
     return null
@@ -119,7 +128,7 @@
   const wifiWarning = computed(() => {
     if (!formData.value.wifi.enabled) return null
     if (!formData.value.wifi.ssid) {
-      return 'Please enter the WiFi network name (SSID) or disable this feature'
+      return adminT.value.qrHub.enterWifiSsid
     }
     return null
   })
@@ -231,16 +240,16 @@
     <!-- Header -->
     <div class="flex items-center justify-between">
       <div>
-        <h2 class="font-heading text-xl font-semibold text-gray-900">QR Code Hub</h2>
+        <h2 class="font-heading text-xl font-semibold text-gray-900">{{ adminT.qrHub.title }}</h2>
         <p class="mt-1 font-body text-sm text-gray-500">
-          Configure multiple QR codes for guest convenience
+          {{ adminT.qrHub.subtitle }}
         </p>
       </div>
 
       <!-- Master Toggle -->
       <label class="flex cursor-pointer items-center gap-3">
         <span class="font-body text-sm text-gray-600">
-          {{ formData.hubEnabled ? 'Enabled' : 'Disabled' }}
+          {{ formData.hubEnabled ? adminT.common.enabled : adminT.common.disabled }}
         </span>
         <div class="relative">
           <input
@@ -266,7 +275,7 @@
       <div
         class="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-gray-200 border-t-blue-500"
       ></div>
-      <p class="mt-2 font-body text-sm text-gray-500">Loading settings...</p>
+      <p class="mt-2 font-body text-sm text-gray-500">{{ adminT.qrHub.loadingSettings }}</p>
     </div>
 
     <!-- Error State -->
@@ -381,7 +390,7 @@
             v-if="type === 'hashtag' && formData.hashtag.enabled"
             class="mt-2 font-body text-xs text-blue-600"
           >
-            ℹ️ Uses hashtag from Wedding Details. Opens Instagram search when scanned.
+            ℹ️ {{ adminT.qrHub.hashtagNote }}
           </p>
 
           <!-- Configure button for complex types -->
@@ -390,7 +399,7 @@
             class="mt-3 w-full rounded bg-gray-100 px-3 py-1.5 font-body text-xs text-gray-600 transition-colors hover:bg-gray-200"
             @click="toggleSection(type)"
           >
-            {{ expandedSection === type ? 'Close' : 'Configure' }}
+            {{ expandedSection === type ? adminT.qrHub.close : adminT.qrHub.configure }}
           </button>
         </div>
       </div>
@@ -402,7 +411,7 @@
           class="rounded-lg border border-blue-200 bg-blue-50 p-4"
         >
           <h3 class="mb-4 font-heading text-lg font-medium text-gray-900">
-            Digital Blessing Configuration
+            {{ adminT.qrHub.digitalBlessingConfig }}
           </h3>
 
           <p class="mb-4 font-body text-sm italic text-gray-600">
@@ -412,7 +421,7 @@
           <!-- Tagline -->
           <div class="mb-4">
             <label class="mb-1 block font-body text-sm font-medium text-gray-700">
-              Tagline (Message)
+              {{ adminT.qrHub.taglineMessage }}
             </label>
             <input
               v-model="formData.restuDigital.tagline"
@@ -426,7 +435,7 @@
           <!-- Use Image or Bank Details -->
           <div class="mb-4">
             <label class="mb-2 block font-body text-sm font-medium text-gray-700">
-              QR Display Method
+              {{ adminT.qrHub.qrDisplayMethod }}
             </label>
             <div class="flex gap-4">
               <label class="flex cursor-pointer items-center gap-2">
@@ -437,7 +446,7 @@
                   class="text-blue-500 focus:ring-blue-500"
                   @change="saveSuccess = false"
                 />
-                <span class="font-body text-sm">Upload QR image</span>
+                <span class="font-body text-sm">{{ adminT.qrHub.uploadQrImage }}</span>
               </label>
               <label class="flex cursor-pointer items-center gap-2">
                 <input
@@ -447,7 +456,7 @@
                   class="text-blue-500 focus:ring-blue-500"
                   @change="saveSuccess = false"
                 />
-                <span class="font-body text-sm">Enter bank details</span>
+                <span class="font-body text-sm">{{ adminT.qrHub.enterBankDetails }}</span>
               </label>
             </div>
           </div>
@@ -455,7 +464,7 @@
           <!-- QR Image Upload -->
           <div v-if="formData.restuDigital.useImage" class="mb-4">
             <label class="mb-1 block font-body text-sm font-medium text-gray-700">
-              QR image from bank app
+              {{ adminT.qrHub.qrImageFromBank }}
             </label>
             <div class="flex items-center gap-4">
               <div
@@ -481,7 +490,7 @@
                   :disabled="isUploading"
                   @click="triggerFileUpload"
                 >
-                  {{ isUploading ? `Uploading... ${uploadProgress}%` : 'Upload image' }}
+                  {{ isUploading ? adminT.qrHub.uploading.replace('{progress}', String(uploadProgress)) : adminT.qrHub.uploadImage }}
                 </button>
                 <p v-if="uploadError" class="mt-1 font-body text-xs text-red-500">
                   {{ uploadError }}
@@ -494,7 +503,7 @@
           <div v-else class="space-y-3">
             <div>
               <label class="mb-1 block font-body text-sm font-medium text-gray-700">
-                Bank Name
+                {{ adminT.qrHub.bankName }}
               </label>
               <input
                 v-model="formData.restuDigital.bankName"
@@ -506,7 +515,7 @@
             </div>
             <div>
               <label class="mb-1 block font-body text-sm font-medium text-gray-700">
-                Account Holder Name
+                {{ adminT.qrHub.accountHolderName }}
               </label>
               <input
                 v-model="formData.restuDigital.bankAccountName"
@@ -518,7 +527,7 @@
             </div>
             <div>
               <label class="mb-1 block font-body text-sm font-medium text-gray-700">
-                Account Number
+                {{ adminT.qrHub.accountNumber }}
               </label>
               <input
                 v-model="formData.restuDigital.bankAccountNumber"
@@ -538,12 +547,12 @@
           v-if="expandedSection === 'wifi'"
           class="rounded-lg border border-blue-200 bg-blue-50 p-4"
         >
-          <h3 class="mb-4 font-heading text-lg font-medium text-gray-900">WiFi Configuration</h3>
+          <h3 class="mb-4 font-heading text-lg font-medium text-gray-900">{{ adminT.qrHub.wifiConfiguration }}</h3>
 
           <div class="space-y-3">
             <div>
               <label class="mb-1 block font-body text-sm font-medium text-gray-700">
-                Network Name (SSID)
+                {{ adminT.qrHub.networkNameSsid }}
               </label>
               <input
                 v-model="formData.wifi.ssid"
@@ -555,7 +564,7 @@
             </div>
             <div>
               <label class="mb-1 block font-body text-sm font-medium text-gray-700">
-                Password
+                {{ adminT.qrHub.password }}
               </label>
               <input
                 v-model="formData.wifi.password"
@@ -565,12 +574,12 @@
                 @input="saveSuccess = false"
               />
               <p class="mt-1 font-body text-xs text-amber-600">
-                ⚠️ Password will be visible to guests
+                ⚠️ {{ adminT.qrHub.passwordVisibleWarning }}
               </p>
             </div>
             <div>
               <label class="mb-1 block font-body text-sm font-medium text-gray-700">
-                Encryption Type
+                {{ adminT.qrHub.encryptionType }}
               </label>
               <select
                 v-model="formData.wifi.encryption"
@@ -589,7 +598,7 @@
                 class="rounded text-blue-500 focus:ring-blue-500"
                 @change="saveSuccess = false"
               />
-              <span class="font-body text-sm text-gray-700">Hidden network</span>
+              <span class="font-body text-sm text-gray-700">{{ adminT.qrHub.hiddenNetwork }}</span>
             </label>
           </div>
         </div>
@@ -602,12 +611,12 @@
           class="rounded-lg border border-blue-200 bg-blue-50 p-4"
         >
           <h3 class="mb-4 font-heading text-lg font-medium text-gray-900">
-            Location Configuration
+            {{ adminT.qrHub.locationConfiguration }}
           </h3>
 
           <div>
             <label class="mb-2 block font-body text-sm font-medium text-gray-700">
-              Navigation App
+              {{ adminT.qrHub.navigationApp }}
             </label>
             <div class="space-y-2">
               <label
@@ -626,7 +635,7 @@
               </label>
             </div>
             <p class="mt-2 font-body text-xs text-gray-500">
-              Location coordinates are taken from Venue settings
+              {{ adminT.qrHub.locationFromVenue }}
             </p>
           </div>
         </div>
@@ -642,14 +651,14 @@
           :disabled="isSaving"
           @click="cancelChanges"
         >
-          Cancel
+          {{ adminT.common.cancel }}
         </button>
         <button
           class="rounded-md bg-blue-500 px-4 py-2 font-body text-sm text-white transition-colors hover:bg-blue-600 disabled:opacity-50"
           :disabled="isSaving"
           @click="handleSave"
         >
-          {{ isSaving ? 'Saving...' : 'Save Settings' }}
+          {{ isSaving ? adminT.common.saving : adminT.qrHub.saveSettings }}
         </button>
       </div>
 
@@ -666,7 +675,7 @@
         v-if="saveSuccess"
         class="rounded-lg border border-green-200 bg-green-50 p-3 text-center font-body text-sm text-green-600"
       >
-        ✓ Settings saved successfully
+        ✓ {{ adminT.qrHub.savedSuccess }}
       </div>
     </div>
   </div>

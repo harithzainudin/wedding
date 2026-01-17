@@ -1,6 +1,8 @@
 <script setup lang="ts">
   import { onMounted, onUnmounted, ref, watch } from 'vue'
   import { useGallery } from '@/composables/useGallery'
+  import { useAdminLanguage } from '@/composables/useAdminLanguage'
+  import { interpolate } from '@/i18n/translations'
   import type { GalleryImage } from '@/types/gallery'
   import ImageUploader from './ImageUploader.vue'
   import ImageGrid from './ImageGrid.vue'
@@ -9,6 +11,8 @@
   import HelpTooltip from './HelpTooltip.vue'
   import GalleryHelpContent from './GalleryHelpContent.vue'
   import UploadProgressBar from './UploadProgressBar.vue'
+
+  const { adminT } = useAdminLanguage()
 
   const {
     images,
@@ -129,9 +133,9 @@
       <div>
         <div class="flex items-center gap-2">
           <h2 class="font-heading text-xl font-semibold text-charcoal dark:text-dark-text">
-            Gallery Management
+            {{ adminT.gallery.title }}
           </h2>
-          <HelpTooltip title="Gallery Help">
+          <HelpTooltip :title="adminT.gallery.galleryHelp">
             <GalleryHelpContent
               :max-file-size="formatFileSize(settings.maxFileSize)"
               :allowed-formats="settings.allowedFormats"
@@ -140,9 +144,14 @@
           </HelpTooltip>
         </div>
         <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary mt-1">
-          {{ images.length }} / {{ settings.maxImages }} images
+          {{
+            interpolate(adminT.gallery.imagesCount, {
+              count: images.length,
+              max: settings.maxImages,
+            })
+          }}
           <span v-if="canUploadMore" class="text-sage">
-            ({{ remainingSlots }} slots remaining)
+            {{ interpolate(adminT.gallery.slotsRemaining, { remaining: remainingSlots }) }}
           </span>
         </p>
       </div>
@@ -173,7 +182,7 @@
               d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
             />
           </svg>
-          <span>Settings</span>
+          <span>{{ adminT.common.settings }}</span>
           <!-- Mobile: Chevron that rotates -->
           <svg
             class="sm:hidden w-4 h-4 transition-transform duration-200"
@@ -199,7 +208,7 @@
                 <!-- Mobile Header with Close -->
                 <div class="settings-mobile-header">
                   <h3 class="font-heading text-lg font-medium text-charcoal dark:text-dark-text">
-                    Gallery Settings
+                    {{ adminT.gallery.gallerySettings }}
                   </h3>
                   <button
                     type="button"
@@ -282,7 +291,7 @@
         class="inline-block w-8 h-8 border-3 border-sage border-t-transparent rounded-full animate-spin"
       ></div>
       <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary mt-3">
-        Loading gallery...
+        {{ adminT.gallery.loadingGallery }}
       </p>
     </div>
 
@@ -296,7 +305,7 @@
         class="mt-3 px-4 py-2 font-body text-sm text-sage border border-sage rounded-full hover:bg-sage hover:text-white transition-colors cursor-pointer"
         @click="fetchImages"
       >
-        Try Again
+        {{ adminT.common.tryAgain }}
       </button>
     </div>
 
@@ -316,8 +325,7 @@
         class="p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg"
       >
         <p class="font-body text-sm text-amber-700 dark:text-amber-300">
-          Maximum number of images ({{ settings.maxImages }}) reached. Delete some images to upload
-          more.
+          {{ interpolate(adminT.gallery.maxReached, { max: settings.maxImages }) }}
         </p>
       </div>
 
@@ -338,10 +346,10 @@
           <path d="M21 15l-5-5L5 21" />
         </svg>
         <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary">
-          No images in gallery yet.
+          {{ adminT.gallery.noImages }}
         </p>
         <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary mt-2">
-          Upload your first image to get started.
+          {{ adminT.gallery.uploadFirst }}
         </p>
       </div>
 

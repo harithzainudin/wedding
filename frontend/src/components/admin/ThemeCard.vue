@@ -1,5 +1,9 @@
 <script setup lang="ts">
-  import type { ThemeDefinition } from '@/types/theme'
+  import { computed } from 'vue'
+  import type { ThemeDefinition, ThemeId } from '@/types/theme'
+  import { useAdminLanguage } from '@/composables/useAdminLanguage'
+
+  const { adminT } = useAdminLanguage()
 
   const props = defineProps<{
     theme: ThemeDefinition
@@ -11,6 +15,36 @@
     select: []
     preview: []
   }>()
+
+  // Get translated theme name based on theme ID
+  const translatedName = computed(() => {
+    const themeNameMap: Record<ThemeId, keyof typeof adminT.value.theme> = {
+      'earthy-minimalist': 'earthyMinimalist',
+      'classic-elegance': 'classicElegance',
+      'modern-romantic': 'modernRomantic',
+      'rustic-charm': 'rusticCharm',
+      'garden-party': 'gardenParty',
+      'tropical-paradise': 'tropicalParadise',
+      custom: 'customTheme',
+    }
+    const key = themeNameMap[props.theme.id]
+    return key ? (adminT.value.theme[key] as string) : props.theme.name
+  })
+
+  // Get translated theme description based on theme ID
+  const translatedDescription = computed(() => {
+    const themeDescMap: Record<ThemeId, keyof typeof adminT.value.theme> = {
+      'earthy-minimalist': 'earthyMinimalistDesc',
+      'classic-elegance': 'classicEleganceDesc',
+      'modern-romantic': 'modernRomanticDesc',
+      'rustic-charm': 'rusticCharmDesc',
+      'garden-party': 'gardenPartyDesc',
+      'tropical-paradise': 'tropicalParadiseDesc',
+      custom: 'customThemeDescription',
+    }
+    const key = themeDescMap[props.theme.id]
+    return key ? (adminT.value.theme[key] as string) : props.theme.description
+  })
 
   const handleClick = (): void => {
     emit('select')
@@ -44,12 +78,12 @@
 
     <!-- Theme Name -->
     <h4 class="font-heading text-base font-medium text-charcoal dark:text-dark-text mb-1 pr-8">
-      {{ theme.name }}
+      {{ translatedName }}
     </h4>
 
     <!-- Description -->
     <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary mb-3">
-      {{ theme.description }}
+      {{ translatedDescription }}
     </p>
 
     <!-- Color Swatches -->
@@ -97,7 +131,7 @@
       class="w-full py-1.5 px-3 text-xs font-body font-medium rounded transition-colors bg-sand dark:bg-dark-bg-secondary text-charcoal dark:text-dark-text hover:bg-sand-dark dark:hover:bg-dark-bg-elevated cursor-pointer"
       @click="handlePreview"
     >
-      Preview
+      {{ adminT.theme.preview }}
     </button>
   </div>
 </template>

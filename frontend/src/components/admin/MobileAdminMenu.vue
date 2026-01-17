@@ -1,5 +1,8 @@
 <script setup lang="ts">
   import DarkModeToggle from '@/components/ui/DarkModeToggle.vue'
+  import { useAdminLanguage } from '@/composables/useAdminLanguage'
+
+  const { adminT } = useAdminLanguage()
 
   defineProps<{
     isOpen: boolean
@@ -59,7 +62,7 @@
                 {{ username }}
               </p>
               <p v-if="isMasterUser" class="font-body text-xs text-amber-600 dark:text-amber-400">
-                Master Account
+                {{ adminT.header.masterAccount }}
               </p>
             </div>
           </div>
@@ -85,7 +88,7 @@
           <div
             class="flex items-center justify-between px-4 py-3 border-b border-sand-dark dark:border-dark-border"
           >
-            <span class="font-body text-sm text-charcoal dark:text-dark-text">Dark Mode</span>
+            <span class="font-body text-sm text-charcoal dark:text-dark-text">{{ adminT.header.darkMode }}</span>
             <DarkModeToggle variant="light" />
           </div>
 
@@ -107,7 +110,7 @@
               <polyline points="15,3 21,3 21,9" />
               <line x1="10" y1="14" x2="21" y2="3" />
             </svg>
-            View Live Site
+            {{ adminT.header.viewLiveSite }}
           </a>
 
           <button
@@ -125,7 +128,7 @@
               <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
               <circle cx="12" cy="7" r="4" />
             </svg>
-            Profile Settings
+            {{ adminT.header.profileSettings }}
           </button>
 
           <button
@@ -144,7 +147,7 @@
               <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
               <path d="M7 11V7a5 5 0 0110 0v4" />
             </svg>
-            Change Password
+            {{ adminT.auth.changePassword }}
           </button>
         </div>
 
@@ -165,7 +168,7 @@
               <polyline points="16,17 21,12 16,7" />
               <line x1="21" y1="12" x2="9" y2="12" />
             </svg>
-            Logout
+            {{ adminT.common.logout }}
           </button>
         </div>
       </div>

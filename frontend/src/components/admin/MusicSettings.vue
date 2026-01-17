@@ -1,6 +1,9 @@
 <script setup lang="ts">
   import { ref, watch } from 'vue'
   import type { MusicSettings, PlayMode } from '@/types/music'
+  import { useAdminLanguage } from '@/composables/useAdminLanguage'
+
+  const { adminT } = useAdminLanguage()
 
   const props = defineProps<{
     settings: MusicSettings
@@ -53,9 +56,9 @@
     <!-- Enable Music -->
     <div class="flex items-center justify-between">
       <div>
-        <p class="font-body text-sm font-medium text-charcoal dark:text-dark-text">Enable Music</p>
+        <p class="font-body text-sm font-medium text-charcoal dark:text-dark-text">{{ adminT.music.enableMusic }}</p>
         <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary">
-          Show music player on the public site
+          {{ adminT.music.enableMusicDesc }}
         </p>
       </div>
       <button
@@ -74,9 +77,9 @@
     <!-- Autoplay -->
     <div class="flex items-center justify-between">
       <div>
-        <p class="font-body text-sm font-medium text-charcoal dark:text-dark-text">Autoplay</p>
+        <p class="font-body text-sm font-medium text-charcoal dark:text-dark-text">{{ adminT.music.autoplay }}</p>
         <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary">
-          Try to play music automatically when page loads
+          {{ adminT.music.autoplayDesc }}
         </p>
       </div>
       <button
@@ -94,7 +97,7 @@
 
     <!-- Play Mode -->
     <div>
-      <p class="font-body text-sm font-medium text-charcoal dark:text-dark-text mb-2">Play Mode</p>
+      <p class="font-body text-sm font-medium text-charcoal dark:text-dark-text mb-2">{{ adminT.music.playMode }}</p>
       <div class="flex gap-2">
         <button
           type="button"
@@ -106,7 +109,7 @@
           ]"
           @click="updateSetting('mode', 'single')"
         >
-          Single Track
+          {{ adminT.music.singleTrack }}
         </button>
         <button
           type="button"
@@ -118,22 +121,20 @@
           ]"
           @click="updateSetting('mode', 'playlist')"
         >
-          Playlist
+          {{ adminT.music.playlist }}
         </button>
       </div>
       <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary mt-1">
-        {{
-          localSettings.mode === 'single' ? 'Play selected track only' : 'Play all tracks in order'
-        }}
+        {{ localSettings.mode === 'single' ? adminT.music.singleTrackDesc : adminT.music.playlistDesc }}
       </p>
     </div>
 
     <!-- Shuffle (Playlist mode only) -->
     <div v-if="localSettings.mode === 'playlist'" class="flex items-center justify-between">
       <div>
-        <p class="font-body text-sm font-medium text-charcoal dark:text-dark-text">Shuffle</p>
+        <p class="font-body text-sm font-medium text-charcoal dark:text-dark-text">{{ adminT.music.shuffle }}</p>
         <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary">
-          Randomize track order
+          {{ adminT.music.shuffleDesc }}
         </p>
       </div>
       <button
@@ -152,13 +153,9 @@
     <!-- Loop -->
     <div class="flex items-center justify-between">
       <div>
-        <p class="font-body text-sm font-medium text-charcoal dark:text-dark-text">Loop</p>
+        <p class="font-body text-sm font-medium text-charcoal dark:text-dark-text">{{ adminT.music.loop }}</p>
         <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary">
-          {{
-            localSettings.mode === 'single'
-              ? 'Repeat track continuously'
-              : 'Repeat playlist when finished'
-          }}
+          {{ localSettings.mode === 'single' ? adminT.music.loopSingleDesc : adminT.music.loopPlaylistDesc }}
         </p>
       </div>
       <button
@@ -178,7 +175,7 @@
     <div>
       <div class="flex items-center justify-between mb-2">
         <p class="font-body text-sm font-medium text-charcoal dark:text-dark-text">
-          Default Volume
+          {{ adminT.music.defaultVolume }}
         </p>
         <span class="font-body text-sm text-sage">
           {{ volumePercentage(localSettings.volume) }}
@@ -206,9 +203,7 @@
       class="p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg"
     >
       <p class="font-body text-xs text-blue-700 dark:text-blue-300">
-        <strong>Note:</strong> Most browsers block autoplay until user interaction. Even with
-        autoplay enabled, music may not start automatically on first visit. Visitors can always
-        click the music button to start playing.
+        <strong>{{ adminT.music.autoplay }}:</strong> {{ adminT.music.autoplayNote }}
       </p>
     </div>
   </div>

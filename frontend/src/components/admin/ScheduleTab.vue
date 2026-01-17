@@ -2,11 +2,15 @@
   import { ref, watch, onMounted } from 'vue'
   import { useSchedule } from '@/composables/useSchedule'
   import { useCrudList } from '@/composables/useCrudList'
+  import { useAdminLanguage } from '@/composables/useAdminLanguage'
+  import { interpolate } from '@/i18n/translations'
   import ConfirmModal from './ConfirmModal.vue'
   import ItemActions from './ItemActions.vue'
   import MultilingualInput from './MultilingualInput.vue'
   import BaseFormModal from './BaseFormModal.vue'
   import type { ScheduleItem, MultilingualText } from '@/types/schedule'
+
+  const { adminT } = useAdminLanguage()
 
   const {
     schedule,
@@ -101,10 +105,10 @@
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
       <div>
         <h2 class="font-heading text-xl font-semibold text-charcoal dark:text-dark-text">
-          Schedule
+          {{ adminT.schedule.title }}
         </h2>
         <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary mt-1">
-          Manage the event timeline
+          {{ adminT.schedule.subtitle }}
         </p>
       </div>
       <button
@@ -120,7 +124,7 @@
             d="M12 4v16m8-8H4"
           />
         </svg>
-        Add Item
+        {{ adminT.schedule.addItem }}
       </button>
     </div>
 
@@ -129,7 +133,7 @@
         class="inline-block w-8 h-8 border-3 border-sage border-t-transparent rounded-full animate-spin"
       />
       <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary mt-3">
-        Loading schedule...
+        {{ adminT.schedule.loadingSchedule }}
       </p>
     </div>
 
@@ -142,7 +146,7 @@
         class="px-4 py-2 rounded-lg bg-sage text-white font-body text-sm hover:bg-sage-dark transition-colors"
         @click="fetchSchedule"
       >
-        Try Again
+        {{ adminT.common.tryAgain }}
       </button>
     </div>
 
@@ -152,7 +156,7 @@
       >
         <div v-if="localItems.length === 0" class="p-8 text-center">
           <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary">
-            No schedule items yet. Click "Add Item" to create one.
+            {{ adminT.schedule.noItems }}
           </p>
         </div>
         <TransitionGroup
@@ -213,7 +217,7 @@
                   d="M5 13l4 4L19 7"
                 />
               </svg>
-              Schedule saved successfully!
+              {{ adminT.schedule.savedSuccess }}
             </p>
           </div>
           <div
@@ -229,7 +233,7 @@
                   d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
                 />
               </svg>
-              You have unsaved changes
+              {{ adminT.messages.unsavedChanges }}
             </p>
           </div>
         </div>
@@ -240,7 +244,7 @@
             class="px-4 py-2 font-body text-sm text-charcoal border border-charcoal-light rounded-lg hover:bg-sand-dark transition-colors cursor-pointer"
             @click="discardChanges"
           >
-            Discard
+            {{ adminT.common.discard }}
           </button>
           <button
             type="button"
@@ -248,46 +252,52 @@
             :disabled="isSaving || !hasChanges"
             @click="handleSave"
           >
-            {{ isSaving ? 'Saving...' : 'Save Changes' }}
+            {{ isSaving ? adminT.common.saving : adminT.common.saveChanges }}
           </button>
         </div>
       </div>
 
       <div v-if="schedule.updatedAt" class="p-3 bg-sand/30 dark:bg-dark-bg-elevated rounded-lg">
         <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary">
-          Last updated: {{ new Date(schedule.updatedAt).toLocaleString() }}
-          <span v-if="schedule.updatedBy"> by {{ schedule.updatedBy }}</span>
+          {{ adminT.messages.lastUpdated }}: {{ new Date(schedule.updatedAt).toLocaleString() }}
+          <span v-if="schedule.updatedBy"> {{ adminT.messages.by }} {{ schedule.updatedBy }}</span>
         </p>
       </div>
     </div>
 
     <BaseFormModal
       :show="showModal"
-      :title="editingItem ? 'Edit Schedule Item' : 'Add Schedule Item'"
-      :submit-text="editingItem ? 'Update' : 'Add'"
+      :title="editingItem ? adminT.schedule.editItem : adminT.schedule.addItem"
+      :submit-text="editingItem ? adminT.common.update : adminT.common.add"
       @close="closeModal"
       @submit="saveModalForm"
     >
       <div>
-        <label class="block font-body text-sm font-medium text-charcoal dark:text-dark-text mb-1"
-          >Time</label
-        >
+        <label class="block font-body text-sm font-medium text-charcoal dark:text-dark-text mb-1">{{
+          adminT.schedule.time
+        }}</label>
         <input
           v-model="modalForm.time"
           type="text"
           class="w-full px-3 py-2.5 font-body text-base border border-sand-dark dark:border-dark-border rounded-lg bg-sand dark:bg-dark-bg-elevated text-charcoal dark:text-dark-text focus:outline-none focus:border-sage"
-          placeholder="e.g., 11:00 AM"
+          :placeholder="adminT.schedule.timePlaceholder"
           required
         />
       </div>
-      <MultilingualInput v-model="modalForm.title" label="Titles" :required-languages="['en']" />
+      <MultilingualInput
+        v-model="modalForm.title"
+        :label="adminT.schedule.eventTitle"
+        :required-languages="['en']"
+      />
     </BaseFormModal>
 
     <ConfirmModal
       v-if="showDeleteModal"
-      title="Delete Schedule Item"
-      :message="`Are you sure you want to delete '${itemToDelete?.title.en || ''}'? This action cannot be undone.`"
-      confirm-text="Delete"
+      :title="adminT.schedule.deleteItem"
+      :message="
+        interpolate(adminT.schedule.deleteItemConfirm, { title: itemToDelete?.title.en || '' })
+      "
+      :confirm-text="adminT.common.delete"
       variant="danger"
       @confirm="deleteItem"
       @cancel="cancelDelete"

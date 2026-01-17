@@ -1,6 +1,10 @@
 <script setup lang="ts">
   import { ref, watch } from 'vue'
   import type { GallerySettings } from '@/types/gallery'
+  import { useAdminLanguage } from '@/composables/useAdminLanguage'
+  import { interpolate } from '@/i18n/translations'
+
+  const { adminT } = useAdminLanguage()
 
   const props = withDefaults(
     defineProps<{
@@ -110,17 +114,17 @@
       v-if="!hideTitle"
       class="font-heading text-lg font-medium text-charcoal dark:text-dark-text"
     >
-      Gallery Settings
+      {{ adminT.gallery.gallerySettings }}
     </h3>
 
     <!-- Show Gallery Toggle -->
     <div class="flex items-center justify-between py-3 px-4 bg-sand/50 dark:bg-dark-bg rounded-lg">
       <div>
         <label class="font-body text-sm font-medium text-charcoal dark:text-dark-text">
-          Show Gallery Section
+          {{ adminT.gallery.showGallerySection }}
         </label>
         <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary mt-0.5">
-          Display the photo gallery on the public website
+          {{ adminT.gallery.showGalleryDesc }}
         </p>
       </div>
       <button
@@ -142,7 +146,7 @@
       <!-- Max File Size -->
       <div>
         <label class="block font-body text-sm font-medium text-charcoal dark:text-dark-text mb-1">
-          Max File Size
+          {{ adminT.gallery.maxFileSize }}
         </label>
         <select
           v-model="localMaxFileSize"
@@ -157,14 +161,14 @@
       <!-- Max Images -->
       <div>
         <label class="block font-body text-sm font-medium text-charcoal dark:text-dark-text mb-1">
-          Max Number of Images
+          {{ adminT.gallery.maxImages }}
         </label>
         <select
           v-model="localMaxImages"
           class="w-full px-3 py-2.5 font-body text-base bg-white dark:bg-dark-bg border border-sand-dark dark:border-dark-border rounded-lg focus:ring-2 focus:ring-sage focus:border-sage text-charcoal dark:text-dark-text"
         >
           <option v-for="option in maxImagesOptions" :key="option" :value="option">
-            {{ option }} images
+            {{ interpolate(adminT.gallery.imagesLabel, { count: option }) }}
           </option>
         </select>
       </div>
@@ -173,7 +177,7 @@
     <!-- Allowed Formats (read-only) -->
     <div>
       <label class="block font-body text-sm font-medium text-charcoal dark:text-dark-text mb-1">
-        Allowed Formats
+        {{ adminT.gallery.allowedFormats }}
       </label>
       <div class="flex flex-wrap gap-2">
         <span
@@ -191,8 +195,7 @@
       v-if="settings.updatedAt"
       class="text-xs font-body text-charcoal-light dark:text-dark-text-secondary"
     >
-      Last updated: {{ new Date(settings.updatedAt).toLocaleString() }}
-      <span v-if="settings.updatedBy"> by {{ settings.updatedBy }}</span>
+      {{ interpolate(adminT.gallery.lastUpdatedBy, { date: new Date(settings.updatedAt).toLocaleString(), user: settings.updatedBy || '' }) }}
     </div>
 
     <!-- Save Button -->
@@ -203,7 +206,7 @@
         class="px-4 py-2 font-body text-sm text-white bg-sage rounded-lg hover:bg-sage-dark transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
         @click="handleSave"
       >
-        {{ isSaving ? 'Saving...' : 'Save Settings' }}
+        {{ isSaving ? adminT.common.saving : adminT.common.saveSettings }}
       </button>
     </div>
   </div>

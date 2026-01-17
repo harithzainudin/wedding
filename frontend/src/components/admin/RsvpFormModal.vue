@@ -3,7 +3,10 @@
   import type { RsvpSubmission, AdminRsvpRequest } from '@/types/rsvp'
   import type { HonorificTitle } from '@/types/index'
   import { HONORIFIC_TITLES } from '@/types/index'
+  import { useAdminLanguage } from '@/composables/useAdminLanguage'
   import BaseFormModal from './BaseFormModal.vue'
+
+  const { adminT } = useAdminLanguage()
 
   const props = defineProps<{
     show: boolean
@@ -28,10 +31,12 @@
 
   // Computed
   const isEditMode = computed(() => !!props.rsvp)
-  const modalTitle = computed(() => (isEditMode.value ? 'Edit Guest' : 'Add Guest'))
+  const modalTitle = computed(() =>
+    isEditMode.value ? adminT.value.rsvps.formTitleEdit : adminT.value.rsvps.formTitleAdd
+  )
   const submitText = computed(() => {
-    if (props.isSubmitting) return 'Saving...'
-    return isEditMode.value ? 'Update' : 'Add Guest'
+    if (props.isSubmitting) return adminT.value.rsvps.savingGuest
+    return isEditMode.value ? adminT.value.common.update : adminT.value.rsvps.formTitleAdd
   })
 
   const isValid = computed(() => {
@@ -136,14 +141,14 @@
     <!-- Title (honorific) - Optional -->
     <div>
       <label class="block font-body text-sm text-charcoal dark:text-dark-text mb-1">
-        Title (Optional)
+        {{ adminT.rsvps.titleLabelOptional }}
       </label>
       <select
         v-model="title"
         :disabled="isSubmitting"
         class="w-full px-3 py-2 font-body text-sm border border-sand-dark dark:border-dark-border rounded-lg bg-white dark:bg-dark-bg focus:outline-none focus:ring-2 focus:ring-sage/50 dark:text-dark-text disabled:opacity-50"
       >
-        <option value="">-- No Title --</option>
+        <option value="">{{ adminT.rsvps.noTitle }}</option>
         <option v-for="t in HONORIFIC_TITLES" :key="t" :value="t">
           {{ t }}
         </option>
@@ -153,7 +158,7 @@
     <!-- Full Name - Required -->
     <div>
       <label class="block font-body text-sm text-charcoal dark:text-dark-text mb-1">
-        Full Name <span class="text-red-500">*</span>
+        {{ adminT.rsvps.fullName }} <span class="text-red-500">*</span>
       </label>
       <input
         ref="nameInputRef"
@@ -163,17 +168,17 @@
         minlength="2"
         :disabled="isSubmitting"
         class="w-full px-3 py-2 font-body text-sm border border-sand-dark dark:border-dark-border rounded-lg bg-white dark:bg-dark-bg focus:outline-none focus:ring-2 focus:ring-sage/50 dark:text-dark-text disabled:opacity-50"
-        placeholder="Enter full name"
+        :placeholder="adminT.rsvps.enterFullName"
       />
       <p v-if="fullName && fullName.trim().length < 2" class="mt-1 font-body text-xs text-red-500">
-        Name must be at least 2 characters
+        {{ adminT.rsvps.nameTooShort }}
       </p>
     </div>
 
     <!-- Attendance Status - Visual Toggle -->
     <div>
       <label class="block font-body text-sm text-charcoal dark:text-dark-text mb-2">
-        Attendance
+        {{ adminT.rsvps.attendance }}
       </label>
       <div class="flex rounded-lg overflow-hidden border border-sand-dark dark:border-dark-border">
         <button
@@ -196,7 +201,7 @@
           >
             <polyline points="20 6 9 17 4 12" />
           </svg>
-          Attending
+          {{ adminT.rsvps.attendingLabel }}
         </button>
         <button
           type="button"
@@ -219,7 +224,7 @@
             <line x1="18" y1="6" x2="6" y2="18" />
             <line x1="6" y1="6" x2="18" y2="18" />
           </svg>
-          Not Attending
+          {{ adminT.rsvps.notAttendingLabel }}
         </button>
       </div>
     </div>
@@ -235,7 +240,7 @@
     >
       <div v-if="isAttending" class="overflow-hidden">
         <label class="block font-body text-sm text-charcoal dark:text-dark-text mb-1">
-          Number of Guests
+          {{ adminT.rsvps.numberOfGuests }}
         </label>
         <div class="flex items-center gap-2">
           <button
@@ -287,7 +292,7 @@
         <p
           class="mt-1 font-body text-xs text-charcoal-light dark:text-dark-text-secondary text-center"
         >
-          Enter 1-10 guests
+          {{ adminT.rsvps.guestsRange }}
         </p>
       </div>
     </Transition>
@@ -295,7 +300,7 @@
     <!-- Message - Optional -->
     <div>
       <label class="block font-body text-sm text-charcoal dark:text-dark-text mb-1">
-        Message (Optional)
+        {{ adminT.rsvps.messageOptional }}
       </label>
       <textarea
         v-model="message"
@@ -303,7 +308,7 @@
         maxlength="500"
         :disabled="isSubmitting"
         class="w-full px-3 py-2 font-body text-sm border border-sand-dark dark:border-dark-border rounded-lg bg-white dark:bg-dark-bg focus:outline-none focus:ring-2 focus:ring-sage/50 dark:text-dark-text disabled:opacity-50 resize-none"
-        placeholder="Any wishes or notes..."
+        :placeholder="adminT.rsvps.wishesPlaceholder"
       ></textarea>
       <p
         class="mt-1 font-body text-xs text-charcoal-light dark:text-dark-text-secondary text-right"
@@ -316,9 +321,7 @@
     <p
       class="hidden sm:block text-xs text-charcoal-light dark:text-dark-text-secondary text-center pt-2"
     >
-      Press
-      <kbd class="px-1.5 py-0.5 bg-sand dark:bg-dark-border rounded text-xs font-mono">Esc</kbd>
-      to close
+      {{ adminT.rsvps.pressEscToClose }}
     </p>
   </BaseFormModal>
 </template>

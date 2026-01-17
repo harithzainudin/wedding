@@ -1,5 +1,9 @@
 <script setup lang="ts">
   import { ref } from 'vue'
+  import { useAdminLanguage } from '@/composables/useAdminLanguage'
+  import { interpolate } from '@/i18n/translations'
+
+  const { adminT } = useAdminLanguage()
 
   const props = defineProps<{
     maxFileSize: number
@@ -133,17 +137,17 @@
       </svg>
 
       <p class="font-body text-sm text-charcoal dark:text-dark-text mb-1">
-        <span class="text-sage font-medium">Click to upload</span> or drag and drop
+        <span class="text-sage font-medium">{{ adminT.music.clickToUpload }}</span> {{ adminT.music.orDragAndDrop }}
       </p>
       <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary">
-        MP3, M4A, WAV, OGG up to {{ formatFileSize(maxFileSize) }}
+        {{ interpolate(adminT.music.formatInfo, { size: formatFileSize(maxFileSize) }) }}
       </p>
     </div>
 
     <!-- Pending Files -->
     <div v-if="pendingFiles.length > 0" class="space-y-4">
       <h3 class="font-heading text-sm font-medium text-charcoal dark:text-dark-text">
-        Files to upload ({{ pendingFiles.length }})
+        {{ interpolate(adminT.music.filesToUpload, { count: String(pendingFiles.length) }) }}
       </h3>
 
       <div class="space-y-3">
@@ -158,26 +162,26 @@
                 <label
                   class="block font-body text-xs text-charcoal-light dark:text-dark-text-secondary mb-1"
                 >
-                  Title *
+                  {{ adminT.music.trackTitle }}
                 </label>
                 <input
                   v-model="pending.title"
                   type="text"
                   class="w-full px-3 py-2 font-body text-sm bg-sand dark:bg-dark-bg border border-sand-dark dark:border-dark-border rounded-lg focus:outline-none focus:ring-2 focus:ring-sage"
-                  placeholder="Track title"
+                  :placeholder="adminT.music.trackTitlePlaceholder"
                 />
               </div>
               <div>
                 <label
                   class="block font-body text-xs text-charcoal-light dark:text-dark-text-secondary mb-1"
                 >
-                  Artist (optional)
+                  {{ adminT.music.artistOptional }}
                 </label>
                 <input
                   v-model="pending.artist"
                   type="text"
                   class="w-full px-3 py-2 font-body text-sm bg-sand dark:bg-dark-bg border border-sand-dark dark:border-dark-border rounded-lg focus:outline-none focus:ring-2 focus:ring-sage"
-                  placeholder="Artist name"
+                  :placeholder="adminT.music.artistPlaceholder"
                 />
               </div>
               <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary">
@@ -208,7 +212,7 @@
         :disabled="pendingFiles.some((p) => !p.title.trim())"
         @click="uploadAll"
       >
-        Upload {{ pendingFiles.length }} track{{ pendingFiles.length > 1 ? 's' : '' }}
+        {{ interpolate(adminT.music.uploadTracks, { count: String(pendingFiles.length) }) }}
       </button>
     </div>
   </div>

@@ -1,4 +1,9 @@
 <script setup lang="ts">
+  import { useAdminLanguage } from '@/composables/useAdminLanguage'
+  import { interpolate } from '@/i18n/translations'
+
+  const { adminT } = useAdminLanguage()
+
   defineProps<{
     show: boolean
     username: string
@@ -31,11 +36,11 @@
           </svg>
         </div>
         <h3 class="font-heading text-lg text-charcoal dark:text-dark-text mb-2">
-          Admin Created Successfully
+          {{ adminT.adminUsers.adminCreatedTitle }}
         </h3>
         <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary mb-4">
-          User "{{ username }}" has been created
-          <span v-if="hasEmail"> and a welcome email has been sent.</span>
+          {{ interpolate(adminT.adminUsers.adminCreatedMessage, { username }) }}
+          <span v-if="hasEmail"> {{ adminT.adminUsers.emailSentNote }}</span>
           <span v-else>.</span>
         </p>
         <button
@@ -43,7 +48,7 @@
           class="px-6 py-2 font-body text-sm text-white bg-sage rounded-lg hover:bg-sage-dark transition-colors cursor-pointer"
           @click="emit('close')"
         >
-          Close
+          {{ adminT.common.close }}
         </button>
       </div>
     </div>

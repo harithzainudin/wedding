@@ -1,6 +1,8 @@
 <script setup lang="ts">
   import DarkModeToggle from '@/components/ui/DarkModeToggle.vue'
   import UserProfileDropdown from '@/components/admin/UserProfileDropdown.vue'
+  import AdminLanguageToggle from '@/components/admin/AdminLanguageToggle.vue'
+  import { useAdminLanguage } from '@/composables/useAdminLanguage'
 
   defineProps<{
     currentUser: string
@@ -13,18 +15,20 @@
     logout: []
     openMobileMenu: []
   }>()
+
+  const { adminT } = useAdminLanguage()
 </script>
 
 <template>
   <div class="flex items-center justify-between mb-6">
     <div>
       <h1 class="font-heading text-2xl sm:text-3xl text-sage-dark dark:text-sage-light">
-        Admin Dashboard
+        {{ adminT.header.title }}
       </h1>
       <p
         class="hidden sm:block font-body text-sm text-charcoal-light dark:text-dark-text-secondary mt-1"
       >
-        Manage your wedding website content
+        {{ adminT.header.subtitle }}
       </p>
     </div>
 
@@ -42,8 +46,9 @@
           <polyline points="15,3 21,3 21,9" />
           <line x1="10" y1="14" x2="21" y2="3" />
         </svg>
-        View Site
+        {{ adminT.common.viewSite }}
       </a>
+      <AdminLanguageToggle />
       <DarkModeToggle variant="light" />
       <UserProfileDropdown
         :username="currentUser"

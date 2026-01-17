@@ -11,6 +11,7 @@ wedding/
 │   └── src/
 │       ├── components/   # Vue components
 │       ├── composables/  # Vue composables (hooks)
+│       ├── i18n/         # Internationalization translations
 │       ├── services/     # API services
 │       ├── views/        # Page views
 │       └── types/        # TypeScript types
@@ -74,6 +75,45 @@ cd frontend && pnpm check && cd ../backend && pnpm check
 - Parking guide (images, step-by-step directions, video walkthrough)
 - Multi-language support (i18n)
 - Theme customization
+
+## Internationalization (i18n)
+
+The project uses a custom lightweight i18n implementation with TypeScript for type safety.
+
+### Public Site (4 languages)
+- **Languages**: Malay (ms), English (en), Chinese (zh), Tamil (ta)
+- **Default**: Malay
+- **Storage**: `localStorage` key `wedding-language`
+- **Composable**: `useLanguage()` from `@/composables/useLanguage`
+- **Toggle**: `LanguageToggle.vue` component
+
+### Admin CMS (2 languages)
+- **Languages**: English (en), Malay (ms)
+- **Default**: English
+- **Storage**: `localStorage` key `wedding-admin-language`
+- **Composable**: `useAdminLanguage()` from `@/composables/useAdminLanguage`
+- **Toggle**: `AdminLanguageToggle.vue` component
+
+### Translation Files
+- **Location**: `/frontend/src/i18n/translations.ts`
+- **Structure**: TypeScript interfaces for type-safe translations
+- **Public translations**: `Translations` interface, `translations` object
+- **Admin translations**: `AdminTranslations` interface, `adminTranslations` object
+
+### Usage in Components
+```typescript
+// Public pages
+const { t, setLanguage } = useLanguage()
+// Access: t.value.section.key
+
+// Admin pages
+const { adminT, setAdminLanguage } = useAdminLanguage()
+// Access: adminT.value.section.key
+
+// String interpolation for dynamic values
+import { interpolate } from '@/i18n/translations'
+interpolate(adminT.value.rsvps.deleteGuestConfirm, { name: 'John' })
+```
 
 ## Important Notes
 

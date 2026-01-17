@@ -6,6 +6,9 @@
     getCalligraphySvg,
     getCalligraphyByCategory,
   } from '@/assets/calligraphy/bismillah'
+  import { useAdminLanguage } from '@/composables/useAdminLanguage'
+
+  const { adminT } = useAdminLanguage()
 
   const props = defineProps<{
     settings: BismillahCalligraphySettings
@@ -43,11 +46,11 @@
   })
 
   // Category labels
-  const categoryLabels: Record<string, string> = {
-    traditional: 'Traditional Styles',
-    ornate: 'Ornate Styles',
-    modern: 'Modern Styles',
-  }
+  const categoryLabels = computed(() => ({
+    traditional: adminT.value.wedding.traditionalStyles,
+    ornate: adminT.value.wedding.ornateStyles,
+    modern: adminT.value.wedding.modernStyles,
+  }))
 
   // Load all SVGs on mount for preview
   onMounted(async () => {
@@ -107,7 +110,7 @@
           >
             <div class="overflow-hidden min-h-0">
               <p class="text-white/80 text-[10px] sm:text-xs mt-1 font-body">
-                In the Name of Allah, the Most Gracious, the Most Merciful
+                {{ adminT.wedding.bismillahMeaning }}
               </p>
             </div>
           </div>
@@ -118,8 +121,8 @@
           >
             {{
               previewStyle && previewStyle !== selectedStyle
-                ? `Previewing: ${calligraphyOptions.find((o) => o.id === previewStyle)?.name}`
-                : 'Selected'
+                ? `${adminT.wedding.previewing} ${calligraphyOptions.find((o) => o.id === previewStyle)?.name}`
+                : adminT.common.selected
             }}
           </p>
         </div>
@@ -132,10 +135,10 @@
     >
       <div>
         <label class="font-body text-sm font-medium text-charcoal dark:text-dark-text">
-          Show Translation
+          {{ adminT.wedding.showTranslation }}
         </label>
         <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary mt-0.5">
-          Display English translation below calligraphy
+          {{ adminT.wedding.showTranslationDesc }}
         </p>
       </div>
       <button

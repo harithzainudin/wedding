@@ -3,8 +3,11 @@
   import { v4 as uuidv4 } from 'uuid'
   import type { ParkingStep, ParkingIcon, ParkingImage } from '@/types/venue'
   import { useParkingImages } from '@/composables/useParkingImages'
+  import { useAdminLanguage } from '@/composables/useAdminLanguage'
   import ImageUploader from './ImageUploader.vue'
   import UploadProgressBar from './UploadProgressBar.vue'
+
+  const { adminT } = useAdminLanguage()
 
   const props = defineProps<{
     parkingSteps: ParkingStep[]
@@ -43,15 +46,15 @@
   } = useParkingImages()
 
   // Icon options for parking steps
-  const iconOptions: { value: ParkingIcon | ''; label: string }[] = [
-    { value: '', label: 'No icon' },
-    { value: 'straight', label: 'Go straight' },
-    { value: 'turn-left', label: 'Turn left' },
-    { value: 'turn-right', label: 'Turn right' },
-    { value: 'landmark', label: 'Landmark' },
-    { value: 'parking', label: 'Parking' },
-    { value: 'entrance', label: 'Entrance' },
-  ]
+  const iconOptions = computed(() => [
+    { value: '' as ParkingIcon | '', label: adminT.value.venue.iconNoIcon },
+    { value: 'straight' as ParkingIcon, label: adminT.value.venue.iconGoStraight },
+    { value: 'turn-left' as ParkingIcon, label: adminT.value.venue.iconTurnLeft },
+    { value: 'turn-right' as ParkingIcon, label: adminT.value.venue.iconTurnRight },
+    { value: 'landmark' as ParkingIcon, label: adminT.value.venue.iconLandmark },
+    { value: 'parking' as ParkingIcon, label: adminT.value.venue.iconParking },
+    { value: 'entrance' as ParkingIcon, label: adminT.value.venue.iconEntrance },
+  ])
 
   // Video URL validation
   const videoUrlError = ref('')
@@ -65,7 +68,7 @@
     const youtubeRegex =
       /^(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)[\w-]+/
     if (!youtubeRegex.test(url)) {
-      videoUrlError.value = 'Please enter a valid YouTube URL'
+      videoUrlError.value = adminT.value.venue.validYoutubeUrl
       return false
     }
 
@@ -158,7 +161,7 @@
             <span
               class="font-body text-sm font-medium text-charcoal dark:text-dark-text whitespace-nowrap"
             >
-              Parking Images
+              {{ adminT.venue.parkingImages }}
             </span>
             <span
               class="px-2 py-0.5 rounded-full bg-sage/20 text-sage text-xs font-medium whitespace-nowrap"
@@ -185,7 +188,7 @@
             <span
               class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary whitespace-nowrap"
             >
-              Show on website
+              {{ adminT.venue.showOnWebsite }}
             </span>
             <button
               type="button"
@@ -205,7 +208,7 @@
 
       <div v-if="isImagesExpanded" class="p-4 space-y-4">
         <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary">
-          Upload photos of parking areas or map diagrams to help guests find parking.
+          {{ adminT.venue.uploadParkingPhotosDesc }}
         </p>
 
         <!-- Loading State -->
@@ -283,7 +286,7 @@
             v-else
             class="text-center py-4 font-body text-sm text-charcoal-light dark:text-dark-text-secondary"
           >
-            Maximum {{ maxImages }} images reached
+            {{ adminT.venue.maxImagesReached.replace('{max}', String(maxImages)) }}
           </p>
         </div>
       </div>
@@ -308,13 +311,14 @@
             <span
               class="font-body text-sm font-medium text-charcoal dark:text-dark-text whitespace-nowrap"
             >
-              Directions
+              {{ adminT.venue.directionsTitle }}
             </span>
             <span
               v-if="parkingSteps.length > 0"
               class="px-2 py-0.5 rounded-full bg-sage/20 text-sage text-xs font-medium whitespace-nowrap"
             >
-              {{ parkingSteps.length }} step{{ parkingSteps.length > 1 ? 's' : '' }}
+              {{ parkingSteps.length }}
+              {{ parkingSteps.length > 1 ? adminT.venue.steps : adminT.venue.step }}
             </span>
             <svg
               class="w-5 h-5 text-charcoal-light dark:text-dark-text-secondary transition-transform flex-shrink-0"
@@ -336,7 +340,7 @@
             <span
               class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary whitespace-nowrap"
             >
-              Show on website
+              {{ adminT.venue.showOnWebsite }}
             </span>
             <button
               type="button"
@@ -356,7 +360,7 @@
 
       <div v-if="isStepsExpanded" class="p-4 space-y-3">
         <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary">
-          Add numbered directions to help guests navigate to parking.
+          {{ adminT.venue.addDirectionsDesc }}
         </p>
 
         <!-- Steps List -->
@@ -379,7 +383,7 @@
                 :value="step.text"
                 type="text"
                 maxlength="200"
-                placeholder="Enter direction..."
+                :placeholder="adminT.venue.enterDirectionPlaceholder"
                 :disabled="isSaving"
                 class="w-full px-3 py-2 rounded-lg border border-sand-dark dark:border-dark-border bg-white dark:bg-dark-bg-secondary text-charcoal dark:text-dark-text font-body text-sm focus:outline-none focus:ring-2 focus:ring-sage/50 disabled:opacity-50"
                 @input="
@@ -477,13 +481,13 @@
           class="w-full py-2 border-2 border-dashed border-sand-dark dark:border-dark-border rounded-lg font-body text-sm text-charcoal-light dark:text-dark-text-secondary hover:border-sage hover:text-sage transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           @click="addStep"
         >
-          + Add Step
+          {{ adminT.venue.addStep }}
         </button>
         <p
           v-if="parkingSteps.length >= 10"
           class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary text-center"
         >
-          Maximum 10 steps allowed
+          {{ adminT.venue.maxStepsAllowed }}
         </p>
       </div>
     </div>
@@ -507,13 +511,13 @@
             <span
               class="font-body text-sm font-medium text-charcoal dark:text-dark-text whitespace-nowrap"
             >
-              Video Guide
+              {{ adminT.venue.videoGuide }}
             </span>
             <span
               v-if="parkingVideoUrl"
               class="px-2 py-0.5 rounded-full bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 text-xs font-medium whitespace-nowrap"
             >
-              Added
+              {{ adminT.venue.added }}
             </span>
             <svg
               class="w-5 h-5 text-charcoal-light dark:text-dark-text-secondary transition-transform flex-shrink-0"
@@ -535,7 +539,7 @@
             <span
               class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary whitespace-nowrap"
             >
-              Show on website
+              {{ adminT.venue.showOnWebsite }}
             </span>
             <button
               type="button"
@@ -555,7 +559,7 @@
 
       <div v-if="isVideoExpanded" class="p-4 space-y-3">
         <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary">
-          Add a YouTube video showing guests how to get to the parking area.
+          {{ adminT.venue.addVideoDesc }}
         </p>
 
         <div>

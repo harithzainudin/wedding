@@ -1,9 +1,13 @@
 <script setup lang="ts">
   import { ref, onMounted } from 'vue'
   import { useAdminUsers } from '@/composables/useAdminUsers'
+  import { useAdminLanguage } from '@/composables/useAdminLanguage'
+  import { interpolate } from '@/i18n/translations'
   import SuccessPopup from './SuccessPopup.vue'
   import EmailWarningPopup from './EmailWarningPopup.vue'
   import PasswordResetResultPopup from './PasswordResetResultPopup.vue'
+
+  const { adminT } = useAdminLanguage()
 
   const props = defineProps<{
     isMasterUser: boolean
@@ -132,7 +136,7 @@
     />
 
     <div class="flex justify-between items-center mb-6">
-      <h2 class="font-heading text-xl text-charcoal dark:text-dark-text">Manage Admin Users</h2>
+      <h2 class="font-heading text-xl text-charcoal dark:text-dark-text">{{ adminT.adminUsers.title }}</h2>
       <button
         v-if="isMasterUser"
         type="button"
@@ -142,7 +146,7 @@
         <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M12 5v14M5 12h14" />
         </svg>
-        Add Admin
+        {{ adminT.adminUsers.addAdmin }}
       </button>
     </div>
 
@@ -153,7 +157,7 @@
     >
       <div class="bg-white dark:bg-dark-bg-secondary rounded-xl p-6 max-w-md w-full shadow-xl">
         <div class="flex items-center justify-between mb-4">
-          <h3 class="font-heading text-lg text-charcoal dark:text-dark-text">Create New Admin</h3>
+          <h3 class="font-heading text-lg text-charcoal dark:text-dark-text">{{ adminT.adminUsers.createNewAdmin }}</h3>
           <button
             type="button"
             class="text-charcoal-light hover:text-charcoal transition-colors cursor-pointer"
@@ -174,20 +178,20 @@
         <form @submit.prevent="onCreateAdmin" class="space-y-4">
           <div>
             <label for="newUsername" class="block font-body text-sm font-medium text-charcoal mb-1">
-              Username
+              {{ adminT.auth.username }}
             </label>
             <input
               id="newUsername"
               v-model="newAdminUsername"
               type="text"
               class="w-full px-3 py-2.5 font-body text-base border border-sand-dark rounded-lg bg-sand text-charcoal focus:outline-none focus:border-sage"
-              placeholder="Enter username"
+              :placeholder="adminT.adminUsers.enterUsername"
               required
             />
           </div>
           <div>
             <label for="newPassword" class="block font-body text-sm font-medium text-charcoal mb-1">
-              Password
+              {{ adminT.auth.password }}
             </label>
             <div class="relative">
               <input
@@ -195,7 +199,7 @@
                 v-model="newAdminPassword"
                 :type="showNewAdminPassword ? 'text' : 'password'"
                 class="w-full px-3 py-2.5 pr-10 font-body text-base border border-sand-dark rounded-lg bg-sand text-charcoal focus:outline-none focus:border-sage"
-                placeholder="Enter password"
+                :placeholder="adminT.adminUsers.enterPassword"
                 required
                 minlength="6"
               />
@@ -234,18 +238,17 @@
 
           <div>
             <label for="newEmail" class="block font-body text-sm font-medium text-charcoal mb-1">
-              Email
-              <span class="text-charcoal-light font-normal">(optional)</span>
+              {{ adminT.adminUsers.emailOptional }}
             </label>
             <input
               id="newEmail"
               v-model="newAdminEmail"
               type="email"
               class="w-full px-3 py-2.5 font-body text-base border border-sand-dark rounded-lg bg-sand text-charcoal focus:outline-none focus:border-sage"
-              placeholder="Enter email for welcome notification"
+              :placeholder="adminT.adminUsers.enterEmail"
             />
             <p class="font-body text-xs text-charcoal-light mt-1">
-              A welcome email with login credentials will be sent to this address.
+              {{ adminT.adminUsers.emailHint }}
             </p>
           </div>
 
@@ -259,14 +262,14 @@
               class="px-4 py-2 font-body text-sm text-white bg-sage rounded-lg hover:bg-sage-dark transition-colors cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed"
               :disabled="isCreating"
             >
-              {{ isCreating ? 'Creating...' : 'Create Admin' }}
+              {{ isCreating ? adminT.adminUsers.creating : adminT.adminUsers.createNewAdmin }}
             </button>
             <button
               type="button"
               class="px-4 py-2 font-body text-sm text-charcoal border border-charcoal-light rounded-lg hover:bg-sand-dark transition-colors cursor-pointer"
               @click="closeCreateForm"
             >
-              Cancel
+              {{ adminT.common.cancel }}
             </button>
           </div>
         </form>
@@ -278,7 +281,7 @@
         class="inline-block w-8 h-8 border-3 border-sage border-t-transparent rounded-full animate-spin"
       ></div>
       <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary mt-3">
-        Loading admin users...
+        {{ adminT.adminUsers.loadingAdmins }}
       </p>
     </div>
 
@@ -291,7 +294,7 @@
         class="mt-3 px-4 py-2 font-body text-sm text-sage border border-sage rounded-full hover:bg-sage hover:text-white transition-colors cursor-pointer"
         @click="fetchAdminUsers"
       >
-        Try Again
+        {{ adminT.common.tryAgain }}
       </button>
     </div>
 
@@ -300,10 +303,10 @@
       class="text-center py-12 bg-white dark:bg-dark-bg-secondary rounded-xl"
     >
       <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary">
-        No admin users found.
+        {{ adminT.adminUsers.noAdmins }}
       </p>
       <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary mt-2">
-        Create the first admin user to get started.
+        {{ adminT.adminUsers.createFirst }}
       </p>
     </div>
 
@@ -319,8 +322,7 @@
               {{ admin.username }}
             </p>
             <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary">
-              Created by {{ admin.createdBy }} on
-              {{ formatDate(admin.createdAt) }}
+              {{ interpolate(adminT.adminUsers.createdBy, { user: admin.createdBy, date: formatDate(admin.createdAt) }) }}
             </p>
           </div>
           <div v-if="isMasterUser" class="flex items-center gap-2 flex-wrap justify-end">
@@ -333,58 +335,54 @@
                 class="px-3 py-1.5 font-body text-sm text-amber-600 dark:text-amber-400 border border-amber-600 dark:border-amber-400 rounded-lg hover:bg-amber-600 hover:text-white dark:hover:bg-amber-500 transition-colors cursor-pointer"
                 @click="resetPasswordConfirm = admin.username"
               >
-                Reset Password
+                {{ adminT.adminUsers.resetPassword }}
               </button>
               <button
                 type="button"
                 class="px-3 py-1.5 font-body text-sm text-red-600 border border-red-600 rounded-lg hover:bg-red-600 hover:text-white transition-colors cursor-pointer"
                 @click="deleteConfirm = admin.username"
               >
-                Delete
+                {{ adminT.adminUsers.deleteAdmin }}
               </button>
             </template>
 
             <!-- Reset Password Confirmation -->
             <template v-else-if="resetPasswordConfirm === admin.username">
-              <span class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary"
-                >Reset password?</span
-              >
+              <span class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary">{{ adminT.adminUsers.resetConfirm }}</span>
               <button
                 type="button"
                 class="px-3 py-1.5 font-body text-sm text-white bg-amber-600 rounded-lg hover:bg-amber-700 transition-colors cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed"
                 :disabled="isResetting"
                 @click="onResetPassword(admin)"
               >
-                {{ isResetting ? '...' : 'Yes' }}
+                {{ isResetting ? '...' : adminT.common.yes }}
               </button>
               <button
                 type="button"
                 class="px-3 py-1.5 font-body text-sm text-charcoal dark:text-dark-text border border-charcoal-light dark:border-dark-border rounded-lg hover:bg-sand-dark dark:hover:bg-dark-bg-elevated transition-colors cursor-pointer"
                 @click="resetPasswordConfirm = null"
               >
-                No
+                {{ adminT.common.no }}
               </button>
             </template>
 
             <!-- Delete Confirmation -->
             <template v-else-if="deleteConfirm === admin.username">
-              <span class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary"
-                >Delete?</span
-              >
+              <span class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary">{{ adminT.adminUsers.deleteConfirm }}</span>
               <button
                 type="button"
                 class="px-3 py-1.5 font-body text-sm text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed"
                 :disabled="isDeleting"
                 @click="handleDeleteAdmin(admin.username)"
               >
-                {{ isDeleting ? '...' : 'Yes' }}
+                {{ isDeleting ? '...' : adminT.common.yes }}
               </button>
               <button
                 type="button"
                 class="px-3 py-1.5 font-body text-sm text-charcoal dark:text-dark-text border border-charcoal-light dark:border-dark-border rounded-lg hover:bg-sand-dark dark:hover:bg-dark-bg-elevated transition-colors cursor-pointer"
                 @click="deleteConfirm = null"
               >
-                No
+                {{ adminT.common.no }}
               </button>
             </template>
           </div>
@@ -398,7 +396,7 @@
         class="px-4 py-2 font-body text-sm text-sage hover:text-sage-dark transition-colors cursor-pointer"
         @click="fetchAdminUsers"
       >
-        Refresh
+        {{ adminT.common.refresh }}
       </button>
     </div>
   </div>

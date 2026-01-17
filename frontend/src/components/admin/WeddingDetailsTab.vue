@@ -1,6 +1,7 @@
 <script setup lang="ts">
   import { ref, computed, onMounted, watch } from 'vue'
   import { useWeddingDetails } from '@/composables/useWeddingDetails'
+  import { useAdminLanguage } from '@/composables/useAdminLanguage'
   import type {
     EventDisplayFormat,
     EventDisplayPreset,
@@ -15,16 +16,10 @@
   } from '@/types/weddingDetails'
   import BismillahCalligraphySelector from '@/components/admin/BismillahCalligraphySelector.vue'
 
-  // Tooltip content for name order setting
-  const nameOrderTooltip = `Malay Wedding Custom
+  const { adminT } = useAdminLanguage()
 
-Traditionally, the name order reflects which family hosts the main reception first:
-
-• Bride First: When the main reception (bersanding) is held at the bride's family home first. This is the traditional arrangement.
-
-• Groom First: When the groom's family hosts the reception first, or for the bertandang ceremony at the groom's home.
-
-Choose based on your wedding ceremony arrangement.`
+  // Tooltip content for name order setting - computed for translations
+  const nameOrderTooltip = computed(() => adminT.value.wedding.nameDisplayOrderDesc)
 
   const {
     weddingDetails,
@@ -37,14 +32,14 @@ Choose based on your wedding ceremony arrangement.`
     updateWeddingDetails,
   } = useWeddingDetails()
 
-  // Preset options for dropdown
-  const presetOptions: { value: EventDisplayPreset; label: string }[] = [
-    { value: 'date_time_range', label: 'Date + Time Range' },
-    { value: 'date_start_only', label: 'Date + Start Time Only' },
-    { value: 'date_only', label: 'Date Only' },
-    { value: 'full_details', label: 'Full Details (Separate Lines)' },
-    { value: 'custom', label: 'Custom' },
-  ]
+  // Preset options for dropdown - computed for translations
+  const presetOptions = computed<{ value: EventDisplayPreset; label: string }[]>(() => [
+    { value: 'date_time_range', label: adminT.value.wedding.presetDateTimeRange },
+    { value: 'date_start_only', label: adminT.value.wedding.presetDateStartOnly },
+    { value: 'date_only', label: adminT.value.wedding.presetDateOnly },
+    { value: 'full_details', label: adminT.value.wedding.presetFullDetails },
+    { value: 'custom', label: adminT.value.wedding.presetCustom },
+  ])
 
   // Toggle for custom options
   const showCustomOptions = ref(false)
@@ -441,10 +436,10 @@ Choose based on your wedding ceremony arrangement.`
     <!-- Header -->
     <div class="mb-6">
       <h2 class="font-heading text-xl font-semibold text-charcoal dark:text-dark-text">
-        Wedding Details
+        {{ adminT.wedding.title }}
       </h2>
       <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary mt-1">
-        Manage couple information, parents, and event details
+        {{ adminT.wedding.subtitle }}
       </p>
     </div>
 
@@ -454,7 +449,7 @@ Choose based on your wedding ceremony arrangement.`
         class="inline-block w-8 h-8 border-3 border-sage border-t-transparent rounded-full animate-spin"
       />
       <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary mt-3">
-        Loading wedding details...
+        {{ adminT.wedding.loadingDetails }}
       </p>
     </div>
 
@@ -485,7 +480,7 @@ Choose based on your wedding ceremony arrangement.`
         class="px-4 py-2 rounded-lg bg-sage text-white font-body text-sm hover:bg-sage-dark transition-colors"
         @click="fetchWeddingDetails"
       >
-        Try Again
+        {{ adminT.common.tryAgain }}
       </button>
     </div>
 
@@ -516,7 +511,7 @@ Choose based on your wedding ceremony arrangement.`
                 : 'text-charcoal dark:text-dark-text group-hover:text-sage-dark dark:group-hover:text-sage-light'
             "
           >
-            Couple Information
+            {{ adminT.wedding.coupleInfo }}
           </h3>
           <svg
             class="w-5 h-5 transition-all"
@@ -547,19 +542,19 @@ Choose based on your wedding ceremony arrangement.`
                 <!-- Bride -->
                 <div class="space-y-3">
                   <h4 class="font-body text-sm font-medium text-sage-dark dark:text-sage-light">
-                    Bride
+                    {{ adminT.wedding.bride }}
                   </h4>
                   <div>
                     <label
                       class="block font-body text-xs text-charcoal-light dark:text-dark-text-secondary mb-1"
                     >
-                      Full Name
+                      {{ adminT.wedding.fullName }}
                     </label>
                     <input
                       v-model="formData.couple.bride.fullName"
                       type="text"
                       class="w-full px-3 py-2.5 font-body text-base border border-sand-dark dark:border-dark-border rounded-lg bg-sand dark:bg-dark-bg-elevated text-charcoal dark:text-dark-text focus:outline-none focus:border-sage"
-                      placeholder="Full name"
+                      :placeholder="adminT.wedding.fullNamePlaceholder"
                       :disabled="isSaving"
                     />
                   </div>
@@ -567,13 +562,13 @@ Choose based on your wedding ceremony arrangement.`
                     <label
                       class="block font-body text-xs text-charcoal-light dark:text-dark-text-secondary mb-1"
                     >
-                      Nickname
+                      {{ adminT.wedding.nickname }}
                     </label>
                     <input
                       v-model="formData.couple.bride.nickname"
                       type="text"
                       class="w-full px-3 py-2.5 font-body text-base border border-sand-dark dark:border-dark-border rounded-lg bg-sand dark:bg-dark-bg-elevated text-charcoal dark:text-dark-text focus:outline-none focus:border-sage"
-                      placeholder="Nickname"
+                      :placeholder="adminT.wedding.nicknamePlaceholder"
                       :disabled="isSaving"
                     />
                   </div>
@@ -582,19 +577,19 @@ Choose based on your wedding ceremony arrangement.`
                 <!-- Groom -->
                 <div class="space-y-3">
                   <h4 class="font-body text-sm font-medium text-sage-dark dark:text-sage-light">
-                    Groom
+                    {{ adminT.wedding.groom }}
                   </h4>
                   <div>
                     <label
                       class="block font-body text-xs text-charcoal-light dark:text-dark-text-secondary mb-1"
                     >
-                      Full Name
+                      {{ adminT.wedding.fullName }}
                     </label>
                     <input
                       v-model="formData.couple.groom.fullName"
                       type="text"
                       class="w-full px-3 py-2.5 font-body text-base border border-sand-dark dark:border-dark-border rounded-lg bg-sand dark:bg-dark-bg-elevated text-charcoal dark:text-dark-text focus:outline-none focus:border-sage"
-                      placeholder="Full name"
+                      :placeholder="adminT.wedding.fullNamePlaceholder"
                       :disabled="isSaving"
                     />
                   </div>
@@ -602,13 +597,13 @@ Choose based on your wedding ceremony arrangement.`
                     <label
                       class="block font-body text-xs text-charcoal-light dark:text-dark-text-secondary mb-1"
                     >
-                      Nickname
+                      {{ adminT.wedding.nickname }}
                     </label>
                     <input
                       v-model="formData.couple.groom.nickname"
                       type="text"
                       class="w-full px-3 py-2.5 font-body text-base border border-sand-dark dark:border-dark-border rounded-lg bg-sand dark:bg-dark-bg-elevated text-charcoal dark:text-dark-text focus:outline-none focus:border-sage"
-                      placeholder="Nickname"
+                      :placeholder="adminT.wedding.nicknamePlaceholder"
                       :disabled="isSaving"
                     />
                   </div>
@@ -645,22 +640,8 @@ Choose based on your wedding ceremony arrangement.`
                   : 'text-charcoal dark:text-dark-text group-hover:text-sage-dark dark:group-hover:text-sage-light'
               "
             >
-              Name Display Order
+              {{ adminT.wedding.nameDisplayOrder }}
             </h3>
-            <!-- Tooltip -->
-            <div class="relative group/tooltip" @click.stop>
-              <span
-                class="w-5 h-5 rounded-full bg-sage/20 text-sage-dark dark:text-sage-light flex items-center justify-center text-xs font-medium hover:bg-sage/30 transition-colors cursor-help"
-              >
-                ?
-              </span>
-              <!-- Tooltip content -->
-              <div
-                class="absolute left-0 top-full mt-2 w-72 sm:w-80 p-3 bg-charcoal dark:bg-dark-bg-elevated text-white text-xs rounded-lg shadow-lg opacity-0 invisible group-hover/tooltip:opacity-100 group-hover/tooltip:visible transition-all z-[100] whitespace-pre-line max-h-64 overflow-y-auto"
-              >
-                {{ nameOrderTooltip }}
-              </div>
-            </div>
           </div>
           <svg
             class="w-5 h-5 transition-all"
@@ -688,7 +669,7 @@ Choose based on your wedding ceremony arrangement.`
           <div class="overflow-hidden min-h-0">
             <div class="px-4 sm:px-6 pt-2 pb-4 sm:pb-6">
               <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary mb-4">
-                Choose whether to display the bride or groom name first throughout the website.
+                {{ adminT.wedding.nameDisplayOrderDesc }}
               </p>
 
               <div class="flex flex-col sm:flex-row gap-3">
@@ -711,12 +692,12 @@ Choose based on your wedding ceremony arrangement.`
                     <span
                       class="font-body text-sm font-medium text-charcoal dark:text-dark-text block"
                     >
-                      Bride First
+                      {{ adminT.wedding.brideFirst }}
                     </span>
                     <span
                       class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary"
                     >
-                      Traditional arrangement
+                      {{ adminT.wedding.brideFirstDesc }}
                     </span>
                   </div>
                 </label>
@@ -740,12 +721,12 @@ Choose based on your wedding ceremony arrangement.`
                     <span
                       class="font-body text-sm font-medium text-charcoal dark:text-dark-text block"
                     >
-                      Groom First
+                      {{ adminT.wedding.groomFirst }}
                     </span>
                     <span
                       class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary"
                     >
-                      Alternative arrangement
+                      {{ adminT.wedding.groomFirstDesc }}
                     </span>
                   </div>
                 </label>
@@ -783,10 +764,10 @@ Choose based on your wedding ceremony arrangement.`
                   : 'text-charcoal dark:text-dark-text group-hover:text-sage-dark dark:group-hover:text-sage-light'
               "
             >
-              Bismillah Calligraphy
+              {{ adminT.wedding.bismillah }}
             </h3>
             <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary mt-1">
-              Choose the calligraphy style for the Bismillah displayed on the hero section
+              {{ adminT.wedding.bismillahDesc }}
             </p>
           </div>
           <svg
@@ -849,7 +830,7 @@ Choose based on your wedding ceremony arrangement.`
                 : 'text-charcoal dark:text-dark-text group-hover:text-sage-dark dark:group-hover:text-sage-light'
             "
           >
-            Parents Information
+            {{ adminT.wedding.parentsInfo }}
           </h3>
           <svg
             class="w-5 h-5 transition-all"
@@ -879,7 +860,7 @@ Choose based on your wedding ceremony arrangement.`
               <!-- Parents Visibility Settings -->
               <div class="mb-6 space-y-3">
                 <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary mb-2">
-                  Control which parents names appear on the public invitation
+                  {{ adminT.wedding.parentsVisibilityDesc }}
                 </p>
 
                 <!-- Show Bride's Parents Toggle -->
@@ -888,12 +869,12 @@ Choose based on your wedding ceremony arrangement.`
                 >
                   <div>
                     <label class="font-body text-sm font-medium text-charcoal dark:text-dark-text">
-                      Show Bride's Parents
+                      {{ adminT.wedding.showBrideParents }}
                     </label>
                     <p
                       class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary mt-0.5"
                     >
-                      Display bride's parents names on the invitation
+                      {{ adminT.wedding.showBrideParentsDesc }}
                     </p>
                   </div>
                   <button
@@ -929,12 +910,12 @@ Choose based on your wedding ceremony arrangement.`
                 >
                   <div>
                     <label class="font-body text-sm font-medium text-charcoal dark:text-dark-text">
-                      Show Groom's Parents
+                      {{ adminT.wedding.showGroomParents }}
                     </label>
                     <p
                       class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary mt-0.5"
                     >
-                      Display groom's parents names on the invitation
+                      {{ adminT.wedding.showGroomParentsDesc }}
                     </p>
                   </div>
                   <button
@@ -978,19 +959,19 @@ Choose based on your wedding ceremony arrangement.`
                   }"
                 >
                   <h4 class="font-body text-sm font-medium text-sage-dark dark:text-sage-light">
-                    Bride's Parents
+                    {{ adminT.wedding.brideParents }}
                   </h4>
                   <div>
                     <label
                       class="block font-body text-xs text-charcoal-light dark:text-dark-text-secondary mb-1"
                     >
-                      Father's Name
+                      {{ adminT.wedding.fatherName }}
                     </label>
                     <input
                       v-model="formData.parents.bride.father"
                       type="text"
                       class="w-full px-3 py-2.5 font-body text-base border border-sand-dark dark:border-dark-border rounded-lg bg-sand dark:bg-dark-bg-elevated text-charcoal dark:text-dark-text focus:outline-none focus:border-sage disabled:cursor-not-allowed disabled:bg-gray-100 dark:disabled:bg-dark-bg"
-                      placeholder="Father's name"
+                      :placeholder="adminT.wedding.fatherNamePlaceholder"
                       :disabled="isSaving || !formData.parentsVisibility.showBrideParents"
                     />
                   </div>
@@ -998,13 +979,13 @@ Choose based on your wedding ceremony arrangement.`
                     <label
                       class="block font-body text-xs text-charcoal-light dark:text-dark-text-secondary mb-1"
                     >
-                      Mother's Name
+                      {{ adminT.wedding.motherName }}
                     </label>
                     <input
                       v-model="formData.parents.bride.mother"
                       type="text"
                       class="w-full px-3 py-2.5 font-body text-base border border-sand-dark dark:border-dark-border rounded-lg bg-sand dark:bg-dark-bg-elevated text-charcoal dark:text-dark-text focus:outline-none focus:border-sage disabled:cursor-not-allowed disabled:bg-gray-100 dark:disabled:bg-dark-bg"
-                      placeholder="Mother's name"
+                      :placeholder="adminT.wedding.motherNamePlaceholder"
                       :disabled="isSaving || !formData.parentsVisibility.showBrideParents"
                     />
                   </div>
@@ -1019,19 +1000,19 @@ Choose based on your wedding ceremony arrangement.`
                   }"
                 >
                   <h4 class="font-body text-sm font-medium text-sage-dark dark:text-sage-light">
-                    Groom's Parents
+                    {{ adminT.wedding.groomParents }}
                   </h4>
                   <div>
                     <label
                       class="block font-body text-xs text-charcoal-light dark:text-dark-text-secondary mb-1"
                     >
-                      Father's Name
+                      {{ adminT.wedding.fatherName }}
                     </label>
                     <input
                       v-model="formData.parents.groom.father"
                       type="text"
                       class="w-full px-3 py-2.5 font-body text-base border border-sand-dark dark:border-dark-border rounded-lg bg-sand dark:bg-dark-bg-elevated text-charcoal dark:text-dark-text focus:outline-none focus:border-sage disabled:cursor-not-allowed disabled:bg-gray-100 dark:disabled:bg-dark-bg"
-                      placeholder="Father's name"
+                      :placeholder="adminT.wedding.fatherNamePlaceholder"
                       :disabled="isSaving || !formData.parentsVisibility.showGroomParents"
                     />
                   </div>
@@ -1039,13 +1020,13 @@ Choose based on your wedding ceremony arrangement.`
                     <label
                       class="block font-body text-xs text-charcoal-light dark:text-dark-text-secondary mb-1"
                     >
-                      Mother's Name
+                      {{ adminT.wedding.motherName }}
                     </label>
                     <input
                       v-model="formData.parents.groom.mother"
                       type="text"
                       class="w-full px-3 py-2.5 font-body text-base border border-sand-dark dark:border-dark-border rounded-lg bg-sand dark:bg-dark-bg-elevated text-charcoal dark:text-dark-text focus:outline-none focus:border-sage disabled:cursor-not-allowed disabled:bg-gray-100 dark:disabled:bg-dark-bg"
-                      placeholder="Mother's name"
+                      :placeholder="adminT.wedding.motherNamePlaceholder"
                       :disabled="isSaving || !formData.parentsVisibility.showGroomParents"
                     />
                   </div>
@@ -1081,7 +1062,7 @@ Choose based on your wedding ceremony arrangement.`
                 : 'text-charcoal dark:text-dark-text group-hover:text-sage-dark dark:group-hover:text-sage-light'
             "
           >
-            Event Details
+            {{ adminT.wedding.eventDetails }}
           </h3>
           <svg
             class="w-5 h-5 transition-all"
@@ -1113,7 +1094,7 @@ Choose based on your wedding ceremony arrangement.`
                   <label
                     class="block font-body text-xs text-charcoal-light dark:text-dark-text-secondary mb-1"
                   >
-                    Event Start Date & Time
+                    {{ adminT.wedding.eventStartDateTime }}
                   </label>
                   <input
                     v-model="formattedEventDate"
@@ -1126,7 +1107,7 @@ Choose based on your wedding ceremony arrangement.`
                   <label
                     class="block font-body text-xs text-charcoal-light dark:text-dark-text-secondary mb-1"
                   >
-                    Event End Time
+                    {{ adminT.wedding.eventEndTime }}
                   </label>
                   <input
                     v-model="formattedEventEndTime"
@@ -1140,13 +1121,13 @@ Choose based on your wedding ceremony arrangement.`
                 <label
                   class="block font-body text-xs text-charcoal-light dark:text-dark-text-secondary mb-1"
                 >
-                  Dress Code
+                  {{ adminT.wedding.dressCode }}
                 </label>
                 <input
                   v-model="formData.dressCode"
                   type="text"
                   class="w-full px-3 py-2.5 font-body text-base border border-sand-dark dark:border-dark-border rounded-lg bg-sand dark:bg-dark-bg-elevated text-charcoal dark:text-dark-text focus:outline-none focus:border-sage"
-                  placeholder="e.g., Pastel / Earthy Tones"
+                  :placeholder="adminT.wedding.dressCodePlaceholder"
                   :disabled="isSaving"
                 />
               </div>
@@ -1183,10 +1164,10 @@ Choose based on your wedding ceremony arrangement.`
                   : 'text-charcoal dark:text-dark-text group-hover:text-sage-dark dark:group-hover:text-sage-light'
               "
             >
-              Display Format Settings
+              {{ adminT.wedding.displayFormatSettings }}
             </h3>
             <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary mt-1">
-              Choose how the event date and time should appear on the public website
+              {{ adminT.wedding.displayFormatDesc }}
             </p>
           </div>
           <svg
@@ -1219,7 +1200,7 @@ Choose based on your wedding ceremony arrangement.`
                 <label
                   class="block font-body text-xs text-charcoal-light dark:text-dark-text-secondary mb-1"
                 >
-                  Display Format
+                  {{ adminT.wedding.displayFormat }}
                 </label>
                 <select
                   :value="formData.eventDisplayFormat.preset"
@@ -1242,7 +1223,7 @@ Choose based on your wedding ceremony arrangement.`
                 class="mb-4 p-4 bg-sand/50 dark:bg-dark-bg-elevated rounded-lg border border-sand-dark/50 dark:border-dark-border"
               >
                 <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary mb-2">
-                  Preview:
+                  {{ adminT.wedding.preview }}
                 </p>
                 <div class="text-center">
                   <p
@@ -1261,7 +1242,7 @@ Choose based on your wedding ceremony arrangement.`
                     v-if="!previewDate && !previewTime"
                     class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary italic"
                   >
-                    No date/time will be displayed
+                    {{ adminT.wedding.noDateTimeDisplayed }}
                   </p>
                 </div>
               </div>
@@ -1270,7 +1251,7 @@ Choose based on your wedding ceremony arrangement.`
               <div v-if="formData.eventDisplayFormat.preset === 'custom'" class="space-y-4">
                 <div class="border-t border-sand-dark dark:border-dark-border pt-4">
                   <h4 class="font-body text-sm font-medium text-charcoal dark:text-dark-text mb-3">
-                    Custom Options
+                    {{ adminT.wedding.customOptions }}
                   </h4>
 
                   <!-- Boolean toggles -->
@@ -1282,9 +1263,9 @@ Choose based on your wedding ceremony arrangement.`
                         class="w-4 h-4 rounded border-sand-dark text-sage focus:ring-sage"
                         :disabled="isSaving"
                       />
-                      <span class="font-body text-sm text-charcoal dark:text-dark-text"
-                        >Show date</span
-                      >
+                      <span class="font-body text-sm text-charcoal dark:text-dark-text">{{
+                        adminT.wedding.showDate
+                      }}</span>
                     </label>
                     <label class="flex items-center gap-2 cursor-pointer">
                       <input
@@ -1293,9 +1274,9 @@ Choose based on your wedding ceremony arrangement.`
                         class="w-4 h-4 rounded border-sand-dark text-sage focus:ring-sage"
                         :disabled="isSaving"
                       />
-                      <span class="font-body text-sm text-charcoal dark:text-dark-text"
-                        >Show day of week</span
-                      >
+                      <span class="font-body text-sm text-charcoal dark:text-dark-text">{{
+                        adminT.wedding.showDayOfWeek
+                      }}</span>
                     </label>
                     <label class="flex items-center gap-2 cursor-pointer">
                       <input
@@ -1304,9 +1285,9 @@ Choose based on your wedding ceremony arrangement.`
                         class="w-4 h-4 rounded border-sand-dark text-sage focus:ring-sage"
                         :disabled="isSaving"
                       />
-                      <span class="font-body text-sm text-charcoal dark:text-dark-text"
-                        >Show start time</span
-                      >
+                      <span class="font-body text-sm text-charcoal dark:text-dark-text">{{
+                        adminT.wedding.showStartTime
+                      }}</span>
                     </label>
                     <label class="flex items-center gap-2 cursor-pointer">
                       <input
@@ -1315,9 +1296,9 @@ Choose based on your wedding ceremony arrangement.`
                         class="w-4 h-4 rounded border-sand-dark text-sage focus:ring-sage"
                         :disabled="isSaving"
                       />
-                      <span class="font-body text-sm text-charcoal dark:text-dark-text"
-                        >Show end time</span
-                      >
+                      <span class="font-body text-sm text-charcoal dark:text-dark-text">{{
+                        adminT.wedding.showEndTime
+                      }}</span>
                     </label>
                   </div>
 
@@ -1326,7 +1307,7 @@ Choose based on your wedding ceremony arrangement.`
                     <p
                       class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary mb-2"
                     >
-                      Time format:
+                      {{ adminT.wedding.timeFormatLabel }}
                     </p>
                     <div class="flex gap-4">
                       <label class="flex items-center gap-2 cursor-pointer">
@@ -1337,9 +1318,9 @@ Choose based on your wedding ceremony arrangement.`
                           class="w-4 h-4 border-sand-dark text-sage focus:ring-sage"
                           :disabled="isSaving"
                         />
-                        <span class="font-body text-sm text-charcoal dark:text-dark-text"
-                          >12-hour (AM/PM)</span
-                        >
+                        <span class="font-body text-sm text-charcoal dark:text-dark-text">{{
+                          adminT.wedding.time12Hour
+                        }}</span>
                       </label>
                       <label class="flex items-center gap-2 cursor-pointer">
                         <input
@@ -1349,9 +1330,9 @@ Choose based on your wedding ceremony arrangement.`
                           class="w-4 h-4 border-sand-dark text-sage focus:ring-sage"
                           :disabled="isSaving"
                         />
-                        <span class="font-body text-sm text-charcoal dark:text-dark-text"
-                          >24-hour</span
-                        >
+                        <span class="font-body text-sm text-charcoal dark:text-dark-text">{{
+                          adminT.wedding.time24Hour
+                        }}</span>
                       </label>
                     </div>
                   </div>
@@ -1361,25 +1342,25 @@ Choose based on your wedding ceremony arrangement.`
                     <h5
                       class="font-body text-sm font-medium text-charcoal dark:text-dark-text mb-2"
                     >
-                      Advanced Format (Optional)
+                      {{ adminT.wedding.advancedFormat }}
                     </h5>
                     <p
                       class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary mb-3"
                     >
-                      Use custom format strings. Leave empty to use default formatting.
+                      {{ adminT.wedding.advancedFormatDesc }}
                     </p>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div>
                         <label
                           class="block font-body text-xs text-charcoal-light dark:text-dark-text-secondary mb-1"
                         >
-                          Date Format
+                          {{ adminT.wedding.dateFormatLabel }}
                         </label>
                         <input
                           v-model="formData.eventDisplayFormat.customOptions.customDateFormat"
                           type="text"
                           class="w-full px-3 py-2 font-body text-sm border border-sand-dark dark:border-dark-border rounded-lg bg-sand dark:bg-dark-bg-elevated text-charcoal dark:text-dark-text focus:outline-none focus:border-sage font-mono"
-                          placeholder="e.g., DD/MM/YYYY or MMMM D, YYYY"
+                          :placeholder="adminT.wedding.dateFormatPlaceholder"
                           :disabled="isSaving"
                         />
                       </div>
@@ -1387,13 +1368,13 @@ Choose based on your wedding ceremony arrangement.`
                         <label
                           class="block font-body text-xs text-charcoal-light dark:text-dark-text-secondary mb-1"
                         >
-                          Time Format
+                          {{ adminT.wedding.timeFormatLabel }}
                         </label>
                         <input
                           v-model="formData.eventDisplayFormat.customOptions.customTimeFormat"
                           type="text"
                           class="w-full px-3 py-2 font-body text-sm border border-sand-dark dark:border-dark-border rounded-lg bg-sand dark:bg-dark-bg-elevated text-charcoal dark:text-dark-text focus:outline-none focus:border-sage font-mono"
-                          placeholder="e.g., hh:mm A or HH:mm"
+                          :placeholder="adminT.wedding.timeFormatPlaceholder"
                           :disabled="isSaving"
                         />
                       </div>
@@ -1401,11 +1382,9 @@ Choose based on your wedding ceremony arrangement.`
                     <div
                       class="mt-2 p-2 bg-sand/30 dark:bg-dark-bg-elevated rounded text-xs text-charcoal-light dark:text-dark-text-secondary"
                     >
-                      <p class="font-medium mb-1">Format tokens:</p>
-                      <p>
-                        Date: YYYY (year), MM (month), DD (day), MMMM (month name), dddd (day name)
-                      </p>
-                      <p>Time: HH (24h), hh (12h), mm (minutes), A (AM/PM)</p>
+                      <p class="font-medium mb-1">{{ adminT.wedding.formatTokens }}</p>
+                      <p>{{ adminT.wedding.dateTokens }}</p>
+                      <p>{{ adminT.wedding.timeTokens }}</p>
                     </div>
                   </div>
                 </div>
@@ -1440,7 +1419,7 @@ Choose based on your wedding ceremony arrangement.`
                 : 'text-charcoal dark:text-dark-text group-hover:text-sage-dark dark:group-hover:text-sage-light'
             "
           >
-            Website Details
+            {{ adminT.wedding.websiteDetails }}
           </h3>
           <svg
             class="w-5 h-5 transition-all"
@@ -1472,13 +1451,13 @@ Choose based on your wedding ceremony arrangement.`
                   <label
                     class="block font-body text-xs text-charcoal-light dark:text-dark-text-secondary mb-1"
                   >
-                    Wedding Hashtag
+                    {{ adminT.wedding.hashtag }}
                   </label>
                   <input
                     v-model="formData.hashtag"
                     type="text"
                     class="w-full px-3 py-2.5 font-body text-base border border-sand-dark dark:border-dark-border rounded-lg bg-sand dark:bg-dark-bg-elevated text-charcoal dark:text-dark-text focus:outline-none focus:border-sage"
-                    placeholder="#YourWeddingHashtag"
+                    :placeholder="adminT.wedding.hashtagPlaceholder"
                     :disabled="isSaving"
                   />
                 </div>
@@ -1486,13 +1465,13 @@ Choose based on your wedding ceremony arrangement.`
                   <label
                     class="block font-body text-xs text-charcoal-light dark:text-dark-text-secondary mb-1"
                   >
-                    QR Code URL
+                    {{ adminT.wedding.qrCodeUrl }}
                   </label>
                   <input
                     v-model="formData.qrCodeUrl"
                     type="url"
                     class="w-full px-3 py-2.5 font-body text-base border border-sand-dark dark:border-dark-border rounded-lg bg-sand dark:bg-dark-bg-elevated text-charcoal dark:text-dark-text focus:outline-none focus:border-sage"
-                    placeholder="https://your-wedding-site.com"
+                    :placeholder="adminT.wedding.qrCodeUrlPlaceholder"
                     :disabled="isSaving"
                   />
                 </div>
@@ -1525,7 +1504,7 @@ Choose based on your wedding ceremony arrangement.`
                   d="M5 13l4 4L19 7"
                 />
               </svg>
-              Wedding details saved successfully!
+              {{ adminT.wedding.savedSuccess }}
             </p>
           </div>
 
@@ -1543,7 +1522,7 @@ Choose based on your wedding ceremony arrangement.`
                   d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
                 />
               </svg>
-              You have unsaved changes
+              {{ adminT.wedding.unsavedChanges }}
             </p>
           </div>
         </div>
@@ -1555,7 +1534,7 @@ Choose based on your wedding ceremony arrangement.`
             class="px-4 py-2.5 font-body text-sm text-charcoal border border-charcoal-light rounded-lg hover:bg-sand-dark transition-colors cursor-pointer"
             @click="discardChanges"
           >
-            Cancel
+            {{ adminT.common.cancel }}
           </button>
           <button
             type="button"
@@ -1563,7 +1542,7 @@ Choose based on your wedding ceremony arrangement.`
             :disabled="isSaving || !hasChanges"
             @click="handleSave"
           >
-            {{ isSaving ? 'Saving...' : 'Save Changes' }}
+            {{ isSaving ? adminT.common.saving : adminT.common.saveChanges }}
           </button>
         </div>
       </div>
@@ -1574,9 +1553,9 @@ Choose based on your wedding ceremony arrangement.`
         class="p-3 bg-sand/30 dark:bg-dark-bg-elevated rounded-lg"
       >
         <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary">
-          Last updated:
+          {{ adminT.messages.lastUpdated }}:
           {{ new Date(weddingDetails.updatedAt).toLocaleString() }}
-          <span v-if="weddingDetails.updatedBy"> by {{ weddingDetails.updatedBy }}</span>
+          <span v-if="weddingDetails.updatedBy"> {{ adminT.messages.by }} {{ weddingDetails.updatedBy }}</span>
         </p>
       </div>
     </div>

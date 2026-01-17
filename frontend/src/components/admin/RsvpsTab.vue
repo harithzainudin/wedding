@@ -1,9 +1,13 @@
 <script setup lang="ts">
   import { ref, onMounted, watch } from 'vue'
   import { useRsvps } from '@/composables/useRsvps'
+  import { useAdminLanguage } from '@/composables/useAdminLanguage'
+  import { interpolate } from '@/i18n/translations'
   import type { RsvpSubmission, AdminRsvpRequest } from '@/types/rsvp'
   import RsvpFormModal from './RsvpFormModal.vue'
   import ConfirmModal from './ConfirmModal.vue'
+
+  const { adminT } = useAdminLanguage()
 
   const {
     filteredRsvps,
@@ -90,21 +94,23 @@
     <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
       <div class="p-4 bg-white dark:bg-dark-bg-secondary rounded-xl shadow-sm dark:shadow-lg">
         <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary">
-          Total RSVPs
+          {{ adminT.rsvps.totalRsvps }}
         </p>
         <p class="font-heading text-2xl text-sage-dark dark:text-sage-light">
           {{ summary.total }}
         </p>
       </div>
       <div class="p-4 bg-white dark:bg-dark-bg-secondary rounded-xl shadow-sm dark:shadow-lg">
-        <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary">Attending</p>
+        <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary">
+          {{ adminT.rsvps.attending }}
+        </p>
         <p class="font-heading text-2xl text-green-600 dark:text-green-400">
           {{ summary.attending }}
         </p>
       </div>
       <div class="p-4 bg-white dark:bg-dark-bg-secondary rounded-xl shadow-sm dark:shadow-lg">
         <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary">
-          Not Attending
+          {{ adminT.rsvps.notAttending }}
         </p>
         <p class="font-heading text-2xl text-red-600 dark:text-red-400">
           {{ summary.notAttending }}
@@ -112,7 +118,7 @@
       </div>
       <div class="p-4 bg-white dark:bg-dark-bg-secondary rounded-xl shadow-sm dark:shadow-lg">
         <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary">
-          Total Guests
+          {{ adminT.rsvps.totalGuests }}
         </p>
         <p class="font-heading text-2xl text-sage-dark dark:text-sage-light">
           {{ summary.totalGuests }}
@@ -132,7 +138,7 @@
           "
           @click="setFilter('all')"
         >
-          All ({{ summary.total }})
+          {{ adminT.rsvps.filterAll }} ({{ summary.total }})
         </button>
         <button
           type="button"
@@ -144,7 +150,7 @@
           "
           @click="setFilter('attending')"
         >
-          Attending ({{ summary.attending }})
+          {{ adminT.rsvps.filterAttending }} ({{ summary.attending }})
         </button>
         <button
           type="button"
@@ -156,7 +162,7 @@
           "
           @click="setFilter('not_attending')"
         >
-          Not Attending ({{ summary.notAttending }})
+          {{ adminT.rsvps.filterNotAttending }} ({{ summary.notAttending }})
         </button>
       </div>
 
@@ -176,7 +182,7 @@
             <line x1="12" y1="5" x2="12" y2="19" />
             <line x1="5" y1="12" x2="19" y2="12" />
           </svg>
-          Add Guest
+          {{ adminT.rsvps.addGuest }}
         </button>
         <button
           type="button"
@@ -192,7 +198,7 @@
           >
             <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3" />
           </svg>
-          Export CSV
+          {{ adminT.rsvps.exportCsv }}
         </button>
       </div>
     </div>
@@ -202,7 +208,7 @@
         class="inline-block w-8 h-8 border-3 border-sage border-t-transparent rounded-full animate-spin"
       ></div>
       <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary mt-3">
-        Loading RSVPs...
+        {{ adminT.rsvps.loadingRsvps }}
       </p>
     </div>
 
@@ -215,7 +221,7 @@
         class="mt-3 px-4 py-2 font-body text-sm text-sage border border-sage rounded-full hover:bg-sage hover:text-white transition-colors cursor-pointer"
         @click="fetchRsvps"
       >
-        Try Again
+        {{ adminT.common.tryAgain }}
       </button>
     </div>
 
@@ -224,14 +230,14 @@
       class="text-center py-12 bg-white dark:bg-dark-bg-secondary rounded-xl"
     >
       <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary">
-        No RSVPs found.
+        {{ adminT.rsvps.noRsvps }}
       </p>
       <button
         type="button"
         class="mt-3 px-4 py-2 font-body text-sm text-sage border border-sage rounded-full hover:bg-sage hover:text-white transition-colors cursor-pointer"
         @click="openAddModal"
       >
-        Add First Guest
+        {{ adminT.rsvps.addFirstGuest }}
       </button>
     </div>
 
@@ -255,22 +261,24 @@
                     : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300'
                 "
               >
-                {{ rsvp.isAttending ? 'Attending' : 'Not Attending' }}
+                {{ rsvp.isAttending ? adminT.rsvps.attending : adminT.rsvps.notAttending }}
               </span>
               <span
                 v-if="rsvp.source === 'admin'"
                 class="px-2 py-0.5 text-xs font-medium rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300"
               >
-                Manual
+                {{ adminT.rsvps.manual }}
               </span>
             </div>
             <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary">
               <span v-if="rsvp.phoneNumber">{{ rsvp.phoneNumber }}</span>
               <span v-if="rsvp.phoneNumber && rsvp.isAttending"> &bull; </span>
-              <span v-if="rsvp.isAttending">{{ rsvp.numberOfGuests }} guest(s)</span>
-              <span v-if="!rsvp.phoneNumber && !rsvp.isAttending" class="italic"
-                >No phone provided</span
+              <span v-if="rsvp.isAttending"
+                >{{ rsvp.numberOfGuests }} {{ adminT.rsvps.guests }}</span
               >
+              <span v-if="!rsvp.phoneNumber && !rsvp.isAttending" class="italic">{{
+                adminT.rsvps.noPhoneProvided
+              }}</span>
             </p>
             <p
               v-if="rsvp.message"
@@ -334,7 +342,7 @@
         class="px-4 py-2 font-body text-sm text-sage hover:text-sage-dark transition-colors cursor-pointer"
         @click="fetchRsvps"
       >
-        Refresh
+        {{ adminT.common.refresh }}
       </button>
     </div>
 
@@ -358,9 +366,11 @@
     <!-- Delete Confirmation Modal -->
     <ConfirmModal
       v-if="showDeleteModal"
-      title="Delete Guest?"
-      :message="`Are you sure you want to delete ${selectedRsvp?.fullName}'s RSVP? This action cannot be undone.`"
-      confirm-text="Delete"
+      :title="adminT.rsvps.deleteGuest"
+      :message="
+        interpolate(adminT.rsvps.deleteGuestConfirm, { name: selectedRsvp?.fullName || '' })
+      "
+      :confirm-text="adminT.common.delete"
       variant="danger"
       :is-loading="isDeleting"
       @confirm="handleDeleteConfirm"

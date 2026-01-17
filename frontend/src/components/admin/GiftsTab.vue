@@ -1,9 +1,13 @@
 <script setup lang="ts">
   import { onMounted, onUnmounted, ref, watch, computed } from 'vue'
   import { useGifts } from '@/composables/useGifts'
+  import { useAdminLanguage } from '@/composables/useAdminLanguage'
+  import { interpolate } from '@/i18n/translations'
   import type { GiftItem, GiftCategory, GiftPriority } from '@/types/gift'
   import DeleteConfirmModal from './DeleteConfirmModal.vue'
   import UploadProgressBar from './UploadProgressBar.vue'
+
+  const { adminT } = useAdminLanguage()
 
   const {
     gifts,
@@ -250,11 +254,11 @@
   // Get category label
   const getCategoryLabel = (category: string): string => {
     const labels: Record<string, string> = {
-      home: 'Home',
-      kitchen: 'Kitchen',
-      electronics: 'Electronics',
-      experiences: 'Experiences',
-      other: 'Other',
+      home: adminT.value.gifts.categoryHome,
+      kitchen: adminT.value.gifts.categoryKitchen,
+      electronics: adminT.value.gifts.categoryElectronics,
+      experiences: adminT.value.gifts.categoryExperiences,
+      other: adminT.value.gifts.categoryOther,
     }
     return labels[category] || category
   }
@@ -316,11 +320,11 @@
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
       <div>
         <h2 class="font-heading text-xl font-semibold text-charcoal dark:text-dark-text">
-          Gift Registry
+          {{ adminT.gifts.title }}
         </h2>
         <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary mt-1">
-          {{ summary.total }} items | {{ summary.reservedQuantity }} /
-          {{ summary.totalQuantity }} reserved
+          {{ interpolate(adminT.gifts.itemsCount, { count: String(summary.total) }) }} |
+          {{ interpolate(adminT.gifts.reserved, { reserved: String(summary.reservedQuantity), total: String(summary.totalQuantity) }) }}
         </p>
       </div>
 
@@ -339,7 +343,7 @@
             "
             @click="viewMode = 'gifts'"
           >
-            Gifts
+            {{ adminT.gifts.viewGifts }}
           </button>
           <button
             type="button"
@@ -351,7 +355,7 @@
             "
             @click="handleViewReservations"
           >
-            Reservations
+            {{ adminT.gifts.viewReservations }}
           </button>
         </div>
 
@@ -375,7 +379,7 @@
               d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
             />
           </svg>
-          <span>Settings</span>
+          <span>{{ adminT.common.settings }}</span>
         </button>
 
         <!-- Add Gift Button -->
@@ -393,7 +397,7 @@
               d="M12 4v16m8-8H4"
             />
           </svg>
-          <span>Add Gift</span>
+          <span>{{ adminT.gifts.addGift }}</span>
         </button>
       </div>
     </div>
@@ -404,11 +408,11 @@
     >
       <div>
         <h3 class="font-body text-sm font-medium text-charcoal dark:text-dark-text">
-          Gift Registry Status
+          {{ adminT.gifts.registryStatus }}
         </h3>
         <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary mt-0.5">
           {{
-            settings.enabled ? 'Wishlist is visible to guests' : 'Wishlist is hidden from guests'
+            settings.enabled ? adminT.gifts.visibleToGuests : adminT.gifts.hiddenFromGuests
           }}
         </p>
       </div>
@@ -449,7 +453,7 @@
         class="inline-block w-8 h-8 border-3 border-sage border-t-transparent rounded-full animate-spin"
       ></div>
       <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary mt-3">
-        Loading gifts...
+        {{ adminT.gifts.loadingGifts }}
       </p>
     </div>
 
@@ -463,7 +467,7 @@
         class="mt-3 px-4 py-2 font-body text-sm text-sage border border-sage rounded-full hover:bg-sage hover:text-white transition-colors cursor-pointer"
         @click="fetchGifts"
       >
-        Try Again
+        {{ adminT.common.tryAgain }}
       </button>
     </div>
 
@@ -490,17 +494,17 @@
             />
           </svg>
           <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary">
-            No gifts in the registry yet.
+            {{ adminT.gifts.noGifts }}
           </p>
           <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary mt-2">
-            Add your first gift to create a wishlist for guests.
+            {{ adminT.gifts.noGiftsHint }}
           </p>
           <button
             type="button"
             class="mt-4 px-4 py-2 font-body text-sm bg-sage text-white rounded-lg hover:bg-sage-dark transition-colors cursor-pointer"
             @click="openCreateModal"
           >
-            Add First Gift
+            {{ adminT.gifts.addFirstGift }}
           </button>
         </div>
 
@@ -544,7 +548,7 @@
                   getPriorityColor(gift.priority),
                 ]"
               >
-                Needed
+                {{ adminT.gifts.needed }}
               </span>
 
               <!-- Reservation Badge -->
@@ -592,14 +596,14 @@
                   class="flex-1 py-1.5 px-3 text-xs font-body text-sage border border-sage rounded-lg hover:bg-sage/10 transition-colors cursor-pointer"
                   @click="openEditModal(gift)"
                 >
-                  Edit
+                  {{ adminT.common.edit }}
                 </button>
                 <button
                   type="button"
                   class="py-1.5 px-3 text-xs font-body text-red-600 dark:text-red-400 border border-red-200 dark:border-red-800 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors cursor-pointer"
                   @click="handleDeleteClick(gift.id)"
                 >
-                  Delete
+                  {{ adminT.common.delete }}
                 </button>
               </div>
             </div>
@@ -615,7 +619,7 @@
             class="p-4 bg-white dark:bg-dark-bg-secondary rounded-lg border border-sand-dark dark:border-dark-border"
           >
             <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary">
-              Total Reservations
+              {{ adminT.gifts.totalReservations }}
             </p>
             <p class="font-heading text-2xl text-charcoal dark:text-dark-text">
               {{ reservationSummary.totalReservations }}
@@ -625,7 +629,7 @@
             class="p-4 bg-white dark:bg-dark-bg-secondary rounded-lg border border-sand-dark dark:border-dark-border"
           >
             <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary">
-              Items Reserved
+              {{ adminT.gifts.itemsReserved }}
             </p>
             <p class="font-heading text-2xl text-charcoal dark:text-dark-text">
               {{ reservationSummary.totalQuantity }}
@@ -635,7 +639,7 @@
             class="p-4 bg-white dark:bg-dark-bg-secondary rounded-lg border border-sand-dark dark:border-dark-border"
           >
             <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary">
-              Unique Guests
+              {{ adminT.gifts.uniqueGuests }}
             </p>
             <p class="font-heading text-2xl text-charcoal dark:text-dark-text">
               {{ reservationSummary.uniqueGuests }}
@@ -669,7 +673,7 @@
             />
           </svg>
           <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary">
-            No reservations yet.
+            {{ adminT.gifts.noReservations }}
           </p>
         </div>
 
@@ -684,22 +688,22 @@
                 <th
                   class="px-4 py-3 text-left text-xs font-body font-medium text-charcoal-light dark:text-dark-text-secondary"
                 >
-                  Guest
+                  {{ adminT.gifts.guest }}
                 </th>
                 <th
                   class="px-4 py-3 text-left text-xs font-body font-medium text-charcoal-light dark:text-dark-text-secondary"
                 >
-                  Phone
+                  {{ adminT.gifts.phone }}
                 </th>
                 <th
                   class="px-4 py-3 text-left text-xs font-body font-medium text-charcoal-light dark:text-dark-text-secondary"
                 >
-                  Gift
+                  {{ adminT.gifts.gift }}
                 </th>
                 <th
                   class="px-4 py-3 text-left text-xs font-body font-medium text-charcoal-light dark:text-dark-text-secondary"
                 >
-                  Date
+                  {{ adminT.gifts.date }}
                 </th>
               </tr>
             </thead>
@@ -735,7 +739,7 @@
           <div class="modal-content max-w-lg">
             <div class="modal-header">
               <h3 class="font-heading text-lg font-medium text-charcoal dark:text-dark-text">
-                {{ editingGift ? 'Edit Gift' : 'Add Gift' }}
+                {{ editingGift ? adminT.gifts.editGift : adminT.gifts.addGift }}
               </h3>
               <button
                 type="button"
@@ -759,7 +763,7 @@
                 <label
                   class="block font-body text-sm font-medium text-charcoal dark:text-dark-text mb-2"
                 >
-                  Image
+                  {{ adminT.gifts.image }}
                 </label>
                 <div class="flex items-center gap-4">
                   <div
@@ -784,7 +788,7 @@
                   <label
                     class="px-4 py-2 font-body text-sm text-sage border border-sage rounded-lg hover:bg-sage/10 transition-colors cursor-pointer"
                   >
-                    Choose Image
+                    {{ adminT.gifts.chooseImage }}
                     <input
                       type="file"
                       accept="image/*"
@@ -800,7 +804,7 @@
                 <label
                   class="block font-body text-sm font-medium text-charcoal dark:text-dark-text mb-1"
                 >
-                  Name (English) *
+                  {{ adminT.gifts.nameEnglish }} *
                 </label>
                 <input
                   v-model="formData.nameEn"
@@ -816,7 +820,7 @@
                 <label
                   class="block font-body text-sm font-medium text-charcoal dark:text-dark-text mb-1"
                 >
-                  Name (Malay) *
+                  {{ adminT.gifts.nameMalay }} *
                 </label>
                 <input
                   v-model="formData.nameMs"
@@ -832,7 +836,7 @@
                 <label
                   class="block font-body text-sm font-medium text-charcoal dark:text-dark-text mb-1"
                 >
-                  Description (English) *
+                  {{ adminT.gifts.descriptionEnglish }} *
                 </label>
                 <textarea
                   v-model="formData.descriptionEn"
@@ -848,7 +852,7 @@
                 <label
                   class="block font-body text-sm font-medium text-charcoal dark:text-dark-text mb-1"
                 >
-                  Description (Malay) *
+                  {{ adminT.gifts.descriptionMalay }} *
                 </label>
                 <textarea
                   v-model="formData.descriptionMs"
@@ -864,7 +868,7 @@
                 <label
                   class="block font-body text-sm font-medium text-charcoal dark:text-dark-text mb-1"
                 >
-                  External Link (Shopee, etc.)
+                  {{ adminT.gifts.externalLink }}
                 </label>
                 <input
                   v-model="formData.externalLink"
@@ -879,7 +883,7 @@
                 <label
                   class="block font-body text-sm font-medium text-charcoal dark:text-dark-text mb-1"
                 >
-                  Price Range *
+                  {{ adminT.gifts.priceRange }} *
                 </label>
                 <input
                   v-model="formData.priceRange"
@@ -896,32 +900,32 @@
                   <label
                     class="block font-body text-sm font-medium text-charcoal dark:text-dark-text mb-1"
                   >
-                    Category
+                    {{ adminT.gifts.category }}
                   </label>
                   <select
                     v-model="formData.category"
                     class="w-full px-3 py-2 font-body text-sm border border-sand-dark dark:border-gray-600 rounded-lg bg-sand dark:bg-dark-bg focus:outline-none focus:border-sage dark:focus:border-sage text-charcoal dark:text-dark-text"
                   >
-                    <option value="home">Home</option>
-                    <option value="kitchen">Kitchen</option>
-                    <option value="electronics">Electronics</option>
-                    <option value="experiences">Experiences</option>
-                    <option value="other">Other</option>
+                    <option value="home">{{ adminT.gifts.categoryHome }}</option>
+                    <option value="kitchen">{{ adminT.gifts.categoryKitchen }}</option>
+                    <option value="electronics">{{ adminT.gifts.categoryElectronics }}</option>
+                    <option value="experiences">{{ adminT.gifts.categoryExperiences }}</option>
+                    <option value="other">{{ adminT.gifts.categoryOther }}</option>
                   </select>
                 </div>
                 <div>
                   <label
                     class="block font-body text-sm font-medium text-charcoal dark:text-dark-text mb-1"
                   >
-                    Priority
+                    {{ adminT.gifts.priority }}
                   </label>
                   <select
                     v-model="formData.priority"
                     class="w-full px-3 py-2 font-body text-sm border border-sand-dark dark:border-gray-600 rounded-lg bg-sand dark:bg-dark-bg focus:outline-none focus:border-sage dark:focus:border-sage text-charcoal dark:text-dark-text"
                   >
-                    <option value="high">High (Needed)</option>
-                    <option value="medium">Medium</option>
-                    <option value="low">Low</option>
+                    <option value="high">{{ adminT.gifts.priorityHigh }}</option>
+                    <option value="medium">{{ adminT.gifts.priorityMedium }}</option>
+                    <option value="low">{{ adminT.gifts.priorityLow }}</option>
                   </select>
                 </div>
               </div>
@@ -931,7 +935,7 @@
                 <label
                   class="block font-body text-sm font-medium text-charcoal dark:text-dark-text mb-1"
                 >
-                  Quantity
+                  {{ adminT.gifts.quantity }}
                 </label>
                 <input
                   v-model.number="formData.quantityTotal"
@@ -941,7 +945,7 @@
                   class="w-full px-3 py-2 font-body text-sm border border-sand-dark dark:border-gray-600 rounded-lg bg-sand dark:bg-dark-bg focus:outline-none focus:border-sage dark:focus:border-sage text-charcoal dark:text-dark-text"
                 />
                 <p class="mt-1 font-body text-xs text-charcoal-light dark:text-dark-text-secondary">
-                  How many of this item would you like? Multiple guests can reserve different units.
+                  {{ adminT.gifts.quantityHint }}
                 </p>
               </div>
 
@@ -950,13 +954,13 @@
                 <label
                   class="block font-body text-sm font-medium text-charcoal dark:text-dark-text mb-1"
                 >
-                  Notes (specifications, preferred color/brand)
+                  {{ adminT.gifts.notes }}
                 </label>
                 <textarea
                   v-model="formData.notes"
                   rows="2"
                   class="w-full px-3 py-2 font-body text-sm border border-sand-dark dark:border-gray-600 rounded-lg bg-sand dark:bg-dark-bg focus:outline-none focus:border-sage dark:focus:border-sage text-charcoal dark:text-dark-text resize-none"
-                  placeholder="e.g., Preferably in white color, Philips brand..."
+                  :placeholder="adminT.gifts.notesPlaceholder"
                 ></textarea>
               </div>
 
@@ -967,14 +971,14 @@
                   class="flex-1 py-2.5 px-4 font-body text-sm text-charcoal dark:text-dark-text border border-sand-dark dark:border-gray-600 rounded-lg hover:bg-sand dark:hover:bg-dark-bg transition-colors cursor-pointer"
                   @click="closeGiftForm"
                 >
-                  Cancel
+                  {{ adminT.common.cancel }}
                 </button>
                 <button
                   type="submit"
                   :disabled="!isFormValid || isCreating || isUpdating"
                   class="flex-1 py-2.5 px-4 font-body text-sm bg-sage text-white rounded-lg hover:bg-sage-dark disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer"
                 >
-                  {{ isCreating || isUpdating ? 'Saving...' : editingGift ? 'Update' : 'Add Gift' }}
+                  {{ isCreating || isUpdating ? adminT.common.saving : editingGift ? adminT.common.update : adminT.gifts.addGift }}
                 </button>
               </div>
             </form>
@@ -990,7 +994,7 @@
           <div class="modal-content">
             <div class="modal-header">
               <h3 class="font-heading text-lg font-medium text-charcoal dark:text-dark-text">
-                Gift Settings
+                {{ adminT.gifts.giftSettings }}
               </h3>
               <button
                 type="button"
@@ -1014,7 +1018,7 @@
                 <label
                   class="block font-body text-sm font-medium text-charcoal dark:text-dark-text mb-1"
                 >
-                  Maximum Items
+                  {{ adminT.gifts.maxItems }}
                 </label>
                 <input
                   :value="settings.maxItems"
@@ -1035,7 +1039,7 @@
                 <label
                   class="block font-body text-sm font-medium text-charcoal dark:text-dark-text mb-1"
                 >
-                  Maximum Image Size (MB)
+                  {{ adminT.gifts.maxImageSize }}
                 </label>
                 <input
                   :value="Math.round(settings.maxFileSize / (1024 * 1024))"
@@ -1053,7 +1057,7 @@
               </div>
 
               <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary">
-                Settings are saved automatically when changed.
+                {{ adminT.gifts.settingsAutoSave }}
               </p>
             </div>
           </div>
@@ -1064,8 +1068,8 @@
     <!-- Delete Confirmation Modal -->
     <DeleteConfirmModal
       v-if="deleteConfirmId"
-      :title="'Delete Gift'"
-      :message="`Are you sure you want to delete '${getGiftToDelete()?.name?.en}'? This will also delete all reservations for this gift.`"
+      :title="adminT.gifts.deleteGift"
+      :message="interpolate(adminT.gifts.deleteGiftConfirm, { name: getGiftToDelete()?.name?.en || '' })"
       :is-deleting="isDeleting"
       @confirm="handleDeleteConfirm"
       @cancel="handleDeleteCancel"
