@@ -1,28 +1,76 @@
+/**
+ * Reorder Parking Images Endpoint (Admin)
+ *
+ * Reorders parking images by updating their order values.
+ * Route: PUT /admin/w/{weddingId}/parking/reorder
+ *
+ * SECURITY: Requires wedding access authorization
+ */
+
 import type { APIGatewayProxyHandlerV2 } from 'aws-lambda'
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb'
 import { DynamoDBDocumentClient, TransactWriteCommand, QueryCommand } from '@aws-sdk/lib-dynamodb'
 import { Resource } from 'sst'
 import { createSuccessResponse, createErrorResponse } from '../shared/response'
-import { requireAuth } from '../shared/auth'
+import { requireWeddingAccess } from '../shared/auth'
 import { logError } from '../shared/logger'
 import { validateParkingReorderRequest } from '../shared/parking-validation'
+import { Keys } from '../shared/keys'
+import { getWeddingById, requireAdminAccessibleWedding } from '../shared/wedding-middleware'
+import { isValidWeddingId } from '../shared/validation'
 
 const dynamoClient = new DynamoDBClient({})
 const docClient = DynamoDBDocumentClient.from(dynamoClient)
-
-function padOrder(order: number): string {
-  return `ORDER#${order.toString().padStart(5, '0')}`
-}
 
 export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
   let imageIds: string[] | undefined
 
   try {
-    const authResult = requireAuth(event)
+    // ============================================
+    // 1. Extract and Validate Wedding ID
+    // ============================================
+    const weddingId = event.pathParameters?.weddingId
+    if (!weddingId) {
+      return createErrorResponse(400, 'Wedding ID is required', context, 'MISSING_WEDDING_ID')
+    }
+
+    if (!isValidWeddingId(weddingId)) {
+      return createErrorResponse(400, 'Invalid wedding ID format', context, 'INVALID_WEDDING_ID')
+    }
+
+    // ============================================
+    // 2. Authorization: Require Wedding Access
+    // ============================================
+    const authResult = requireWeddingAccess(event, weddingId)
     if (!authResult.authenticated) {
       return createErrorResponse(authResult.statusCode, authResult.error, context, 'AUTH_ERROR')
     }
 
+    // ============================================
+    // 3. Verify Wedding Exists
+    // ============================================
+    const wedding = await getWeddingById(docClient, weddingId)
+    if (!wedding) {
+      return createErrorResponse(404, 'Wedding not found', context, 'WEDDING_NOT_FOUND')
+    }
+
+    // ============================================
+    // 3b. Check Wedding Status (block archived for non-super admins)
+    // ============================================
+    const isSuperAdmin = authResult.user.type === 'super' || authResult.user.isMaster
+    const accessCheck = requireAdminAccessibleWedding(wedding, isSuperAdmin)
+    if (!accessCheck.success) {
+      return createErrorResponse(
+        accessCheck.statusCode,
+        accessCheck.error,
+        context,
+        'ACCESS_DENIED'
+      )
+    }
+
+    // ============================================
+    // 4. Parse and Validate Input
+    // ============================================
     if (!event.body) {
       return createErrorResponse(400, 'Missing request body', context, 'MISSING_BODY')
     }
@@ -41,13 +89,15 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
 
     imageIds = validation.data.imageIds
 
-    // Get all current parking images
+    // ============================================
+    // 5. Get All Current Parking Images
+    // ============================================
     const queryResult = await docClient.send(
       new QueryCommand({
         TableName: Resource.AppDataTable.name,
         IndexName: 'byStatus',
         KeyConditionExpression: 'gsi1pk = :pk',
-        ExpressionAttributeValues: { ':pk': 'PARKING#IMAGES' },
+        ExpressionAttributeValues: { ':pk': `WEDDING#${weddingId}#PARKING` },
       })
     )
 
@@ -76,19 +126,28 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
       )
     }
 
-    // Build transaction to update all orders atomically
-    const transactItems = imageIds.map((id, index) => ({
-      Update: {
-        TableName: Resource.AppDataTable.name,
-        Key: { pk: `PARKING#IMAGE#${id}`, sk: 'METADATA' },
-        UpdateExpression: 'SET #order = :order, gsi1sk = :gsi1sk',
-        ExpressionAttributeNames: { '#order': 'order' },
-        ExpressionAttributeValues: {
-          ':order': index + 1,
-          ':gsi1sk': padOrder(index + 1),
+    // ============================================
+    // 6. Update Order Atomically
+    // ============================================
+    const transactItems = imageIds.map((id, index) => {
+      const parkingKeys = Keys.parking(weddingId, id)
+      const newOrder = index + 1
+      const gsiKeys = Keys.gsi.weddingParking(weddingId, newOrder, id)
+
+      return {
+        Update: {
+          TableName: Resource.AppDataTable.name,
+          Key: parkingKeys,
+          UpdateExpression: 'SET #order = :order, gsi1pk = :gsi1pk, gsi1sk = :gsi1sk',
+          ExpressionAttributeNames: { '#order': 'order' },
+          ExpressionAttributeValues: {
+            ':order': newOrder,
+            ':gsi1pk': gsiKeys.gsi1pk,
+            ':gsi1sk': gsiKeys.gsi1sk,
+          },
         },
-      },
-    }))
+      }
+    })
 
     await docClient.send(new TransactWriteCommand({ TransactItems: transactItems }))
 
@@ -103,7 +162,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
   } catch (error) {
     logError(
       {
-        endpoint: 'PUT /parking/images/reorder',
+        endpoint: 'PUT /admin/w/{weddingId}/parking/reorder',
         operation: 'reorderParkingImages',
         requestId: context.awsRequestId,
         input: { imageCount: imageIds?.length },

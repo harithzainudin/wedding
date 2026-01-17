@@ -1,5 +1,6 @@
 <script setup lang="ts">
-  import { ref, computed, onMounted } from 'vue'
+  import { ref, computed, onMounted, watch } from 'vue'
+  import { useRoute, useRouter } from 'vue-router'
   import { useAdminAuth } from '@/composables/useAdminAuth'
   import { usePasswordChange } from '@/composables/usePasswordChange'
   import { useProfile } from '@/composables/useProfile'
@@ -18,13 +19,20 @@
   import GalleryTab from '@/components/admin/GalleryTab.vue'
   import ContactsTab from '@/components/admin/ContactsTab.vue'
   import RsvpsTab from '@/components/admin/RsvpsTab.vue'
-  import SettingsTab from '@/components/admin/SettingsTab.vue'
   import MusicTab from '@/components/admin/MusicTab.vue'
   import ThemeTab from '@/components/admin/ThemeTab.vue'
   import GiftsTab from '@/components/admin/GiftsTab.vue'
   import QRCodeHubTab from '@/components/admin/QRCodeHubTab.vue'
 
   const { adminT } = useAdminLanguage()
+  const route = useRoute()
+  const router = useRouter()
+
+  // Get wedding slug from route params (for multi-tenant routes like /:weddingSlug/admin)
+  const weddingSlug = computed(() => {
+    const slug = route.params.weddingSlug
+    return typeof slug === 'string' ? slug : undefined
+  })
 
   useDocumentTitle({ text: 'CMS Admin', position: 'prefix' })
 
@@ -38,6 +46,7 @@
     isLoggingIn,
     currentUser,
     isMasterUser,
+    userType,
     mustChangePassword,
     newPasswordForChange,
     confirmNewPasswordForChange,
@@ -103,7 +112,6 @@
     | 'contacts'
     | 'rsvps'
     | 'qrcodehub'
-    | 'settings'
   const validTabs: TabType[] = [
     'dashboard',
     'wedding',
@@ -116,15 +124,26 @@
     'contacts',
     'rsvps',
     'qrcodehub',
-    'settings',
   ]
 
-  const getTabFromHash = (): TabType => {
-    const hash = window.location.hash.slice(1)
-    return validTabs.includes(hash as TabType) ? (hash as TabType) : 'dashboard'
+  // Get tab from route params
+  const getTabFromRoute = (): TabType => {
+    const tab = route.params.tab
+    if (typeof tab === 'string' && validTabs.includes(tab as TabType)) {
+      return tab as TabType
+    }
+    return 'dashboard'
   }
 
-  const activeTab = ref<TabType>(getTabFromHash())
+  const activeTab = ref<TabType>(getTabFromRoute())
+
+  // Watch for route changes (browser back/forward)
+  watch(
+    () => route.params.tab,
+    () => {
+      activeTab.value = getTabFromRoute()
+    }
+  )
 
   interface TabConfig {
     key: TabType
@@ -154,8 +173,6 @@
       'M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z',
     qrcodehub:
       'M3 11h8V3H3v8zm2-6h4v4H5V5zM3 21h8v-8H3v8zm2-6h4v4H5v-4zm8-12v8h8V3h-8zm6 6h-4V5h4v4zm-6 4h2v2h-2zm2 2h2v2h-2zm-2 2h2v2h-2zm4-4h2v2h-2zm0 4h2v2h-2zm2-2h2v2h-2z',
-    settings:
-      'M19.14 12.94c.04-.31.06-.63.06-.94 0-.31-.02-.63-.06-.94l2.03-1.58a.49.49 0 00.12-.61l-1.92-3.32a.49.49 0 00-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 00-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96a.49.49 0 00-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.04.31-.06.63-.06.94s.02.63.06.94l-2.03 1.58a.49.49 0 00-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z',
   }
 
   // Computed tabs with translated labels
@@ -171,12 +188,14 @@
     { key: 'contacts', label: adminT.value.nav.contacts, icon: tabIcons.contacts },
     { key: 'rsvps', label: adminT.value.nav.rsvps, icon: tabIcons.rsvps },
     { key: 'qrcodehub', label: adminT.value.nav.qrHub, icon: tabIcons.qrcodehub },
-    { key: 'settings', label: adminT.value.nav.adminSettings, icon: tabIcons.settings },
   ])
 
   const switchTab = (tab: TabType): void => {
     activeTab.value = tab
-    window.history.replaceState(null, '', `#${tab}`)
+    // Build the correct path based on whether we're in multi-tenant or legacy route
+    const basePath = weddingSlug.value ? `/${weddingSlug.value}/admin` : '/admin'
+    const newPath = tab === 'dashboard' ? basePath : `${basePath}/${tab}`
+    router.push(newPath)
   }
 
   const onLogin = async (): Promise<void> => {
@@ -186,7 +205,9 @@
   const onLogout = (): void => {
     handleLogout()
     activeTab.value = 'dashboard'
-    window.history.replaceState(null, '', '#dashboard')
+    // Navigate to base admin path (dashboard)
+    const basePath = weddingSlug.value ? `/${weddingSlug.value}/admin` : '/admin'
+    router.push(basePath)
   }
 
   const handleOpenPasswordChangeFromProfile = (): void => {
@@ -196,11 +217,6 @@
 
   onMounted(async () => {
     await checkExistingAuth()
-
-    // Handle browser back/forward navigation
-    window.addEventListener('hashchange', () => {
-      activeTab.value = getTabFromHash()
-    })
   })
 </script>
 
@@ -274,6 +290,7 @@
         :is-open="showMobileMenu"
         :username="currentUser"
         :is-master-user="isMasterUser"
+        :user-type="userType"
         @close="closeMobileMenu"
         @open-profile="openProfileModal"
         @change-password="openPasswordChangeModal"
@@ -297,6 +314,7 @@
         <AdminHeader
           :current-user="currentUser"
           :is-master-user="isMasterUser"
+          :user-type="userType"
           @open-profile="openProfileModal"
           @change-password="openPasswordChangeModal"
           @logout="onLogout"
@@ -330,7 +348,7 @@
         </div>
 
         <DashboardTab v-if="activeTab === 'dashboard'" @switch-tab="switchTab" />
-        <WeddingDetailsTab v-if="activeTab === 'wedding'" />
+        <WeddingDetailsTab v-if="activeTab === 'wedding'" :wedding-slug="weddingSlug" />
         <LocationTab v-if="activeTab === 'venue'" />
         <ScheduleTab v-if="activeTab === 'schedule'" />
         <GalleryTab v-if="activeTab === 'gallery'" />
@@ -340,11 +358,6 @@
         <ContactsTab v-if="activeTab === 'contacts'" />
         <RsvpsTab v-if="activeTab === 'rsvps'" />
         <QRCodeHubTab v-if="activeTab === 'qrcodehub'" />
-        <SettingsTab
-          v-if="activeTab === 'settings'"
-          :is-master-user="isMasterUser"
-          :current-user="currentUser"
-        />
       </div>
     </template>
   </div>

@@ -103,3 +103,195 @@ export function validateRsvpInput(input: unknown):
     },
   }
 }
+
+// ============================================
+// MULTI-TENANT VALIDATION FUNCTIONS
+// ============================================
+
+/**
+ * Validate wedding slug format
+ * Rules:
+ * - 4-50 characters
+ * - Lowercase alphanumeric and hyphens only
+ * - Must start and end with alphanumeric
+ * - No consecutive hyphens
+ */
+export function isValidSlug(slug: string): boolean {
+  if (typeof slug !== 'string') return false
+  if (slug.length < 4 || slug.length > 50) return false
+
+  // Must be lowercase, alphanumeric, and hyphens only
+  // Must start and end with alphanumeric
+  // No consecutive hyphens
+  const slugRegex = /^[a-z0-9]([a-z0-9-]*[a-z0-9])?$/
+  if (!slugRegex.test(slug)) return false
+
+  // No consecutive hyphens
+  if (slug.includes('--')) return false
+
+  return true
+}
+
+/**
+ * Validate wedding ID format (UUID v4)
+ */
+export function isValidWeddingId(id: string): boolean {
+  if (typeof id !== 'string') return false
+  const uuidV4Regex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+  return uuidV4Regex.test(id)
+}
+
+/**
+ * Validate username format
+ * Rules:
+ * - 3-30 characters
+ * - Alphanumeric and underscores only
+ * - Must start with a letter
+ */
+export function isValidUsername(username: string): boolean {
+  if (typeof username !== 'string') return false
+  if (username.length < 3 || username.length > 30) return false
+
+  const usernameRegex = /^[a-zA-Z][a-zA-Z0-9_]{2,29}$/
+  return usernameRegex.test(username)
+}
+
+/**
+ * Validate email format
+ */
+export function isValidEmail(email: string): boolean {
+  if (typeof email !== 'string') return false
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  return emailRegex.test(email)
+}
+
+/**
+ * Validate password strength
+ * Rules:
+ * - Minimum 8 characters
+ * - At least one uppercase letter
+ * - At least one lowercase letter
+ * - At least one number
+ */
+export function isValidPassword(password: string): {
+  valid: boolean
+  errors: string[]
+} {
+  const errors: string[] = []
+
+  if (typeof password !== 'string') {
+    return { valid: false, errors: ['Password must be a string'] }
+  }
+
+  if (password.length < 8) {
+    errors.push('Password must be at least 8 characters')
+  }
+
+  if (!/[A-Z]/.test(password)) {
+    errors.push('Password must contain at least one uppercase letter')
+  }
+
+  if (!/[a-z]/.test(password)) {
+    errors.push('Password must contain at least one lowercase letter')
+  }
+
+  if (!/[0-9]/.test(password)) {
+    errors.push('Password must contain at least one number')
+  }
+
+  return {
+    valid: errors.length === 0,
+    errors,
+  }
+}
+
+/**
+ * Wedding creation input validation
+ */
+export interface CreateWeddingInput {
+  slug: string
+  displayName: string
+  ownerUsername: string
+  ownerEmail: string
+  weddingDate: string
+  plan?: 'free' | 'basic' | 'premium'
+}
+
+export function validateCreateWeddingInput(
+  input: unknown
+): { valid: true; data: CreateWeddingInput } | { valid: false; error: string } {
+  if (typeof input !== 'object' || input === null) {
+    return { valid: false, error: 'Invalid request body' }
+  }
+
+  const body = input as Record<string, unknown>
+
+  // Validate slug
+  if (typeof body.slug !== 'string' || !isValidSlug(body.slug)) {
+    return {
+      valid: false,
+      error: 'Invalid slug. Must be 4-50 lowercase characters, alphanumeric and hyphens only',
+    }
+  }
+
+  // Validate displayName
+  if (
+    typeof body.displayName !== 'string' ||
+    body.displayName.trim().length < 3 ||
+    body.displayName.trim().length > 100
+  ) {
+    return {
+      valid: false,
+      error: 'Display name must be 3-100 characters',
+    }
+  }
+
+  // Validate ownerUsername
+  if (typeof body.ownerUsername !== 'string' || !isValidUsername(body.ownerUsername)) {
+    return {
+      valid: false,
+      error:
+        'Invalid username. Must be 3-30 characters, start with a letter, alphanumeric and underscores only',
+    }
+  }
+
+  // Validate ownerEmail
+  if (typeof body.ownerEmail !== 'string' || !isValidEmail(body.ownerEmail)) {
+    return { valid: false, error: 'Invalid email address' }
+  }
+
+  // Validate weddingDate (ISO date format)
+  if (typeof body.weddingDate !== 'string') {
+    return { valid: false, error: 'Wedding date is required' }
+  }
+  const dateRegex = /^\d{4}-\d{2}-\d{2}$/
+  if (!dateRegex.test(body.weddingDate)) {
+    return { valid: false, error: 'Wedding date must be in YYYY-MM-DD format' }
+  }
+  const parsedDate = new Date(body.weddingDate)
+  if (isNaN(parsedDate.getTime())) {
+    return { valid: false, error: 'Invalid wedding date' }
+  }
+
+  // Validate plan (optional)
+  const validPlans = ['free', 'basic', 'premium'] as const
+  let plan: 'free' | 'basic' | 'premium' = 'free'
+  if (body.plan !== undefined) {
+    if (!validPlans.includes(body.plan as (typeof validPlans)[number])) {
+      return { valid: false, error: 'Invalid plan. Must be free, basic, or premium' }
+    }
+    plan = body.plan as 'free' | 'basic' | 'premium'
+  }
+
+  return {
+    valid: true,
+    data: {
+      slug: body.slug.toLowerCase(),
+      displayName: body.displayName.trim(),
+      ownerUsername: body.ownerUsername.toLowerCase(),
+      ownerEmail: body.ownerEmail.toLowerCase(),
+      weddingDate: body.weddingDate,
+      plan,
+    },
+  }
+}

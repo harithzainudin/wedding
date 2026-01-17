@@ -1,9 +1,15 @@
+/**
+ * PUT /admin/w/{weddingId}/qrcode-hub
+ *
+ * Admin endpoint to update QR Code Hub settings for a wedding.
+ * Requires authentication and wedding access.
+ */
 import type { APIGatewayProxyHandlerV2 } from 'aws-lambda'
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb'
 import { DynamoDBDocumentClient, GetCommand, PutCommand } from '@aws-sdk/lib-dynamodb'
 import { Resource } from 'sst'
 import { createSuccessResponse, createErrorResponse } from '../shared/response'
-import { requireAuth } from '../shared/auth'
+import { requireWeddingAccess } from '../shared/auth'
 import { logError } from '../shared/logger'
 import {
   validateQRCodeHubUpdate,
@@ -11,6 +17,9 @@ import {
   DEFAULT_QRCODE_HUB_SETTINGS,
   type QRCodeHubSettings,
 } from '../shared/qrcode-validation'
+import { Keys } from '../shared/keys'
+import { getWeddingById, requireAdminAccessibleWedding } from '../shared/wedding-middleware'
+import { isValidWeddingId } from '../shared/validation'
 
 const dynamoClient = new DynamoDBClient({})
 const docClient = DynamoDBDocumentClient.from(dynamoClient, {
@@ -20,9 +29,29 @@ const docClient = DynamoDBDocumentClient.from(dynamoClient, {
 })
 
 export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
-  const authResult = requireAuth(event)
+  // Extract and validate weddingId from path
+  const weddingId = event.pathParameters?.weddingId
+  if (!weddingId || !isValidWeddingId(weddingId)) {
+    return createErrorResponse(400, 'Invalid wedding ID', context, 'INVALID_WEDDING_ID')
+  }
+
+  // Require authentication and wedding access
+  const authResult = requireWeddingAccess(event, weddingId)
   if (!authResult.authenticated) {
     return createErrorResponse(authResult.statusCode, authResult.error, context, 'AUTH_ERROR')
+  }
+
+  // Verify wedding exists
+  const wedding = await getWeddingById(docClient, weddingId)
+  if (!wedding) {
+    return createErrorResponse(404, 'Wedding not found', context, 'WEDDING_NOT_FOUND')
+  }
+
+  // Check wedding status (block archived for non-super admins)
+  const isSuperAdmin = authResult.user.type === 'super' || authResult.user.isMaster
+  const accessCheck = requireAdminAccessibleWedding(wedding, isSuperAdmin)
+  if (!accessCheck.success) {
+    return createErrorResponse(accessCheck.statusCode, accessCheck.error, context, 'ACCESS_DENIED')
   }
 
   if (!event.body) {
@@ -42,11 +71,12 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
   }
 
   try {
-    // Get existing settings to merge with updates
+    // Get existing settings using wedding-scoped key
+    const settingsKey = Keys.settings(weddingId, 'QRCODE_HUB')
     const existingResult = await docClient.send(
       new GetCommand({
         TableName: Resource.AppDataTable.name,
-        Key: { pk: 'SETTINGS', sk: 'QR_CODE_HUB' },
+        Key: settingsKey,
       })
     )
 
@@ -98,9 +128,10 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
 
     const now = new Date().toISOString()
 
+    // Store with wedding-scoped key
     const settingsItem = {
-      pk: 'SETTINGS',
-      sk: 'QR_CODE_HUB',
+      ...settingsKey,
+      weddingId,
       ...mergedSettings,
       updatedAt: now,
       updatedBy: authResult.user.username,
@@ -123,9 +154,10 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
   } catch (error) {
     logError(
       {
-        endpoint: 'PUT /qrcode-hub',
+        endpoint: 'PUT /admin/w/{weddingId}/qrcode-hub',
         operation: 'updateQRCodeHubSettings',
         requestId: context.awsRequestId,
+        input: { weddingId },
       },
       error
     )

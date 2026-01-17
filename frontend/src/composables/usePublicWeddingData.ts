@@ -16,12 +16,20 @@ import {
 import type { ScheduleData, ScheduleItem } from '@/types/schedule'
 import type { ContactsData, ContactPerson } from '@/types/contacts'
 
+// Error types for wedding status
+export type WeddingErrorType = 'archived' | 'draft' | 'not_found' | 'error' | null
+
 // Singleton state for public wedding data
 const weddingDetails = ref<WeddingDetailsData | null>(null)
 const scheduleData = ref<ScheduleData | null>(null)
 const contactsData = ref<ContactsData | null>(null)
 const isLoading = ref(false)
 const hasLoaded = ref(false)
+const currentWeddingSlug = ref<string | null>(null)
+
+// Error state for wedding availability
+const weddingError = ref<WeddingErrorType>(null)
+const weddingErrorMessage = ref<string | null>(null)
 
 // Individual loading states for better UX
 const isLoadingWeddingDetails = ref(false)
@@ -35,42 +43,107 @@ interface LegacyScheduleItem {
   titleMalay: string
 }
 
+// Helper to detect error type from API error
+function detectErrorType(error: unknown): { type: WeddingErrorType; message: string } {
+  if (error instanceof Error) {
+    const message = error.message.toLowerCase()
+
+    // Debug: log the actual error message to help identify issues
+    console.debug('[WeddingError] Detecting error type from message:', error.message)
+
+    // Check for draft wedding (403 Forbidden with "not yet published")
+    // Check draft BEFORE archived to ensure correct priority
+    if (message.includes('not yet published') || message.includes('not published')) {
+      return { type: 'draft', message: error.message }
+    }
+
+    // Check for archived wedding (410 Gone)
+    if (
+      message.includes('no longer available') ||
+      message.includes('has been archived') ||
+      message.includes('410')
+    ) {
+      return { type: 'archived', message: error.message }
+    }
+
+    // Check for inactive wedding
+    if (message.includes('currently unavailable')) {
+      return { type: 'draft', message: error.message } // Treat inactive as draft for UX
+    }
+
+    // Check for not found (404)
+    if (message.includes('not found') || message.includes('404')) {
+      return { type: 'not_found', message: error.message }
+    }
+  }
+  return { type: 'error', message: 'An unexpected error occurred' }
+}
+
 export function usePublicWeddingData() {
   // Fetch all public data from APIs (uses caching to prevent duplicate calls)
-  const fetchPublicData = async (): Promise<void> => {
-    if (hasLoaded.value) return // Only fetch once per session
+  // forceRefresh: true will bypass all caches and fetch fresh data
+  const fetchPublicData = async (weddingSlug: string, forceRefresh = false): Promise<void> => {
+    // Reload if wedding changed, not loaded yet, or force refresh requested
+    if (!forceRefresh && hasLoaded.value && currentWeddingSlug.value === weddingSlug) return
 
+    // Reset state when force refreshing or loading new wedding
+    if (forceRefresh) {
+      hasLoaded.value = false
+      weddingDetails.value = null
+      scheduleData.value = null
+      contactsData.value = null
+    }
+
+    currentWeddingSlug.value = weddingSlug
     isLoading.value = true
     isLoadingWeddingDetails.value = true
     isLoadingSchedule.value = true
     isLoadingContacts.value = true
+    // Reset error state
+    weddingError.value = null
+    weddingErrorMessage.value = null
 
     try {
       // Fetch all data in parallel using cached API functions
       // Cache deduplicates simultaneous requests automatically
-      const weddingPromise = getWeddingDetailsCached()
+      let criticalError: { type: WeddingErrorType; message: string } | null = null
+
+      const weddingPromise = getWeddingDetailsCached(weddingSlug, forceRefresh)
         .then((data) => {
           weddingDetails.value = data
         })
         .catch((err) => {
           console.error('Failed to fetch wedding details:', err)
+          // Wedding details is the critical endpoint - if it fails with a status error,
+          // we should show the error page
+          const detected = detectErrorType(err)
+          if (detected.type !== 'error') {
+            criticalError = detected
+          }
         })
         .finally(() => {
           isLoadingWeddingDetails.value = false
         })
 
-      const schedulePromise = getScheduleCached()
+      const schedulePromise = getScheduleCached(weddingSlug, forceRefresh)
         .then((data) => {
           scheduleData.value = data
         })
         .catch((err) => {
           console.error('Failed to fetch schedule:', err)
+          // Also check schedule for status errors
+          if (!criticalError) {
+            const detected = detectErrorType(err)
+            if (detected.type !== 'error') {
+              criticalError = detected
+            }
+          }
         })
         .finally(() => {
           isLoadingSchedule.value = false
         })
 
-      const contactsPromise = getContactsCached()
+      const contactsPromise = getContactsCached(weddingSlug, forceRefresh)
         .then((data) => {
           contactsData.value = data
         })
@@ -83,12 +156,27 @@ export function usePublicWeddingData() {
 
       // Wait for all to complete
       await Promise.all([weddingPromise, schedulePromise, contactsPromise])
+
+      // Set error state if we detected a critical error
+      if (criticalError) {
+        weddingError.value = criticalError.type
+        weddingErrorMessage.value = criticalError.message
+      }
     } catch (error) {
       console.error('Failed to fetch public data:', error)
+      const detected = detectErrorType(error)
+      weddingError.value = detected.type
+      weddingErrorMessage.value = detected.message
     } finally {
       isLoading.value = false
       hasLoaded.value = true
     }
+  }
+
+  // Clear error state
+  const clearError = () => {
+    weddingError.value = null
+    weddingErrorMessage.value = null
   }
 
   // Computed getters with fallback to config
@@ -272,7 +360,13 @@ export function usePublicWeddingData() {
     weddingDetails,
     scheduleData,
     contactsData,
+    // Error states
+    weddingError,
+    weddingErrorMessage,
+    // Actions
     fetchPublicData,
+    clearError,
+    // Getters
     getCoupleNames,
     getParents,
     getEventDate,

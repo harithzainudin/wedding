@@ -1,6 +1,7 @@
 <script setup lang="ts">
   import DarkModeToggle from '@/components/ui/DarkModeToggle.vue'
   import { useAdminLanguage } from '@/composables/useAdminLanguage'
+  import type { UserType } from '@/types/admin'
 
   const { adminT } = useAdminLanguage()
 
@@ -8,6 +9,7 @@
     isOpen: boolean
     username: string
     isMasterUser: boolean
+    userType: UserType
   }>()
 
   const emit = defineEmits<{
@@ -93,6 +95,29 @@
             }}</span>
             <DarkModeToggle variant="light" />
           </div>
+
+          <!-- Super Admin Dashboard link - only for super admins -->
+          <a
+            v-if="userType === 'super'"
+            href="/wedding/superadmin"
+            class="w-full flex items-center gap-3 px-4 py-3 font-body text-sm text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-colors text-left"
+            @click="emit('close')"
+          >
+            <svg
+              class="w-5 h-5"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path
+                d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+            {{ adminT.common.superAdmin }}
+          </a>
 
           <a
             href="/wedding/"

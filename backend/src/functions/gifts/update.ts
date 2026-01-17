@@ -1,23 +1,60 @@
+/**
+ * PUT /admin/w/{weddingId}/gifts/{id}
+ * Admin endpoint to update a gift
+ */
 import type { APIGatewayProxyHandlerV2 } from 'aws-lambda'
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb'
 import { DynamoDBDocumentClient, GetCommand, UpdateCommand } from '@aws-sdk/lib-dynamodb'
 import { Resource } from 'sst'
 import { createSuccessResponse, createErrorResponse } from '../shared/response'
-import { requireAuth } from '../shared/auth'
+import { requireWeddingAccess } from '../shared/auth'
 import { logError } from '../shared/logger'
 import { validateUpdateGiftInput } from '../shared/gift-validation'
+import { Keys } from '../shared/keys'
+import { isValidWeddingId } from '../shared/validation'
+import { getWeddingById, requireAdminAccessibleWedding } from '../shared/wedding-middleware'
 
 const client = new DynamoDBClient({})
 const docClient = DynamoDBDocumentClient.from(client)
 
 export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
   let giftId: string | undefined
+  let weddingId: string | undefined
 
   try {
-    // Require authentication
-    const authResult = requireAuth(event)
+    // Get weddingId from path parameters
+    weddingId = event.pathParameters?.weddingId
+    if (!weddingId) {
+      return createErrorResponse(400, 'Wedding ID is required', context, 'MISSING_WEDDING_ID')
+    }
+
+    // Validate wedding ID format
+    if (!isValidWeddingId(weddingId)) {
+      return createErrorResponse(400, 'Invalid wedding ID format', context, 'INVALID_WEDDING_ID')
+    }
+
+    // Require authentication and wedding access
+    const authResult = requireWeddingAccess(event, weddingId)
     if (!authResult.authenticated) {
       return createErrorResponse(authResult.statusCode, authResult.error, context, 'AUTH_ERROR')
+    }
+
+    // Verify wedding exists
+    const wedding = await getWeddingById(docClient, weddingId)
+    if (!wedding) {
+      return createErrorResponse(404, 'Wedding not found', context, 'WEDDING_NOT_FOUND')
+    }
+
+    // Check wedding status (block archived for non-super admins)
+    const isSuperAdmin = authResult.user.type === 'super' || authResult.user.isMaster
+    const accessCheck = requireAdminAccessibleWedding(wedding, isSuperAdmin)
+    if (!accessCheck.success) {
+      return createErrorResponse(
+        accessCheck.statusCode,
+        accessCheck.error,
+        context,
+        'ACCESS_DENIED'
+      )
     }
 
     // Get gift ID from path
@@ -42,11 +79,12 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
 
     const { data } = validation
 
-    // Check if gift exists
+    // Check if gift exists using wedding-scoped key
+    const giftKey = Keys.gift(weddingId, giftId)
     const existingResult = await docClient.send(
       new GetCommand({
         TableName: Resource.AppDataTable.name,
-        Key: { pk: `GIFT#${giftId}`, sk: 'METADATA' },
+        Key: giftKey,
       })
     )
 
@@ -132,11 +170,11 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
       return createErrorResponse(400, 'No fields to update', context, 'NO_UPDATES')
     }
 
-    // Update the gift
+    // Update the gift using wedding-scoped key
     const updateResult = await docClient.send(
       new UpdateCommand({
         TableName: Resource.AppDataTable.name,
-        Key: { pk: `GIFT#${giftId}`, sk: 'METADATA' },
+        Key: giftKey,
         UpdateExpression: `SET ${updateExpressions.join(', ')}`,
         ExpressionAttributeNames:
           Object.keys(expressionAttributeNames).length > 0 ? expressionAttributeNames : undefined,
@@ -171,10 +209,10 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
   } catch (error) {
     logError(
       {
-        endpoint: 'PUT /gifts/{id}',
+        endpoint: 'PUT /admin/w/{weddingId}/gifts/{id}',
         operation: 'updateGift',
         requestId: context.awsRequestId,
-        input: { giftId },
+        input: { weddingId, giftId },
       },
       error
     )

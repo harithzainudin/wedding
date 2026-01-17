@@ -1,13 +1,23 @@
 <script setup lang="ts">
   import { ref, computed, onMounted } from 'vue'
+  import { useRoute } from 'vue-router'
   import { v4 as uuidv4 } from 'uuid'
   import type { ParkingStep, ParkingIcon } from '@/types/venue'
   import { useParkingImages } from '@/composables/useParkingImages'
   import { useAdminLanguage } from '@/composables/useAdminLanguage'
+  import { getStoredPrimaryWeddingId } from '@/services/tokenManager'
   import ImageUploader from './ImageUploader.vue'
   import UploadProgressBar from './UploadProgressBar.vue'
 
   const { adminT } = useAdminLanguage()
+  const route = useRoute()
+
+  // Get wedding context from route and token
+  const weddingSlug = computed(() => {
+    const slug = route.params.weddingSlug
+    return typeof slug === 'string' ? slug : null
+  })
+  const weddingId = computed(() => getStoredPrimaryWeddingId())
 
   const props = defineProps<{
     parkingSteps: ParkingStep[]
@@ -37,6 +47,7 @@
     maxFileSize,
     allowedMimeTypes,
     formatFileSize,
+    setWeddingContext,
     fetchImages,
     uploadImage,
     cancelUpload,
@@ -147,7 +158,12 @@
 
   // Load parking images on mount
   onMounted(() => {
-    fetchImages()
+    const slug = weddingSlug.value
+    const id = weddingId.value
+    if (slug && id) {
+      setWeddingContext(slug, id)
+      fetchImages()
+    }
   })
 </script>
 

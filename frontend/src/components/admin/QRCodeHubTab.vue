@@ -15,8 +15,12 @@
   } from '@/types/qrCodeHub'
   import { useQRCodeHub } from '@/composables/useQRCodeHub'
   import { useAdminLanguage } from '@/composables/useAdminLanguage'
+  import { getStoredPrimaryWeddingId } from '@/services/tokenManager'
 
   const { adminT } = useAdminLanguage()
+
+  // Wedding context
+  const weddingId = computed(() => getStoredPrimaryWeddingId())
 
   const {
     settings,
@@ -27,7 +31,7 @@
     saveError,
     uploadError,
     uploadProgress,
-    fetchSettings,
+    fetchSettingsAdmin,
     saveSettings,
     uploadRestuDigitalImage,
   } = useQRCodeHub()
@@ -140,7 +144,7 @@
 
   // Load settings on mount
   onMounted(async () => {
-    await fetchSettings()
+    await fetchSettingsAdmin(weddingId.value ?? undefined)
     initializeForm()
   })
 
@@ -186,7 +190,7 @@
     const file = target.files?.[0]
     if (!file) return
 
-    const publicUrl = await uploadRestuDigitalImage(file)
+    const publicUrl = await uploadRestuDigitalImage(file, weddingId.value ?? undefined)
     if (publicUrl) {
       formData.value.restuDigital.qrImageUrl = publicUrl
       saveSuccess.value = false
@@ -225,7 +229,7 @@
       displayOrder: formData.value.displayOrder,
     }
 
-    const success = await saveSettings(updateData)
+    const success = await saveSettings(updateData, weddingId.value ?? undefined)
     if (success) {
       saveSuccess.value = true
       setTimeout(() => {

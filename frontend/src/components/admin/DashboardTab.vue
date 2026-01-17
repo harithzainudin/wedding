@@ -2,8 +2,12 @@
   import { ref, computed, onMounted } from 'vue'
   import { listRsvpsAdminCached, listGalleryImagesAdminCached } from '@/services/api'
   import { useAdminLanguage } from '@/composables/useAdminLanguage'
+  import { getStoredPrimaryWeddingId } from '@/services/tokenManager'
 
   const { adminT } = useAdminLanguage()
+
+  // Get the wedding ID for API calls
+  const weddingId = getStoredPrimaryWeddingId()
 
   type TabType =
     | 'dashboard'
@@ -33,11 +37,11 @@
     isLoading.value = true
     try {
       // Fetch RSVP stats (cached unless force refresh)
-      const rsvpData = await listRsvpsAdminCached(forceRefresh)
+      const rsvpData = await listRsvpsAdminCached(weddingId ?? undefined, forceRefresh)
       rsvpStats.value = rsvpData.summary
 
       // Fetch gallery count (cached unless force refresh)
-      const galleryData = await listGalleryImagesAdminCached(forceRefresh)
+      const galleryData = await listGalleryImagesAdminCached(weddingId ?? undefined, forceRefresh)
       galleryCount.value = galleryData.images.length
     } catch (error) {
       console.error('Failed to load dashboard stats:', error)

@@ -1,9 +1,10 @@
 <script setup lang="ts">
-  import { ref, watch, onMounted } from 'vue'
+  import { ref, watch, onMounted, computed } from 'vue'
   import { useSchedule } from '@/composables/useSchedule'
   import { useCrudList } from '@/composables/useCrudList'
   import { useAdminLanguage } from '@/composables/useAdminLanguage'
   import { interpolate } from '@/i18n/translations'
+  import { getStoredPrimaryWeddingId } from '@/services/tokenManager'
   import ConfirmModal from './ConfirmModal.vue'
   import ItemActions from './ItemActions.vue'
   import MultilingualInput from './MultilingualInput.vue'
@@ -12,6 +13,8 @@
 
   const { adminT } = useAdminLanguage()
 
+  const weddingId = computed(() => getStoredPrimaryWeddingId())
+
   const {
     schedule,
     isLoading,
@@ -19,7 +22,7 @@
     isSaving,
     saveError,
     saveSuccess,
-    fetchSchedule,
+    fetchScheduleAdmin,
     updateSchedule,
     generateId,
   } = useSchedule()
@@ -45,7 +48,7 @@
     sourceData: schedule,
     getItems: (data) => data.items,
     cloneItem: (item) => ({ ...item, title: { ...item.title } }),
-    updateFn: updateSchedule,
+    updateFn: (items) => updateSchedule(items, weddingId.value ?? undefined),
   })
 
   const modalForm = ref({
@@ -95,7 +98,7 @@
   }
 
   onMounted(async () => {
-    await fetchSchedule()
+    await fetchScheduleAdmin(weddingId.value ?? undefined)
     syncLocalItems()
   })
 </script>
@@ -143,8 +146,8 @@
       </p>
       <button
         type="button"
-        class="px-4 py-2 rounded-lg bg-sage text-white font-body text-sm hover:bg-sage-dark transition-colors"
-        @click="fetchSchedule"
+        class="px-4 py-2 rounded-lg bg-sage text-white font-body text-sm hover:bg-sage-dark transition-colors cursor-pointer"
+        @click="fetchScheduleAdmin(weddingId.value ?? undefined)"
       >
         {{ adminT.common.tryAgain }}
       </button>

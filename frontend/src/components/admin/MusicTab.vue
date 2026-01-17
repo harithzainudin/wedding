@@ -1,8 +1,9 @@
 <script setup lang="ts">
-  import { onMounted, onUnmounted, ref, watch } from 'vue'
+  import { onMounted, onUnmounted, ref, watch, computed } from 'vue'
   import { useMusic } from '@/composables/useMusic'
   import { useAdminLanguage } from '@/composables/useAdminLanguage'
   import { interpolate } from '@/i18n/translations'
+  import { getStoredPrimaryWeddingId } from '@/services/tokenManager'
   import type { MusicTrack } from '@/types/music'
   import MusicUploader from './MusicUploader.vue'
   import MusicTrackList from './MusicTrackList.vue'
@@ -12,6 +13,8 @@
 
   const { adminT } = useAdminLanguage()
 
+  const weddingId = computed(() => getStoredPrimaryWeddingId())
+
   const {
     tracks,
     settings,
@@ -20,7 +23,7 @@
     activeUploads,
     canUploadMore,
     remainingSlots,
-    fetchTracks,
+    fetchTracksAdmin,
     uploadTrack,
     cancelUpload,
     dismissUpload,
@@ -37,7 +40,7 @@
   const uploadErrors = ref<{ file: string; error: string }[]>([])
 
   onMounted(() => {
-    fetchTracks()
+    fetchTracksAdmin(weddingId.value ?? undefined)
   })
 
   const handleFilesSelected = async (
@@ -46,7 +49,7 @@
     uploadErrors.value = []
 
     for (const { file, title, artist } of files) {
-      const result = await uploadTrack(file, title, artist)
+      const result = await uploadTrack(file, title, artist, weddingId.value ?? undefined)
       if (!result.success) {
         uploadErrors.value.push({
           file: file.name,
@@ -57,7 +60,7 @@
   }
 
   const handleReorder = async (newOrder: string[]): Promise<void> => {
-    const result = await updateOrder(newOrder)
+    const result = await updateOrder(newOrder, weddingId.value ?? undefined)
     if (!result.success) {
       console.error('Reorder failed:', result.error)
     }
@@ -71,7 +74,7 @@
     if (!deleteConfirmId.value) return
 
     isDeleting.value = true
-    const result = await removeTrack(deleteConfirmId.value)
+    const result = await removeTrack(deleteConfirmId.value, weddingId.value ?? undefined)
     isDeleting.value = false
 
     if (!result.success) {
@@ -86,7 +89,7 @@
   }
 
   const handleSettingsUpdate = async (newSettings: Record<string, unknown>): Promise<void> => {
-    const result = await saveSettings(newSettings)
+    const result = await saveSettings(newSettings, weddingId.value ?? undefined)
     if (!result.success) {
       console.error('Settings update failed:', result.error)
     }
@@ -95,7 +98,10 @@
   const handleSelectTrack = async (trackId: string): Promise<void> => {
     // Toggle selection: if clicking the already selected track, deselect it
     const newSelectedId = settings.value.selectedTrackId === trackId ? null : trackId
-    const result = await saveSettings({ selectedTrackId: newSelectedId })
+    const result = await saveSettings(
+      { selectedTrackId: newSelectedId },
+      weddingId.value ?? undefined
+    )
     if (!result.success) {
       console.error('Failed to select track:', result.error)
     }
@@ -240,7 +246,7 @@
       <button
         type="button"
         class="mt-3 px-4 py-2 font-body text-sm text-sage border border-sage rounded-full hover:bg-sage hover:text-white transition-colors cursor-pointer"
-        @click="fetchTracks"
+        @click="fetchTracksAdmin(weddingId ?? undefined)"
       >
         {{ adminT.common.tryAgain }}
       </button>
@@ -306,8 +312,8 @@
     <Teleport to="body">
       <Transition name="modal">
         <div v-if="showSettings" class="modal-backdrop" @click.self="showSettings = false">
-          <div class="modal-content">
-            <div class="modal-header">
+          <div class="modal-content bg-white dark:bg-dark-bg-secondary">
+            <div class="modal-header border-sand-dark dark:border-dark-border">
               <h3 class="font-heading text-lg font-medium text-charcoal dark:text-dark-text">
                 {{ adminT.music.musicSettings }}
               </h3>
@@ -363,7 +369,6 @@
     max-width: 500px;
     max-height: 90vh;
     overflow-y: auto;
-    background-color: white;
     border-radius: 0.75rem;
     padding: 1.5rem;
   }
@@ -374,15 +379,8 @@
     justify-content: space-between;
     padding-bottom: 1rem;
     margin-bottom: 1rem;
-    border-bottom: 1px solid #e5e7eb;
-  }
-
-  :global(.dark) .modal-content {
-    background-color: #1f2937;
-  }
-
-  :global(.dark) .modal-header {
-    border-bottom-color: #374151;
+    border-bottom-width: 1px;
+    border-bottom-style: solid;
   }
 
   .modal-enter-active,

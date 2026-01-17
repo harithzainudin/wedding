@@ -1,7 +1,9 @@
 <script setup lang="ts">
   import { ref, computed, onMounted, watch } from 'vue'
+  import { useRoute } from 'vue-router'
   import { useVenue } from '@/composables/useVenue'
   import { useAdminLanguage } from '@/composables/useAdminLanguage'
+  import { getStoredPrimaryWeddingId } from '@/services/tokenManager'
   import type { ParkingStep } from '@/types/venue'
   import LocationMapPicker from './LocationMapPicker.vue'
   import LocationForm from './LocationForm.vue'
@@ -9,6 +11,13 @@
   import ParkingForm from './ParkingForm.vue'
 
   const { adminT } = useAdminLanguage()
+
+  const route = useRoute()
+  const weddingSlug = computed(() => {
+    const slug = route.params.weddingSlug
+    return typeof slug === 'string' ? slug : null
+  })
+  const weddingId = computed(() => getStoredPrimaryWeddingId())
 
   const {
     venue,
@@ -119,7 +128,7 @@
     if (formData.value.parkingVideoUrl) {
       data.parkingVideoUrl = formData.value.parkingVideoUrl
     }
-    const result = await updateVenue(data)
+    const result = await updateVenue(data, weddingId.value ?? undefined)
     // Sync form data after successful save to ensure hasChanges is false
     if (result.success) {
       syncFormData()
@@ -138,7 +147,9 @@
   )
 
   onMounted(async () => {
-    await fetchVenue()
+    if (weddingSlug.value) {
+      await fetchVenue(weddingSlug.value)
+    }
     syncFormData()
   })
 </script>
@@ -190,7 +201,7 @@
       <button
         type="button"
         class="px-4 py-2 rounded-lg bg-sage text-white font-body text-sm hover:bg-sage-dark transition-colors"
-        @click="fetchVenue"
+        @click="weddingSlug && fetchVenue(weddingSlug)"
       >
         {{ adminT.common.tryAgain }}
       </button>

@@ -1,6 +1,7 @@
 <script setup lang="ts">
   import { computed } from 'vue'
   import type { UploadProgress } from '@/types/upload'
+  import { useAdminLanguage } from '@/composables/useAdminLanguage'
 
   const props = defineProps<{
     uploads: UploadProgress[]
@@ -12,7 +13,17 @@
     dismiss: [id: string]
   }>()
 
-  const activeUploads = computed(() => props.uploads.filter((u) => u.status === 'uploading'))
+  const { adminT } = useAdminLanguage()
+
+  const activeUploads = computed(() =>
+    props.uploads.filter((u) => u.status === 'uploading' || u.status === 'compressing')
+  )
+
+  const formatBytes = (bytes: number): string => {
+    if (bytes < 1024) return `${bytes} B`
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
+  }
 
   const getProgressLabel = (progress: number): string => {
     if (progress <= 10) return 'Preparing...'
@@ -24,6 +35,8 @@
 
   const getStatusLabel = (upload: UploadProgress): string => {
     switch (upload.status) {
+      case 'compressing':
+        return adminT.value.common.compressing
       case 'uploading':
         return getProgressLabel(upload.progress)
       case 'completed':
@@ -35,6 +48,12 @@
       default:
         return ''
     }
+  }
+
+  const getCompressionLabel = (upload: UploadProgress): string | null => {
+    if (!upload.compression || upload.compression.savedPercent <= 0) return null
+    const { originalSize, compressedSize, savedPercent } = upload.compression
+    return `${formatBytes(originalSize)} → ${formatBytes(compressedSize)} (${savedPercent}% saved)`
   }
 </script>
 
@@ -77,9 +96,9 @@
                     : 'bg-sand dark:bg-dark-bg',
               ]"
             >
-              <!-- Spinner for uploading -->
+              <!-- Spinner for compressing/uploading -->
               <div
-                v-if="upload.status === 'uploading'"
+                v-if="upload.status === 'uploading' || upload.status === 'compressing'"
                 class="w-4 h-4 border-2 border-sage border-t-transparent rounded-full animate-spin"
               />
               <!-- Checkmark for completed -->
@@ -129,20 +148,27 @@
               >
                 {{ getStatusLabel(upload) }}
               </p>
+              <!-- Compression savings badge -->
+              <p
+                v-if="getCompressionLabel(upload)"
+                class="font-body text-xs text-sage dark:text-sage-light mt-0.5"
+              >
+                {{ getCompressionLabel(upload) }}
+              </p>
             </div>
 
             <!-- Progress Percentage / Action Buttons -->
             <div class="flex-shrink-0 flex items-center gap-2">
               <!-- Progress percentage for uploading -->
               <span
-                v-if="upload.status === 'uploading'"
+                v-if="upload.status === 'uploading' || upload.status === 'compressing'"
                 class="font-body text-sm font-medium text-sage"
               >
                 {{ upload.progress }}%
               </span>
-              <!-- Cancel button for uploading -->
+              <!-- Cancel button for uploading/compressing -->
               <button
-                v-if="upload.status === 'uploading'"
+                v-if="upload.status === 'uploading' || upload.status === 'compressing'"
                 type="button"
                 class="p-1 text-charcoal-light hover:text-red-500 dark:text-dark-text-secondary dark:hover:text-red-400 transition-colors cursor-pointer"
                 title="Cancel upload"
@@ -179,7 +205,7 @@
 
           <!-- Progress Bar -->
           <div
-            v-if="upload.status === 'uploading'"
+            v-if="upload.status === 'uploading' || upload.status === 'compressing'"
             class="mt-2 h-1.5 bg-sand-dark dark:bg-dark-border rounded-full overflow-hidden"
           >
             <div

@@ -1,9 +1,23 @@
+/**
+ * List Gifts Endpoint
+ *
+ * Public Route: GET /{weddingSlug}/gifts
+ * Admin Route: GET /admin/w/{weddingId}/gifts
+ */
 import type { APIGatewayProxyHandlerV2 } from 'aws-lambda'
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb'
 import { DynamoDBDocumentClient, QueryCommand, GetCommand } from '@aws-sdk/lib-dynamodb'
 import { Resource } from 'sst'
 import { createSuccessResponse, createErrorResponse } from '../shared/response'
+import { requireWeddingAccess } from '../shared/auth'
 import { logError } from '../shared/logger'
+import { Keys } from '../shared/keys'
+import {
+  resolveWeddingSlug,
+  requireActiveWedding,
+  getWeddingById,
+} from '../shared/wedding-middleware'
+import { isValidWeddingId } from '../shared/validation'
 import type { MultilingualText, GiftCategory, GiftPriority } from '../shared/gift-validation'
 
 const client = new DynamoDBClient({})
@@ -39,13 +53,58 @@ const DEFAULT_SETTINGS: GiftSettings = {
   allowedFormats: ['image/jpeg', 'image/png', 'image/webp'],
 }
 
-export const handler: APIGatewayProxyHandlerV2 = async (_event, context) => {
+export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
   try {
+    let weddingId: string
+    let isAuthenticated = false
+
+    // ============================================
+    // Determine route type and extract wedding context
+    // ============================================
+
+    if (event.pathParameters?.weddingId) {
+      // Admin route: /admin/w/{weddingId}/gifts
+      weddingId = event.pathParameters.weddingId
+
+      if (!isValidWeddingId(weddingId)) {
+        return createErrorResponse(400, 'Invalid wedding ID format', context, 'INVALID_WEDDING_ID')
+      }
+
+      const authResult = requireWeddingAccess(event, weddingId)
+      if (!authResult.authenticated) {
+        return createErrorResponse(authResult.statusCode, authResult.error, context, 'AUTH_ERROR')
+      }
+
+      const wedding = await getWeddingById(docClient, weddingId)
+      if (!wedding) {
+        return createErrorResponse(404, 'Wedding not found', context, 'WEDDING_NOT_FOUND')
+      }
+
+      isAuthenticated = true
+    } else if (event.pathParameters?.weddingSlug) {
+      // Public route: /{weddingSlug}/gifts
+      const weddingSlug = event.pathParameters.weddingSlug
+      const wedding = await resolveWeddingSlug(docClient, weddingSlug)
+      const weddingCheck = requireActiveWedding(wedding)
+      if (!weddingCheck.success) {
+        return createErrorResponse(
+          weddingCheck.statusCode,
+          weddingCheck.error,
+          context,
+          'WEDDING_ERROR'
+        )
+      }
+      weddingId = weddingCheck.wedding.weddingId
+    } else {
+      return createErrorResponse(400, 'Wedding identifier is required', context, 'MISSING_WEDDING')
+    }
+
     // Get gift settings to check if feature is enabled
+    const settingsKey = Keys.settings(weddingId, 'GIFTS')
     const settingsResult = await docClient.send(
       new GetCommand({
         TableName: Resource.AppDataTable.name,
-        Key: { pk: 'SETTINGS', sk: 'GIFTS' },
+        Key: settingsKey,
       })
     )
 
@@ -58,8 +117,8 @@ export const handler: APIGatewayProxyHandlerV2 = async (_event, context) => {
         }
       : DEFAULT_SETTINGS
 
-    // If feature is disabled, return empty list for public users
-    if (!settings.enabled) {
+    // If feature is disabled and not admin, return empty list
+    if (!settings.enabled && !isAuthenticated) {
       return createSuccessResponse(
         200,
         {
@@ -71,14 +130,14 @@ export const handler: APIGatewayProxyHandlerV2 = async (_event, context) => {
       )
     }
 
-    // Query all gifts using GSI
+    // Query all gifts for this wedding using GSI
     const result = await docClient.send(
       new QueryCommand({
         TableName: Resource.AppDataTable.name,
         IndexName: 'byStatus',
         KeyConditionExpression: 'gsi1pk = :pk',
         ExpressionAttributeValues: {
-          ':pk': 'GIFTS',
+          ':pk': `WEDDING#${weddingId}#GIFTS`,
         },
       })
     )
@@ -101,12 +160,26 @@ export const handler: APIGatewayProxyHandlerV2 = async (_event, context) => {
       }))
       .sort((a, b) => a.order - b.order)
 
+    // Return response with settings for admin users
+    if (isAuthenticated) {
+      return createSuccessResponse(
+        200,
+        {
+          gifts,
+          total: gifts.length,
+          enabled: settings.enabled,
+          settings,
+        },
+        context
+      )
+    }
+
     return createSuccessResponse(
       200,
       {
         gifts,
         total: gifts.length,
-        enabled: true,
+        enabled: settings.enabled,
       },
       context
     )

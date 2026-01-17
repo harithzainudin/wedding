@@ -55,6 +55,45 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
           expiresIn: 15 * 60, // 15 minutes in seconds
           username: 'master',
           isMaster: true,
+          userType: 'super', // Master user is a super admin
+        },
+        context
+      )
+    }
+
+    // First, check if user is a super admin
+    const superAdminResult = await docClient.send(
+      new GetCommand({
+        TableName: Resource.AppDataTable.name,
+        Key: {
+          pk: `SUPERADMIN#${username}`,
+          sk: 'PROFILE',
+        },
+      })
+    )
+
+    if (superAdminResult.Item) {
+      // Verify password for super admin
+      const passwordHash = superAdminResult.Item.passwordHash as string
+      const isValidPassword = await bcrypt.compare(body.password, passwordHash)
+
+      if (!isValidPassword) {
+        return createErrorResponse(401, 'Invalid username or password', context, 'AUTH_ERROR')
+      }
+
+      const accessToken = generateAccessToken(username, true)
+      const refreshToken = generateRefreshToken(username, true)
+
+      return createSuccessResponse(
+        200,
+        {
+          token: accessToken,
+          accessToken,
+          refreshToken,
+          expiresIn: 15 * 60,
+          username,
+          isMaster: true,
+          userType: 'super',
         },
         context
       )
@@ -90,6 +129,13 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
     // Check if user must change password
     const mustChangePassword = result.Item.mustChangePassword === true
 
+    // Get wedding IDs if this is a wedding admin
+    const weddingIds = result.Item.weddingIds as string[] | undefined
+    const primaryWeddingId = result.Item.primaryWeddingId as string | undefined
+
+    // Determine user type: 'wedding' if has weddingIds, otherwise 'legacy'
+    const userType = weddingIds && weddingIds.length > 0 ? 'wedding' : 'legacy'
+
     return createSuccessResponse(
       200,
       {
@@ -99,6 +145,9 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
         expiresIn: 15 * 60, // 15 minutes in seconds
         username,
         isMaster: false,
+        userType,
+        ...(weddingIds && weddingIds.length > 0 && { weddingIds }),
+        ...(primaryWeddingId && { primaryWeddingId }),
         ...(mustChangePassword && { mustChangePassword: true }),
       },
       context

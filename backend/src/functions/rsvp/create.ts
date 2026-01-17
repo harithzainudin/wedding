@@ -1,11 +1,23 @@
+/**
+ * Admin Create RSVP Endpoint
+ *
+ * Allows admins to manually create RSVPs.
+ * Route: POST /admin/w/{weddingId}/rsvp
+ *
+ * SECURITY: Requires wedding access authorization
+ */
+
 import type { APIGatewayProxyHandlerV2 } from 'aws-lambda'
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb'
 import { DynamoDBDocumentClient, PutCommand } from '@aws-sdk/lib-dynamodb'
 import { v4 as uuidv4 } from 'uuid'
 import { Resource } from 'sst'
 import { createSuccessResponse, createErrorResponse } from '../shared/response'
-import { requireAuth } from '../shared/auth'
+import { requireWeddingAccess } from '../shared/auth'
 import { logError } from '../shared/logger'
+import { Keys } from '../shared/keys'
+import { getWeddingById, requireAdminAccessibleWedding } from '../shared/wedding-middleware'
+import { isValidWeddingId } from '../shared/validation'
 
 const client = new DynamoDBClient({})
 const docClient = DynamoDBDocumentClient.from(client)
@@ -46,7 +58,6 @@ function validateAdminRsvpInput(input: unknown):
 
   const body = input as Record<string, unknown>
 
-  // Validate fullName (required)
   if (typeof body.fullName !== 'string' || body.fullName.trim().length < 2) {
     return {
       valid: false,
@@ -54,19 +65,16 @@ function validateAdminRsvpInput(input: unknown):
     }
   }
 
-  // Validate title (optional, but must be valid if provided)
   if (body.title !== undefined && body.title !== '') {
     if (typeof body.title !== 'string' || !VALID_TITLES.includes(body.title as HonorificTitle)) {
       return { valid: false, error: 'Invalid title selected' }
     }
   }
 
-  // Validate attendance (required)
   if (typeof body.isAttending !== 'boolean') {
     return { valid: false, error: 'Attendance status is required' }
   }
 
-  // Validate number of guests
   if (body.isAttending) {
     if (
       typeof body.numberOfGuests !== 'number' ||
@@ -80,7 +88,6 @@ function validateAdminRsvpInput(input: unknown):
     }
   }
 
-  // Validate phoneNumber (optional)
   let cleanPhone = ''
   if (body.phoneNumber !== undefined && body.phoneNumber !== '') {
     if (typeof body.phoneNumber !== 'string') {
@@ -93,7 +100,6 @@ function validateAdminRsvpInput(input: unknown):
     }
   }
 
-  // Validate message (optional)
   if (body.message !== undefined) {
     if (typeof body.message !== 'string') {
       return { valid: false, error: 'Message must be a string' }
@@ -123,13 +129,48 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
   let fullName: string | undefined
 
   try {
-    // Require authentication
-    const authResult = requireAuth(event)
+    // ============================================
+    // 1. Extract and Validate Wedding ID
+    // ============================================
+    const weddingId = event.pathParameters?.weddingId
+    if (!weddingId) {
+      return createErrorResponse(400, 'Wedding ID is required', context, 'MISSING_WEDDING_ID')
+    }
+
+    if (!isValidWeddingId(weddingId)) {
+      return createErrorResponse(400, 'Invalid wedding ID format', context, 'INVALID_WEDDING_ID')
+    }
+
+    // ============================================
+    // 2. Authorization: Require Wedding Access
+    // ============================================
+    const authResult = requireWeddingAccess(event, weddingId)
     if (!authResult.authenticated) {
       return createErrorResponse(authResult.statusCode, authResult.error, context, 'AUTH_ERROR')
     }
 
-    // Parse request body
+    // ============================================
+    // 3. Verify Wedding Exists
+    // ============================================
+    const wedding = await getWeddingById(docClient, weddingId)
+    if (!wedding) {
+      return createErrorResponse(404, 'Wedding not found', context, 'WEDDING_NOT_FOUND')
+    }
+
+    const isSuperAdmin = authResult.user.type === 'super' || authResult.user.isMaster
+    const accessCheck = requireAdminAccessibleWedding(wedding, isSuperAdmin)
+    if (!accessCheck.success) {
+      return createErrorResponse(
+        accessCheck.statusCode,
+        accessCheck.error,
+        context,
+        'ACCESS_DENIED'
+      )
+    }
+
+    // ============================================
+    // 4. Parse and Validate Input
+    // ============================================
     let body: unknown
     try {
       body = JSON.parse(event.body ?? '{}')
@@ -137,7 +178,6 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
       return createErrorResponse(400, 'Invalid JSON in request body', context, 'INVALID_JSON')
     }
 
-    // Validate input
     const validation = validateAdminRsvpInput(body)
     if (!validation.valid) {
       return createErrorResponse(400, validation.error, context, 'VALIDATION_ERROR')
@@ -146,18 +186,18 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
     const { data } = validation
     fullName = data.fullName
 
-    // Generate unique ID and timestamp
+    // ============================================
+    // 5. Create RSVP Record
+    // ============================================
     const id = uuidv4()
     const timestamp = new Date().toISOString()
     const status = data.isAttending ? 'attending' : 'not_attending'
 
-    // Create RSVP record
     const rsvpItem = {
-      pk: `RSVP#${id}`,
-      sk: 'METADATA',
-      gsi1pk: `STATUS#${status}`,
-      gsi1sk: timestamp,
+      ...Keys.rsvp(weddingId, id),
+      ...Keys.gsi.weddingRsvpsByStatus(weddingId, status, timestamp),
       id,
+      weddingId,
       title: data.title ?? '',
       fullName: data.fullName,
       isAttending: data.isAttending,
@@ -169,7 +209,6 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
       createdBy: authResult.user.username,
     }
 
-    // Save to DynamoDB
     await docClient.send(
       new PutCommand({
         TableName: Resource.AppDataTable.name,
@@ -188,7 +227,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
   } catch (error) {
     logError(
       {
-        endpoint: 'POST /rsvp/admin',
+        endpoint: 'POST /admin/w/{weddingId}/rsvp',
         operation: 'createRsvp',
         requestId: context.awsRequestId,
         input: { fullName },

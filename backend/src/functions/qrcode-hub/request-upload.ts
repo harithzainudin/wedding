@@ -1,13 +1,26 @@
+/**
+ * POST /admin/w/{weddingId}/qrcode-hub/request-upload
+ *
+ * Admin endpoint to request a presigned URL for uploading QR code images.
+ * Requires authentication and wedding access.
+ */
 import type { APIGatewayProxyHandlerV2 } from 'aws-lambda'
+import { DynamoDBClient } from '@aws-sdk/client-dynamodb'
+import { DynamoDBDocumentClient } from '@aws-sdk/lib-dynamodb'
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3'
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
 import { v4 as uuidv4 } from 'uuid'
 import { Resource } from 'sst'
 import { createSuccessResponse, createErrorResponse } from '../shared/response'
-import { requireAuth } from '../shared/auth'
+import { requireWeddingAccess } from '../shared/auth'
 import { logError } from '../shared/logger'
 import { QRCODE_LIMITS } from '../shared/qrcode-validation'
+import { S3Keys, getPublicS3Url } from '../shared/s3-keys'
+import { getWeddingById, requireAdminAccessibleWedding } from '../shared/wedding-middleware'
+import { isValidWeddingId } from '../shared/validation'
 
+const dynamoClient = new DynamoDBClient({})
+const docClient = DynamoDBDocumentClient.from(dynamoClient)
 const s3Client = new S3Client({})
 
 const MIME_TO_EXTENSION: Record<string, string> = {
@@ -64,11 +77,37 @@ function validateUploadRequest(
 export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
   let mimeType: string | undefined
   let fileSize: number | undefined
+  let weddingId: string | undefined
 
   try {
-    const authResult = requireAuth(event)
+    // Extract and validate weddingId from path
+    weddingId = event.pathParameters?.weddingId
+    if (!weddingId || !isValidWeddingId(weddingId)) {
+      return createErrorResponse(400, 'Invalid wedding ID', context, 'INVALID_WEDDING_ID')
+    }
+
+    // Require authentication and wedding access
+    const authResult = requireWeddingAccess(event, weddingId)
     if (!authResult.authenticated) {
       return createErrorResponse(authResult.statusCode, authResult.error, context, 'AUTH_ERROR')
+    }
+
+    // Verify wedding exists
+    const wedding = await getWeddingById(docClient, weddingId)
+    if (!wedding) {
+      return createErrorResponse(404, 'Wedding not found', context, 'WEDDING_NOT_FOUND')
+    }
+
+    // Check wedding status (block archived for non-super admins)
+    const isSuperAdmin = authResult.user.type === 'super' || authResult.user.isMaster
+    const accessCheck = requireAdminAccessibleWedding(wedding, isSuperAdmin)
+    if (!accessCheck.success) {
+      return createErrorResponse(
+        accessCheck.statusCode,
+        accessCheck.error,
+        context,
+        'ACCESS_DENIED'
+      )
     }
 
     if (!event.body) {
@@ -91,7 +130,10 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
     fileSize = validation.data.fileSize
     const imageId = uuidv4()
     const extension = MIME_TO_EXTENSION[mimeType] ?? '.jpg'
-    const s3Key = `qrcode-hub/restu-digital-${imageId}${extension}`
+    const filename = `restu-digital-${imageId}${extension}`
+
+    // Use wedding-scoped S3 key
+    const s3Key = S3Keys.qrCode(weddingId, filename)
 
     // Generate presigned URL (valid for 10 minutes)
     const command = new PutObjectCommand({
@@ -106,7 +148,8 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
     })
 
     // Generate the public URL for the image after upload
-    const publicUrl = `https://${Resource.WeddingImageBucket.name}.s3.amazonaws.com/${s3Key}`
+    const region = process.env.AWS_REGION ?? 'ap-southeast-1'
+    const publicUrl = getPublicS3Url(Resource.WeddingImageBucket.name, region, s3Key)
 
     return createSuccessResponse(
       200,
@@ -122,10 +165,10 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
   } catch (error) {
     logError(
       {
-        endpoint: 'POST /qrcode-hub/request-upload',
+        endpoint: 'POST /admin/w/{weddingId}/qrcode-hub/request-upload',
         operation: 'requestRestuDigitalUpload',
         requestId: context.awsRequestId,
-        input: { mimeType, fileSize },
+        input: { weddingId, mimeType, fileSize },
       },
       error
     )

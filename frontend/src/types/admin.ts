@@ -3,6 +3,9 @@ export interface AdminLoginRequest {
   password: string
 }
 
+// User type for multi-tenant support
+export type UserType = 'super' | 'wedding' | 'legacy'
+
 // Response data from login endpoint (unwrapped from API response)
 export interface AdminLoginResponse {
   token?: string // Legacy - for backward compatibility
@@ -12,6 +15,10 @@ export interface AdminLoginResponse {
   username: string
   isMaster: boolean
   mustChangePassword?: boolean
+  // Multi-tenant fields
+  userType: UserType
+  weddingIds?: string[] // Wedding IDs the user has access to
+  primaryWeddingId?: string // Primary wedding for wedding admins
 }
 
 export interface RefreshTokenRequest {
@@ -106,4 +113,117 @@ export interface SetNewPasswordRequest {
 // Response data from set new password endpoint (unwrapped)
 export interface SetNewPasswordResponse {
   message: string
+}
+
+// ============================================
+// Super Admin Types
+// ============================================
+
+export type WeddingStatus = 'active' | 'archived' | 'draft'
+
+export interface Wedding {
+  weddingId: string
+  slug: string
+  displayName: string
+  status: WeddingStatus
+  ownerUsername?: string
+  ownerEmail?: string
+  weddingDate?: string
+  createdAt: string
+  updatedAt?: string
+}
+
+export interface ListWeddingsResponse {
+  weddings: Wedding[]
+  total: number
+}
+
+export interface CreateWeddingRequest {
+  slug: string
+  displayName: string
+  ownerUsername: string
+  ownerPassword: string
+  ownerEmail?: string
+  weddingDate?: string
+}
+
+export interface CreateWeddingResponse {
+  wedding: Wedding
+  owner: {
+    username: string
+    temporaryPassword?: string
+    emailSent?: boolean
+  }
+}
+
+export interface UpdateWeddingRequest {
+  displayName?: string
+  status?: WeddingStatus
+  weddingDate?: string
+}
+
+export interface UpdateWeddingResponse {
+  wedding: Wedding
+}
+
+export interface AddWeddingOwnerRequest {
+  username: string
+  password: string
+  email?: string
+}
+
+export interface AddWeddingOwnerResponse {
+  message: string
+  admin: {
+    username: string
+    email?: string
+    role: 'owner' | 'coowner'
+    mustChangePassword?: boolean
+  }
+  weddingId: string
+}
+
+export interface UpdateWeddingOwnerRequest {
+  email?: string
+  role?: 'owner' | 'coowner'
+}
+
+export interface UpdateWeddingOwnerResponse {
+  message: string
+  username: string
+  weddingId: string
+  email?: string | null
+  role?: 'owner' | 'coowner'
+  updatedAt: string
+}
+
+export interface RemoveWeddingOwnerResponse {
+  message: string
+  username: string
+  weddingId: string
+  remainingWeddings: string[]
+}
+
+export interface ResetOwnerPasswordResponse {
+  message: string
+  username: string
+  temporaryPassword: string
+  mustChangePassword: boolean
+  resetAt: string
+  resetBy: string
+}
+
+export interface WeddingDetailResponse {
+  wedding: Wedding
+  admins: WeddingAdmin[]
+  publicUrl: string
+  adminUrl: string
+}
+
+export interface WeddingAdmin {
+  username: string
+  email?: string
+  role: 'owner' | 'coowner'
+  addedAt: string
+  addedBy: string
 }

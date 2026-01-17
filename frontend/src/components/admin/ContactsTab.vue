@@ -1,9 +1,10 @@
 <script setup lang="ts">
-  import { ref, watch, onMounted } from 'vue'
+  import { ref, watch, onMounted, computed } from 'vue'
   import { useContacts } from '@/composables/useContacts'
   import { useCrudList } from '@/composables/useCrudList'
   import { useAdminLanguage } from '@/composables/useAdminLanguage'
   import { interpolate } from '@/i18n/translations'
+  import { getStoredPrimaryWeddingId } from '@/services/tokenManager'
   import ConfirmModal from './ConfirmModal.vue'
   import ItemActions from './ItemActions.vue'
   import MultilingualInput from './MultilingualInput.vue'
@@ -12,6 +13,8 @@
 
   const { adminT } = useAdminLanguage()
 
+  const weddingId = computed(() => getStoredPrimaryWeddingId())
+
   const {
     contacts,
     isLoading,
@@ -19,7 +22,7 @@
     isSaving,
     saveError,
     saveSuccess,
-    fetchContacts,
+    fetchContactsAdmin,
     updateContacts,
     generateId,
   } = useContacts()
@@ -45,7 +48,7 @@
     sourceData: contacts,
     getItems: (data) => data.contacts,
     cloneItem: (c) => ({ ...c, role: { ...c.role } }),
-    updateFn: updateContacts,
+    updateFn: (contacts) => updateContacts(contacts, weddingId.value ?? undefined),
   })
 
   const modalForm = ref({
@@ -104,7 +107,7 @@
   }
 
   onMounted(async () => {
-    await fetchContacts()
+    await fetchContactsAdmin(weddingId.value ?? undefined)
     syncLocalContacts()
   })
 </script>
@@ -153,7 +156,7 @@
       <button
         type="button"
         class="px-4 py-2 rounded-lg bg-sage text-white font-body text-sm hover:bg-sage-dark transition-colors"
-        @click="fetchContacts"
+        @click="fetchContactsAdmin(weddingId ?? undefined)"
       >
         {{ adminT.common.tryAgain }}
       </button>

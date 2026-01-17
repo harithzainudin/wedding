@@ -28,14 +28,16 @@ export const api = new sst.aws.ApiGatewayV2('WeddingApi', {
   },
 })
 
-// POST /rsvp - Submit RSVP
-api.route('POST /rsvp', {
+// ============================================
+// RSVP: Public submit route (wedding slug)
+// ============================================
+
+// POST /{weddingSlug}/rsvp - Submit RSVP (public)
+api.route('POST /{weddingSlug}/rsvp', {
   handler: 'src/functions/rsvp/submit.handler',
   link: [table],
   ...functionConfig,
 })
-
-// GET /rsvp - List all RSVPs (admin) - configured via addRsvpAuthRoutes for auth
 
 // Function to add admin routes with secrets
 export function addAdminRoutes(
@@ -118,29 +120,33 @@ export function addAdminRoutes(
 
 // Function to add RSVP routes with token secret for protected endpoints
 export function addRsvpAuthRoutes(tokenSecret: sst.Secret) {
-  // Update GET /rsvp to require auth
-  api.route('GET /rsvp', {
+  // ============================================
+  // ADMIN ROUTES (wedding ID in path)
+  // ============================================
+
+  // GET /admin/w/{weddingId}/rsvps - List RSVPs (auth required)
+  api.route('GET /admin/w/{weddingId}/rsvps', {
     handler: 'src/functions/rsvp/list.handler',
     link: [table, tokenSecret],
     ...functionConfig,
   })
 
-  // POST /rsvp/admin - Admin create RSVP
-  api.route('POST /rsvp/admin', {
+  // POST /admin/w/{weddingId}/rsvps - Admin create RSVP
+  api.route('POST /admin/w/{weddingId}/rsvps', {
     handler: 'src/functions/rsvp/create.handler',
     link: [table, tokenSecret],
     ...functionConfig,
   })
 
-  // PUT /rsvp/{id} - Update RSVP
-  api.route('PUT /rsvp/{id}', {
+  // PUT /admin/w/{weddingId}/rsvp/{id} - Update RSVP
+  api.route('PUT /admin/w/{weddingId}/rsvp/{id}', {
     handler: 'src/functions/rsvp/update.handler',
     link: [table, tokenSecret],
     ...functionConfig,
   })
 
-  // DELETE /rsvp/{id} - Delete RSVP
-  api.route('DELETE /rsvp/{id}', {
+  // DELETE /admin/w/{weddingId}/rsvp/{id} - Delete RSVP
+  api.route('DELETE /admin/w/{weddingId}/rsvp/{id}', {
     handler: 'src/functions/rsvp/delete.handler',
     link: [table, tokenSecret],
     ...functionConfig,
@@ -149,50 +155,65 @@ export function addRsvpAuthRoutes(tokenSecret: sst.Secret) {
 
 // Function to add image management routes
 export function addImageRoutes(tokenSecret: sst.Secret, imageBucket: sst.aws.Bucket) {
-  // POST /images/presigned-url - Request presigned URL for upload
-  api.route('POST /images/presigned-url', {
-    handler: 'src/functions/images/request-upload.handler',
-    link: [table, tokenSecret, imageBucket],
+  // ============================================
+  // PUBLIC ROUTES (wedding slug in path)
+  // ============================================
+
+  // GET /{weddingSlug}/gallery - Public endpoint to list images
+  api.route('GET /{weddingSlug}/gallery', {
+    handler: 'src/functions/images/list.handler',
+    link: [table, imageBucket],
     ...functionConfig,
   })
 
-  // POST /images/confirm - Confirm upload after successful S3 upload
-  api.route('POST /images/confirm', {
-    handler: 'src/functions/images/confirm-upload.handler',
-    link: [table, tokenSecret, imageBucket],
-    ...functionConfig,
-  })
+  // ============================================
+  // ADMIN ROUTES (wedding ID in path)
+  // ============================================
 
-  // GET /images - List all images
-  api.route('GET /images', {
+  // GET /admin/w/{weddingId}/images - List images (auth required)
+  api.route('GET /admin/w/{weddingId}/images', {
     handler: 'src/functions/images/list.handler',
     link: [table, tokenSecret, imageBucket],
     ...functionConfig,
   })
 
-  // DELETE /images/{id} - Delete an image
-  api.route('DELETE /images/{id}', {
+  // POST /admin/w/{weddingId}/images/presigned-url - Request presigned URL for upload
+  api.route('POST /admin/w/{weddingId}/images/presigned-url', {
+    handler: 'src/functions/images/request-upload.handler',
+    link: [table, tokenSecret, imageBucket],
+    ...functionConfig,
+  })
+
+  // POST /admin/w/{weddingId}/images/confirm - Confirm upload after successful S3 upload
+  api.route('POST /admin/w/{weddingId}/images/confirm', {
+    handler: 'src/functions/images/confirm-upload.handler',
+    link: [table, tokenSecret, imageBucket],
+    ...functionConfig,
+  })
+
+  // DELETE /admin/w/{weddingId}/images/{id} - Delete an image
+  api.route('DELETE /admin/w/{weddingId}/images/{id}', {
     handler: 'src/functions/images/delete.handler',
     link: [table, tokenSecret, imageBucket],
     ...functionConfig,
   })
 
-  // PUT /images/reorder - Reorder images
-  api.route('PUT /images/reorder', {
+  // PUT /admin/w/{weddingId}/images/reorder - Reorder images
+  api.route('PUT /admin/w/{weddingId}/images/reorder', {
     handler: 'src/functions/images/reorder.handler',
     link: [table, tokenSecret],
     ...functionConfig,
   })
 
-  // GET /images/settings - Get image settings
-  api.route('GET /images/settings', {
+  // GET /admin/w/{weddingId}/images/settings - Get image settings
+  api.route('GET /admin/w/{weddingId}/images/settings', {
     handler: 'src/functions/images/get-settings.handler',
     link: [table, tokenSecret],
     ...functionConfig,
   })
 
-  // PUT /images/settings - Update image settings
-  api.route('PUT /images/settings', {
+  // PUT /admin/w/{weddingId}/images/settings - Update image settings
+  api.route('PUT /admin/w/{weddingId}/images/settings', {
     handler: 'src/functions/images/update-settings.handler',
     link: [table, tokenSecret],
     ...functionConfig,
@@ -201,15 +222,23 @@ export function addImageRoutes(tokenSecret: sst.Secret, imageBucket: sst.aws.Buc
 
 // Function to add venue routes
 export function addVenueRoutes(tokenSecret: sst.Secret) {
-  // GET /venue - Public endpoint to fetch venue data
-  api.route('GET /venue', {
+  // ============================================
+  // PUBLIC ROUTES (wedding slug in path)
+  // ============================================
+
+  // GET /{weddingSlug}/venue - Public endpoint to fetch venue data
+  api.route('GET /{weddingSlug}/venue', {
     handler: 'src/functions/venue/get.handler',
     link: [table],
     ...functionConfig,
   })
 
-  // PUT /venue - Update venue data (auth required)
-  api.route('PUT /venue', {
+  // ============================================
+  // ADMIN ROUTES (wedding ID in path)
+  // ============================================
+
+  // PUT /admin/w/{weddingId}/venue - Update venue data (auth required)
+  api.route('PUT /admin/w/{weddingId}/venue', {
     handler: 'src/functions/venue/update.handler',
     link: [table, tokenSecret],
     ...functionConfig,
@@ -218,15 +247,23 @@ export function addVenueRoutes(tokenSecret: sst.Secret) {
 
 // Function to add wedding details routes
 export function addWeddingDetailsRoutes(tokenSecret: sst.Secret) {
-  // GET /wedding-details - Public endpoint to fetch wedding details
-  api.route('GET /wedding-details', {
+  // ============================================
+  // PUBLIC ROUTES (wedding slug in path)
+  // ============================================
+
+  // GET /{weddingSlug}/wedding-details - Public endpoint to fetch wedding details
+  api.route('GET /{weddingSlug}/wedding-details', {
     handler: 'src/functions/wedding-details/get.handler',
     link: [table],
     ...functionConfig,
   })
 
-  // PUT /wedding-details - Update wedding details (auth required)
-  api.route('PUT /wedding-details', {
+  // ============================================
+  // ADMIN ROUTES (wedding ID in path)
+  // ============================================
+
+  // PUT /admin/w/{weddingId}/wedding-details - Update wedding details (auth required)
+  api.route('PUT /admin/w/{weddingId}/wedding-details', {
     handler: 'src/functions/wedding-details/update.handler',
     link: [table, tokenSecret],
     ...functionConfig,
@@ -235,15 +272,30 @@ export function addWeddingDetailsRoutes(tokenSecret: sst.Secret) {
 
 // Function to add schedule routes
 export function addScheduleRoutes(tokenSecret: sst.Secret) {
-  // GET /schedule - Public endpoint to fetch schedule
-  api.route('GET /schedule', {
+  // ============================================
+  // PUBLIC ROUTES (wedding slug in path)
+  // ============================================
+
+  // GET /{weddingSlug}/schedule - Public endpoint to fetch schedule
+  api.route('GET /{weddingSlug}/schedule', {
     handler: 'src/functions/schedule/get.handler',
     link: [table],
     ...functionConfig,
   })
 
-  // PUT /schedule - Update schedule (auth required)
-  api.route('PUT /schedule', {
+  // ============================================
+  // ADMIN ROUTES (wedding ID in path)
+  // ============================================
+
+  // GET /admin/w/{weddingId}/schedule - Fetch schedule (auth required)
+  api.route('GET /admin/w/{weddingId}/schedule', {
+    handler: 'src/functions/schedule/get.handler',
+    link: [table, tokenSecret],
+    ...functionConfig,
+  })
+
+  // PUT /admin/w/{weddingId}/schedule - Update schedule (auth required)
+  api.route('PUT /admin/w/{weddingId}/schedule', {
     handler: 'src/functions/schedule/update.handler',
     link: [table, tokenSecret],
     ...functionConfig,
@@ -252,15 +304,30 @@ export function addScheduleRoutes(tokenSecret: sst.Secret) {
 
 // Function to add contacts routes
 export function addContactsRoutes(tokenSecret: sst.Secret) {
-  // GET /contacts - Public endpoint to fetch contacts
-  api.route('GET /contacts', {
+  // ============================================
+  // PUBLIC ROUTES (wedding slug in path)
+  // ============================================
+
+  // GET /{weddingSlug}/contacts - Public endpoint to fetch contacts
+  api.route('GET /{weddingSlug}/contacts', {
     handler: 'src/functions/contacts/get.handler',
     link: [table],
     ...functionConfig,
   })
 
-  // PUT /contacts - Update contacts (auth required)
-  api.route('PUT /contacts', {
+  // ============================================
+  // ADMIN ROUTES (wedding ID in path)
+  // ============================================
+
+  // GET /admin/w/{weddingId}/contacts - Fetch contacts (auth required)
+  api.route('GET /admin/w/{weddingId}/contacts', {
+    handler: 'src/functions/contacts/get.handler',
+    link: [table, tokenSecret],
+    ...functionConfig,
+  })
+
+  // PUT /admin/w/{weddingId}/contacts - Update contacts (auth required)
+  api.route('PUT /admin/w/{weddingId}/contacts', {
     handler: 'src/functions/contacts/update.handler',
     link: [table, tokenSecret],
     ...functionConfig,
@@ -269,15 +336,23 @@ export function addContactsRoutes(tokenSecret: sst.Secret) {
 
 // Function to add theme routes
 export function addThemeRoutes(tokenSecret: sst.Secret) {
-  // GET /theme - Public endpoint to fetch theme settings
-  api.route('GET /theme', {
+  // ============================================
+  // PUBLIC ROUTES (wedding slug in path)
+  // ============================================
+
+  // GET /{weddingSlug}/theme - Public endpoint to fetch theme settings
+  api.route('GET /{weddingSlug}/theme', {
     handler: 'src/functions/theme/get.handler',
     link: [table],
     ...functionConfig,
   })
 
-  // PUT /theme - Update theme settings (auth required)
-  api.route('PUT /theme', {
+  // ============================================
+  // ADMIN ROUTES (wedding ID in path)
+  // ============================================
+
+  // PUT /admin/w/{weddingId}/theme - Update theme settings (auth required)
+  api.route('PUT /admin/w/{weddingId}/theme', {
     handler: 'src/functions/theme/update.handler',
     link: [table, tokenSecret],
     ...functionConfig,
@@ -286,78 +361,93 @@ export function addThemeRoutes(tokenSecret: sst.Secret) {
 
 // Function to add gift registry routes
 export function addGiftRoutes(tokenSecret: sst.Secret, imageBucket: sst.aws.Bucket) {
-  // GET /gifts - Public: list all gifts
-  api.route('GET /gifts', {
+  // ============================================
+  // PUBLIC ROUTES (wedding slug in path)
+  // ============================================
+
+  // GET /{weddingSlug}/gifts - Public: list all gifts
+  api.route('GET /{weddingSlug}/gifts', {
     handler: 'src/functions/gifts/list.handler',
     link: [table, imageBucket],
     ...functionConfig,
   })
 
-  // POST /gifts - Admin: create gift
-  api.route('POST /gifts', {
-    handler: 'src/functions/gifts/create.handler',
-    link: [table, tokenSecret],
-    ...functionConfig,
-  })
-
-  // PUT /gifts/{id} - Admin: update gift
-  api.route('PUT /gifts/{id}', {
-    handler: 'src/functions/gifts/update.handler',
-    link: [table, tokenSecret],
-    ...functionConfig,
-  })
-
-  // DELETE /gifts/{id} - Admin: delete gift
-  api.route('DELETE /gifts/{id}', {
-    handler: 'src/functions/gifts/delete.handler',
-    link: [table, tokenSecret, imageBucket],
-    ...functionConfig,
-  })
-
-  // PUT /gifts/reorder - Admin: reorder gifts
-  api.route('PUT /gifts/reorder', {
-    handler: 'src/functions/gifts/reorder.handler',
-    link: [table, tokenSecret],
-    ...functionConfig,
-  })
-
-  // POST /gifts/presigned-url - Admin: request presigned URL for upload
-  api.route('POST /gifts/presigned-url', {
-    handler: 'src/functions/gifts/request-upload.handler',
-    link: [table, tokenSecret, imageBucket],
-    ...functionConfig,
-  })
-
-  // POST /gifts/confirm - Admin: confirm upload
-  api.route('POST /gifts/confirm', {
-    handler: 'src/functions/gifts/confirm-upload.handler',
-    link: [table, tokenSecret, imageBucket],
-    ...functionConfig,
-  })
-
-  // POST /gifts/{id}/reserve - Public: reserve a gift
-  api.route('POST /gifts/{id}/reserve', {
+  // POST /{weddingSlug}/gifts/{id}/reserve - Public: reserve a gift
+  api.route('POST /{weddingSlug}/gifts/{id}/reserve', {
     handler: 'src/functions/gifts/reserve.handler',
     link: [table],
     ...functionConfig,
   })
 
-  // GET /gifts/settings - Admin: get gift settings
-  api.route('GET /gifts/settings', {
+  // ============================================
+  // ADMIN ROUTES (wedding ID in path)
+  // ============================================
+
+  // GET /admin/w/{weddingId}/gifts - Admin: list all gifts
+  api.route('GET /admin/w/{weddingId}/gifts', {
+    handler: 'src/functions/gifts/list.handler',
+    link: [table, tokenSecret, imageBucket],
+    ...functionConfig,
+  })
+
+  // POST /admin/w/{weddingId}/gifts - Admin: create gift
+  api.route('POST /admin/w/{weddingId}/gifts', {
+    handler: 'src/functions/gifts/create.handler',
+    link: [table, tokenSecret],
+    ...functionConfig,
+  })
+
+  // PUT /admin/w/{weddingId}/gifts/{id} - Admin: update gift
+  api.route('PUT /admin/w/{weddingId}/gifts/{id}', {
+    handler: 'src/functions/gifts/update.handler',
+    link: [table, tokenSecret],
+    ...functionConfig,
+  })
+
+  // DELETE /admin/w/{weddingId}/gifts/{id} - Admin: delete gift
+  api.route('DELETE /admin/w/{weddingId}/gifts/{id}', {
+    handler: 'src/functions/gifts/delete.handler',
+    link: [table, tokenSecret, imageBucket],
+    ...functionConfig,
+  })
+
+  // PUT /admin/w/{weddingId}/gifts/reorder - Admin: reorder gifts
+  api.route('PUT /admin/w/{weddingId}/gifts/reorder', {
+    handler: 'src/functions/gifts/reorder.handler',
+    link: [table, tokenSecret],
+    ...functionConfig,
+  })
+
+  // POST /admin/w/{weddingId}/gifts/presigned-url - Admin: request presigned URL for upload
+  api.route('POST /admin/w/{weddingId}/gifts/presigned-url', {
+    handler: 'src/functions/gifts/request-upload.handler',
+    link: [table, tokenSecret, imageBucket],
+    ...functionConfig,
+  })
+
+  // POST /admin/w/{weddingId}/gifts/confirm - Admin: confirm upload
+  api.route('POST /admin/w/{weddingId}/gifts/confirm', {
+    handler: 'src/functions/gifts/confirm-upload.handler',
+    link: [table, tokenSecret, imageBucket],
+    ...functionConfig,
+  })
+
+  // GET /admin/w/{weddingId}/gifts/settings - Admin: get gift settings
+  api.route('GET /admin/w/{weddingId}/gifts/settings', {
     handler: 'src/functions/gifts/get-settings.handler',
     link: [table, tokenSecret],
     ...functionConfig,
   })
 
-  // PUT /gifts/settings - Admin: update gift settings
-  api.route('PUT /gifts/settings', {
+  // PUT /admin/w/{weddingId}/gifts/settings - Admin: update gift settings
+  api.route('PUT /admin/w/{weddingId}/gifts/settings', {
     handler: 'src/functions/gifts/update-settings.handler',
     link: [table, tokenSecret],
     ...functionConfig,
   })
 
-  // GET /gifts/reservations - Admin: list all reservations
-  api.route('GET /gifts/reservations', {
+  // GET /admin/w/{weddingId}/gifts/reservations - Admin: list all reservations
+  api.route('GET /admin/w/{weddingId}/gifts/reservations', {
     handler: 'src/functions/gifts/reservations.handler',
     link: [table, tokenSecret],
     ...functionConfig,
@@ -366,43 +456,58 @@ export function addGiftRoutes(tokenSecret: sst.Secret, imageBucket: sst.aws.Buck
 
 // Function to add music management routes
 export function addMusicRoutes(tokenSecret: sst.Secret, imageBucket: sst.aws.Bucket) {
-  // GET /music - Public endpoint to fetch music settings and tracks
-  api.route('GET /music', {
+  // ============================================
+  // PUBLIC ROUTES (wedding slug in path)
+  // ============================================
+
+  // GET /{weddingSlug}/music - Public endpoint to fetch music settings and tracks
+  api.route('GET /{weddingSlug}/music', {
     handler: 'src/functions/music/get.handler',
     link: [table, imageBucket],
     ...functionConfig,
   })
 
-  // PUT /music/settings - Update music settings (auth required)
-  api.route('PUT /music/settings', {
+  // ============================================
+  // ADMIN ROUTES (wedding ID in path)
+  // ============================================
+
+  // GET /admin/w/{weddingId}/music - Admin endpoint to fetch music data
+  api.route('GET /admin/w/{weddingId}/music', {
+    handler: 'src/functions/music/get.handler',
+    link: [table, tokenSecret, imageBucket],
+    ...functionConfig,
+  })
+
+  // PUT /admin/w/{weddingId}/music/settings - Update music settings (auth required)
+  api.route('PUT /admin/w/{weddingId}/music/settings', {
     handler: 'src/functions/music/update-settings.handler',
     link: [table, tokenSecret],
     ...functionConfig,
   })
 
-  // POST /music/upload-url - Request presigned URL for upload (auth required)
-  api.route('POST /music/upload-url', {
+  // POST /admin/w/{weddingId}/music/upload-url - Request presigned URL for upload (auth required)
+  api.route('POST /admin/w/{weddingId}/music/upload-url', {
     handler: 'src/functions/music/request-upload.handler',
     link: [table, tokenSecret, imageBucket],
     ...functionConfig,
   })
 
-  // POST /music/confirm - Confirm upload after S3 upload (auth required)
-  api.route('POST /music/confirm', {
+  // POST /admin/w/{weddingId}/music/confirm - Confirm upload after S3 upload (auth required)
+  api.route('POST /admin/w/{weddingId}/music/confirm', {
     handler: 'src/functions/music/confirm-upload.handler',
     link: [table, tokenSecret, imageBucket],
     ...functionConfig,
   })
 
-  // DELETE /music/{id} - Delete a track (auth required)
-  api.route('DELETE /music/{id}', {
+  // DELETE /admin/w/{weddingId}/music/{id} - Delete a track (auth required)
+  api.route('DELETE /admin/w/{weddingId}/music/{id}', {
     handler: 'src/functions/music/delete.handler',
     link: [table, tokenSecret, imageBucket],
     ...functionConfig,
   })
 
-  // PUT /music/reorder - Reorder tracks (auth required)
-  api.route('PUT /music/reorder', {
+  // PUT /admin/w/{weddingId}/music/reorder - Reorder tracks (auth required)
+  api.route('PUT /admin/w/{weddingId}/music/reorder', {
     handler: 'src/functions/music/reorder.handler',
     link: [table, tokenSecret],
     ...functionConfig,
@@ -411,36 +516,51 @@ export function addMusicRoutes(tokenSecret: sst.Secret, imageBucket: sst.aws.Buc
 
 // Function to add parking image routes
 export function addParkingRoutes(tokenSecret: sst.Secret, imageBucket: sst.aws.Bucket) {
-  // POST /parking/presigned-url - Request presigned URL for parking image upload
-  api.route('POST /parking/presigned-url', {
-    handler: 'src/functions/parking/request-upload.handler',
-    link: [table, tokenSecret, imageBucket],
-    ...functionConfig,
-  })
+  // ============================================
+  // PUBLIC ROUTES (wedding slug in path)
+  // ============================================
 
-  // POST /parking/confirm - Confirm parking image upload
-  api.route('POST /parking/confirm', {
-    handler: 'src/functions/parking/confirm-upload.handler',
-    link: [table, tokenSecret, imageBucket],
-    ...functionConfig,
-  })
-
-  // GET /parking/images - List all parking images (public)
-  api.route('GET /parking/images', {
+  // GET /{weddingSlug}/parking - List all parking images (public)
+  api.route('GET /{weddingSlug}/parking', {
     handler: 'src/functions/parking/list.handler',
     link: [table, imageBucket],
     ...functionConfig,
   })
 
-  // DELETE /parking/images/{id} - Delete a parking image
-  api.route('DELETE /parking/images/{id}', {
+  // ============================================
+  // ADMIN ROUTES (wedding ID in path)
+  // ============================================
+
+  // GET /admin/w/{weddingId}/parking - List parking images (auth required)
+  api.route('GET /admin/w/{weddingId}/parking', {
+    handler: 'src/functions/parking/list.handler',
+    link: [table, tokenSecret, imageBucket],
+    ...functionConfig,
+  })
+
+  // POST /admin/w/{weddingId}/parking/presigned-url - Request presigned URL for parking image upload
+  api.route('POST /admin/w/{weddingId}/parking/presigned-url', {
+    handler: 'src/functions/parking/request-upload.handler',
+    link: [table, tokenSecret, imageBucket],
+    ...functionConfig,
+  })
+
+  // POST /admin/w/{weddingId}/parking/confirm - Confirm parking image upload
+  api.route('POST /admin/w/{weddingId}/parking/confirm', {
+    handler: 'src/functions/parking/confirm-upload.handler',
+    link: [table, tokenSecret, imageBucket],
+    ...functionConfig,
+  })
+
+  // DELETE /admin/w/{weddingId}/parking/{id} - Delete a parking image
+  api.route('DELETE /admin/w/{weddingId}/parking/{id}', {
     handler: 'src/functions/parking/delete.handler',
     link: [table, tokenSecret, imageBucket],
     ...functionConfig,
   })
 
-  // PUT /parking/images/reorder - Reorder parking images
-  api.route('PUT /parking/images/reorder', {
+  // PUT /admin/w/{weddingId}/parking/reorder - Reorder parking images
+  api.route('PUT /admin/w/{weddingId}/parking/reorder', {
     handler: 'src/functions/parking/reorder.handler',
     link: [table, tokenSecret],
     ...functionConfig,
@@ -449,24 +569,131 @@ export function addParkingRoutes(tokenSecret: sst.Secret, imageBucket: sst.aws.B
 
 // Function to add QR Code Hub routes
 export function addQRCodeHubRoutes(tokenSecret: sst.Secret, imageBucket: sst.aws.Bucket) {
-  // GET /qrcode-hub - Public endpoint to fetch QR Code Hub settings
-  api.route('GET /qrcode-hub', {
+  // ============================================
+  // PUBLIC ROUTES (wedding slug in path)
+  // ============================================
+
+  // GET /{weddingSlug}/qrcode-hub - Public endpoint to fetch QR Code Hub settings
+  api.route('GET /{weddingSlug}/qrcode-hub', {
     handler: 'src/functions/qrcode-hub/get.handler',
     link: [table],
     ...functionConfig,
   })
 
-  // PUT /qrcode-hub - Update QR Code Hub settings (auth required)
-  api.route('PUT /qrcode-hub', {
+  // ============================================
+  // ADMIN ROUTES (wedding ID in path)
+  // ============================================
+
+  // GET /admin/w/{weddingId}/qrcode-hub - Fetch QR Code Hub settings (auth required)
+  api.route('GET /admin/w/{weddingId}/qrcode-hub', {
+    handler: 'src/functions/qrcode-hub/get.handler',
+    link: [table, tokenSecret],
+    ...functionConfig,
+  })
+
+  // PUT /admin/w/{weddingId}/qrcode-hub - Update QR Code Hub settings (auth required)
+  api.route('PUT /admin/w/{weddingId}/qrcode-hub', {
     handler: 'src/functions/qrcode-hub/update.handler',
     link: [table, tokenSecret],
     ...functionConfig,
   })
 
-  // POST /qrcode-hub/presigned-url - Request presigned URL for Restu Digital QR image upload
-  api.route('POST /qrcode-hub/presigned-url', {
+  // POST /admin/w/{weddingId}/qrcode-hub/request-upload - Request presigned URL for Restu Digital QR image upload
+  api.route('POST /admin/w/{weddingId}/qrcode-hub/request-upload', {
     handler: 'src/functions/qrcode-hub/request-upload.handler',
     link: [table, tokenSecret, imageBucket],
+    ...functionConfig,
+  })
+}
+
+// ============================================
+// MULTI-TENANT ROUTES
+// ============================================
+
+// Function to add unified auth routes (multi-tenant)
+export function addAuthRoutes(adminPassword: sst.Secret, tokenSecret: sst.Secret) {
+  // POST /auth/login - Unified login (supports super admin + wedding admin)
+  api.route('POST /auth/login', {
+    handler: 'src/functions/auth/login.handler',
+    link: [adminPassword, table, tokenSecret],
+    ...functionConfig,
+  })
+
+  // POST /auth/refresh - Refresh tokens (all user types)
+  api.route('POST /auth/refresh', {
+    handler: 'src/functions/auth/refresh.handler',
+    link: [tokenSecret],
+    ...functionConfig,
+  })
+}
+
+// Function to add super admin routes
+export function addSuperAdminRoutes(
+  tokenSecret: sst.Secret,
+  brevoApiKey: sst.Secret,
+  senderEmail: sst.Secret,
+  adminLoginUrl: sst.Secret
+) {
+  // GET /superadmin/weddings - List all weddings
+  api.route('GET /superadmin/weddings', {
+    handler: 'src/functions/superadmin/weddings/list.handler',
+    link: [table, tokenSecret],
+    ...functionConfig,
+  })
+
+  // POST /superadmin/weddings - Create a new wedding
+  api.route('POST /superadmin/weddings', {
+    handler: 'src/functions/superadmin/weddings/create.handler',
+    link: [table, tokenSecret, brevoApiKey, senderEmail, adminLoginUrl],
+    ...functionConfig,
+  })
+
+  // GET /superadmin/weddings/{weddingId} - Get single wedding details
+  api.route('GET /superadmin/weddings/{weddingId}', {
+    handler: 'src/functions/superadmin/weddings/get.handler',
+    link: [table, tokenSecret],
+    ...functionConfig,
+  })
+
+  // PUT /superadmin/weddings/{weddingId} - Update wedding details
+  api.route('PUT /superadmin/weddings/{weddingId}', {
+    handler: 'src/functions/superadmin/weddings/update.handler',
+    link: [table, tokenSecret],
+    ...functionConfig,
+  })
+
+  // DELETE /superadmin/weddings/{weddingId} - Archive wedding
+  api.route('DELETE /superadmin/weddings/{weddingId}', {
+    handler: 'src/functions/superadmin/weddings/delete.handler',
+    link: [table, tokenSecret],
+    ...functionConfig,
+  })
+
+  // POST /superadmin/weddings/{weddingId}/users - Add owner to wedding
+  api.route('POST /superadmin/weddings/{weddingId}/users', {
+    handler: 'src/functions/superadmin/weddings/add-owner.handler',
+    link: [table, tokenSecret],
+    ...functionConfig,
+  })
+
+  // PUT /superadmin/weddings/{weddingId}/users/{username} - Update owner details
+  api.route('PUT /superadmin/weddings/{weddingId}/users/{username}', {
+    handler: 'src/functions/superadmin/weddings/update-owner.handler',
+    link: [table, tokenSecret],
+    ...functionConfig,
+  })
+
+  // DELETE /superadmin/weddings/{weddingId}/users/{username} - Remove owner from wedding
+  api.route('DELETE /superadmin/weddings/{weddingId}/users/{username}', {
+    handler: 'src/functions/superadmin/weddings/remove-owner.handler',
+    link: [table, tokenSecret],
+    ...functionConfig,
+  })
+
+  // POST /superadmin/weddings/{weddingId}/users/{username}/reset-password - Reset owner password
+  api.route('POST /superadmin/weddings/{weddingId}/users/{username}/reset-password', {
+    handler: 'src/functions/superadmin/weddings/reset-owner-password.handler',
+    link: [table, tokenSecret],
     ...functionConfig,
   })
 }

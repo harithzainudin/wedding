@@ -1,3 +1,7 @@
+/**
+ * POST /admin/w/{weddingId}/gifts/presigned-url
+ * Admin endpoint to request a presigned URL for gift image upload
+ */
 import type { APIGatewayProxyHandlerV2 } from 'aws-lambda'
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb'
 import { DynamoDBDocumentClient, GetCommand, QueryCommand } from '@aws-sdk/lib-dynamodb'
@@ -6,9 +10,13 @@ import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
 import { v4 as uuidv4 } from 'uuid'
 import { Resource } from 'sst'
 import { createSuccessResponse, createErrorResponse } from '../shared/response'
-import { requireAuth } from '../shared/auth'
+import { requireWeddingAccess } from '../shared/auth'
 import { logError } from '../shared/logger'
 import { GIFT_LIMITS } from '../shared/gift-validation'
+import { Keys } from '../shared/keys'
+import { S3Keys } from '../shared/s3-keys'
+import { isValidWeddingId } from '../shared/validation'
+import { getWeddingById, requireAdminAccessibleWedding } from '../shared/wedding-middleware'
 
 const dynamoClient = new DynamoDBClient({})
 const docClient = DynamoDBDocumentClient.from(dynamoClient)
@@ -84,11 +92,12 @@ function validateGiftImageUpload(
   }
 }
 
-async function getGiftSettings() {
+async function getGiftSettings(weddingId: string) {
+  const settingsKey = Keys.settings(weddingId, 'GIFTS')
   const result = await docClient.send(
     new GetCommand({
       TableName: Resource.AppDataTable.name,
-      Key: { pk: 'SETTINGS', sk: 'GIFTS' },
+      Key: settingsKey,
     })
   )
 
@@ -99,13 +108,13 @@ async function getGiftSettings() {
   }
 }
 
-async function getCurrentGiftCount(): Promise<number> {
+async function getCurrentGiftCount(weddingId: string): Promise<number> {
   const result = await docClient.send(
     new QueryCommand({
       TableName: Resource.AppDataTable.name,
       IndexName: 'byStatus',
       KeyConditionExpression: 'gsi1pk = :pk',
-      ExpressionAttributeValues: { ':pk': 'GIFTS' },
+      ExpressionAttributeValues: { ':pk': `WEDDING#${weddingId}#GIFTS` },
       Select: 'COUNT',
     })
   )
@@ -115,11 +124,42 @@ async function getCurrentGiftCount(): Promise<number> {
 export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
   let mimeType: string | undefined
   let fileSize: number | undefined
+  let weddingId: string | undefined
 
   try {
-    const authResult = requireAuth(event)
+    // Get weddingId from path parameters
+    weddingId = event.pathParameters?.weddingId
+    if (!weddingId) {
+      return createErrorResponse(400, 'Wedding ID is required', context, 'MISSING_WEDDING_ID')
+    }
+
+    // Validate wedding ID format
+    if (!isValidWeddingId(weddingId)) {
+      return createErrorResponse(400, 'Invalid wedding ID format', context, 'INVALID_WEDDING_ID')
+    }
+
+    // Require authentication and wedding access
+    const authResult = requireWeddingAccess(event, weddingId)
     if (!authResult.authenticated) {
       return createErrorResponse(authResult.statusCode, authResult.error, context, 'AUTH_ERROR')
+    }
+
+    // Verify wedding exists
+    const wedding = await getWeddingById(docClient, weddingId)
+    if (!wedding) {
+      return createErrorResponse(404, 'Wedding not found', context, 'WEDDING_NOT_FOUND')
+    }
+
+    // Check wedding status (block archived for non-super admins)
+    const isSuperAdmin = authResult.user.type === 'super' || authResult.user.isMaster
+    const accessCheck = requireAdminAccessibleWedding(wedding, isSuperAdmin)
+    if (!accessCheck.success) {
+      return createErrorResponse(
+        accessCheck.statusCode,
+        accessCheck.error,
+        context,
+        'ACCESS_DENIED'
+      )
     }
 
     if (!event.body) {
@@ -134,7 +174,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
     }
 
     // Get settings and validate
-    const settings = await getGiftSettings()
+    const settings = await getGiftSettings(weddingId)
     const validation = validateGiftImageUpload(body, settings.maxFileSize, settings.allowedFormats)
     if (!validation.valid) {
       return createErrorResponse(400, validation.error, context, 'VALIDATION_ERROR')
@@ -142,7 +182,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
 
     // If no giftId provided, check max gifts limit (for new gift creation)
     if (!validation.data.giftId) {
-      const currentCount = await getCurrentGiftCount()
+      const currentCount = await getCurrentGiftCount(weddingId)
       if (currentCount >= settings.maxItems) {
         return createErrorResponse(
           400,
@@ -157,7 +197,9 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
     fileSize = validation.data.fileSize
     const giftId = validation.data.giftId ?? uuidv4()
     const extension = MIME_TO_EXTENSION[mimeType] ?? ''
-    const s3Key = `gifts/${giftId}${extension}`
+
+    // Use wedding-scoped S3 key
+    const s3Key = S3Keys.gift(weddingId, giftId, extension)
 
     // Generate presigned URL (valid for 10 minutes)
     const command = new PutObjectCommand({
@@ -184,10 +226,10 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
   } catch (error) {
     logError(
       {
-        endpoint: 'POST /gifts/presigned-url',
+        endpoint: 'POST /admin/w/{weddingId}/gifts/presigned-url',
         operation: 'requestGiftUpload',
         requestId: context.awsRequestId,
-        input: { mimeType, fileSize },
+        input: { weddingId, mimeType, fileSize },
       },
       error
     )

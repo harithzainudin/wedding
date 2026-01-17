@@ -3,10 +3,12 @@
   import UserProfileDropdown from '@/components/admin/UserProfileDropdown.vue'
   import AdminLanguageToggle from '@/components/admin/AdminLanguageToggle.vue'
   import { useAdminLanguage } from '@/composables/useAdminLanguage'
+  import type { UserType } from '@/types/admin'
 
   defineProps<{
     currentUser: string
     isMasterUser: boolean
+    userType: UserType
   }>()
 
   const emit = defineEmits<{
@@ -34,6 +36,22 @@
 
     <!-- Desktop actions -->
     <div class="hidden sm:flex items-center gap-3">
+      <!-- Super Admin Dashboard link - only for super admins -->
+      <a
+        v-if="userType === 'super'"
+        href="/wedding/superadmin"
+        class="flex items-center gap-2 px-3 py-2 text-sm font-body text-white bg-purple-600 hover:bg-purple-700 rounded-lg transition-colors"
+        title="Super Admin Dashboard"
+      >
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path
+            d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </svg>
+        {{ adminT.common.superAdmin }}
+      </a>
       <a
         href="/wedding/"
         target="_blank"

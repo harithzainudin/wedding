@@ -1,6 +1,6 @@
 import { ref } from 'vue'
 import type { ContactsData, ContactPerson, ContactsUpdateRequest } from '@/types/contacts'
-import { getContacts, updateContacts as apiUpdateContacts } from '@/services/api'
+import { getContacts, getContactsAdmin, updateContacts as apiUpdateContacts } from '@/services/api'
 
 // Default contacts data (matches backend defaults)
 const DEFAULT_CONTACTS: ContactsData = {
@@ -40,14 +40,35 @@ const isSaving = ref(false)
 const saveError = ref('')
 const saveSuccess = ref(false)
 
+// Multi-tenant tracking
+const currentWeddingSlug = ref<string | undefined>(undefined)
+const currentWeddingId = ref<string | undefined>(undefined)
+
 export function useContacts() {
-  // Fetch contacts from API
-  const fetchContacts = async (): Promise<void> => {
+  // Fetch contacts from API (public endpoint - uses weddingSlug)
+  const fetchContacts = async (weddingSlug?: string): Promise<void> => {
     isLoading.value = true
     loadError.value = ''
+    currentWeddingSlug.value = weddingSlug
 
     try {
-      const data = await getContacts()
+      const data = await getContacts(weddingSlug)
+      contacts.value = data
+    } catch (err) {
+      loadError.value = err instanceof Error ? err.message : 'Failed to load contacts'
+    } finally {
+      isLoading.value = false
+    }
+  }
+
+  // Fetch contacts from admin API (authenticated - uses weddingId)
+  const fetchContactsAdmin = async (weddingId?: string): Promise<void> => {
+    isLoading.value = true
+    loadError.value = ''
+    currentWeddingId.value = weddingId
+
+    try {
+      const data = await getContactsAdmin(weddingId)
       contacts.value = data
     } catch (err) {
       loadError.value = err instanceof Error ? err.message : 'Failed to load contacts'
@@ -58,15 +79,17 @@ export function useContacts() {
 
   // Update contacts
   const updateContacts = async (
-    contactsList: ContactPerson[]
+    contactsList: ContactPerson[],
+    weddingId?: string
   ): Promise<{ success: boolean; error?: string }> => {
     isSaving.value = true
     saveError.value = ''
     saveSuccess.value = false
+    currentWeddingId.value = weddingId
 
     try {
       const requestData: ContactsUpdateRequest = { contacts: contactsList }
-      const responseData = await apiUpdateContacts(requestData)
+      const responseData = await apiUpdateContacts(requestData, weddingId)
       contacts.value = responseData
       saveSuccess.value = true
       // Clear success message after 3 seconds
@@ -103,7 +126,10 @@ export function useContacts() {
     isSaving,
     saveError,
     saveSuccess,
+    currentWeddingSlug,
+    currentWeddingId,
     fetchContacts,
+    fetchContactsAdmin,
     updateContacts,
     generateId,
     resetToDefaults,

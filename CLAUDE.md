@@ -1,6 +1,7 @@
 # Wedding Website Project
 
 ## Project Overview
+
 A wedding website with a Vue 3 frontend and AWS serverless backend using SST.
 
 ## Project Structure
@@ -9,13 +10,18 @@ A wedding website with a Vue 3 frontend and AWS serverless backend using SST.
 wedding/
 ├── frontend/          # Vue 3 + TypeScript + Vite + Tailwind CSS
 │   └── src/
-│       ├── components/   # Vue components
+│       ├── components/   # Vue components (admin/, sections/, ui/)
 │       ├── composables/  # Vue composables (hooks)
+│       ├── config/       # App configuration
+│       ├── constants/    # Constants (themes, etc.)
 │       ├── i18n/         # Internationalization translations
+│       ├── router/       # Vue Router configuration
 │       ├── services/     # API services
-│       ├── views/        # Page views
-│       └── types/        # TypeScript types
+│       ├── types/        # TypeScript types
+│       ├── utils/        # Helper utilities
+│       └── views/        # Page views
 ├── backend/           # SST (AWS Serverless Stack)
+│   ├── infra/            # Infrastructure definitions
 │   └── src/
 │       └── functions/    # Lambda functions
 └── .claude/           # Claude Code configuration
@@ -34,6 +40,7 @@ wedding/
 The frontend uses strict TypeScript settings that cause common CI failures:
 
 #### `exactOptionalPropertyTypes: true`
+
 Optional properties cannot be explicitly set to `undefined`. Omit the property instead.
 
 ```typescript
@@ -48,6 +55,7 @@ const obj = { ...(value ? { name: value } : {}) }
 ```
 
 #### `noUncheckedIndexedAccess: true`
+
 Array access returns `T | undefined`. Always check for undefined or use non-null assertion when safe.
 
 ```typescript
@@ -64,6 +72,7 @@ const first = arr[0]?.toUpperCase()
 ```
 
 #### `noUnusedLocals: true` / `noUnusedParameters: true`
+
 Remove unused imports, variables, and parameters to avoid build failures.
 
 ### Common CI Failure Patterns
@@ -84,6 +93,7 @@ Remove unused imports, variables, and parameters to avoid build failures.
 ## Commands
 
 ### Frontend
+
 ```bash
 cd frontend
 pnpm dev          # Start dev server
@@ -95,6 +105,7 @@ pnpm format:check # Check formatting without fixing
 ```
 
 ### Backend
+
 ```bash
 cd backend
 pnpm dev          # Start SST dev
@@ -106,7 +117,9 @@ pnpm format:check # Check formatting without fixing
 ```
 
 ### Pre-Push Workflow
+
 Before pushing, run checks in both frontend and backend:
+
 ```bash
 cd frontend && pnpm check && cd ../backend && pnpm check
 ```
@@ -120,19 +133,135 @@ cd frontend && pnpm check && cd ../backend && pnpm check
 ## Key Features
 
 - Admin CMS for managing wedding content
+- Super Admin dashboard for platform management
+- Multi-tenant architecture (multiple weddings)
 - RSVP management
-- Gift registry
-- Image gallery
-- Music player
+- Gift registry with reservations
+- Image gallery with drag-and-drop reordering
+- Music player with autoplay settings
 - Parking guide (images, step-by-step directions, video walkthrough)
-- Multi-language support (i18n)
-- Theme customization
+- QR Code Hub for sharing links
+- Multi-language support (i18n - 4 public, 2 admin)
+- Theme customization with presets
+- Dark mode support
+- Countdown timer
+- Image compression on upload
+
+## Frontend Views
+
+| View                 | Path                            | Purpose                          |
+| -------------------- | ------------------------------- | -------------------------------- |
+| `HomeView.vue`       | `/{slug}` or `/`                | Public wedding landing page      |
+| `RsvpView.vue`       | `/{slug}/rsvp` or `/rsvp`       | Public RSVP submission           |
+| `AdminView.vue`      | `/{slug}/admin/:tab?`           | Wedding admin CMS                |
+| `SuperAdminView.vue` | `/superadmin`                   | Platform super admin dashboard   |
+| `NotFoundView.vue`   | `*`                             | 404 page                         |
+
+## URL Structure & Base URL Configuration
+
+The frontend is configured with a base URL of `/wedding` in `vite.config.ts`:
+
+```typescript
+export default defineConfig({
+  base: '/wedding',
+  // ...
+})
+```
+
+### Why Base URL `/wedding`?
+
+This allows the wedding site to be served from a subpath (e.g., `yourdomain.com/wedding/`) rather than the root. This is useful when deploying alongside other applications on the same domain.
+
+### Development URLs
+
+When running `pnpm dev`, all URLs must include the `/wedding` prefix:
+
+| Page                  | URL                                              |
+| --------------------- | ------------------------------------------------ |
+| Public Wedding        | `http://localhost:5173/wedding/ahmad-sarah`      |
+| RSVP Page             | `http://localhost:5173/wedding/ahmad-sarah/rsvp` |
+| Wedding Admin         | `http://localhost:5173/wedding/admin`            |
+| Super Admin Dashboard | `http://localhost:5173/wedding/superadmin`       |
+
+### Multi-Tenant Route Structure
+
+The app supports multi-tenant weddings with path-based routing:
+
+```
+/wedding/                           # Landing/home (if implemented)
+/wedding/{weddingSlug}              # Public wedding page (e.g., /wedding/ahmad-sarah)
+/wedding/{weddingSlug}/rsvp         # RSVP page for a wedding
+/wedding/{weddingSlug}/admin        # Admin panel dashboard
+/wedding/{weddingSlug}/admin/{tab}  # Admin panel specific tab (venue, gallery, etc.)
+/wedding/admin                      # Legacy admin route
+/wedding/superadmin                 # Super admin dashboard (platform management)
+```
+
+### Admin Tab URLs
+
+Admin panel uses path-based tabs for proper browser navigation (back/forward buttons work):
+
+| Tab             | URL Example                            |
+| --------------- | -------------------------------------- |
+| Dashboard       | `/wedding/ahmad-sarah/admin`           |
+| Wedding Details | `/wedding/ahmad-sarah/admin/wedding`   |
+| Venue           | `/wedding/ahmad-sarah/admin/venue`     |
+| Schedule        | `/wedding/ahmad-sarah/admin/schedule`  |
+| Gallery         | `/wedding/ahmad-sarah/admin/gallery`   |
+| Music           | `/wedding/ahmad-sarah/admin/music`     |
+| Gifts           | `/wedding/ahmad-sarah/admin/gifts`     |
+| Theme           | `/wedding/ahmad-sarah/admin/theme`     |
+| Contacts        | `/wedding/ahmad-sarah/admin/contacts`  |
+| RSVPs           | `/wedding/ahmad-sarah/admin/rsvps`     |
+| QR Hub          | `/wedding/ahmad-sarah/admin/qrcodehub` |
+
+### User Types
+
+- **Super Admin**: Platform owner who can create/manage all weddings. Access via `/wedding/superadmin`
+- **Wedding Admin**: Couple who manages their own wedding. Access via `/wedding/{slug}/admin` or `/wedding/admin`
+- **Guest**: Public visitors viewing wedding pages
+
+### Super Admin Capabilities
+
+The super admin dashboard (`/wedding/superadmin`) provides platform-wide management:
+
+| Feature         | Description                                                           |
+| --------------- | --------------------------------------------------------------------- |
+| List Weddings   | View all weddings with status, owner, and dates                       |
+| Create Wedding  | Create new wedding with slug, display name, and initial owner account |
+| Edit Wedding    | Update display name, wedding date, status, and plan                   |
+| Archive Wedding | Soft-delete a wedding (sets status to 'archived')                     |
+| Manage Owners   | Add/remove owners (co-owners) for a wedding                           |
+| Reset Password  | Generate temporary password for wedding owners                        |
+
+### Super Admin API Endpoints
+
+```
+GET    /superadmin/weddings                              # List all weddings
+POST   /superadmin/weddings                              # Create wedding + owner
+GET    /superadmin/weddings/{weddingId}                  # Get wedding details + admins
+PUT    /superadmin/weddings/{weddingId}                  # Update wedding
+DELETE /superadmin/weddings/{weddingId}                  # Archive wedding
+POST   /superadmin/weddings/{weddingId}/users            # Add owner
+PUT    /superadmin/weddings/{weddingId}/users/{username} # Update owner details
+DELETE /superadmin/weddings/{weddingId}/users/{username} # Remove owner
+POST   /superadmin/weddings/{weddingId}/users/{username}/reset-password # Reset password
+```
+
+### Common Mistake
+
+If you access `http://localhost:5173/admin` without the `/wedding` prefix, Vite will show:
+
+> "The server is configured with a public base URL of /wedding - did you mean to visit /wedding/admin instead?"
+
+Always include the `/wedding` prefix in development URLs.
 
 ## Internationalization (i18n)
 
 The project uses a custom lightweight i18n implementation with TypeScript for type safety.
 
 ### Public Site (4 languages)
+
 - **Languages**: Malay (ms), English (en), Chinese (zh), Tamil (ta)
 - **Default**: Malay
 - **Storage**: `localStorage` key `wedding-language`
@@ -140,6 +269,7 @@ The project uses a custom lightweight i18n implementation with TypeScript for ty
 - **Toggle**: `LanguageToggle.vue` component
 
 ### Admin CMS (2 languages)
+
 - **Languages**: English (en), Malay (ms)
 - **Default**: English
 - **Storage**: `localStorage` key `wedding-admin-language`
@@ -147,12 +277,14 @@ The project uses a custom lightweight i18n implementation with TypeScript for ty
 - **Toggle**: `AdminLanguageToggle.vue` component
 
 ### Translation Files
+
 - **Location**: `/frontend/src/i18n/translations.ts`
 - **Structure**: TypeScript interfaces for type-safe translations
 - **Public translations**: `Translations` interface, `translations` object
 - **Admin translations**: `AdminTranslations` interface, `adminTranslations` object
 
 ### Usage in Components
+
 ```typescript
 // Public pages
 const { t, setLanguage } = useLanguage()
@@ -168,6 +300,7 @@ interpolate(adminT.value.rsvps.deleteGuestConfirm, { name: 'John' })
 ```
 
 ### Adding New Translation Keys
+
 When adding new UI text, you must update 3 places in `/frontend/src/i18n/translations.ts`:
 
 1. **Interface**: Add the key to the appropriate interface (e.g., `AdminTranslations`)
@@ -175,6 +308,7 @@ When adding new UI text, you must update 3 places in `/frontend/src/i18n/transla
 3. **Malay translations**: Add the Malay value in `adminTranslations.ms`
 
 Example - adding a new button label:
+
 ```typescript
 // 1. In AdminTranslations interface under 'common'
 common: {
@@ -189,6 +323,140 @@ newButton: 'New Button',
 newButton: 'Butang Baharu',
 ```
 
+## Key Composables
+
+The frontend uses Vue composables for state management and API interactions:
+
+### Admin & Auth
+
+| Composable             | Purpose                                   | Location                            |
+| ---------------------- | ----------------------------------------- | ----------------------------------- |
+| `useSuperAdmin()`      | Super admin wedding/user management       | `composables/useSuperAdmin.ts`      |
+| `useAdminAuth()`       | Admin authentication state and login      | `composables/useAdminAuth.ts`       |
+| `useAdminUsers()`      | Admin user CRUD operations                | `composables/useAdminUsers.ts`      |
+| `useWeddingContext()`  | Multi-tenant wedding context/slug         | `composables/useWeddingContext.ts`  |
+| `useProfile()`         | Admin profile management                  | `composables/useProfile.ts`         |
+| `usePasswordChange()`  | Password change modal handling            | `composables/usePasswordChange.ts`  |
+
+### Feature Management
+
+| Composable              | Purpose                                  | Location                             |
+| ----------------------- | ---------------------------------------- | ------------------------------------ |
+| `useWeddingDetails()`   | Wedding details (names, date, etc.)      | `composables/useWeddingDetails.ts`   |
+| `useVenue()`            | Venue/location settings                  | `composables/useVenue.ts`            |
+| `useVenueConfig()`      | Venue configuration                      | `composables/useVenueConfig.ts`      |
+| `useSchedule()`         | Schedule/timeline management             | `composables/useSchedule.ts`         |
+| `useGallery()`          | Image gallery management                 | `composables/useGallery.ts`          |
+| `useMusic()`            | Music player settings                    | `composables/useMusic.ts`            |
+| `useGifts()`            | Gift registry management                 | `composables/useGifts.ts`            |
+| `usePublicGifts()`      | Public gift viewing (guests)             | `composables/usePublicGifts.ts`      |
+| `useRsvps()`            | RSVP management                          | `composables/useRsvps.ts`            |
+| `useContacts()`         | Contacts management                      | `composables/useContacts.ts`         |
+| `useTheme()`            | Theme customization                      | `composables/useTheme.ts`            |
+| `useQRCodeHub()`        | QR code hub settings                     | `composables/useQRCodeHub.ts`        |
+| `useParkingImages()`    | Parking guide image management           | `composables/useParkingImages.ts`    |
+| `usePublicWeddingData()`| Public wedding data loading              | `composables/usePublicWeddingData.ts`|
+
+### UI & Utilities
+
+| Composable           | Purpose                               | Location                          |
+| -------------------- | ------------------------------------- | --------------------------------- |
+| `useLanguage()`      | Public site i18n (4 languages)        | `composables/useLanguage.ts`      |
+| `useAdminLanguage()` | Admin CMS i18n (2 languages)          | `composables/useAdminLanguage.ts` |
+| `useDarkMode()`      | Dark mode toggle                      | `composables/useDarkMode.ts`      |
+| `useDocumentTitle()` | Page title management                 | `composables/useDocumentTitle.ts` |
+| `useScrollReveal()`  | Scroll-based animations               | `composables/useScrollReveal.ts`  |
+| `useThemePreview()`  | Theme preview in customizer           | `composables/useThemePreview.ts`  |
+| `useCalendar()`      | Calendar utilities                    | `composables/useCalendar.ts`      |
+| `useNameOrder()`     | Display name ordering                 | `composables/useNameOrder.ts`     |
+| `useCrudList()`      | Generic CRUD list operations          | `composables/useCrudList.ts`      |
+
+## Frontend Utilities
+
+Helper utilities in `/frontend/src/utils/`:
+
+| Utility              | Purpose                                              |
+| -------------------- | ---------------------------------------------------- |
+| `imageCompression.ts`| Client-side image compression before upload          |
+| `apiCache.ts`        | API response caching system                          |
+| `qrCodeFormats.ts`   | QR code format generators for various platforms      |
+| `themeInjector.ts`   | Dynamic theme CSS injection                          |
+
+## Backend Architecture
+
+### Authentication & Authorization
+
+- **JWT tokens** with access (15min) and refresh (7d) tokens
+- **Token types**: `super` (super admin), `wedding` (wedding owner), `legacy` (backward compat)
+- **Auth middleware**: `requireSuperAdmin()` for super admin routes, `requireWeddingAccess(weddingId)` for wedding routes
+
+### DynamoDB Key Patterns
+
+```
+# User profiles
+SUPERADMIN#{username}/PROFILE            # Super admin profile
+ADMIN#{username}/PROFILE                 # Wedding admin profile
+
+# Wedding core
+WEDDING#{weddingId}/META                 # Wedding metadata
+WEDDING_SLUG#{slug}/LOOKUP               # Slug → weddingId lookup
+WEDDING#{weddingId}#ADMINS/{username}    # Wedding-Admin link (role: owner/coowner)
+WEDDING#{weddingId}#SETTINGS/{type}      # Settings: VENUE, THEME, SCHEDULE, CONTACTS, etc.
+
+# Wedding items
+WEDDING#{weddingId}#RSVP#{id}/META       # RSVP entry
+WEDDING#{weddingId}#IMAGE#{id}/META      # Gallery image
+WEDDING#{weddingId}#MUSIC#{id}/META      # Music track
+WEDDING#{weddingId}#GIFT#{id}/META       # Gift item
+WEDDING#{weddingId}#PARKING#{id}/META    # Parking image
+WEDDING#{weddingId}#QRCODE#{id}/META     # QR code image
+
+# GSI patterns for queries
+WEDDINGS/{createdAt}                     # All weddings list
+USER#{username}#WEDDINGS/{weddingId}     # User's weddings
+WEDDING#{weddingId}#RSVPS/{submittedAt}  # Wedding RSVPs
+WEDDING#{weddingId}#IMAGES/{order}#{id}  # Ordered images
+```
+
+### Handler Location Pattern
+
+Backend handlers follow this structure:
+
+```
+backend/src/functions/
+├── superadmin/weddings/     # Super admin endpoints
+│   ├── list.ts, create.ts, get.ts, update.ts, delete.ts
+│   ├── add-owner.ts, remove-owner.ts, update-owner.ts
+│   └── reset-owner-password.ts
+├── admin/                   # Admin user management
+│   ├── login.ts, refresh.ts, get-profile.ts
+│   ├── create.ts, delete.ts, list.ts
+│   ├── change-password.ts, set-new-password.ts
+│   ├── force-reset-password.ts, update-email.ts
+├── auth/                    # Public authentication
+│   └── login.ts, refresh.ts
+├── wedding-details/         # Wedding details (names, date)
+├── venue/                   # Venue/location endpoints
+├── schedule/                # Schedule/timeline endpoints
+├── contacts/                # Contact information endpoints
+├── images/                  # Gallery endpoints
+├── music/                   # Music endpoints
+├── gifts/                   # Gift registry endpoints
+├── rsvp/                    # RSVP endpoints
+├── parking/                 # Parking guide endpoints
+├── qrcode-hub/              # QR code hub endpoints
+├── theme/                   # Theme customization endpoints
+└── shared/                  # Shared utilities
+    ├── auth.ts              # JWT auth helpers
+    ├── keys.ts              # DynamoDB key generators
+    ├── s3-keys.ts           # S3 key generators
+    ├── wedding-middleware.ts # Wedding context/status middleware
+    ├── validation.ts        # Common validation
+    ├── response.ts          # API response helpers
+    ├── logger.ts            # Logging utility
+    └── *-validation.ts      # Feature-specific validation
+```
+
 ## Important Notes
 
 - Use `pnpm` for package management (not npm)
@@ -197,3 +465,4 @@ newButton: 'Butang Baharu',
 - **Always run `pnpm build` locally before pushing** to catch TypeScript errors early
 - Theme types: `PresetThemeId` for actual themes with definitions, `LegacyThemeId` for old theme IDs used in translations, `ThemeId` for all possible IDs
 - When adding new types to interfaces (e.g., `VenueData`), ensure all usages handle the new property correctly
+- Backend type-check (`pnpm type-check`) may show errors from SST platform files - these are internal to SST and don't affect deployment

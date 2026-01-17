@@ -1,12 +1,25 @@
+/**
+ * Confirm Parking Image Upload Endpoint (Admin)
+ *
+ * Confirms a parking image upload and creates the database record.
+ * Route: POST /admin/w/{weddingId}/parking/confirm
+ *
+ * SECURITY: Requires wedding access authorization
+ */
+
 import type { APIGatewayProxyHandlerV2 } from 'aws-lambda'
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb'
 import { DynamoDBDocumentClient, PutCommand, QueryCommand } from '@aws-sdk/lib-dynamodb'
 import { S3Client, HeadObjectCommand } from '@aws-sdk/client-s3'
 import { Resource } from 'sst'
 import { createSuccessResponse, createErrorResponse } from '../shared/response'
-import { requireAuth } from '../shared/auth'
+import { requireWeddingAccess } from '../shared/auth'
 import { logError } from '../shared/logger'
 import { validateParkingConfirmUpload } from '../shared/parking-validation'
+import { Keys } from '../shared/keys'
+import { getPublicS3Url, validateS3KeyOwnership } from '../shared/s3-keys'
+import { getWeddingById, requireAdminAccessibleWedding } from '../shared/wedding-middleware'
+import { isValidWeddingId } from '../shared/validation'
 
 const dynamoClient = new DynamoDBClient({})
 const docClient = DynamoDBDocumentClient.from(dynamoClient, {
@@ -16,17 +29,13 @@ const docClient = DynamoDBDocumentClient.from(dynamoClient, {
 })
 const s3Client = new S3Client({})
 
-function padOrder(order: number): string {
-  return `ORDER#${order.toString().padStart(5, '0')}`
-}
-
-async function getNextOrder(): Promise<number> {
+async function getNextOrder(weddingId: string): Promise<number> {
   const result = await docClient.send(
     new QueryCommand({
       TableName: Resource.AppDataTable.name,
       IndexName: 'byStatus',
       KeyConditionExpression: 'gsi1pk = :pk',
-      ExpressionAttributeValues: { ':pk': 'PARKING#IMAGES' },
+      ExpressionAttributeValues: { ':pk': `WEDDING#${weddingId}#PARKING` },
       ScanIndexForward: false,
       Limit: 1,
     })
@@ -45,11 +54,51 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
   let filename: string | undefined
 
   try {
-    const authResult = requireAuth(event)
+    // ============================================
+    // 1. Extract and Validate Wedding ID
+    // ============================================
+    const weddingId = event.pathParameters?.weddingId
+    if (!weddingId) {
+      return createErrorResponse(400, 'Wedding ID is required', context, 'MISSING_WEDDING_ID')
+    }
+
+    if (!isValidWeddingId(weddingId)) {
+      return createErrorResponse(400, 'Invalid wedding ID format', context, 'INVALID_WEDDING_ID')
+    }
+
+    // ============================================
+    // 2. Authorization: Require Wedding Access
+    // ============================================
+    const authResult = requireWeddingAccess(event, weddingId)
     if (!authResult.authenticated) {
       return createErrorResponse(authResult.statusCode, authResult.error, context, 'AUTH_ERROR')
     }
 
+    // ============================================
+    // 3. Verify Wedding Exists
+    // ============================================
+    const wedding = await getWeddingById(docClient, weddingId)
+    if (!wedding) {
+      return createErrorResponse(404, 'Wedding not found', context, 'WEDDING_NOT_FOUND')
+    }
+
+    // ============================================
+    // 3b. Check Wedding Status (block archived for non-super admins)
+    // ============================================
+    const isSuperAdmin = authResult.user.type === 'super' || authResult.user.isMaster
+    const accessCheck = requireAdminAccessibleWedding(wedding, isSuperAdmin)
+    if (!accessCheck.success) {
+      return createErrorResponse(
+        accessCheck.statusCode,
+        accessCheck.error,
+        context,
+        'ACCESS_DENIED'
+      )
+    }
+
+    // ============================================
+    // 4. Parse and Validate Input
+    // ============================================
     if (!event.body) {
       return createErrorResponse(400, 'Missing request body', context, 'MISSING_BODY')
     }
@@ -71,7 +120,16 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
     filename = validation.data.filename
     const { mimeType, caption } = validation.data
 
-    // Verify the file exists in S3
+    // ============================================
+    // 5. Validate S3 Key Ownership (Security)
+    // ============================================
+    if (!validateS3KeyOwnership(s3Key, weddingId)) {
+      return createErrorResponse(403, 'Invalid S3 key for this wedding', context, 'FORBIDDEN')
+    }
+
+    // ============================================
+    // 6. Verify File Exists in S3
+    // ============================================
     const headResult = await s3Client.send(
       new HeadObjectCommand({
         Bucket: Resource.WeddingImageBucket.name,
@@ -80,19 +138,23 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
     )
 
     const fileSize = headResult.ContentLength ?? 0
-    const order = await getNextOrder()
+    const order = await getNextOrder(weddingId)
     const now = new Date().toISOString()
 
-    // Create parking image record in DynamoDB
+    // ============================================
+    // 7. Create Parking Image Record
+    // ============================================
+    const parkingKeys = Keys.parking(weddingId, imageId)
+    const gsiKeys = Keys.gsi.weddingParking(weddingId, order, imageId)
+
     await docClient.send(
       new PutCommand({
         TableName: Resource.AppDataTable.name,
         Item: {
-          pk: `PARKING#IMAGE#${imageId}`,
-          sk: 'METADATA',
-          gsi1pk: 'PARKING#IMAGES',
-          gsi1sk: padOrder(order),
+          ...parkingKeys,
+          ...gsiKeys,
           id: imageId,
+          weddingId,
           filename,
           s3Key,
           mimeType,
@@ -105,10 +167,9 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
       })
     )
 
-    // Construct the public URL for the image
     const bucketName = Resource.WeddingImageBucket.name
     const region = process.env.AWS_REGION ?? 'ap-southeast-5'
-    const publicUrl = `https://${bucketName}.s3.${region}.amazonaws.com/${s3Key}`
+    const publicUrl = getPublicS3Url(bucketName, region, s3Key)
 
     return createSuccessResponse(
       201,
@@ -128,7 +189,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
   } catch (error) {
     logError(
       {
-        endpoint: 'POST /parking/confirm',
+        endpoint: 'POST /admin/w/{weddingId}/parking/confirm',
         operation: 'confirmParkingUpload',
         requestId: context.awsRequestId,
         input: { imageId, s3Key, filename },

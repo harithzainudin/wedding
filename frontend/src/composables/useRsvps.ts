@@ -15,6 +15,10 @@ export function useRsvps() {
   const loadError = ref('')
   const filter = ref<'all' | 'attending' | 'not_attending'>('all')
 
+  // Multi-tenant context tracking
+  const currentWeddingId = ref<string | undefined>(undefined)
+  const currentWeddingSlug = ref<string | undefined>(undefined)
+
   const summary = ref<RsvpSummary>({
     total: 0,
     attending: 0,
@@ -34,12 +38,17 @@ export function useRsvps() {
     return rsvps.value.filter((r) => !r.isAttending)
   })
 
-  const fetchRsvps = async (): Promise<void> => {
+  const fetchRsvps = async (weddingId?: string): Promise<void> => {
     isLoading.value = true
     loadError.value = ''
 
+    // Update current wedding context if provided
+    if (weddingId !== undefined) {
+      currentWeddingId.value = weddingId
+    }
+
     try {
-      const data = await listRsvps()
+      const data = await listRsvps(undefined, weddingId ?? currentWeddingId.value)
       rsvps.value = data.rsvps
       summary.value = data.summary
     } catch {
@@ -49,13 +58,15 @@ export function useRsvps() {
     }
   }
 
-  const createRsvpEntry = async (data: AdminRsvpRequest): Promise<boolean> => {
+  const createRsvpEntry = async (data: AdminRsvpRequest, weddingId?: string): Promise<boolean> => {
     isCreating.value = true
     operationError.value = ''
 
+    const effectiveWeddingId = weddingId ?? currentWeddingId.value
+
     try {
-      await createRsvp(data)
-      await fetchRsvps()
+      await createRsvp(data, effectiveWeddingId)
+      await fetchRsvps(effectiveWeddingId)
       return true
     } catch (error) {
       operationError.value = error instanceof Error ? error.message : 'Failed to create guest'
@@ -65,13 +76,19 @@ export function useRsvps() {
     }
   }
 
-  const updateRsvpEntry = async (id: string, data: AdminRsvpRequest): Promise<boolean> => {
+  const updateRsvpEntry = async (
+    id: string,
+    data: AdminRsvpRequest,
+    weddingId?: string
+  ): Promise<boolean> => {
     isUpdating.value = true
     operationError.value = ''
 
+    const effectiveWeddingId = weddingId ?? currentWeddingId.value
+
     try {
-      await updateRsvp(id, data)
-      await fetchRsvps()
+      await updateRsvp(id, data, effectiveWeddingId)
+      await fetchRsvps(effectiveWeddingId)
       return true
     } catch (error) {
       operationError.value = error instanceof Error ? error.message : 'Failed to update guest'
@@ -81,13 +98,15 @@ export function useRsvps() {
     }
   }
 
-  const deleteRsvpEntry = async (id: string): Promise<boolean> => {
+  const deleteRsvpEntry = async (id: string, weddingId?: string): Promise<boolean> => {
     isDeleting.value = true
     operationError.value = ''
 
+    const effectiveWeddingId = weddingId ?? currentWeddingId.value
+
     try {
-      await deleteRsvp(id)
-      await fetchRsvps()
+      await deleteRsvp(id, effectiveWeddingId)
+      await fetchRsvps(effectiveWeddingId)
       return true
     } catch (error) {
       operationError.value = error instanceof Error ? error.message : 'Failed to delete guest'
@@ -99,6 +118,11 @@ export function useRsvps() {
 
   const clearOperationError = (): void => {
     operationError.value = ''
+  }
+
+  const setWeddingContext = (weddingId?: string, weddingSlug?: string): void => {
+    currentWeddingId.value = weddingId
+    currentWeddingSlug.value = weddingSlug
   }
 
   const setFilter = (newFilter: 'all' | 'attending' | 'not_attending'): void => {
@@ -159,6 +183,10 @@ export function useRsvps() {
     formatDate,
     exportToCsv,
     clearRsvps,
+    // Multi-tenant context
+    currentWeddingId,
+    currentWeddingSlug,
+    setWeddingContext,
     // CRUD operations
     isCreating,
     isUpdating,

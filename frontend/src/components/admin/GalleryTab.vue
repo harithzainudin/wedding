@@ -1,8 +1,10 @@
 <script setup lang="ts">
-  import { onMounted, onUnmounted, ref, watch } from 'vue'
+  import { onMounted, onUnmounted, ref, watch, computed } from 'vue'
+  import { useRoute } from 'vue-router'
   import { useGallery } from '@/composables/useGallery'
   import { useAdminLanguage } from '@/composables/useAdminLanguage'
   import { interpolate } from '@/i18n/translations'
+  import { getStoredPrimaryWeddingId } from '@/services/tokenManager'
   import type { GalleryImage } from '@/types/gallery'
   import ImageUploader from './ImageUploader.vue'
   import ImageGrid from './ImageGrid.vue'
@@ -13,6 +15,13 @@
   import UploadProgressBar from './UploadProgressBar.vue'
 
   const { adminT } = useAdminLanguage()
+
+  const route = useRoute()
+  const weddingSlug = computed(() => {
+    const slug = route.params.weddingSlug
+    return typeof slug === 'string' ? slug : null
+  })
+  const weddingId = computed(() => getStoredPrimaryWeddingId())
 
   const {
     images,
@@ -38,14 +47,14 @@
   const uploadErrors = ref<{ file: string; error: string }[]>([])
 
   onMounted(() => {
-    fetchImages()
+    fetchImages(weddingId.value ?? undefined)
   })
 
   const handleFilesSelected = async (files: File[]): Promise<void> => {
     uploadErrors.value = []
 
     for (const file of files) {
-      const result = await uploadImage(file)
+      const result = await uploadImage(file, weddingId.value ?? undefined)
       if (!result.success) {
         uploadErrors.value.push({
           file: file.name,
@@ -56,7 +65,7 @@
   }
 
   const handleReorder = async (newOrder: string[]): Promise<void> => {
-    const result = await updateOrder(newOrder)
+    const result = await updateOrder(newOrder, weddingId.value ?? undefined)
     if (!result.success) {
       // Show error toast or message
       console.error('Reorder failed:', result.error)
@@ -71,7 +80,7 @@
     if (!deleteConfirmId.value) return
 
     isDeleting.value = true
-    const result = await removeImage(deleteConfirmId.value)
+    const result = await removeImage(deleteConfirmId.value, weddingId.value ?? undefined)
     isDeleting.value = false
 
     if (!result.success) {
@@ -89,7 +98,7 @@
     maxFileSize?: number | undefined
     maxImages?: number | undefined
   }): Promise<void> => {
-    const result = await updateSettings(newSettings)
+    const result = await updateSettings(newSettings, weddingId.value ?? undefined)
     if (!result.success) {
       console.error('Settings update failed:', result.error)
     }
@@ -204,9 +213,11 @@
         <Teleport to="body">
           <Transition name="settings-panel">
             <div v-if="showSettings" class="settings-container" @click.self="showSettings = false">
-              <div class="settings-panel">
+              <div
+                class="settings-panel bg-white dark:bg-dark-bg-secondary border-sand-dark dark:border-dark-border"
+              >
                 <!-- Mobile Header with Close -->
-                <div class="settings-mobile-header">
+                <div class="settings-mobile-header border-sand-dark dark:border-dark-border">
                   <h3 class="font-heading text-lg font-medium text-charcoal dark:text-dark-text">
                     {{ adminT.gallery.gallerySettings }}
                   </h3>
@@ -303,7 +314,7 @@
       <button
         type="button"
         class="mt-3 px-4 py-2 font-body text-sm text-sage border border-sage rounded-full hover:bg-sage hover:text-white transition-colors cursor-pointer"
-        @click="fetchImages"
+        @click="fetchImages(weddingSlug ?? undefined)"
       >
         {{ adminT.common.tryAgain }}
       </button>
@@ -376,7 +387,6 @@
     z-index: 50;
     display: flex;
     align-items: flex-end;
-    background-color: rgba(0, 0, 0, 0.5);
   }
 
   /* Settings Panel - Mobile: Bottom Sheet */
@@ -384,7 +394,6 @@
     width: 100%;
     max-height: 85vh;
     overflow-y: auto;
-    background-color: white;
     border-top-left-radius: 1rem;
     border-top-right-radius: 1rem;
     padding: 1rem;
@@ -396,16 +405,8 @@
     justify-content: space-between;
     padding-bottom: 0.75rem;
     margin-bottom: 0.5rem;
-    border-bottom: 1px solid #e5e7eb;
-  }
-
-  /* Dark mode */
-  :global(.dark) .settings-panel {
-    background-color: #1f2937;
-  }
-
-  :global(.dark) .settings-mobile-header {
-    border-bottom-color: #374151;
+    border-bottom-width: 1px;
+    border-bottom-style: solid;
   }
 
   /* Desktop: Popover style */
@@ -413,7 +414,6 @@
     .settings-container {
       position: fixed;
       inset: 0;
-      background-color: transparent;
       display: block;
     }
 
@@ -428,11 +428,8 @@
       max-height: 80vh;
       border-radius: 0.75rem;
       box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-      border: 1px solid #e5e7eb;
-    }
-
-    :global(.dark) .settings-panel {
-      border-color: #374151;
+      border-width: 1px;
+      border-style: solid;
     }
 
     .settings-mobile-header {
@@ -440,20 +437,28 @@
     }
   }
 
-  /* Transitions - Mobile: Slide up */
+  /* Transitions */
   .settings-panel-enter-active,
   .settings-panel-leave-active {
-    transition: all 0.25s ease-out;
+    transition: background-color 0.25s ease-out;
   }
 
   .settings-panel-enter-active .settings-panel,
   .settings-panel-leave-active .settings-panel {
-    transition: transform 0.25s ease-out;
+    transition:
+      transform 0.25s ease-out,
+      opacity 0.25s ease-out;
   }
 
+  /* Mobile: Slide up from bottom */
   .settings-panel-enter-from,
   .settings-panel-leave-to {
     background-color: rgba(0, 0, 0, 0);
+  }
+
+  .settings-panel-enter-to,
+  .settings-panel-leave-from {
+    background-color: rgba(0, 0, 0, 0.5);
   }
 
   .settings-panel-enter-from .settings-panel,
@@ -461,8 +466,23 @@
     transform: translateY(100%);
   }
 
-  /* Desktop transitions */
+  .settings-panel-enter-to .settings-panel,
+  .settings-panel-leave-from .settings-panel {
+    transform: translateY(0);
+  }
+
+  /* Desktop: Scale and fade */
   @media (min-width: 640px) {
+    .settings-panel-enter-from,
+    .settings-panel-leave-to {
+      background-color: transparent;
+    }
+
+    .settings-panel-enter-to,
+    .settings-panel-leave-from {
+      background-color: transparent;
+    }
+
     .settings-panel-enter-from .settings-panel,
     .settings-panel-leave-to .settings-panel {
       transform: translate(-50%, -50%) scale(0.95);

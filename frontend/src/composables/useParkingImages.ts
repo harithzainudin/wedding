@@ -9,6 +9,7 @@ import {
   deleteParkingImage,
   reorderParkingImages,
 } from '@/services/api'
+import { compressImage, formatBytes } from '@/utils/imageCompression'
 
 // Allowed MIME types for parking images
 const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp']
@@ -21,8 +22,20 @@ const isLoading = ref(false)
 const loadError = ref('')
 const uploadProgress = ref<Map<string, UploadState>>(new Map())
 const uploadControllers = ref<Map<string, AbortController>>(new Map())
+const currentWeddingSlug = ref<string | null>(null)
+const currentWeddingId = ref<string | null>(null)
 
 export function useParkingImages() {
+  /**
+   * Set the wedding context for this composable
+   * @param weddingSlug - Wedding slug for public routes
+   * @param weddingId - Wedding ID for admin routes
+   */
+  const setWeddingContext = (weddingSlug: string, weddingId: string): void => {
+    currentWeddingSlug.value = weddingSlug
+    currentWeddingId.value = weddingId
+  }
+
   // Computed
   const sortedImages = computed(() => [...images.value].sort((a, b) => a.order - b.order))
 
@@ -43,6 +56,9 @@ export function useParkingImages() {
       }
       if (state.error !== undefined) {
         upload.error = state.error
+      }
+      if (state.compression !== undefined) {
+        upload.compression = state.compression
       }
       uploads.push(upload)
     })
@@ -80,12 +96,19 @@ export function useParkingImages() {
   }
 
   // Fetch all parking images
-  const fetchImages = async (): Promise<void> => {
+  const fetchImages = async (weddingSlug?: string): Promise<void> => {
     isLoading.value = true
     loadError.value = ''
 
+    const slug = weddingSlug ?? currentWeddingSlug.value
+    if (!slug) {
+      loadError.value = 'Wedding context not set'
+      isLoading.value = false
+      return
+    }
+
     try {
-      const response = await listParkingImages()
+      const response = await listParkingImages(slug)
       images.value = response.images
     } catch (err) {
       loadError.value = err instanceof Error ? err.message : 'Failed to load parking images'
@@ -97,38 +120,82 @@ export function useParkingImages() {
   // Upload a single image
   const uploadImage = async (
     file: File,
-    caption?: string
+    caption?: string,
+    weddingId?: string
   ): Promise<{ success: boolean; error?: string | undefined }> => {
-    const validation = validateFile(file)
-    if (!validation.valid) {
-      return { success: false, error: validation.error }
+    const id = weddingId ?? currentWeddingId.value
+    if (!id) {
+      return { success: false, error: 'Wedding context not set' }
     }
 
     const fileId = `${file.name}-${Date.now()}`
     const abortController = new AbortController()
     uploadControllers.value.set(fileId, abortController)
-    uploadProgress.value.set(fileId, { progress: 0, status: 'uploading' })
+    uploadProgress.value.set(fileId, { progress: 0, status: 'compressing' })
+
+    // Step 0: Compress image before upload
+    let fileToUpload = file
+    let compressionInfo:
+      | { originalSize: number; compressedSize: number; savedPercent: number }
+      | undefined
+    try {
+      const result = await compressImage(file)
+      fileToUpload = result.file
+      if (result.compressionRatio > 1) {
+        compressionInfo = {
+          originalSize: result.originalSize,
+          compressedSize: result.compressedSize,
+          savedPercent: Math.round((1 - result.compressedSize / result.originalSize) * 100),
+        }
+        console.log(
+          `[Parking] Compressed: ${formatBytes(result.originalSize)} → ${formatBytes(result.compressedSize)} (${compressionInfo.savedPercent}% saved)`
+        )
+      }
+    } catch (compressionError) {
+      console.warn('[Parking] Compression failed, using original:', compressionError)
+    }
+
+    // Validate the (possibly compressed) file
+    const validation = validateFile(fileToUpload)
+    if (!validation.valid) {
+      uploadProgress.value.delete(fileId)
+      uploadControllers.value.delete(fileId)
+      return { success: false, error: validation.error }
+    }
+
+    uploadProgress.value.set(fileId, {
+      progress: 10,
+      status: 'uploading',
+      compression: compressionInfo,
+    })
 
     try {
       // Step 1: Get presigned URL
-      const presignedResponse = await getParkingPresignedUrl({
-        filename: file.name,
-        mimeType: file.type,
-        fileSize: file.size,
-        ...(caption ? { caption } : {}),
-      })
+      const presignedResponse = await getParkingPresignedUrl(
+        {
+          filename: fileToUpload.name,
+          mimeType: fileToUpload.type,
+          fileSize: fileToUpload.size,
+          ...(caption ? { caption } : {}),
+        },
+        id
+      )
 
       // Check if cancelled
       if (abortController.signal.aborted) {
         throw new DOMException('Upload cancelled', 'AbortError')
       }
 
-      uploadProgress.value.set(fileId, { progress: 30, status: 'uploading' })
+      uploadProgress.value.set(fileId, {
+        progress: 30,
+        status: 'uploading',
+        compression: compressionInfo,
+      })
 
       // Step 2: Upload to S3
       const uploadSuccess = await uploadToS3(
         presignedResponse.uploadUrl,
-        file,
+        fileToUpload,
         abortController.signal
       )
       if (!uploadSuccess) {
@@ -136,24 +203,36 @@ export function useParkingImages() {
           progress: 30,
           status: 'error',
           error: 'Failed to upload file to storage',
+          compression: compressionInfo,
         })
         uploadControllers.value.delete(fileId)
         setTimeout(() => uploadProgress.value.delete(fileId), 5000)
         return { success: false, error: 'Failed to upload file to storage' }
       }
 
-      uploadProgress.value.set(fileId, { progress: 70, status: 'uploading' })
-
-      // Step 3: Confirm upload
-      const confirmResponse = await confirmParkingUpload({
-        imageId: presignedResponse.imageId,
-        s3Key: presignedResponse.s3Key,
-        filename: file.name,
-        mimeType: file.type,
-        ...(caption ? { caption } : {}),
+      uploadProgress.value.set(fileId, {
+        progress: 70,
+        status: 'uploading',
+        compression: compressionInfo,
       })
 
-      uploadProgress.value.set(fileId, { progress: 100, status: 'completed' })
+      // Step 3: Confirm upload
+      const confirmResponse = await confirmParkingUpload(
+        {
+          imageId: presignedResponse.imageId,
+          s3Key: presignedResponse.s3Key,
+          filename: fileToUpload.name,
+          mimeType: fileToUpload.type,
+          ...(caption ? { caption } : {}),
+        },
+        id
+      )
+
+      uploadProgress.value.set(fileId, {
+        progress: 100,
+        status: 'completed',
+        compression: compressionInfo,
+      })
       uploadControllers.value.delete(fileId)
 
       // Add the new image to the list
@@ -208,10 +287,16 @@ export function useParkingImages() {
 
   // Remove an image
   const removeImage = async (
-    imageId: string
+    imageId: string,
+    weddingId?: string
   ): Promise<{ success: boolean; error?: string | undefined }> => {
+    const id = weddingId ?? currentWeddingId.value
+    if (!id) {
+      return { success: false, error: 'Wedding context not set' }
+    }
+
     try {
-      await deleteParkingImage(imageId)
+      await deleteParkingImage(imageId, id)
       images.value = images.value.filter((img) => img.id !== imageId)
       return { success: true }
     } catch (err) {
@@ -224,19 +309,25 @@ export function useParkingImages() {
 
   // Update image order
   const updateOrder = async (
-    newOrder: string[]
+    newOrder: string[],
+    weddingId?: string
   ): Promise<{ success: boolean; error?: string | undefined }> => {
+    const id = weddingId ?? currentWeddingId.value
+    if (!id) {
+      return { success: false, error: 'Wedding context not set' }
+    }
+
     // Optimistically update the UI
     const previousImages = [...images.value]
     images.value = newOrder
-      .map((id, index) => {
-        const img = images.value.find((i) => i.id === id)
+      .map((imageId, index) => {
+        const img = images.value.find((i) => i.id === imageId)
         return img ? { ...img, order: index + 1 } : null
       })
       .filter((img): img is ParkingImage => img !== null)
 
     try {
-      await reorderParkingImages(newOrder)
+      await reorderParkingImages(newOrder, id)
       return { success: true }
     } catch (err) {
       // Revert on error
@@ -266,6 +357,7 @@ export function useParkingImages() {
     maxImages: MAX_PARKING_IMAGES,
     maxFileSize: MAX_FILE_SIZE,
     allowedMimeTypes: ALLOWED_MIME_TYPES,
+    setWeddingContext,
     fetchImages,
     uploadImage,
     cancelUpload,

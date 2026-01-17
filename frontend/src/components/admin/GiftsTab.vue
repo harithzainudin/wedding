@@ -3,11 +3,14 @@
   import { useGifts } from '@/composables/useGifts'
   import { useAdminLanguage } from '@/composables/useAdminLanguage'
   import { interpolate } from '@/i18n/translations'
+  import { getStoredPrimaryWeddingId } from '@/services/tokenManager'
   import type { GiftItem, GiftCategory, GiftPriority } from '@/types/gift'
   import DeleteConfirmModal from './DeleteConfirmModal.vue'
   import UploadProgressBar from './UploadProgressBar.vue'
 
   const { adminT } = useAdminLanguage()
+
+  const weddingId = computed(() => getStoredPrimaryWeddingId())
 
   const {
     gifts,
@@ -24,8 +27,7 @@
     activeUploads,
     canAddMore,
     summary,
-    fetchGifts,
-    fetchSettings,
+    fetchGiftsAdmin,
     fetchReservations,
     createGiftItem,
     updateGiftItem,
@@ -80,7 +82,8 @@
   })
 
   onMounted(async () => {
-    await Promise.all([fetchGifts(), fetchSettings()])
+    // fetchGiftsAdmin also loads settings from the admin response
+    await fetchGiftsAdmin(weddingId.value ?? undefined)
   })
 
   // Modal handlers
@@ -169,17 +172,17 @@
     }
 
     if (editingGift.value) {
-      const result = await updateGiftItem(editingGift.value.id, data)
+      const result = await updateGiftItem(editingGift.value.id, data, weddingId.value ?? undefined)
       if (result.success && imageFile.value) {
-        await uploadGiftImage(editingGift.value.id, imageFile.value)
+        await uploadGiftImage(editingGift.value.id, imageFile.value, weddingId.value ?? undefined)
       }
       if (result.success) {
         closeGiftForm()
       }
     } else {
-      const result = await createGiftItem(data)
+      const result = await createGiftItem(data, weddingId.value ?? undefined)
       if (result.success && result.giftId && imageFile.value) {
-        await uploadGiftImage(result.giftId, imageFile.value)
+        await uploadGiftImage(result.giftId, imageFile.value, weddingId.value ?? undefined)
       }
       if (result.success) {
         closeGiftForm()
@@ -194,7 +197,7 @@
 
   const handleDeleteConfirm = async () => {
     if (!deleteConfirmId.value) return
-    const result = await deleteGiftItem(deleteConfirmId.value)
+    const result = await deleteGiftItem(deleteConfirmId.value, weddingId.value ?? undefined)
     if (result.success) {
       deleteConfirmId.value = null
     }
@@ -223,7 +226,7 @@
       currentOrder.splice(draggedIndex, 1)
       currentOrder.splice(targetIndex, 0, draggedId.value)
 
-      await reorderGiftItems(currentOrder)
+      await reorderGiftItems(currentOrder, weddingId.value ?? undefined)
     }
 
     draggedId.value = null
@@ -232,17 +235,17 @@
 
   // Settings handlers
   const handleToggleEnabled = async () => {
-    await toggleEnabled()
+    await toggleEnabled(weddingId.value ?? undefined)
   }
 
   const handleSettingsUpdate = async (newSettings: Partial<typeof settings.value>) => {
-    await updateSettings(newSettings)
+    await updateSettings(newSettings, weddingId.value ?? undefined)
   }
 
   // View reservations
   const handleViewReservations = async () => {
     viewMode.value = 'reservations'
-    await fetchReservations()
+    await fetchReservations(undefined, weddingId.value ?? undefined)
   }
 
   // Get gift name by ID for reservations
@@ -468,7 +471,7 @@
       <button
         type="button"
         class="mt-3 px-4 py-2 font-body text-sm text-sage border border-sage rounded-full hover:bg-sage hover:text-white transition-colors cursor-pointer"
-        @click="fetchGifts"
+        @click="fetchGiftsAdmin(weddingId ?? undefined)"
       >
         {{ adminT.common.tryAgain }}
       </button>
@@ -739,8 +742,8 @@
     <Teleport to="body">
       <Transition name="modal">
         <div v-if="showGiftForm" class="modal-backdrop" @click.self="closeGiftForm">
-          <div class="modal-content max-w-lg">
-            <div class="modal-header">
+          <div class="modal-content max-w-lg bg-white dark:bg-dark-bg-secondary">
+            <div class="modal-header border-sand-dark dark:border-dark-border">
               <h3 class="font-heading text-lg font-medium text-charcoal dark:text-dark-text">
                 {{ editingGift ? adminT.gifts.editGift : adminT.gifts.addGift }}
               </h3>
@@ -1000,8 +1003,8 @@
     <Teleport to="body">
       <Transition name="modal">
         <div v-if="showSettings" class="modal-backdrop" @click.self="showSettings = false">
-          <div class="modal-content">
-            <div class="modal-header">
+          <div class="modal-content bg-white dark:bg-dark-bg-secondary">
+            <div class="modal-header border-sand-dark dark:border-dark-border">
               <h3 class="font-heading text-lg font-medium text-charcoal dark:text-dark-text">
                 {{ adminT.gifts.giftSettings }}
               </h3>
@@ -1105,7 +1108,6 @@
     max-width: 500px;
     max-height: 90vh;
     overflow-y: auto;
-    background-color: white;
     border-radius: 0.75rem;
     padding: 1.5rem;
   }
@@ -1116,15 +1118,8 @@
     justify-content: space-between;
     padding-bottom: 1rem;
     margin-bottom: 1rem;
-    border-bottom: 1px solid #e5e7eb;
-  }
-
-  :global(.dark) .modal-content {
-    background-color: #1f2937;
-  }
-
-  :global(.dark) .modal-header {
-    border-bottom-color: #374151;
+    border-bottom-width: 1px;
+    border-bottom-style: solid;
   }
 
   .modal-enter-active,

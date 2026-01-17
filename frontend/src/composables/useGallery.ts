@@ -10,6 +10,7 @@ import {
   reorderGalleryImages,
   updateGallerySettings,
 } from '@/services/api'
+import { compressImage, formatBytes } from '@/utils/imageCompression'
 
 // Allowed MIME types
 const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
@@ -26,6 +27,10 @@ const isLoading = ref(false)
 const loadError = ref('')
 const uploadProgress = ref<Map<string, UploadState>>(new Map())
 const uploadControllers = ref<Map<string, AbortController>>(new Map())
+
+// Multi-tenant tracking
+const currentWeddingSlug = ref<string | undefined>(undefined)
+const currentWeddingId = ref<string | undefined>(undefined)
 
 export function useGallery() {
   // Computed
@@ -49,6 +54,9 @@ export function useGallery() {
       }
       if (state.error !== undefined) {
         upload.error = state.error
+      }
+      if (state.compression !== undefined) {
+        upload.compression = state.compression
       }
       uploads.push(upload)
     })
@@ -86,12 +94,13 @@ export function useGallery() {
   }
 
   // Fetch all images
-  const fetchImages = async (): Promise<void> => {
+  const fetchImages = async (weddingId?: string): Promise<void> => {
     isLoading.value = true
     loadError.value = ''
+    currentWeddingId.value = weddingId
 
     try {
-      const response = await listGalleryImages()
+      const response = await listGalleryImages(weddingId)
       images.value = response.images
       if (response.settings) {
         settings.value = response.settings
@@ -105,37 +114,77 @@ export function useGallery() {
 
   // Upload a single image
   const uploadImage = async (
-    file: File
+    file: File,
+    weddingId?: string
   ): Promise<{ success: boolean; error?: string | undefined }> => {
-    const validation = validateFile(file)
-    if (!validation.valid) {
-      return { success: false, error: validation.error }
-    }
-
+    currentWeddingId.value = weddingId
     const fileId = `${file.name}-${Date.now()}`
     const abortController = new AbortController()
     uploadControllers.value.set(fileId, abortController)
-    uploadProgress.value.set(fileId, { progress: 0, status: 'uploading' })
+    uploadProgress.value.set(fileId, { progress: 0, status: 'compressing' })
+
+    // Step 0: Compress image before upload
+    let fileToUpload = file
+    let compressionInfo:
+      | { originalSize: number; compressedSize: number; savedPercent: number }
+      | undefined
+    try {
+      const result = await compressImage(file)
+      fileToUpload = result.file
+      if (result.compressionRatio > 1) {
+        compressionInfo = {
+          originalSize: result.originalSize,
+          compressedSize: result.compressedSize,
+          savedPercent: Math.round((1 - result.compressedSize / result.originalSize) * 100),
+        }
+        console.log(
+          `[Gallery] Compressed: ${formatBytes(result.originalSize)} → ${formatBytes(result.compressedSize)} (${compressionInfo.savedPercent}% saved)`
+        )
+      }
+    } catch (compressionError) {
+      console.warn('[Gallery] Compression failed, using original:', compressionError)
+    }
+
+    // Validate the (possibly compressed) file
+    const validation = validateFile(fileToUpload)
+    if (!validation.valid) {
+      uploadProgress.value.delete(fileId)
+      uploadControllers.value.delete(fileId)
+      return { success: false, error: validation.error }
+    }
+
+    uploadProgress.value.set(fileId, {
+      progress: 10,
+      status: 'uploading',
+      compression: compressionInfo,
+    })
 
     try {
       // Step 1: Get presigned URL
-      const presignedResponse = await getPresignedUrl({
-        filename: file.name,
-        mimeType: file.type,
-        fileSize: file.size,
-      })
+      const presignedResponse = await getPresignedUrl(
+        {
+          filename: fileToUpload.name,
+          mimeType: fileToUpload.type,
+          fileSize: fileToUpload.size,
+        },
+        weddingId
+      )
 
       // Check if cancelled
       if (abortController.signal.aborted) {
         throw new DOMException('Upload cancelled', 'AbortError')
       }
 
-      uploadProgress.value.set(fileId, { progress: 30, status: 'uploading' })
+      uploadProgress.value.set(fileId, {
+        progress: 30,
+        status: 'uploading',
+        compression: compressionInfo,
+      })
 
       // Step 2: Upload to S3
       const uploadSuccess = await uploadToS3(
         presignedResponse.uploadUrl,
-        file,
+        fileToUpload,
         abortController.signal
       )
       if (!uploadSuccess) {
@@ -143,23 +192,35 @@ export function useGallery() {
           progress: 30,
           status: 'error',
           error: 'Failed to upload file to storage',
+          compression: compressionInfo,
         })
         uploadControllers.value.delete(fileId)
         setTimeout(() => uploadProgress.value.delete(fileId), 5000)
         return { success: false, error: 'Failed to upload file to storage' }
       }
 
-      uploadProgress.value.set(fileId, { progress: 70, status: 'uploading' })
-
-      // Step 3: Confirm upload
-      const confirmResponse = await confirmImageUpload({
-        imageId: presignedResponse.imageId,
-        s3Key: presignedResponse.s3Key,
-        filename: file.name,
-        mimeType: file.type,
+      uploadProgress.value.set(fileId, {
+        progress: 70,
+        status: 'uploading',
+        compression: compressionInfo,
       })
 
-      uploadProgress.value.set(fileId, { progress: 100, status: 'completed' })
+      // Step 3: Confirm upload
+      const confirmResponse = await confirmImageUpload(
+        {
+          imageId: presignedResponse.imageId,
+          s3Key: presignedResponse.s3Key,
+          filename: fileToUpload.name,
+          mimeType: fileToUpload.type,
+        },
+        weddingId
+      )
+
+      uploadProgress.value.set(fileId, {
+        progress: 100,
+        status: 'completed',
+        compression: compressionInfo,
+      })
       uploadControllers.value.delete(fileId)
 
       // Add the new image to the list
@@ -223,10 +284,12 @@ export function useGallery() {
 
   // Remove an image
   const removeImage = async (
-    imageId: string
+    imageId: string,
+    weddingId?: string
   ): Promise<{ success: boolean; error?: string | undefined }> => {
     try {
-      await deleteGalleryImage(imageId)
+      currentWeddingId.value = weddingId
+      await deleteGalleryImage(imageId, weddingId)
       images.value = images.value.filter((img) => img.id !== imageId)
       return { success: true }
     } catch (err) {
@@ -239,8 +302,10 @@ export function useGallery() {
 
   // Update image order
   const updateOrder = async (
-    newOrder: string[]
+    newOrder: string[],
+    weddingId?: string
   ): Promise<{ success: boolean; error?: string | undefined }> => {
+    currentWeddingId.value = weddingId
     // Optimistically update the UI
     const previousImages = [...images.value]
     images.value = newOrder
@@ -251,7 +316,7 @@ export function useGallery() {
       .filter((img): img is GalleryImage => img !== null)
 
     try {
-      await reorderGalleryImages({ imageIds: newOrder })
+      await reorderGalleryImages({ imageIds: newOrder }, weddingId)
       return { success: true }
     } catch (err) {
       // Revert on error
@@ -264,12 +329,16 @@ export function useGallery() {
   }
 
   // Update settings
-  const updateSettings = async (newSettings: {
-    maxFileSize?: number | undefined
-    maxImages?: number | undefined
-  }): Promise<{ success: boolean; error?: string | undefined }> => {
+  const updateSettings = async (
+    newSettings: {
+      maxFileSize?: number | undefined
+      maxImages?: number | undefined
+    },
+    weddingId?: string
+  ): Promise<{ success: boolean; error?: string | undefined }> => {
     try {
-      const response = await updateGallerySettings(newSettings)
+      currentWeddingId.value = weddingId
+      const response = await updateGallerySettings(newSettings, weddingId)
       settings.value = response
       return { success: true }
     } catch (err) {
@@ -296,6 +365,8 @@ export function useGallery() {
     activeUploads,
     canUploadMore,
     remainingSlots,
+    currentWeddingSlug,
+    currentWeddingId,
     fetchImages,
     uploadImage,
     cancelUpload,

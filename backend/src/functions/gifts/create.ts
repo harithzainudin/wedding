@@ -1,24 +1,61 @@
+/**
+ * POST /admin/w/{weddingId}/gifts
+ * Admin endpoint to create a new gift
+ */
 import type { APIGatewayProxyHandlerV2 } from 'aws-lambda'
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb'
 import { DynamoDBDocumentClient, PutCommand, QueryCommand, GetCommand } from '@aws-sdk/lib-dynamodb'
 import { v4 as uuidv4 } from 'uuid'
 import { Resource } from 'sst'
 import { createSuccessResponse, createErrorResponse } from '../shared/response'
-import { requireAuth } from '../shared/auth'
+import { requireWeddingAccess } from '../shared/auth'
 import { logError } from '../shared/logger'
 import { validateCreateGiftInput, GIFT_LIMITS } from '../shared/gift-validation'
+import { Keys } from '../shared/keys'
+import { isValidWeddingId } from '../shared/validation'
+import { getWeddingById, requireAdminAccessibleWedding } from '../shared/wedding-middleware'
 
 const client = new DynamoDBClient({})
 const docClient = DynamoDBDocumentClient.from(client)
 
 export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
   let giftName: string | undefined
+  let weddingId: string | undefined
 
   try {
-    // Require authentication
-    const authResult = requireAuth(event)
+    // Get weddingId from path parameters
+    weddingId = event.pathParameters?.weddingId
+    if (!weddingId) {
+      return createErrorResponse(400, 'Wedding ID is required', context, 'MISSING_WEDDING_ID')
+    }
+
+    // Validate wedding ID format
+    if (!isValidWeddingId(weddingId)) {
+      return createErrorResponse(400, 'Invalid wedding ID format', context, 'INVALID_WEDDING_ID')
+    }
+
+    // Require authentication and wedding access
+    const authResult = requireWeddingAccess(event, weddingId)
     if (!authResult.authenticated) {
       return createErrorResponse(authResult.statusCode, authResult.error, context, 'AUTH_ERROR')
+    }
+
+    // Verify wedding exists
+    const wedding = await getWeddingById(docClient, weddingId)
+    if (!wedding) {
+      return createErrorResponse(404, 'Wedding not found', context, 'WEDDING_NOT_FOUND')
+    }
+
+    // Check wedding status (block archived for non-super admins)
+    const isSuperAdmin = authResult.user.type === 'super' || authResult.user.isMaster
+    const accessCheck = requireAdminAccessibleWedding(wedding, isSuperAdmin)
+    if (!accessCheck.success) {
+      return createErrorResponse(
+        accessCheck.statusCode,
+        accessCheck.error,
+        context,
+        'ACCESS_DENIED'
+      )
     }
 
     // Parse request body
@@ -39,23 +76,24 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
     giftName = data.name.en
 
     // Check gift settings for max items limit
+    const settingsKey = Keys.settings(weddingId, 'GIFTS')
     const settingsResult = await docClient.send(
       new GetCommand({
         TableName: Resource.AppDataTable.name,
-        Key: { pk: 'SETTINGS', sk: 'GIFTS' },
+        Key: settingsKey,
       })
     )
 
     const maxItems = settingsResult.Item?.maxItems ?? GIFT_LIMITS.maxItems
 
-    // Count existing gifts
+    // Count existing gifts for this wedding
     const countResult = await docClient.send(
       new QueryCommand({
         TableName: Resource.AppDataTable.name,
         IndexName: 'byStatus',
         KeyConditionExpression: 'gsi1pk = :pk',
         ExpressionAttributeValues: {
-          ':pk': 'GIFTS',
+          ':pk': `WEDDING#${weddingId}#GIFTS`,
         },
         Select: 'COUNT',
       })
@@ -78,7 +116,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
         IndexName: 'byStatus',
         KeyConditionExpression: 'gsi1pk = :pk',
         ExpressionAttributeValues: {
-          ':pk': 'GIFTS',
+          ':pk': `WEDDING#${weddingId}#GIFTS`,
         },
         ScanIndexForward: false,
         Limit: 1,
@@ -89,16 +127,18 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
     const newOrder = (lastOrder as number) + 1
 
     // Generate unique ID and timestamp
-    const id = uuidv4()
+    const giftId = uuidv4()
     const timestamp = new Date().toISOString()
 
-    // Create gift record
+    // Create gift record with wedding-scoped keys
+    const giftKey = Keys.gift(weddingId, giftId)
+    const gsiKey = Keys.gsi.weddingGifts(weddingId, newOrder, giftId)
+
     const giftItem = {
-      pk: `GIFT#${id}`,
-      sk: 'METADATA',
-      gsi1pk: 'GIFTS',
-      gsi1sk: String(newOrder).padStart(5, '0'),
-      id,
+      ...giftKey,
+      ...gsiKey,
+      weddingId,
+      id: giftId,
       name: data.name,
       description: data.description,
       externalLink: data.externalLink,
@@ -124,7 +164,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
     return createSuccessResponse(
       201,
       {
-        id,
+        id: giftId,
         name: data.name,
         description: data.description,
         externalLink: data.externalLink,
@@ -142,10 +182,10 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
   } catch (error) {
     logError(
       {
-        endpoint: 'POST /gifts',
+        endpoint: 'POST /admin/w/{weddingId}/gifts',
         operation: 'createGift',
         requestId: context.awsRequestId,
-        input: { giftName },
+        input: { weddingId, giftName },
       },
       error
     )

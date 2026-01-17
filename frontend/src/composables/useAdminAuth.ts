@@ -1,4 +1,5 @@
 import { ref, onMounted, onUnmounted } from 'vue'
+import type { UserType } from '@/types/admin'
 import { adminLogin, setNewPassword } from '@/services/api'
 import {
   storeTokens,
@@ -6,6 +7,9 @@ import {
   hasValidTokens,
   getStoredUsername,
   getStoredIsMaster,
+  getStoredUserType,
+  getStoredWeddingIds,
+  getStoredPrimaryWeddingId,
   refreshTokens,
   AUTH_EXPIRED_EVENT,
 } from '@/services/tokenManager'
@@ -20,6 +24,7 @@ export function useAdminAuth() {
   const isLoggingIn = ref(false)
   const currentUser = ref('')
   const isMasterUser = ref(false)
+  const userType = ref<UserType>('legacy')
   const mustChangePassword = ref(false)
 
   // Forced password change state
@@ -40,6 +45,7 @@ export function useAdminAuth() {
           isAuthenticated.value = true
           currentUser.value = getStoredUsername() ?? ''
           isMasterUser.value = getStoredIsMaster()
+          userType.value = getStoredUserType()
           return true
         }
       }
@@ -73,11 +79,15 @@ export function useAdminAuth() {
           expiresIn: response.expiresIn ?? 900,
           username: response.username ?? '',
           isMaster: response.isMaster ?? false,
+          userType: response.userType ?? 'legacy',
+          weddingIds: response.weddingIds,
+          primaryWeddingId: response.primaryWeddingId,
         })
 
         isAuthenticated.value = true
         currentUser.value = response.username ?? ''
         isMasterUser.value = response.isMaster ?? false
+        userType.value = response.userType ?? 'legacy'
         mustChangePassword.value = response.mustChangePassword ?? false
         username.value = ''
         password.value = ''
@@ -100,6 +110,7 @@ export function useAdminAuth() {
     isAuthenticated.value = false
     currentUser.value = ''
     isMasterUser.value = false
+    userType.value = 'legacy'
     mustChangePassword.value = false
     resetForcedPasswordChangeForm()
   }
@@ -171,6 +182,7 @@ export function useAdminAuth() {
     isLoggingIn,
     currentUser,
     isMasterUser,
+    userType,
     mustChangePassword,
     newPasswordForChange,
     confirmNewPasswordForChange,

@@ -7,6 +7,10 @@ import {
 } from '@/types/weddingDetails'
 import { getWeddingDetails, updateWeddingDetails as apiUpdateWeddingDetails } from '@/services/api'
 
+// Multi-tenant state
+const currentWeddingSlug = ref<string | undefined>(undefined)
+const currentWeddingId = ref<string | undefined>(undefined)
+
 // Default wedding details data (matches backend defaults)
 const DEFAULT_WEDDING_DETAILS: WeddingDetailsData = {
   couple: {
@@ -48,13 +52,26 @@ const saveError = ref('')
 const saveSuccess = ref(false)
 
 export function useWeddingDetails() {
+  // Set the current wedding slug (for public fetch operations)
+  const setWeddingSlug = (slug: string | undefined): void => {
+    currentWeddingSlug.value = slug
+  }
+
+  // Set the current wedding ID (for admin operations)
+  const setWeddingId = (id: string | undefined): void => {
+    currentWeddingId.value = id
+  }
+
   // Fetch wedding details from API
-  const fetchWeddingDetails = async (): Promise<void> => {
+  const fetchWeddingDetails = async (weddingSlug?: string): Promise<void> => {
     isLoading.value = true
     loadError.value = ''
 
+    // Use provided slug, or fall back to current slug
+    const slug = weddingSlug ?? currentWeddingSlug.value
+
     try {
-      const data = await getWeddingDetails()
+      const data = await getWeddingDetails(slug)
       weddingDetails.value = data
     } catch (err) {
       loadError.value = err instanceof Error ? err.message : 'Failed to load wedding details'
@@ -65,14 +82,18 @@ export function useWeddingDetails() {
 
   // Update wedding details
   const updateWeddingDetails = async (
-    updateData: WeddingDetailsUpdateRequest
+    updateData: WeddingDetailsUpdateRequest,
+    weddingId?: string
   ): Promise<{ success: boolean; error?: string }> => {
     isSaving.value = true
     saveError.value = ''
     saveSuccess.value = false
 
+    // Use provided ID, or fall back to current ID
+    const id = weddingId ?? currentWeddingId.value
+
     try {
-      const responseData = await apiUpdateWeddingDetails(updateData)
+      const responseData = await apiUpdateWeddingDetails(updateData, id)
       weddingDetails.value = responseData
       saveSuccess.value = true
       // Clear success message after 3 seconds
@@ -101,6 +122,10 @@ export function useWeddingDetails() {
     isSaving,
     saveError,
     saveSuccess,
+    currentWeddingSlug,
+    currentWeddingId,
+    setWeddingSlug,
+    setWeddingId,
     fetchWeddingDetails,
     updateWeddingDetails,
     resetToDefaults,

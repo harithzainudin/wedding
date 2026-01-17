@@ -1,13 +1,16 @@
 <script setup lang="ts">
-  import { ref, onMounted, watch } from 'vue'
+  import { ref, onMounted, watch, computed } from 'vue'
   import { useRsvps } from '@/composables/useRsvps'
   import { useAdminLanguage } from '@/composables/useAdminLanguage'
   import { interpolate } from '@/i18n/translations'
+  import { getStoredPrimaryWeddingId } from '@/services/tokenManager'
   import type { RsvpSubmission, AdminRsvpRequest } from '@/types/rsvp'
   import RsvpFormModal from './RsvpFormModal.vue'
   import ConfirmModal from './ConfirmModal.vue'
 
   const { adminT } = useAdminLanguage()
+
+  const weddingId = computed(() => getStoredPrimaryWeddingId())
 
   const {
     filteredRsvps,
@@ -56,9 +59,9 @@
   const handleFormSubmit = async (data: AdminRsvpRequest) => {
     let success: boolean
     if (selectedRsvp.value) {
-      success = await updateRsvpEntry(selectedRsvp.value.id, data)
+      success = await updateRsvpEntry(selectedRsvp.value.id, data, weddingId.value ?? undefined)
     } else {
-      success = await createRsvpEntry(data)
+      success = await createRsvpEntry(data, weddingId.value ?? undefined)
     }
     if (success) {
       showFormModal.value = false
@@ -68,7 +71,7 @@
   // Handle delete confirm
   const handleDeleteConfirm = async () => {
     if (selectedRsvp.value) {
-      const success = await deleteRsvpEntry(selectedRsvp.value.id)
+      const success = await deleteRsvpEntry(selectedRsvp.value.id, weddingId.value ?? undefined)
       if (success) {
         showDeleteModal.value = false
       }
@@ -85,7 +88,7 @@
   })
 
   onMounted(() => {
-    fetchRsvps()
+    fetchRsvps(weddingId.value ?? undefined)
   })
 </script>
 
@@ -219,7 +222,7 @@
       <button
         type="button"
         class="mt-3 px-4 py-2 font-body text-sm text-sage border border-sage rounded-full hover:bg-sage hover:text-white transition-colors cursor-pointer"
-        @click="fetchRsvps"
+        @click="fetchRsvps(weddingId ?? undefined)"
       >
         {{ adminT.common.tryAgain }}
       </button>
@@ -340,7 +343,7 @@
       <button
         type="button"
         class="px-4 py-2 font-body text-sm text-sage hover:text-sage-dark transition-colors cursor-pointer"
-        @click="fetchRsvps"
+        @click="fetchRsvps(weddingId ?? undefined)"
       >
         {{ adminT.common.refresh }}
       </button>

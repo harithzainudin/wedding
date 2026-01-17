@@ -20,11 +20,15 @@
   const translatedName = computed(() => {
     const themeNameMap: Partial<Record<ThemeId, keyof typeof adminT.value.theme>> = {
       'earthy-minimalist': 'earthyMinimalist',
-      'classic-elegance': 'classicElegance',
-      'modern-romantic': 'modernRomantic',
+      'romantic-blush': 'romanticBlush',
+      'elegant-classic': 'elegantClassic',
+      'modern-bold': 'modernBold',
+      'garden-fresh': 'gardenFresh',
       'rustic-charm': 'rusticCharm',
-      'garden-party': 'gardenParty',
-      'tropical-paradise': 'tropicalParadise',
+      'ocean-breeze': 'oceanBreeze',
+      'lavender-dream': 'lavenderDream',
+      'midnight-luxe': 'midnightLuxe',
+      'sunset-glow': 'sunsetGlow',
       custom: 'customTheme',
     }
     const key = themeNameMap[props.theme.id]
@@ -35,11 +39,15 @@
   const translatedDescription = computed(() => {
     const themeDescMap: Partial<Record<ThemeId, keyof typeof adminT.value.theme>> = {
       'earthy-minimalist': 'earthyMinimalistDesc',
-      'classic-elegance': 'classicEleganceDesc',
-      'modern-romantic': 'modernRomanticDesc',
+      'romantic-blush': 'romanticBlushDesc',
+      'elegant-classic': 'elegantClassicDesc',
+      'modern-bold': 'modernBoldDesc',
+      'garden-fresh': 'gardenFreshDesc',
       'rustic-charm': 'rusticCharmDesc',
-      'garden-party': 'gardenPartyDesc',
-      'tropical-paradise': 'tropicalParadiseDesc',
+      'ocean-breeze': 'oceanBreezeDesc',
+      'lavender-dream': 'lavenderDreamDesc',
+      'midnight-luxe': 'midnightLuxeDesc',
+      'sunset-glow': 'sunsetGlowDesc',
       custom: 'customThemeDescription',
     }
     const key = themeDescMap[props.theme.id]

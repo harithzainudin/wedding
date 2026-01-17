@@ -3,6 +3,7 @@ import type { MusicTrack, MusicSettings, MusicSettingsUpdateRequest } from '@/ty
 import type { UploadState, UploadProgress } from '@/types/upload'
 import {
   getMusic,
+  getMusicAdmin,
   getMusicPresignedUrl,
   uploadMusicToS3,
   confirmMusicUpload,
@@ -38,6 +39,10 @@ const isLoading = ref(false)
 const loadError = ref('')
 const uploadProgress = ref<Map<string, UploadState>>(new Map())
 const uploadControllers = ref<Map<string, AbortController>>(new Map())
+
+// Multi-tenant context tracking
+const currentWeddingSlug = ref<string | undefined>()
+const currentWeddingId = ref<string | undefined>()
 
 export function useMusic() {
   // Computed
@@ -104,13 +109,35 @@ export function useMusic() {
     return { valid: true }
   }
 
-  // Fetch all tracks and settings
-  const fetchTracks = async (): Promise<void> => {
+  // Fetch all tracks and settings (public API - uses weddingSlug)
+  const fetchTracks = async (weddingSlug?: string): Promise<void> => {
     isLoading.value = true
     loadError.value = ''
 
+    // Update context tracking
+    currentWeddingSlug.value = weddingSlug
+
     try {
-      const response = await getMusic()
+      const response = await getMusic(weddingSlug)
+      tracks.value = response.tracks
+      settings.value = response.settings
+    } catch (err) {
+      loadError.value = err instanceof Error ? err.message : 'Failed to load music'
+    } finally {
+      isLoading.value = false
+    }
+  }
+
+  // Fetch all tracks and settings (admin API - uses weddingId)
+  const fetchTracksAdmin = async (weddingId?: string): Promise<void> => {
+    isLoading.value = true
+    loadError.value = ''
+
+    // Update context tracking
+    currentWeddingId.value = weddingId
+
+    try {
+      const response = await getMusicAdmin(weddingId)
       tracks.value = response.tracks
       settings.value = response.settings
     } catch (err) {
@@ -141,12 +168,16 @@ export function useMusic() {
   const uploadTrack = async (
     file: File,
     title: string,
-    artist?: string
+    artist?: string,
+    weddingId?: string
   ): Promise<{ success: boolean; error?: string }> => {
     const validation = validateFile(file)
     if (!validation.valid) {
       return { success: false, error: validation.error ?? 'Validation failed' }
     }
+
+    // Update context tracking
+    currentWeddingId.value = weddingId
 
     const fileId = `${file.name}-${Date.now()}`
     const abortController = new AbortController()
@@ -182,7 +213,7 @@ export function useMusic() {
       if (artist) {
         presignedRequest.artist = artist
       }
-      const presignedResponse = await getMusicPresignedUrl(presignedRequest)
+      const presignedResponse = await getMusicPresignedUrl(presignedRequest, weddingId)
 
       // Check if cancelled
       if (abortController.signal.aborted) {
@@ -230,7 +261,7 @@ export function useMusic() {
       if (artist) {
         confirmRequest.artist = artist
       }
-      const confirmResponse = await confirmMusicUpload(confirmRequest)
+      const confirmResponse = await confirmMusicUpload(confirmRequest, weddingId)
 
       uploadProgress.value.set(fileId, { progress: 100, status: 'completed' })
       uploadControllers.value.delete(fileId)
@@ -299,9 +330,15 @@ export function useMusic() {
   }
 
   // Remove a track
-  const removeTrack = async (trackId: string): Promise<{ success: boolean; error?: string }> => {
+  const removeTrack = async (
+    trackId: string,
+    weddingId?: string
+  ): Promise<{ success: boolean; error?: string }> => {
+    // Update context tracking
+    currentWeddingId.value = weddingId
+
     try {
-      await deleteMusicTrack(trackId)
+      await deleteMusicTrack(trackId, weddingId)
       tracks.value = tracks.value.filter((t) => t.id !== trackId)
       // Clear selected track if it was deleted
       if (settings.value.selectedTrackId === trackId) {
@@ -317,7 +354,13 @@ export function useMusic() {
   }
 
   // Update track order
-  const updateOrder = async (newOrder: string[]): Promise<{ success: boolean; error?: string }> => {
+  const updateOrder = async (
+    newOrder: string[],
+    weddingId?: string
+  ): Promise<{ success: boolean; error?: string }> => {
+    // Update context tracking
+    currentWeddingId.value = weddingId
+
     // Optimistically update the UI
     const previousTracks = [...tracks.value]
     tracks.value = newOrder
@@ -328,7 +371,7 @@ export function useMusic() {
       .filter((track): track is MusicTrack => track !== null)
 
     try {
-      await reorderMusicTracks({ trackIds: newOrder })
+      await reorderMusicTracks({ trackIds: newOrder }, weddingId)
       return { success: true }
     } catch (err) {
       // Revert on error
@@ -342,10 +385,14 @@ export function useMusic() {
 
   // Update settings
   const saveSettings = async (
-    newSettings: MusicSettingsUpdateRequest
+    newSettings: MusicSettingsUpdateRequest,
+    weddingId?: string
   ): Promise<{ success: boolean; error?: string }> => {
+    // Update context tracking
+    currentWeddingId.value = weddingId
+
     try {
-      await updateMusicSettings(newSettings)
+      await updateMusicSettings(newSettings, weddingId)
       // Update local settings
       Object.assign(settings.value, newSettings)
       return { success: true }
@@ -381,8 +428,12 @@ export function useMusic() {
     canUploadMore,
     remainingSlots,
     selectedTrack,
+    // Multi-tenant context
+    currentWeddingSlug,
+    currentWeddingId,
     // Methods
     fetchTracks,
+    fetchTracksAdmin,
     uploadTrack,
     cancelUpload,
     dismissUpload,

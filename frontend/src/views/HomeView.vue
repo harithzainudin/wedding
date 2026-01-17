@@ -1,5 +1,6 @@
 <script setup lang="ts">
-  import { onMounted } from 'vue'
+  import { watch, computed } from 'vue'
+  import { useRoute } from 'vue-router'
   import HeroSection from '@/components/sections/HeroSection.vue'
   import DetailsSection from '@/components/sections/DetailsSection.vue'
   import GallerySection from '@/components/sections/GallerySection.vue'
@@ -10,21 +11,59 @@
   import WishlistSection from '@/components/sections/WishlistSection.vue'
   import RsvpSection from '@/components/sections/RsvpSection.vue'
   import StickyNavigation from '@/components/ui/StickyNavigation.vue'
+  import WeddingUnavailable from '@/components/ui/WeddingUnavailable.vue'
   import { useDocumentTitle } from '@/composables/useDocumentTitle'
   import { usePublicWeddingData } from '@/composables/usePublicWeddingData'
 
   useDocumentTitle({ text: 'Wedding Ceremony', position: 'suffix' })
 
-  // Fetch all public wedding data once at the top level
-  const { fetchPublicData } = usePublicWeddingData()
+  const route = useRoute()
 
-  onMounted(() => {
-    fetchPublicData()
+  // Get the wedding slug from route params
+  const weddingSlug = computed(() => {
+    const slug = route.params.weddingSlug
+    return typeof slug === 'string' ? slug : null
+  })
+
+  // Fetch all public wedding data once at the top level
+  const { fetchPublicData, weddingError, isLoading, hasLoaded } = usePublicWeddingData()
+
+  // Fetch data when wedding slug is available
+  // Always force refresh to ensure we get the latest wedding status
+  // This handles cases where status changed (draft/archived) since last visit
+  watch(
+    weddingSlug,
+    (slug) => {
+      if (slug) {
+        fetchPublicData(slug, true) // Force refresh to get latest status
+      }
+    },
+    { immediate: true }
+  )
+
+  // Show error page if wedding is unavailable
+  const showErrorPage = computed(() => {
+    return hasLoaded.value && weddingError.value !== null
   })
 </script>
 
 <template>
-  <main class="min-h-screen">
+  <!-- Loading state -->
+  <main
+    v-if="isLoading && !hasLoaded"
+    class="min-h-screen bg-sand flex items-center justify-center"
+  >
+    <div class="text-center">
+      <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-sage mx-auto mb-4"></div>
+      <p class="font-body text-charcoal-light">Loading...</p>
+    </div>
+  </main>
+
+  <!-- Error page for archived/draft/not found weddings -->
+  <WeddingUnavailable v-else-if="showErrorPage" :error-type="weddingError" />
+
+  <!-- Normal wedding page -->
+  <main v-else class="min-h-screen">
     <HeroSection />
     <DetailsSection />
     <GallerySection />

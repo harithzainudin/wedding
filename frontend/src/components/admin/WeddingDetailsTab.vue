@@ -16,6 +16,10 @@
   } from '@/types/weddingDetails'
   import BismillahCalligraphySelector from '@/components/admin/BismillahCalligraphySelector.vue'
 
+  const props = defineProps<{
+    weddingSlug?: string
+  }>()
+
   const { adminT } = useAdminLanguage()
 
   const {
@@ -423,7 +427,7 @@
   )
 
   onMounted(async () => {
-    await fetchWeddingDetails()
+    await fetchWeddingDetails(props.weddingSlug)
     syncFormData()
   })
 </script>
@@ -475,7 +479,7 @@
       <button
         type="button"
         class="px-4 py-2 rounded-lg bg-sage text-white font-body text-sm hover:bg-sage-dark transition-colors"
-        @click="fetchWeddingDetails"
+        @click="fetchWeddingDetails(props.weddingSlug)"
       >
         {{ adminT.common.tryAgain }}
       </button>

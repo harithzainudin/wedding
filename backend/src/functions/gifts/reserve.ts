@@ -1,3 +1,7 @@
+/**
+ * POST /{weddingSlug}/gifts/{id}/reserve
+ * Public endpoint to reserve a gift
+ */
 import type { APIGatewayProxyHandlerV2 } from 'aws-lambda'
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb'
 import { DynamoDBDocumentClient, GetCommand, TransactWriteCommand } from '@aws-sdk/lib-dynamodb'
@@ -6,6 +10,8 @@ import { Resource } from 'sst'
 import { createSuccessResponse, createErrorResponse } from '../shared/response'
 import { logError } from '../shared/logger'
 import { validateReserveGiftInput } from '../shared/gift-validation'
+import { Keys } from '../shared/keys'
+import { resolveWeddingSlug, requireActiveWedding } from '../shared/wedding-middleware'
 
 const client = new DynamoDBClient({})
 const docClient = DynamoDBDocumentClient.from(client)
@@ -13,8 +19,29 @@ const docClient = DynamoDBDocumentClient.from(client)
 export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
   let giftId: string | undefined
   let guestName: string | undefined
+  let weddingSlug: string | undefined
 
   try {
+    // Get weddingSlug from path parameters
+    weddingSlug = event.pathParameters?.weddingSlug
+    if (!weddingSlug) {
+      return createErrorResponse(400, 'Wedding slug is required', context, 'MISSING_SLUG')
+    }
+
+    // Resolve wedding slug to get wedding context
+    const wedding = await resolveWeddingSlug(docClient, weddingSlug)
+    const weddingCheck = requireActiveWedding(wedding)
+    if (!weddingCheck.success) {
+      return createErrorResponse(
+        weddingCheck.statusCode,
+        weddingCheck.error,
+        context,
+        'WEDDING_ERROR'
+      )
+    }
+
+    const weddingId = weddingCheck.wedding.weddingId
+
     // Get gift ID from path
     giftId = event.pathParameters?.id
     if (!giftId) {
@@ -39,10 +66,11 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
     guestName = data.guestName
 
     // Check if gift settings enabled
+    const settingsKey = Keys.settings(weddingId, 'GIFTS')
     const settingsResult = await docClient.send(
       new GetCommand({
         TableName: Resource.AppDataTable.name,
-        Key: { pk: 'SETTINGS', sk: 'GIFTS' },
+        Key: settingsKey,
       })
     )
 
@@ -56,10 +84,11 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
     }
 
     // Get the gift to check availability
+    const giftKey = Keys.gift(weddingId, giftId)
     const giftResult = await docClient.send(
       new GetCommand({
         TableName: Resource.AppDataTable.name,
-        Key: { pk: `GIFT#${giftId}`, sk: 'METADATA' },
+        Key: giftKey,
       })
     )
 
@@ -92,6 +121,9 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
     // Calculate the maximum allowed reserved quantity after this reservation
     const maxAllowedReserved = quantityTotal - requestedQuantity
 
+    // Get the GSI key for reservation listing
+    const reservationGsiKey = Keys.gsi.weddingReservations(weddingId, timestamp)
+
     try {
       await docClient.send(
         new TransactWriteCommand({
@@ -101,7 +133,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
               // Use optimistic locking: only update if quantityReserved hasn't changed
               Update: {
                 TableName: Resource.AppDataTable.name,
-                Key: { pk: `GIFT#${giftId}`, sk: 'METADATA' },
+                Key: giftKey,
                 UpdateExpression: 'SET quantityReserved = quantityReserved + :qty',
                 ConditionExpression: 'quantityReserved <= :maxAllowed',
                 ExpressionAttributeValues: {
@@ -111,14 +143,14 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
               },
             },
             {
-              // Create reservation record
+              // Create reservation record with wedding-scoped keys
               Put: {
                 TableName: Resource.AppDataTable.name,
                 Item: {
-                  pk: `GIFT#${giftId}`,
+                  pk: giftKey.pk,
                   sk: `RESERVATION#${reservationId}`,
-                  gsi1pk: 'RESERVATIONS',
-                  gsi1sk: timestamp,
+                  ...reservationGsiKey,
+                  weddingId,
                   id: reservationId,
                   giftId,
                   guestName: data.guestName,
@@ -161,10 +193,10 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
   } catch (error) {
     logError(
       {
-        endpoint: 'POST /gifts/{id}/reserve',
+        endpoint: 'POST /{weddingSlug}/gifts/{id}/reserve',
         operation: 'reserveGift',
         requestId: context.awsRequestId,
-        input: { giftId, guestName },
+        input: { weddingSlug, giftId, guestName },
       },
       error
     )

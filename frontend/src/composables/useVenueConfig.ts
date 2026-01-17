@@ -15,19 +15,22 @@ const venueData = ref<VenueData>({
 
 const isLoaded = ref(false)
 const isLoading = ref(false)
+const currentWeddingSlug = ref<string | null>(null)
 
 export function useVenueConfig() {
-  const loadVenue = async (): Promise<void> => {
-    // Only load once
-    if (isLoaded.value || isLoading.value) return
+  const loadVenue = async (weddingSlug: string): Promise<void> => {
+    // Reload if wedding changed or not loaded yet
+    if (isLoading.value) return
+    if (isLoaded.value && currentWeddingSlug.value === weddingSlug) return
 
     isLoading.value = true
+    currentWeddingSlug.value = weddingSlug
 
     try {
       // Fetch venue data and parking images in parallel
       const [venueResponse, parkingImagesResponse] = await Promise.all([
-        getVenue(),
-        listParkingImages().catch(() => ({ images: [] })),
+        getVenue(weddingSlug),
+        listParkingImages(weddingSlug).catch(() => ({ images: [] })),
       ])
 
       // Merge parking images into venue data

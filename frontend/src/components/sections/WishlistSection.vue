@@ -1,8 +1,15 @@
 <script setup lang="ts">
-  import { ref, onMounted, reactive } from 'vue'
+  import { ref, reactive, computed, watch } from 'vue'
+  import { useRoute } from 'vue-router'
   import { usePublicGifts } from '@/composables/usePublicGifts'
   import { useLanguage } from '@/composables/useLanguage'
   import type { GiftItem, ReserveGiftRequest } from '@/types/gift'
+
+  const route = useRoute()
+  const weddingSlug = computed(() => {
+    const slug = route.params.weddingSlug
+    return typeof slug === 'string' ? slug : null
+  })
 
   const { t, currentLanguage } = useLanguage()
   const {
@@ -69,12 +76,17 @@
 
   // Handle form submit
   const handleSubmit = async () => {
-    if (!selectedGift.value || !formData.guestName.trim() || !formData.guestPhone.trim()) {
+    if (
+      !selectedGift.value ||
+      !formData.guestName.trim() ||
+      !formData.guestPhone.trim() ||
+      !weddingSlug.value
+    ) {
       return
     }
 
     const trimmedMessage = formData.message?.trim()
-    await reserveGiftItem(selectedGift.value.id, {
+    await reserveGiftItem(weddingSlug.value, selectedGift.value.id, {
       guestName: formData.guestName.trim(),
       guestPhone: formData.guestPhone.trim(),
       quantity: formData.quantity ?? 1,
@@ -102,9 +114,15 @@
     return categories?.[category] || category
   }
 
-  onMounted(() => {
-    fetchGifts()
-  })
+  watch(
+    weddingSlug,
+    (slug) => {
+      if (slug) {
+        fetchGifts(slug)
+      }
+    },
+    { immediate: true }
+  )
 </script>
 
 <template>
@@ -142,7 +160,7 @@
       <div v-else-if="loadError" class="text-center py-8">
         <p class="text-red-500 dark:text-red-400">{{ loadError }}</p>
         <button
-          @click="fetchGifts(true)"
+          @click="weddingSlug && fetchGifts(weddingSlug, true)"
           class="mt-4 px-4 py-2 text-sm font-body text-sage hover:text-sage-dark dark:text-sage-light"
         >
           {{ t.wishlist?.tryAgain || 'Try Again' }}

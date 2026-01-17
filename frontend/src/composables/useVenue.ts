@@ -29,14 +29,22 @@ const isSaving = ref(false)
 const saveError = ref('')
 const saveSuccess = ref(false)
 
+// Multi-tenant tracking
+const currentWeddingSlug = ref<string | null>(null)
+const currentWeddingId = ref<string | null>(null)
+
 export function useVenue() {
   // Fetch venue data from API
-  const fetchVenue = async (): Promise<void> => {
+  const fetchVenue = async (weddingSlug: string): Promise<void> => {
+    if (isLoading.value) return
+    if (venue.value && currentWeddingSlug.value === weddingSlug) return
+
+    currentWeddingSlug.value = weddingSlug
     isLoading.value = true
     loadError.value = ''
 
     try {
-      const data = await getVenue()
+      const data = await getVenue(weddingSlug)
       venue.value = data
     } catch (err) {
       loadError.value = err instanceof Error ? err.message : 'Failed to load venue data'
@@ -47,14 +55,15 @@ export function useVenue() {
 
   // Update venue data
   const updateVenue = async (
-    updateData: VenueUpdateRequest
+    updateData: VenueUpdateRequest,
+    weddingId?: string
   ): Promise<{ success: boolean; error?: string }> => {
     isSaving.value = true
     saveError.value = ''
     saveSuccess.value = false
 
     try {
-      const responseData = await apiUpdateVenue(updateData)
+      const responseData = await apiUpdateVenue(updateData, weddingId)
       venue.value = responseData
       saveSuccess.value = true
       // Clear success message after 3 seconds
@@ -93,6 +102,8 @@ export function useVenue() {
     isSaving,
     saveError,
     saveSuccess,
+    currentWeddingSlug,
+    currentWeddingId,
     fetchVenue,
     updateVenue,
     generateGoogleMapsUrl,

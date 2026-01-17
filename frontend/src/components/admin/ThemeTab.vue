@@ -1,14 +1,24 @@
 <script setup lang="ts">
   import { ref, computed, onMounted, watch } from 'vue'
+  import { useRoute } from 'vue-router'
   import type { ThemeId, CustomThemeData, ThemeDefinition } from '@/types/theme'
   import { useTheme } from '@/composables/useTheme'
   import { useThemePreview } from '@/composables/useThemePreview'
   import { useAdminLanguage } from '@/composables/useAdminLanguage'
+  import { getStoredPrimaryWeddingId } from '@/services/tokenManager'
   import { DEFAULT_THEMES, PRESET_THEME_IDS } from '@/constants/themes'
   import ThemeCard from './ThemeCard.vue'
   import ThemeCustomizer from './ThemeCustomizer.vue'
 
   const { adminT } = useAdminLanguage()
+  const route = useRoute()
+
+  // Get wedding context from route and token
+  const weddingSlug = computed(() => {
+    const slug = route.params.weddingSlug
+    return typeof slug === 'string' ? slug : null
+  })
+  const weddingId = computed(() => getStoredPrimaryWeddingId())
 
   const { themeSettings, isLoading, isSaving, error, loadTheme, saveTheme, restoreTheme } =
     useTheme()
@@ -44,7 +54,10 @@
 
   // Initialize from saved settings
   onMounted(async () => {
-    await loadTheme()
+    const slug = weddingSlug.value
+    if (slug) {
+      await loadTheme(slug)
+    }
     selectedThemeId.value = themeSettings.value.activeThemeId
     customThemeData.value = themeSettings.value.customTheme
     showCustomizer.value = themeSettings.value.activeThemeId === 'custom'
@@ -149,10 +162,14 @@
     saveError.value = null
     saveSuccess.value = false
 
-    const result = await saveTheme({
-      activeThemeId: selectedThemeId.value,
-      customTheme: selectedThemeId.value === 'custom' ? customThemeData.value : undefined,
-    })
+    const id = weddingId.value ?? undefined
+    const result = await saveTheme(
+      {
+        activeThemeId: selectedThemeId.value,
+        customTheme: selectedThemeId.value === 'custom' ? customThemeData.value : undefined,
+      },
+      id
+    )
 
     if (result.success) {
       saveSuccess.value = true

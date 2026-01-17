@@ -13,6 +13,7 @@
     "check": "vue-tsc --noEmit && prettier --check \"src/**/*.{ts,vue,js}\" && vite build"
   },
   "dependencies": {
+    "browser-image-compression": "^2.0.2",
     "leaflet": "^1.9.4",
     "qrcode": "^1.5.4",
     "uuid": "^13.0.0",

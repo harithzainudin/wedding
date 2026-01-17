@@ -798,6 +798,7 @@ export interface AdminTranslations {
     no: string
     confirm: string
     viewSite: string
+    superAdmin: string
     logout: string
     actions: string
     saveChanges: string
@@ -808,6 +809,7 @@ export interface AdminTranslations {
     discard: string
     enabled: string
     disabled: string
+    compressing: string
   }
 
   // Authentication
@@ -1313,19 +1315,27 @@ export interface AdminTranslations {
     textSecondaryDesc: string
     darkModeText: string
     darkModeTextDesc: string
-    // Preset theme names
+    // Preset theme names (10 themes)
     earthyMinimalist: string
     earthyMinimalistDesc: string
-    classicElegance: string
-    classicEleganceDesc: string
-    modernRomantic: string
-    modernRomanticDesc: string
+    romanticBlush: string
+    romanticBlushDesc: string
+    elegantClassic: string
+    elegantClassicDesc: string
+    modernBold: string
+    modernBoldDesc: string
+    gardenFresh: string
+    gardenFreshDesc: string
     rusticCharm: string
     rusticCharmDesc: string
-    gardenParty: string
-    gardenPartyDesc: string
-    tropicalParadise: string
-    tropicalParadiseDesc: string
+    oceanBreeze: string
+    oceanBreezeDesc: string
+    lavenderDream: string
+    lavenderDreamDesc: string
+    midnightLuxe: string
+    midnightLuxeDesc: string
+    sunsetGlow: string
+    sunsetGlowDesc: string
   }
 
   // QR Hub
@@ -1484,6 +1494,7 @@ export const adminTranslations: Record<AdminLanguage, AdminTranslations> = {
       no: 'No',
       confirm: 'Confirm',
       viewSite: 'View Site',
+      superAdmin: 'Super Admin',
       logout: 'Logout',
       actions: 'Actions',
       saveChanges: 'Save Changes',
@@ -1494,6 +1505,7 @@ export const adminTranslations: Record<AdminLanguage, AdminTranslations> = {
       discard: 'Discard',
       enabled: 'Enabled',
       disabled: 'Disabled',
+      compressing: 'Compressing...',
     },
 
     auth: {
@@ -1987,18 +1999,27 @@ export const adminTranslations: Record<AdminLanguage, AdminTranslations> = {
       darkModeText: 'Text',
       darkModeTextDesc: 'Primary text in dark mode',
       // Preset theme names
+      // Preset theme names (10 themes)
       earthyMinimalist: 'Earthy Minimalist',
-      earthyMinimalistDesc: 'Warm, natural tones with clean aesthetics',
-      classicElegance: 'Classic Elegance',
-      classicEleganceDesc: 'Timeless sophistication with gold accents',
-      modernRomantic: 'Modern Romantic',
-      modernRomanticDesc: 'Contemporary style with soft blush tones',
+      earthyMinimalistDesc: 'Warm sage greens with natural sand tones',
+      romanticBlush: 'Romantic Blush',
+      romanticBlushDesc: 'Soft dusty rose with elegant cream accents',
+      elegantClassic: 'Elegant Classic',
+      elegantClassicDesc: 'Timeless gold with sophisticated ivory',
+      modernBold: 'Modern Bold',
+      modernBoldDesc: 'Vibrant coral with clean contemporary style',
+      gardenFresh: 'Garden Fresh',
+      gardenFreshDesc: 'Lush forest green with fresh mint tones',
       rusticCharm: 'Rustic Charm',
-      rusticCharmDesc: 'Cozy warmth with natural brown hues',
-      gardenParty: 'Garden Party',
-      gardenPartyDesc: 'Fresh greens with floral inspirations',
-      tropicalParadise: 'Tropical Paradise',
-      tropicalParadiseDesc: 'Vibrant colors with island vibes',
+      rusticCharmDesc: 'Warm terracotta with cozy linen textures',
+      oceanBreeze: 'Ocean Breeze',
+      oceanBreezeDesc: 'Calming coastal blues with sandy neutrals',
+      lavenderDream: 'Lavender Dream',
+      lavenderDreamDesc: 'Soft purple hues with romantic elegance',
+      midnightLuxe: 'Midnight Luxe',
+      midnightLuxeDesc: 'Deep navy elegance with gold accents',
+      sunsetGlow: 'Sunset Glow',
+      sunsetGlowDesc: 'Warm amber and coral sunset vibes',
     },
 
     qrHub: {
@@ -2146,6 +2167,7 @@ export const adminTranslations: Record<AdminLanguage, AdminTranslations> = {
       no: 'Tidak',
       confirm: 'Sahkan',
       viewSite: 'Lihat Laman',
+      superAdmin: 'Super Admin',
       logout: 'Log Keluar',
       actions: 'Tindakan',
       saveChanges: 'Simpan Perubahan',
@@ -2156,6 +2178,7 @@ export const adminTranslations: Record<AdminLanguage, AdminTranslations> = {
       discard: 'Buang',
       enabled: 'Diaktifkan',
       disabled: 'Dinyahaktifkan',
+      compressing: 'Memampatkan...',
     },
 
     auth: {
@@ -2655,18 +2678,27 @@ export const adminTranslations: Record<AdminLanguage, AdminTranslations> = {
       darkModeText: 'Teks',
       darkModeTextDesc: 'Teks utama dalam mod gelap',
       // Preset theme names
+      // Preset theme names (10 themes)
       earthyMinimalist: 'Minimalis Bersahaja',
-      earthyMinimalistDesc: 'Ton semula jadi yang hangat dengan estetika bersih',
-      classicElegance: 'Keanggunan Klasik',
-      classicEleganceDesc: 'Kecanggihan abadi dengan aksen emas',
-      modernRomantic: 'Romantik Moden',
-      modernRomanticDesc: 'Gaya kontemporari dengan ton merah jambu lembut',
+      earthyMinimalistDesc: 'Hijau sage hangat dengan ton pasir semula jadi',
+      romanticBlush: 'Romantik Merah Jambu',
+      romanticBlushDesc: 'Merah jambu debu lembut dengan aksen krim elegan',
+      elegantClassic: 'Klasik Elegan',
+      elegantClassicDesc: 'Emas abadi dengan gading sofistikated',
+      modernBold: 'Moden Berani',
+      modernBoldDesc: 'Coral ceria dengan gaya kontemporari bersih',
+      gardenFresh: 'Taman Segar',
+      gardenFreshDesc: 'Hijau hutan lebat dengan ton pudina segar',
       rusticCharm: 'Pesona Rustik',
-      rusticCharmDesc: 'Kehangatan selesa dengan warna coklat semula jadi',
-      gardenParty: 'Pesta Taman',
-      gardenPartyDesc: 'Hijau segar dengan inspirasi bunga',
-      tropicalParadise: 'Syurga Tropika',
-      tropicalParadiseDesc: 'Warna ceria dengan suasana pulau',
+      rusticCharmDesc: 'Terakota hangat dengan tekstur linen selesa',
+      oceanBreeze: 'Bayu Lautan',
+      oceanBreezeDesc: 'Biru pantai menenangkan dengan neutral berpasir',
+      lavenderDream: 'Mimpi Lavender',
+      lavenderDreamDesc: 'Warna ungu lembut dengan keanggunan romantik',
+      midnightLuxe: 'Mewah Tengah Malam',
+      midnightLuxeDesc: 'Keanggunan biru tua dengan aksen emas',
+      sunsetGlow: 'Sinar Matahari Terbenam',
+      sunsetGlowDesc: 'Ambar hangat dan coral dengan suasana matahari terbenam',
     },
 
     qrHub: {

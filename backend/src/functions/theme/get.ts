@@ -1,3 +1,10 @@
+/**
+ * Get Theme Endpoint (Public)
+ *
+ * Fetches theme settings for a specific wedding.
+ * Route: GET /{weddingSlug}/theme
+ */
+
 import type { APIGatewayProxyHandlerV2 } from 'aws-lambda'
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb'
 import { DynamoDBDocumentClient, GetCommand } from '@aws-sdk/lib-dynamodb'
@@ -5,16 +12,45 @@ import { Resource } from 'sst'
 import { createSuccessResponse, createErrorResponse } from '../shared/response'
 import { logError } from '../shared/logger'
 import { DEFAULT_THEME_SETTINGS, type ThemeSettings } from '../shared/theme-constants'
+import { Keys } from '../shared/keys'
+import { resolveWeddingSlug, requireActiveWedding } from '../shared/wedding-middleware'
 
 const dynamoClient = new DynamoDBClient({})
 const docClient = DynamoDBDocumentClient.from(dynamoClient)
 
-export const handler: APIGatewayProxyHandlerV2 = async (_event, context) => {
+export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
   try {
+    // ============================================
+    // 1. Extract and Validate Wedding Slug
+    // ============================================
+    const weddingSlug = event.pathParameters?.weddingSlug
+    if (!weddingSlug) {
+      return createErrorResponse(400, 'Wedding slug is required', context, 'MISSING_SLUG')
+    }
+
+    // ============================================
+    // 2. Resolve Slug to Wedding
+    // ============================================
+    const wedding = await resolveWeddingSlug(docClient, weddingSlug)
+    const weddingCheck = requireActiveWedding(wedding)
+    if (!weddingCheck.success) {
+      return createErrorResponse(
+        weddingCheck.statusCode,
+        weddingCheck.error,
+        context,
+        'WEDDING_ERROR'
+      )
+    }
+
+    const { weddingId } = weddingCheck.wedding
+
+    // ============================================
+    // 3. Fetch Theme Settings
+    // ============================================
     const result = await docClient.send(
       new GetCommand({
         TableName: Resource.AppDataTable.name,
-        Key: { pk: 'SETTINGS', sk: 'THEME' },
+        Key: Keys.settings(weddingId, 'THEME'),
       })
     )
 
@@ -34,7 +70,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (_event, context) => {
   } catch (error) {
     logError(
       {
-        endpoint: 'GET /theme',
+        endpoint: 'GET /{weddingSlug}/theme',
         operation: 'fetchTheme',
         requestId: context.awsRequestId,
       },

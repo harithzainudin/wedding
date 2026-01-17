@@ -1,3 +1,12 @@
+/**
+ * Request Music Upload Endpoint (Admin)
+ *
+ * Generates a presigned URL for uploading a music track.
+ * Route: POST /admin/w/{weddingId}/music/upload-url
+ *
+ * SECURITY: Requires wedding access authorization
+ */
+
 import type { APIGatewayProxyHandlerV2 } from 'aws-lambda'
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb'
 import { DynamoDBDocumentClient, GetCommand, QueryCommand } from '@aws-sdk/lib-dynamodb'
@@ -6,9 +15,13 @@ import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
 import { v4 as uuidv4 } from 'uuid'
 import { Resource } from 'sst'
 import { createSuccessResponse, createErrorResponse } from '../shared/response'
-import { requireAuth } from '../shared/auth'
+import { requireWeddingAccess } from '../shared/auth'
 import { logError } from '../shared/logger'
 import { validateMusicUpload } from '../shared/music-validation'
+import { Keys } from '../shared/keys'
+import { S3Keys } from '../shared/s3-keys'
+import { getWeddingById, requireAdminAccessibleWedding } from '../shared/wedding-middleware'
+import { isValidWeddingId } from '../shared/validation'
 import {
   DEFAULT_MAX_FILE_SIZE,
   DEFAULT_MAX_TRACKS,
@@ -20,11 +33,11 @@ const dynamoClient = new DynamoDBClient({})
 const docClient = DynamoDBDocumentClient.from(dynamoClient)
 const s3Client = new S3Client({})
 
-async function getMusicSettings() {
+async function getMusicSettings(weddingId: string) {
   const result = await docClient.send(
     new GetCommand({
       TableName: Resource.AppDataTable.name,
-      Key: { pk: 'SETTINGS', sk: 'MUSIC' },
+      Key: Keys.settings(weddingId, 'MUSIC'),
     })
   )
 
@@ -35,13 +48,13 @@ async function getMusicSettings() {
   }
 }
 
-async function getCurrentTrackCount(): Promise<number> {
+async function getCurrentTrackCount(weddingId: string): Promise<number> {
   const result = await docClient.send(
     new QueryCommand({
       TableName: Resource.AppDataTable.name,
       IndexName: 'byStatus',
       KeyConditionExpression: 'gsi1pk = :pk',
-      ExpressionAttributeValues: { ':pk': 'MUSIC_TRACKS' },
+      ExpressionAttributeValues: { ':pk': `WEDDING#${weddingId}#MUSIC` },
       Select: 'COUNT',
     })
   )
@@ -53,11 +66,48 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
   let fileSize: number | undefined
 
   try {
-    const authResult = requireAuth(event)
+    // ============================================
+    // 1. Extract and Validate Wedding ID
+    // ============================================
+    const weddingId = event.pathParameters?.weddingId
+    if (!weddingId) {
+      return createErrorResponse(400, 'Wedding ID is required', context, 'MISSING_WEDDING_ID')
+    }
+
+    if (!isValidWeddingId(weddingId)) {
+      return createErrorResponse(400, 'Invalid wedding ID format', context, 'INVALID_WEDDING_ID')
+    }
+
+    // ============================================
+    // 2. Authorization: Require Wedding Access
+    // ============================================
+    const authResult = requireWeddingAccess(event, weddingId)
     if (!authResult.authenticated) {
       return createErrorResponse(authResult.statusCode, authResult.error, context, 'AUTH_ERROR')
     }
 
+    // ============================================
+    // 3. Verify Wedding Exists
+    // ============================================
+    const wedding = await getWeddingById(docClient, weddingId)
+    if (!wedding) {
+      return createErrorResponse(404, 'Wedding not found', context, 'WEDDING_NOT_FOUND')
+    }
+
+    const isSuperAdmin = authResult.user.type === 'super' || authResult.user.isMaster
+    const accessCheck = requireAdminAccessibleWedding(wedding, isSuperAdmin)
+    if (!accessCheck.success) {
+      return createErrorResponse(
+        accessCheck.statusCode,
+        accessCheck.error,
+        context,
+        'ACCESS_DENIED'
+      )
+    }
+
+    // ============================================
+    // 4. Parse and Validate Input
+    // ============================================
     if (!event.body) {
       return createErrorResponse(400, 'Missing request body', context, 'MISSING_BODY')
     }
@@ -69,15 +119,16 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
       return createErrorResponse(400, 'Invalid JSON body', context, 'INVALID_JSON')
     }
 
-    // Get settings and validate
-    const settings = await getMusicSettings()
+    const settings = await getMusicSettings(weddingId)
     const validation = validateMusicUpload(body, settings)
     if (!validation.valid) {
       return createErrorResponse(400, validation.error, context, 'VALIDATION_ERROR')
     }
 
-    // Check max tracks limit
-    const currentCount = await getCurrentTrackCount()
+    // ============================================
+    // 5. Check Track Limit
+    // ============================================
+    const currentCount = await getCurrentTrackCount(weddingId)
     if (currentCount >= settings.maxTracks) {
       return createErrorResponse(
         400,
@@ -87,13 +138,15 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
       )
     }
 
+    // ============================================
+    // 6. Generate Presigned URL
+    // ============================================
     mimeType = validation.data.mimeType
     fileSize = validation.data.fileSize
     const trackId = uuidv4()
     const extension = MIME_TO_EXTENSION[mimeType] ?? ''
-    const s3Key = `music/${trackId}${extension}`
+    const s3Key = S3Keys.music(weddingId, trackId, extension)
 
-    // Generate presigned URL (valid for 10 minutes)
     const command = new PutObjectCommand({
       Bucket: Resource.WeddingImageBucket.name,
       Key: s3Key,
@@ -118,7 +171,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
   } catch (error) {
     logError(
       {
-        endpoint: 'POST /music/upload-url',
+        endpoint: 'POST /admin/w/{weddingId}/music/upload-url',
         operation: 'requestMusicUpload',
         requestId: context.awsRequestId,
         input: { mimeType, fileSize },

@@ -1,10 +1,22 @@
+/**
+ * Admin Update RSVP Endpoint
+ *
+ * Allows admins to update existing RSVPs.
+ * Route: PUT /admin/w/{weddingId}/rsvp/{id}
+ *
+ * SECURITY: Requires wedding access authorization
+ */
+
 import type { APIGatewayProxyHandlerV2 } from 'aws-lambda'
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb'
 import { DynamoDBDocumentClient, GetCommand, PutCommand } from '@aws-sdk/lib-dynamodb'
 import { Resource } from 'sst'
 import { createSuccessResponse, createErrorResponse } from '../shared/response'
-import { requireAuth } from '../shared/auth'
+import { requireWeddingAccess } from '../shared/auth'
 import { logError } from '../shared/logger'
+import { Keys } from '../shared/keys'
+import { getWeddingById, requireAdminAccessibleWedding } from '../shared/wedding-middleware'
+import { isValidWeddingId } from '../shared/validation'
 
 const client = new DynamoDBClient({})
 const docClient = DynamoDBDocumentClient.from(client)
@@ -45,7 +57,6 @@ function validateAdminRsvpInput(input: unknown):
 
   const body = input as Record<string, unknown>
 
-  // Validate fullName (required)
   if (typeof body.fullName !== 'string' || body.fullName.trim().length < 2) {
     return {
       valid: false,
@@ -53,19 +64,16 @@ function validateAdminRsvpInput(input: unknown):
     }
   }
 
-  // Validate title (optional, but must be valid if provided)
   if (body.title !== undefined && body.title !== '') {
     if (typeof body.title !== 'string' || !VALID_TITLES.includes(body.title as HonorificTitle)) {
       return { valid: false, error: 'Invalid title selected' }
     }
   }
 
-  // Validate attendance (required)
   if (typeof body.isAttending !== 'boolean') {
     return { valid: false, error: 'Attendance status is required' }
   }
 
-  // Validate number of guests
   if (body.isAttending) {
     if (
       typeof body.numberOfGuests !== 'number' ||
@@ -79,7 +87,6 @@ function validateAdminRsvpInput(input: unknown):
     }
   }
 
-  // Validate phoneNumber (optional)
   let cleanPhone = ''
   if (body.phoneNumber !== undefined && body.phoneNumber !== '') {
     if (typeof body.phoneNumber !== 'string') {
@@ -92,7 +99,6 @@ function validateAdminRsvpInput(input: unknown):
     }
   }
 
-  // Validate message (optional)
   if (body.message !== undefined) {
     if (typeof body.message !== 'string') {
       return { valid: false, error: 'Message must be a string' }
@@ -122,26 +128,61 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
   let rsvpId: string | undefined
 
   try {
-    // Require authentication
-    const authResult = requireAuth(event)
+    // ============================================
+    // 1. Extract and Validate Wedding ID
+    // ============================================
+    const weddingId = event.pathParameters?.weddingId
+    if (!weddingId) {
+      return createErrorResponse(400, 'Wedding ID is required', context, 'MISSING_WEDDING_ID')
+    }
+
+    if (!isValidWeddingId(weddingId)) {
+      return createErrorResponse(400, 'Invalid wedding ID format', context, 'INVALID_WEDDING_ID')
+    }
+
+    // ============================================
+    // 2. Authorization: Require Wedding Access
+    // ============================================
+    const authResult = requireWeddingAccess(event, weddingId)
     if (!authResult.authenticated) {
       return createErrorResponse(authResult.statusCode, authResult.error, context, 'AUTH_ERROR')
     }
 
-    // Extract ID from path parameters
+    // ============================================
+    // 3. Verify Wedding Exists
+    // ============================================
+    const wedding = await getWeddingById(docClient, weddingId)
+    if (!wedding) {
+      return createErrorResponse(404, 'Wedding not found', context, 'WEDDING_NOT_FOUND')
+    }
+
+    const isSuperAdmin = authResult.user.type === 'super' || authResult.user.isMaster
+    const accessCheck = requireAdminAccessibleWedding(wedding, isSuperAdmin)
+    if (!accessCheck.success) {
+      return createErrorResponse(
+        accessCheck.statusCode,
+        accessCheck.error,
+        context,
+        'ACCESS_DENIED'
+      )
+    }
+
+    // ============================================
+    // 4. Extract and Validate RSVP ID
+    // ============================================
     rsvpId = event.pathParameters?.id
     if (!rsvpId) {
       return createErrorResponse(400, 'RSVP ID is required', context, 'VALIDATION_ERROR')
     }
 
-    // Fetch existing record
+    // ============================================
+    // 5. Fetch Existing RSVP Record
+    // ============================================
+    const rsvpKeys = Keys.rsvp(weddingId, rsvpId)
     const existingResult = await docClient.send(
       new GetCommand({
         TableName: Resource.AppDataTable.name,
-        Key: {
-          pk: `RSVP#${rsvpId}`,
-          sk: 'METADATA',
-        },
+        Key: rsvpKeys,
       })
     )
 
@@ -151,7 +192,9 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
 
     const existingItem = existingResult.Item
 
-    // Parse request body
+    // ============================================
+    // 6. Parse and Validate Input
+    // ============================================
     let body: unknown
     try {
       body = JSON.parse(event.body ?? '{}')
@@ -159,7 +202,6 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
       return createErrorResponse(400, 'Invalid JSON in request body', context, 'INVALID_JSON')
     }
 
-    // Validate input
     const validation = validateAdminRsvpInput(body)
     if (!validation.valid) {
       return createErrorResponse(400, validation.error, context, 'VALIDATION_ERROR')
@@ -169,27 +211,27 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
     const timestamp = new Date().toISOString()
     const status = data.isAttending ? 'attending' : 'not_attending'
 
-    // Update RSVP record (preserving original submittedAt and source)
+    // ============================================
+    // 7. Update RSVP Record
+    // ============================================
     const updatedItem = {
-      pk: `RSVP#${rsvpId}`,
-      sk: 'METADATA',
-      gsi1pk: `STATUS#${status}`,
-      gsi1sk: existingItem.submittedAt, // Keep original submission time for ordering
+      ...rsvpKeys,
+      ...Keys.gsi.weddingRsvpsByStatus(weddingId, status, existingItem.submittedAt as string),
       id: rsvpId,
+      weddingId,
       title: data.title ?? '',
       fullName: data.fullName,
       isAttending: data.isAttending,
       numberOfGuests: data.numberOfGuests,
       phoneNumber: data.phoneNumber ?? '',
       message: data.message ?? '',
-      submittedAt: existingItem.submittedAt, // Preserve original
-      source: existingItem.source ?? 'public', // Preserve original source
-      createdBy: existingItem.createdBy, // Preserve original creator
+      submittedAt: existingItem.submittedAt,
+      source: existingItem.source ?? 'public',
+      createdBy: existingItem.createdBy,
       updatedAt: timestamp,
       updatedBy: authResult.user.username,
     }
 
-    // Save to DynamoDB
     await docClient.send(
       new PutCommand({
         TableName: Resource.AppDataTable.name,
@@ -208,7 +250,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
   } catch (error) {
     logError(
       {
-        endpoint: 'PUT /rsvp/{id}',
+        endpoint: 'PUT /admin/w/{weddingId}/rsvp/{id}',
         operation: 'updateRsvp',
         requestId: context.awsRequestId,
         input: { rsvpId },

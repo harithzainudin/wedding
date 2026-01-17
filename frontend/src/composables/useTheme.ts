@@ -19,6 +19,7 @@ const isLoaded = ref(false)
 const isLoading = ref(false)
 const isSaving = ref(false)
 const error = ref<string | null>(null)
+const currentWeddingSlug = ref<string | null>(null)
 
 /**
  * Resolves theme settings to a complete theme definition
@@ -50,16 +51,20 @@ export function useTheme() {
 
   /**
    * Load theme from API and apply to page
+   * @param weddingSlug - The wedding slug to load theme for
+   * @param forceRefresh - Force refresh the cache
    */
-  const loadTheme = async (forceRefresh = false): Promise<void> => {
-    // Only load once unless forced
-    if (!forceRefresh && (isLoaded.value || isLoading.value)) return
+  const loadTheme = async (weddingSlug: string, forceRefresh = false): Promise<void> => {
+    // Reload if wedding changed or not loaded yet
+    if (isLoading.value) return
+    if (!forceRefresh && isLoaded.value && currentWeddingSlug.value === weddingSlug) return
 
     isLoading.value = true
     error.value = null
+    currentWeddingSlug.value = weddingSlug
 
     try {
-      const data = await getThemeCached(forceRefresh)
+      const data = await getThemeCached(weddingSlug, forceRefresh)
       themeSettings.value = data
 
       // Apply theme to page
@@ -83,15 +88,18 @@ export function useTheme() {
 
   /**
    * Update theme settings and apply to page
+   * @param data - Theme update request
+   * @param weddingId - Wedding ID for admin operations
    */
   const saveTheme = async (
-    data: ThemeUpdateRequest
+    data: ThemeUpdateRequest,
+    weddingId?: string
   ): Promise<{ success: boolean; error?: string }> => {
     isSaving.value = true
     error.value = null
 
     try {
-      const updatedSettings = await updateThemeApi(data)
+      const updatedSettings = await updateThemeApi(data, weddingId)
       themeSettings.value = updatedSettings
 
       // Clear cache to get fresh data next time

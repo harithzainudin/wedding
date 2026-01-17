@@ -12,6 +12,9 @@ const isReserving = ref(false)
 const reserveError = ref('')
 const reserveSuccess = ref(false)
 
+// Multi-tenant tracking
+const currentWeddingSlug = ref<string | null>(null)
+
 export function usePublicGifts() {
   // Computed
   const sortedGifts = computed(() => [...gifts.value].sort((a, b) => a.order - b.order))
@@ -43,12 +46,19 @@ export function usePublicGifts() {
   )
 
   // Fetch gifts
-  const fetchGifts = async (forceRefresh = false): Promise<void> => {
+  const fetchGifts = async (weddingSlug: string, forceRefresh = false): Promise<void> => {
+    // Reset state if wedding context changed
+    if (currentWeddingSlug.value !== weddingSlug) {
+      gifts.value = []
+      isEnabled.value = false
+      currentWeddingSlug.value = weddingSlug
+    }
+
     isLoading.value = true
     loadError.value = ''
 
     try {
-      const response = await listGiftsCached(forceRefresh)
+      const response = await listGiftsCached(weddingSlug, forceRefresh)
       gifts.value = response.gifts
       isEnabled.value = response.enabled
     } catch (err) {
@@ -60,6 +70,7 @@ export function usePublicGifts() {
 
   // Reserve a gift
   const reserveGiftItem = async (
+    weddingSlug: string,
     giftId: string,
     data: ReserveGiftRequest
   ): Promise<{ success: boolean; error?: string }> => {
@@ -68,7 +79,7 @@ export function usePublicGifts() {
     reserveSuccess.value = false
 
     try {
-      await reserveGift(giftId, data)
+      await reserveGift(giftId, data, weddingSlug)
 
       // Update local state
       const gift = gifts.value.find((g) => g.id === giftId)
@@ -77,7 +88,7 @@ export function usePublicGifts() {
       }
 
       // Clear cache to get fresh data next time
-      clearCache(CACHE_KEYS.GIFTS)
+      clearCache(`${CACHE_KEYS.GIFTS}-${weddingSlug}`)
 
       reserveSuccess.value = true
       return { success: true }

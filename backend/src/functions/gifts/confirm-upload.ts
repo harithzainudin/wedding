@@ -1,11 +1,19 @@
+/**
+ * POST /admin/w/{weddingId}/gifts/confirm
+ * Admin endpoint to confirm a gift image upload
+ */
 import type { APIGatewayProxyHandlerV2 } from 'aws-lambda'
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb'
 import { DynamoDBDocumentClient, GetCommand, UpdateCommand } from '@aws-sdk/lib-dynamodb'
 import { S3Client, HeadObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3'
 import { Resource } from 'sst'
 import { createSuccessResponse, createErrorResponse } from '../shared/response'
-import { requireAuth } from '../shared/auth'
+import { requireWeddingAccess } from '../shared/auth'
 import { logError } from '../shared/logger'
+import { Keys } from '../shared/keys'
+import { getPublicS3Url, validateS3KeyOwnership } from '../shared/s3-keys'
+import { isValidWeddingId } from '../shared/validation'
+import { getWeddingById, requireAdminAccessibleWedding } from '../shared/wedding-middleware'
 
 const dynamoClient = new DynamoDBClient({})
 const docClient = DynamoDBDocumentClient.from(dynamoClient, {
@@ -62,11 +70,42 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
   let giftId: string | undefined
   let s3Key: string | undefined
   let filename: string | undefined
+  let weddingId: string | undefined
 
   try {
-    const authResult = requireAuth(event)
+    // Get weddingId from path parameters
+    weddingId = event.pathParameters?.weddingId
+    if (!weddingId) {
+      return createErrorResponse(400, 'Wedding ID is required', context, 'MISSING_WEDDING_ID')
+    }
+
+    // Validate wedding ID format
+    if (!isValidWeddingId(weddingId)) {
+      return createErrorResponse(400, 'Invalid wedding ID format', context, 'INVALID_WEDDING_ID')
+    }
+
+    // Require authentication and wedding access
+    const authResult = requireWeddingAccess(event, weddingId)
     if (!authResult.authenticated) {
       return createErrorResponse(authResult.statusCode, authResult.error, context, 'AUTH_ERROR')
+    }
+
+    // Verify wedding exists
+    const wedding = await getWeddingById(docClient, weddingId)
+    if (!wedding) {
+      return createErrorResponse(404, 'Wedding not found', context, 'WEDDING_NOT_FOUND')
+    }
+
+    // Check wedding status (block archived for non-super admins)
+    const isSuperAdmin = authResult.user.type === 'super' || authResult.user.isMaster
+    const accessCheck = requireAdminAccessibleWedding(wedding, isSuperAdmin)
+    if (!accessCheck.success) {
+      return createErrorResponse(
+        accessCheck.statusCode,
+        accessCheck.error,
+        context,
+        'ACCESS_DENIED'
+      )
     }
 
     if (!event.body) {
@@ -90,6 +129,16 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
     filename = validation.data.filename
     const { mimeType } = validation.data
 
+    // Validate S3 key belongs to this wedding
+    if (!validateS3KeyOwnership(s3Key, weddingId)) {
+      return createErrorResponse(
+        403,
+        'Access denied: S3 key does not belong to this wedding',
+        context,
+        'S3_KEY_MISMATCH'
+      )
+    }
+
     // Verify the file exists in S3
     const headResult = await s3Client.send(
       new HeadObjectCommand({
@@ -100,11 +149,12 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
 
     const fileSize = headResult.ContentLength ?? 0
 
-    // Check if gift exists
+    // Check if gift exists using wedding-scoped key
+    const giftKey = Keys.gift(weddingId, giftId)
     const existingGiftResult = await docClient.send(
       new GetCommand({
         TableName: Resource.AppDataTable.name,
-        Key: { pk: `GIFT#${giftId}`, sk: 'METADATA' },
+        Key: giftKey,
       })
     )
 
@@ -119,33 +169,37 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
 
     const existingGift = existingGiftResult.Item
 
-    // Delete old image from S3 if exists
+    // Delete old image from S3 if exists and different from new one
     if (existingGift.s3Key && existingGift.s3Key !== s3Key) {
-      try {
-        await s3Client.send(
-          new DeleteObjectCommand({
-            Bucket: Resource.WeddingImageBucket.name,
-            Key: existingGift.s3Key as string,
-          })
-        )
-      } catch (deleteError) {
-        // Log but don't fail - old image cleanup is best-effort
-        console.warn('Failed to delete old S3 object:', deleteError)
+      const oldS3Key = existingGift.s3Key as string
+      // Validate old S3 key also belongs to this wedding before deleting
+      if (validateS3KeyOwnership(oldS3Key, weddingId)) {
+        try {
+          await s3Client.send(
+            new DeleteObjectCommand({
+              Bucket: Resource.WeddingImageBucket.name,
+              Key: oldS3Key,
+            })
+          )
+        } catch (deleteError) {
+          // Log but don't fail - old image cleanup is best-effort
+          console.warn('Failed to delete old S3 object:', deleteError)
+        }
       }
     }
 
     // Construct the public URL for the image
     const bucketName = Resource.WeddingImageBucket.name
     const region = process.env.AWS_REGION ?? 'ap-southeast-5'
-    const publicUrl = `https://${bucketName}.s3.${region}.amazonaws.com/${s3Key}`
+    const publicUrl = getPublicS3Url(bucketName, region, s3Key)
 
     const timestamp = new Date().toISOString()
 
-    // Update gift record with image info
+    // Update gift record with image info using wedding-scoped key
     await docClient.send(
       new UpdateCommand({
         TableName: Resource.AppDataTable.name,
-        Key: { pk: `GIFT#${giftId}`, sk: 'METADATA' },
+        Key: giftKey,
         UpdateExpression:
           'SET imageUrl = :imageUrl, s3Key = :s3Key, updatedAt = :updatedAt, updatedBy = :updatedBy',
         ExpressionAttributeValues: {
@@ -173,10 +227,10 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
   } catch (error) {
     logError(
       {
-        endpoint: 'POST /gifts/confirm',
+        endpoint: 'POST /admin/w/{weddingId}/gifts/confirm',
         operation: 'confirmGiftUpload',
         requestId: context.awsRequestId,
-        input: { giftId, s3Key, filename },
+        input: { weddingId, giftId, s3Key, filename },
       },
       error
     )

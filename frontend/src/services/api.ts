@@ -22,6 +22,19 @@ import type {
   ForceResetPasswordResponse,
   SetNewPasswordRequest,
   SetNewPasswordResponse,
+  Wedding,
+  ListWeddingsResponse,
+  CreateWeddingRequest,
+  CreateWeddingResponse,
+  UpdateWeddingRequest,
+  UpdateWeddingResponse,
+  AddWeddingOwnerRequest,
+  AddWeddingOwnerResponse,
+  UpdateWeddingOwnerRequest,
+  UpdateWeddingOwnerResponse,
+  RemoveWeddingOwnerResponse,
+  ResetOwnerPasswordResponse,
+  WeddingDetailResponse,
 } from '@/types/admin'
 import type {
   PresignedUrlRequest,
@@ -93,6 +106,34 @@ import {
 import { cachedFetch, CACHE_KEYS, clearCache } from '@/utils/apiCache'
 
 const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3000'
+
+// ============================================================================
+// Multi-tenant URL helpers
+// ============================================================================
+
+/**
+ * Build public endpoint URL with optional wedding slug
+ * If weddingSlug is provided, uses multi-tenant path: /{weddingSlug}/endpoint
+ * Otherwise uses legacy path: /endpoint
+ */
+function buildPublicUrl(endpoint: string, weddingSlug?: string): string {
+  if (weddingSlug) {
+    return `${API_URL}/${encodeURIComponent(weddingSlug)}${endpoint}`
+  }
+  return `${API_URL}${endpoint}`
+}
+
+/**
+ * Build admin endpoint URL with optional wedding ID
+ * If weddingId is provided, uses multi-tenant path: /admin/w/{weddingId}/endpoint
+ * Otherwise uses legacy path: /endpoint (for backward compatibility)
+ */
+function buildAdminUrl(endpoint: string, weddingId?: string): string {
+  if (weddingId) {
+    return `${API_URL}/admin/w/${encodeURIComponent(weddingId)}${endpoint}`
+  }
+  return `${API_URL}${endpoint}`
+}
 
 // API Response wrapper types for standardized backend format
 interface ApiSuccessResponse<T> {
@@ -179,8 +220,11 @@ async function authenticatedFetch<T>(url: string, options: RequestInit = {}): Pr
   return unwrapResponse(json)
 }
 
-export async function submitRsvp(data: RsvpFormData): Promise<RsvpApiResponse> {
-  const response = await fetch(`${API_URL}/rsvp`, {
+export async function submitRsvp(
+  data: RsvpFormData,
+  weddingSlug?: string
+): Promise<RsvpApiResponse> {
+  const response = await fetch(buildPublicUrl('/rsvp', weddingSlug), {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -192,8 +236,12 @@ export async function submitRsvp(data: RsvpFormData): Promise<RsvpApiResponse> {
   return unwrapResponse(json)
 }
 
-export async function listRsvps(status?: 'attending' | 'not_attending'): Promise<RsvpListResponse> {
-  const url = new URL(`${API_URL}/rsvp`)
+export async function listRsvps(
+  status?: 'attending' | 'not_attending',
+  weddingId?: string
+): Promise<RsvpListResponse> {
+  const baseUrl = buildAdminUrl('/rsvps', weddingId)
+  const url = new URL(baseUrl)
   if (status) {
     url.searchParams.set('status', status)
   }
@@ -203,24 +251,37 @@ export async function listRsvps(status?: 'attending' | 'not_attending'): Promise
   })
 }
 
-export async function createRsvp(data: AdminRsvpRequest): Promise<CreateRsvpResponse> {
-  return authenticatedFetch<CreateRsvpResponse>(`${API_URL}/rsvp/admin`, {
+export async function createRsvp(
+  data: AdminRsvpRequest,
+  weddingId?: string
+): Promise<CreateRsvpResponse> {
+  return authenticatedFetch<CreateRsvpResponse>(buildAdminUrl('/rsvps', weddingId), {
     method: 'POST',
     body: JSON.stringify(data),
   })
 }
 
-export async function updateRsvp(id: string, data: AdminRsvpRequest): Promise<UpdateRsvpResponse> {
-  return authenticatedFetch<UpdateRsvpResponse>(`${API_URL}/rsvp/${encodeURIComponent(id)}`, {
-    method: 'PUT',
-    body: JSON.stringify(data),
-  })
+export async function updateRsvp(
+  id: string,
+  data: AdminRsvpRequest,
+  weddingId?: string
+): Promise<UpdateRsvpResponse> {
+  return authenticatedFetch<UpdateRsvpResponse>(
+    buildAdminUrl(`/rsvps/${encodeURIComponent(id)}`, weddingId),
+    {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }
+  )
 }
 
-export async function deleteRsvp(id: string): Promise<DeleteRsvpResponse> {
-  return authenticatedFetch<DeleteRsvpResponse>(`${API_URL}/rsvp/${encodeURIComponent(id)}`, {
-    method: 'DELETE',
-  })
+export async function deleteRsvp(id: string, weddingId?: string): Promise<DeleteRsvpResponse> {
+  return authenticatedFetch<DeleteRsvpResponse>(
+    buildAdminUrl(`/rsvps/${encodeURIComponent(id)}`, weddingId),
+    {
+      method: 'DELETE',
+    }
+  )
 }
 
 export async function adminLogin(data: AdminLoginRequest): Promise<AdminLoginResponse> {
@@ -294,17 +355,23 @@ export async function setNewPassword(data: SetNewPasswordRequest): Promise<SetNe
 
 // Gallery API functions
 
-export async function listGalleryImages(): Promise<ListImagesResponse> {
-  return authenticatedFetch<ListImagesResponse>(`${API_URL}/images`, {
+export async function listGalleryImages(weddingId?: string): Promise<ListImagesResponse> {
+  return authenticatedFetch<ListImagesResponse>(buildAdminUrl('/images', weddingId), {
     method: 'GET',
   })
 }
 
-export async function getPresignedUrl(data: PresignedUrlRequest): Promise<PresignedUrlResponse> {
-  return authenticatedFetch<PresignedUrlResponse>(`${API_URL}/images/presigned-url`, {
-    method: 'POST',
-    body: JSON.stringify(data),
-  })
+export async function getPresignedUrl(
+  data: PresignedUrlRequest,
+  weddingId?: string
+): Promise<PresignedUrlResponse> {
+  return authenticatedFetch<PresignedUrlResponse>(
+    buildAdminUrl('/images/presigned-url', weddingId),
+    {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }
+  )
 }
 
 export async function uploadToS3(
@@ -324,40 +391,49 @@ export async function uploadToS3(
 }
 
 export async function confirmImageUpload(
-  data: ConfirmUploadRequest
+  data: ConfirmUploadRequest,
+  weddingId?: string
 ): Promise<ConfirmUploadResponse> {
-  return authenticatedFetch<ConfirmUploadResponse>(`${API_URL}/images/confirm`, {
+  return authenticatedFetch<ConfirmUploadResponse>(buildAdminUrl('/images/confirm', weddingId), {
     method: 'POST',
     body: JSON.stringify(data),
   })
 }
 
-export async function deleteGalleryImage(imageId: string): Promise<DeleteImageResponse> {
+export async function deleteGalleryImage(
+  imageId: string,
+  weddingId?: string
+): Promise<DeleteImageResponse> {
   return authenticatedFetch<DeleteImageResponse>(
-    `${API_URL}/images/${encodeURIComponent(imageId)}`,
+    buildAdminUrl(`/images/${encodeURIComponent(imageId)}`, weddingId),
     { method: 'DELETE' }
   )
 }
 
 export async function reorderGalleryImages(
-  data: ReorderImagesRequest
+  data: ReorderImagesRequest,
+  weddingId?: string
 ): Promise<{ success: boolean; error?: string }> {
-  return authenticatedFetch<{ success: boolean; error?: string }>(`${API_URL}/images/reorder`, {
-    method: 'PUT',
-    body: JSON.stringify(data),
-  })
+  return authenticatedFetch<{ success: boolean; error?: string }>(
+    buildAdminUrl('/images/reorder', weddingId),
+    {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }
+  )
 }
 
-export async function getGallerySettings(): Promise<SettingsResponse> {
-  return authenticatedFetch<SettingsResponse>(`${API_URL}/images/settings`, {
+export async function getGallerySettings(weddingId?: string): Promise<SettingsResponse> {
+  return authenticatedFetch<SettingsResponse>(buildAdminUrl('/images/settings', weddingId), {
     method: 'GET',
   })
 }
 
 export async function updateGallerySettings(
-  data: UpdateSettingsRequest
+  data: UpdateSettingsRequest,
+  weddingId?: string
 ): Promise<SettingsResponse> {
-  return authenticatedFetch<SettingsResponse>(`${API_URL}/images/settings`, {
+  return authenticatedFetch<SettingsResponse>(buildAdminUrl('/images/settings', weddingId), {
     method: 'PUT',
     body: JSON.stringify(data),
   })
@@ -365,8 +441,8 @@ export async function updateGallerySettings(
 
 // Venue API functions
 
-export async function getVenue(): Promise<VenueData> {
-  const response = await fetch(`${API_URL}/venue`, {
+export async function getVenue(weddingSlug?: string): Promise<VenueData> {
+  const response = await fetch(buildPublicUrl('/venue', weddingSlug), {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',
@@ -377,8 +453,11 @@ export async function getVenue(): Promise<VenueData> {
   return unwrapResponse(json)
 }
 
-export async function updateVenue(data: VenueUpdateRequest): Promise<VenueData> {
-  return authenticatedFetch<VenueData>(`${API_URL}/venue`, {
+export async function updateVenue(
+  data: VenueUpdateRequest,
+  weddingId?: string
+): Promise<VenueData> {
+  return authenticatedFetch<VenueData>(buildAdminUrl('/venue', weddingId), {
     method: 'PUT',
     body: JSON.stringify(data),
   })
@@ -386,8 +465,8 @@ export async function updateVenue(data: VenueUpdateRequest): Promise<VenueData> 
 
 // Parking Images API functions
 
-export async function listParkingImages(): Promise<ParkingImagesResponse> {
-  const response = await fetch(`${API_URL}/parking/images`, {
+export async function listParkingImages(weddingSlug?: string): Promise<ParkingImagesResponse> {
+  const response = await fetch(buildPublicUrl('/parking', weddingSlug), {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',
@@ -399,35 +478,44 @@ export async function listParkingImages(): Promise<ParkingImagesResponse> {
 }
 
 export async function getParkingPresignedUrl(
-  data: ParkingImageUploadRequest
+  data: ParkingImageUploadRequest,
+  weddingId?: string
 ): Promise<ParkingPresignedUrlResponse> {
-  return authenticatedFetch<ParkingPresignedUrlResponse>(`${API_URL}/parking/presigned-url`, {
-    method: 'POST',
-    body: JSON.stringify(data),
-  })
+  return authenticatedFetch<ParkingPresignedUrlResponse>(
+    buildAdminUrl('/parking/presigned-url', weddingId),
+    {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }
+  )
 }
 
 export async function confirmParkingUpload(
-  data: ParkingConfirmUploadRequest
+  data: ParkingConfirmUploadRequest,
+  weddingId?: string
 ): Promise<ParkingImage> {
-  return authenticatedFetch<ParkingImage>(`${API_URL}/parking/confirm`, {
+  return authenticatedFetch<ParkingImage>(buildAdminUrl('/parking/confirm', weddingId), {
     method: 'POST',
     body: JSON.stringify(data),
   })
 }
 
-export async function deleteParkingImage(imageId: string): Promise<{ message: string }> {
+export async function deleteParkingImage(
+  imageId: string,
+  weddingId?: string
+): Promise<{ message: string }> {
   return authenticatedFetch<{ message: string }>(
-    `${API_URL}/parking/images/${encodeURIComponent(imageId)}`,
+    buildAdminUrl(`/parking/${encodeURIComponent(imageId)}`, weddingId),
     { method: 'DELETE' }
   )
 }
 
 export async function reorderParkingImages(
-  imageIds: string[]
+  imageIds: string[],
+  weddingId?: string
 ): Promise<{ message: string; newOrder: string[] }> {
   return authenticatedFetch<{ message: string; newOrder: string[] }>(
-    `${API_URL}/parking/images/reorder`,
+    buildAdminUrl('/parking/reorder', weddingId),
     {
       method: 'PUT',
       body: JSON.stringify({ imageIds }),
@@ -437,8 +525,8 @@ export async function reorderParkingImages(
 
 // Wedding Details API functions
 
-export async function getWeddingDetails(): Promise<WeddingDetailsData> {
-  const response = await fetch(`${API_URL}/wedding-details`, {
+export async function getWeddingDetails(weddingSlug?: string): Promise<WeddingDetailsData> {
+  const response = await fetch(buildPublicUrl('/wedding-details', weddingSlug), {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',
@@ -450,9 +538,10 @@ export async function getWeddingDetails(): Promise<WeddingDetailsData> {
 }
 
 export async function updateWeddingDetails(
-  data: WeddingDetailsUpdateRequest
+  data: WeddingDetailsUpdateRequest,
+  weddingId?: string
 ): Promise<WeddingDetailsData> {
-  return authenticatedFetch<WeddingDetailsData>(`${API_URL}/wedding-details`, {
+  return authenticatedFetch<WeddingDetailsData>(buildAdminUrl('/wedding-details', weddingId), {
     method: 'PUT',
     body: JSON.stringify(data),
   })
@@ -460,8 +549,8 @@ export async function updateWeddingDetails(
 
 // Schedule API functions
 
-export async function getSchedule(): Promise<ScheduleData> {
-  const response = await fetch(`${API_URL}/schedule`, {
+export async function getSchedule(weddingSlug?: string): Promise<ScheduleData> {
+  const response = await fetch(buildPublicUrl('/schedule', weddingSlug), {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',
@@ -472,8 +561,17 @@ export async function getSchedule(): Promise<ScheduleData> {
   return unwrapResponse(json)
 }
 
-export async function updateSchedule(data: ScheduleUpdateRequest): Promise<ScheduleData> {
-  return authenticatedFetch<ScheduleData>(`${API_URL}/schedule`, {
+export async function getScheduleAdmin(weddingId?: string): Promise<ScheduleData> {
+  return authenticatedFetch<ScheduleData>(buildAdminUrl('/schedule', weddingId), {
+    method: 'GET',
+  })
+}
+
+export async function updateSchedule(
+  data: ScheduleUpdateRequest,
+  weddingId?: string
+): Promise<ScheduleData> {
+  return authenticatedFetch<ScheduleData>(buildAdminUrl('/schedule', weddingId), {
     method: 'PUT',
     body: JSON.stringify(data),
   })
@@ -481,8 +579,8 @@ export async function updateSchedule(data: ScheduleUpdateRequest): Promise<Sched
 
 // Contacts API functions
 
-export async function getContacts(): Promise<ContactsData> {
-  const response = await fetch(`${API_URL}/contacts`, {
+export async function getContacts(weddingSlug?: string): Promise<ContactsData> {
+  const response = await fetch(buildPublicUrl('/contacts', weddingSlug), {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',
@@ -493,8 +591,17 @@ export async function getContacts(): Promise<ContactsData> {
   return unwrapResponse(json)
 }
 
-export async function updateContacts(data: ContactsUpdateRequest): Promise<ContactsData> {
-  return authenticatedFetch<ContactsData>(`${API_URL}/contacts`, {
+export async function getContactsAdmin(weddingId?: string): Promise<ContactsData> {
+  return authenticatedFetch<ContactsData>(buildAdminUrl('/contacts', weddingId), {
+    method: 'GET',
+  })
+}
+
+export async function updateContacts(
+  data: ContactsUpdateRequest,
+  weddingId?: string
+): Promise<ContactsData> {
+  return authenticatedFetch<ContactsData>(buildAdminUrl('/contacts', weddingId), {
     method: 'PUT',
     body: JSON.stringify(data),
   })
@@ -502,8 +609,8 @@ export async function updateContacts(data: ContactsUpdateRequest): Promise<Conta
 
 // Music API functions
 
-export async function getMusic(): Promise<MusicResponse> {
-  const response = await fetch(`${API_URL}/music`, {
+export async function getMusic(weddingSlug?: string): Promise<MusicResponse> {
+  const response = await fetch(buildPublicUrl('/music', weddingSlug), {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',
@@ -514,22 +621,36 @@ export async function getMusic(): Promise<MusicResponse> {
   return unwrapResponse(json)
 }
 
-export async function updateMusicSettings(
-  data: MusicSettingsUpdateRequest
-): Promise<MusicSettingsUpdateResponse> {
-  return authenticatedFetch<MusicSettingsUpdateResponse>(`${API_URL}/music/settings`, {
-    method: 'PUT',
-    body: JSON.stringify(data),
+export async function getMusicAdmin(weddingId?: string): Promise<MusicResponse> {
+  return authenticatedFetch<MusicResponse>(buildAdminUrl('/music', weddingId), {
+    method: 'GET',
   })
 }
 
+export async function updateMusicSettings(
+  data: MusicSettingsUpdateRequest,
+  weddingId?: string
+): Promise<MusicSettingsUpdateResponse> {
+  return authenticatedFetch<MusicSettingsUpdateResponse>(
+    buildAdminUrl('/music/settings', weddingId),
+    {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }
+  )
+}
+
 export async function getMusicPresignedUrl(
-  data: MusicPresignedUrlRequest
+  data: MusicPresignedUrlRequest,
+  weddingId?: string
 ): Promise<MusicPresignedUrlResponse> {
-  return authenticatedFetch<MusicPresignedUrlResponse>(`${API_URL}/music/upload-url`, {
-    method: 'POST',
-    body: JSON.stringify(data),
-  })
+  return authenticatedFetch<MusicPresignedUrlResponse>(
+    buildAdminUrl('/music/upload-url', weddingId),
+    {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }
+  )
 }
 
 export async function uploadMusicToS3(
@@ -548,22 +669,31 @@ export async function uploadMusicToS3(
   return response.ok
 }
 
-export async function confirmMusicUpload(data: MusicConfirmRequest): Promise<MusicConfirmResponse> {
-  return authenticatedFetch<MusicConfirmResponse>(`${API_URL}/music/confirm`, {
+export async function confirmMusicUpload(
+  data: MusicConfirmRequest,
+  weddingId?: string
+): Promise<MusicConfirmResponse> {
+  return authenticatedFetch<MusicConfirmResponse>(buildAdminUrl('/music/confirm', weddingId), {
     method: 'POST',
     body: JSON.stringify(data),
   })
 }
 
-export async function deleteMusicTrack(trackId: string): Promise<MusicDeleteResponse> {
+export async function deleteMusicTrack(
+  trackId: string,
+  weddingId?: string
+): Promise<MusicDeleteResponse> {
   return authenticatedFetch<MusicDeleteResponse>(
-    `${API_URL}/music/${encodeURIComponent(trackId)}`,
+    buildAdminUrl(`/music/${encodeURIComponent(trackId)}`, weddingId),
     { method: 'DELETE' }
   )
 }
 
-export async function reorderMusicTracks(data: MusicReorderRequest): Promise<MusicReorderResponse> {
-  return authenticatedFetch<MusicReorderResponse>(`${API_URL}/music/reorder`, {
+export async function reorderMusicTracks(
+  data: MusicReorderRequest,
+  weddingId?: string
+): Promise<MusicReorderResponse> {
+  return authenticatedFetch<MusicReorderResponse>(buildAdminUrl('/music/reorder', weddingId), {
     method: 'PUT',
     body: JSON.stringify(data),
   })
@@ -571,8 +701,8 @@ export async function reorderMusicTracks(data: MusicReorderRequest): Promise<Mus
 
 // Theme API functions
 
-export async function getTheme(): Promise<ThemeSettings> {
-  const response = await fetch(`${API_URL}/theme`, {
+export async function getTheme(weddingSlug?: string): Promise<ThemeSettings> {
+  const response = await fetch(buildPublicUrl('/theme', weddingSlug), {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',
@@ -583,8 +713,11 @@ export async function getTheme(): Promise<ThemeSettings> {
   return unwrapResponse(json)
 }
 
-export async function updateTheme(data: ThemeUpdateRequest): Promise<ThemeSettings> {
-  return authenticatedFetch<ThemeSettings>(`${API_URL}/theme`, {
+export async function updateTheme(
+  data: ThemeUpdateRequest,
+  weddingId?: string
+): Promise<ThemeSettings> {
+  return authenticatedFetch<ThemeSettings>(buildAdminUrl('/theme', weddingId), {
     method: 'PUT',
     body: JSON.stringify(data),
   })
@@ -592,8 +725,8 @@ export async function updateTheme(data: ThemeUpdateRequest): Promise<ThemeSettin
 
 // Gift Registry API functions
 
-export async function listGifts(): Promise<GiftListResponse> {
-  const response = await fetch(`${API_URL}/gifts`, {
+export async function listGifts(weddingSlug?: string): Promise<GiftListResponse> {
+  const response = await fetch(buildPublicUrl('/gifts', weddingSlug), {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',
@@ -604,46 +737,73 @@ export async function listGifts(): Promise<GiftListResponse> {
   return unwrapResponse(json)
 }
 
-export async function createGift(data: CreateGiftRequest): Promise<CreateGiftResponse> {
-  return authenticatedFetch<CreateGiftResponse>(`${API_URL}/gifts`, {
+export async function listGiftsAdmin(weddingId?: string): Promise<GiftListResponse> {
+  return authenticatedFetch<GiftListResponse>(buildAdminUrl('/gifts', weddingId), {
+    method: 'GET',
+  })
+}
+
+export async function createGift(
+  data: CreateGiftRequest,
+  weddingId?: string
+): Promise<CreateGiftResponse> {
+  return authenticatedFetch<CreateGiftResponse>(buildAdminUrl('/gifts', weddingId), {
     method: 'POST',
     body: JSON.stringify(data),
   })
 }
 
-export async function updateGift(id: string, data: UpdateGiftRequest): Promise<UpdateGiftResponse> {
-  return authenticatedFetch<UpdateGiftResponse>(`${API_URL}/gifts/${encodeURIComponent(id)}`, {
-    method: 'PUT',
-    body: JSON.stringify(data),
-  })
+export async function updateGift(
+  id: string,
+  data: UpdateGiftRequest,
+  weddingId?: string
+): Promise<UpdateGiftResponse> {
+  return authenticatedFetch<UpdateGiftResponse>(
+    buildAdminUrl(`/gifts/${encodeURIComponent(id)}`, weddingId),
+    {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }
+  )
 }
 
-export async function deleteGift(id: string): Promise<DeleteGiftResponse> {
-  return authenticatedFetch<DeleteGiftResponse>(`${API_URL}/gifts/${encodeURIComponent(id)}`, {
-    method: 'DELETE',
-  })
+export async function deleteGift(id: string, weddingId?: string): Promise<DeleteGiftResponse> {
+  return authenticatedFetch<DeleteGiftResponse>(
+    buildAdminUrl(`/gifts/${encodeURIComponent(id)}`, weddingId),
+    {
+      method: 'DELETE',
+    }
+  )
 }
 
-export async function reorderGifts(data: ReorderGiftsRequest): Promise<ReorderGiftsResponse> {
-  return authenticatedFetch<ReorderGiftsResponse>(`${API_URL}/gifts/reorder`, {
+export async function reorderGifts(
+  data: ReorderGiftsRequest,
+  weddingId?: string
+): Promise<ReorderGiftsResponse> {
+  return authenticatedFetch<ReorderGiftsResponse>(buildAdminUrl('/gifts/reorder', weddingId), {
     method: 'PUT',
     body: JSON.stringify(data),
   })
 }
 
 export async function getGiftPresignedUrl(
-  data: GiftPresignedUrlRequest
+  data: GiftPresignedUrlRequest,
+  weddingId?: string
 ): Promise<GiftPresignedUrlResponse> {
-  return authenticatedFetch<GiftPresignedUrlResponse>(`${API_URL}/gifts/presigned-url`, {
-    method: 'POST',
-    body: JSON.stringify(data),
-  })
+  return authenticatedFetch<GiftPresignedUrlResponse>(
+    buildAdminUrl('/gifts/presigned-url', weddingId),
+    {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }
+  )
 }
 
 export async function confirmGiftUpload(
-  data: GiftConfirmUploadRequest
+  data: GiftConfirmUploadRequest,
+  weddingId?: string
 ): Promise<GiftConfirmUploadResponse> {
-  return authenticatedFetch<GiftConfirmUploadResponse>(`${API_URL}/gifts/confirm`, {
+  return authenticatedFetch<GiftConfirmUploadResponse>(buildAdminUrl('/gifts/confirm', weddingId), {
     method: 'POST',
     body: JSON.stringify(data),
   })
@@ -651,35 +811,46 @@ export async function confirmGiftUpload(
 
 export async function reserveGift(
   giftId: string,
-  data: ReserveGiftRequest
+  data: ReserveGiftRequest,
+  weddingSlug?: string
 ): Promise<ReserveGiftResponse> {
-  const response = await fetch(`${API_URL}/gifts/${encodeURIComponent(giftId)}/reserve`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(data),
-  })
+  const response = await fetch(
+    buildPublicUrl(`/gifts/${encodeURIComponent(giftId)}/reserve`, weddingSlug),
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    }
+  )
 
   const json = (await response.json()) as ApiResponse<ReserveGiftResponse>
   return unwrapResponse(json)
 }
 
-export async function getGiftSettings(): Promise<GiftSettings> {
-  return authenticatedFetch<GiftSettings>(`${API_URL}/gifts/settings`, {
+export async function getGiftSettings(weddingId?: string): Promise<GiftSettings> {
+  return authenticatedFetch<GiftSettings>(buildAdminUrl('/gifts/settings', weddingId), {
     method: 'GET',
   })
 }
 
-export async function updateGiftSettings(data: GiftSettingsUpdateRequest): Promise<GiftSettings> {
-  return authenticatedFetch<GiftSettings>(`${API_URL}/gifts/settings`, {
+export async function updateGiftSettings(
+  data: GiftSettingsUpdateRequest,
+  weddingId?: string
+): Promise<GiftSettings> {
+  return authenticatedFetch<GiftSettings>(buildAdminUrl('/gifts/settings', weddingId), {
     method: 'PUT',
     body: JSON.stringify(data),
   })
 }
 
-export async function listGiftReservations(giftId?: string): Promise<ReservationListResponse> {
-  const url = new URL(`${API_URL}/gifts/reservations`)
+export async function listGiftReservations(
+  giftId?: string,
+  weddingId?: string
+): Promise<ReservationListResponse> {
+  const baseUrl = buildAdminUrl('/gifts/reservations', weddingId)
+  const url = new URL(baseUrl)
   if (giftId) {
     url.searchParams.set('giftId', giftId)
   }
@@ -697,8 +868,8 @@ export async function listGiftReservations(giftId?: string): Promise<Reservation
  * Public gallery images fetch (no auth required)
  * Used by GallerySection on the public page
  */
-export async function listGalleryImagesPublic(): Promise<ListImagesResponse> {
-  const response = await fetch(`${API_URL}/images`, {
+export async function listGalleryImagesPublic(weddingSlug?: string): Promise<ListImagesResponse> {
+  const response = await fetch(buildPublicUrl('/gallery', weddingSlug), {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',
@@ -713,8 +884,8 @@ export async function listGalleryImagesPublic(): Promise<ListImagesResponse> {
  * Public RSVP list fetch (no auth required for guestbook wishes)
  * Used by GuestbookSection on the public page
  */
-export async function listRsvpsPublic(): Promise<RsvpListResponse> {
-  const response = await fetch(`${API_URL}/rsvp`, {
+export async function listRsvpsPublic(weddingSlug?: string): Promise<RsvpListResponse> {
+  const response = await fetch(buildPublicUrl('/rsvps', weddingSlug), {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',
@@ -726,56 +897,100 @@ export async function listRsvpsPublic(): Promise<RsvpListResponse> {
 }
 
 // Cached versions of public GET endpoints
+// All cached functions now support optional wedding slug/id for multi-tenant
 
-export function getVenueCached(forceRefresh = false): Promise<VenueData> {
-  return cachedFetch(CACHE_KEYS.VENUE, getVenue, forceRefresh)
+export function getVenueCached(weddingSlug?: string, forceRefresh = false): Promise<VenueData> {
+  const cacheKey = weddingSlug ? `${CACHE_KEYS.VENUE}-${weddingSlug}` : CACHE_KEYS.VENUE
+  return cachedFetch(cacheKey, () => getVenue(weddingSlug), forceRefresh)
 }
 
-export function getWeddingDetailsCached(forceRefresh = false): Promise<WeddingDetailsData> {
-  return cachedFetch(CACHE_KEYS.WEDDING_DETAILS, getWeddingDetails, forceRefresh)
+export function getWeddingDetailsCached(
+  weddingSlug?: string,
+  forceRefresh = false
+): Promise<WeddingDetailsData> {
+  const cacheKey = weddingSlug
+    ? `${CACHE_KEYS.WEDDING_DETAILS}-${weddingSlug}`
+    : CACHE_KEYS.WEDDING_DETAILS
+  return cachedFetch(cacheKey, () => getWeddingDetails(weddingSlug), forceRefresh)
 }
 
-export function getScheduleCached(forceRefresh = false): Promise<ScheduleData> {
-  return cachedFetch(CACHE_KEYS.SCHEDULE, getSchedule, forceRefresh)
+export function getScheduleCached(
+  weddingSlug?: string,
+  forceRefresh = false
+): Promise<ScheduleData> {
+  const cacheKey = weddingSlug ? `${CACHE_KEYS.SCHEDULE}-${weddingSlug}` : CACHE_KEYS.SCHEDULE
+  return cachedFetch(cacheKey, () => getSchedule(weddingSlug), forceRefresh)
 }
 
-export function getContactsCached(forceRefresh = false): Promise<ContactsData> {
-  return cachedFetch(CACHE_KEYS.CONTACTS, getContacts, forceRefresh)
+export function getContactsCached(
+  weddingSlug?: string,
+  forceRefresh = false
+): Promise<ContactsData> {
+  const cacheKey = weddingSlug ? `${CACHE_KEYS.CONTACTS}-${weddingSlug}` : CACHE_KEYS.CONTACTS
+  return cachedFetch(cacheKey, () => getContacts(weddingSlug), forceRefresh)
 }
 
-export function getMusicCached(forceRefresh = false): Promise<MusicResponse> {
-  return cachedFetch(CACHE_KEYS.MUSIC, getMusic, forceRefresh)
+export function getMusicCached(weddingSlug?: string, forceRefresh = false): Promise<MusicResponse> {
+  const cacheKey = weddingSlug ? `${CACHE_KEYS.MUSIC}-${weddingSlug}` : CACHE_KEYS.MUSIC
+  return cachedFetch(cacheKey, () => getMusic(weddingSlug), forceRefresh)
 }
 
-export function getThemeCached(forceRefresh = false): Promise<ThemeSettings> {
-  return cachedFetch(CACHE_KEYS.THEME, getTheme, forceRefresh)
+export function getThemeCached(weddingSlug?: string, forceRefresh = false): Promise<ThemeSettings> {
+  const cacheKey = weddingSlug ? `${CACHE_KEYS.THEME}-${weddingSlug}` : CACHE_KEYS.THEME
+  return cachedFetch(cacheKey, () => getTheme(weddingSlug), forceRefresh)
 }
 
-export function listGalleryImagesCached(forceRefresh = false): Promise<ListImagesResponse> {
-  return cachedFetch(CACHE_KEYS.GALLERY_IMAGES, listGalleryImagesPublic, forceRefresh)
+export function listGalleryImagesCached(
+  weddingSlug?: string,
+  forceRefresh = false
+): Promise<ListImagesResponse> {
+  const cacheKey = weddingSlug
+    ? `${CACHE_KEYS.GALLERY_IMAGES}-${weddingSlug}`
+    : CACHE_KEYS.GALLERY_IMAGES
+  return cachedFetch(cacheKey, () => listGalleryImagesPublic(weddingSlug), forceRefresh)
 }
 
-export function listRsvpsCached(forceRefresh = false): Promise<RsvpListResponse> {
-  return cachedFetch(CACHE_KEYS.RSVPS, listRsvpsPublic, forceRefresh)
+export function listRsvpsCached(
+  weddingSlug?: string,
+  forceRefresh = false
+): Promise<RsvpListResponse> {
+  const cacheKey = weddingSlug ? `${CACHE_KEYS.RSVPS}-${weddingSlug}` : CACHE_KEYS.RSVPS
+  return cachedFetch(cacheKey, () => listRsvpsPublic(weddingSlug), forceRefresh)
 }
 
-export function listGiftsCached(forceRefresh = false): Promise<GiftListResponse> {
-  return cachedFetch(CACHE_KEYS.GIFTS, listGifts, forceRefresh)
+export function listGiftsCached(
+  weddingSlug?: string,
+  forceRefresh = false
+): Promise<GiftListResponse> {
+  const cacheKey = weddingSlug ? `${CACHE_KEYS.GIFTS}-${weddingSlug}` : CACHE_KEYS.GIFTS
+  return cachedFetch(cacheKey, () => listGifts(weddingSlug), forceRefresh)
 }
 
 // Admin cached versions (authenticated)
-export function listRsvpsAdminCached(forceRefresh = false): Promise<RsvpListResponse> {
-  return cachedFetch(`${CACHE_KEYS.RSVPS}-admin`, () => listRsvps(), forceRefresh)
+export function listRsvpsAdminCached(
+  weddingId?: string,
+  forceRefresh = false
+): Promise<RsvpListResponse> {
+  const cacheKey = weddingId
+    ? `${CACHE_KEYS.RSVPS}-admin-${weddingId}`
+    : `${CACHE_KEYS.RSVPS}-admin`
+  return cachedFetch(cacheKey, () => listRsvps(undefined, weddingId), forceRefresh)
 }
 
-export function listGalleryImagesAdminCached(forceRefresh = false): Promise<ListImagesResponse> {
-  return cachedFetch(`${CACHE_KEYS.GALLERY_IMAGES}-admin`, listGalleryImages, forceRefresh)
+export function listGalleryImagesAdminCached(
+  weddingId?: string,
+  forceRefresh = false
+): Promise<ListImagesResponse> {
+  const cacheKey = weddingId
+    ? `${CACHE_KEYS.GALLERY_IMAGES}-admin-${weddingId}`
+    : `${CACHE_KEYS.GALLERY_IMAGES}-admin`
+  return cachedFetch(cacheKey, () => listGalleryImages(weddingId), forceRefresh)
 }
 
 // QR Code Hub API functions
 
-export async function getQRCodeHub(): Promise<QRCodeHubSettings> {
-  const response = await fetch(`${API_URL}/qrcode-hub`, {
+export async function getQRCodeHub(weddingSlug?: string): Promise<QRCodeHubSettings> {
+  const response = await fetch(buildPublicUrl('/qrcode-hub', weddingSlug), {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',
@@ -786,25 +1001,136 @@ export async function getQRCodeHub(): Promise<QRCodeHubSettings> {
   return unwrapResponse(json)
 }
 
-export async function updateQRCodeHub(data: QRCodeHubUpdateRequest): Promise<QRCodeHubSettings> {
-  return authenticatedFetch<QRCodeHubSettings>(`${API_URL}/qrcode-hub`, {
+export async function getQRCodeHubAdmin(weddingId?: string): Promise<QRCodeHubSettings> {
+  return authenticatedFetch<QRCodeHubSettings>(buildAdminUrl('/qrcode-hub', weddingId), {
+    method: 'GET',
+  })
+}
+
+export async function updateQRCodeHub(
+  data: QRCodeHubUpdateRequest,
+  weddingId?: string
+): Promise<QRCodeHubSettings> {
+  return authenticatedFetch<QRCodeHubSettings>(buildAdminUrl('/qrcode-hub', weddingId), {
     method: 'PUT',
     body: JSON.stringify(data),
   })
 }
 
 export async function getQRCodeHubPresignedUrl(
-  data: QRCodeHubPresignedUrlRequest
+  data: QRCodeHubPresignedUrlRequest,
+  weddingId?: string
 ): Promise<QRCodeHubPresignedUrlResponse> {
-  return authenticatedFetch<QRCodeHubPresignedUrlResponse>(`${API_URL}/qrcode-hub/presigned-url`, {
+  return authenticatedFetch<QRCodeHubPresignedUrlResponse>(
+    buildAdminUrl('/qrcode-hub/presigned-url', weddingId),
+    {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }
+  )
+}
+
+export function getQRCodeHubCached(
+  weddingSlug?: string,
+  forceRefresh = false
+): Promise<QRCodeHubSettings> {
+  const cacheKey = weddingSlug ? `${CACHE_KEYS.QRCODE_HUB}-${weddingSlug}` : CACHE_KEYS.QRCODE_HUB
+  return cachedFetch(cacheKey, () => getQRCodeHub(weddingSlug), forceRefresh)
+}
+
+// Re-export clearCache for components that need to invalidate cache
+export { clearCache }
+
+// ============================================
+// Super Admin API Functions
+// ============================================
+
+const SUPERADMIN_URL = `${API_URL}/superadmin`
+
+export async function listWeddings(): Promise<ListWeddingsResponse> {
+  return authenticatedFetch<ListWeddingsResponse>(`${SUPERADMIN_URL}/weddings`, {
+    method: 'GET',
+  })
+}
+
+export async function getWeddingById(weddingId: string): Promise<WeddingDetailResponse> {
+  return authenticatedFetch<WeddingDetailResponse>(
+    `${SUPERADMIN_URL}/weddings/${encodeURIComponent(weddingId)}`,
+    { method: 'GET' }
+  )
+}
+
+export async function createWedding(data: CreateWeddingRequest): Promise<CreateWeddingResponse> {
+  return authenticatedFetch<CreateWeddingResponse>(`${SUPERADMIN_URL}/weddings`, {
     method: 'POST',
     body: JSON.stringify(data),
   })
 }
 
-export function getQRCodeHubCached(forceRefresh = false): Promise<QRCodeHubSettings> {
-  return cachedFetch(CACHE_KEYS.QRCODE_HUB, getQRCodeHub, forceRefresh)
+export async function updateWeddingById(
+  weddingId: string,
+  data: UpdateWeddingRequest
+): Promise<Wedding> {
+  const response = await authenticatedFetch<UpdateWeddingResponse>(
+    `${SUPERADMIN_URL}/weddings/${encodeURIComponent(weddingId)}`,
+    {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }
+  )
+  return response.wedding
 }
 
-// Re-export clearCache for components that need to invalidate cache
-export { clearCache }
+export async function archiveWedding(weddingId: string): Promise<{ message: string }> {
+  return authenticatedFetch<{ message: string }>(
+    `${SUPERADMIN_URL}/weddings/${encodeURIComponent(weddingId)}`,
+    { method: 'DELETE' }
+  )
+}
+
+export async function addWeddingOwner(
+  weddingId: string,
+  data: AddWeddingOwnerRequest
+): Promise<AddWeddingOwnerResponse> {
+  return authenticatedFetch<AddWeddingOwnerResponse>(
+    `${SUPERADMIN_URL}/weddings/${encodeURIComponent(weddingId)}/users`,
+    {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }
+  )
+}
+
+export async function updateWeddingOwner(
+  weddingId: string,
+  username: string,
+  data: UpdateWeddingOwnerRequest
+): Promise<UpdateWeddingOwnerResponse> {
+  return authenticatedFetch<UpdateWeddingOwnerResponse>(
+    `${SUPERADMIN_URL}/weddings/${encodeURIComponent(weddingId)}/users/${encodeURIComponent(username)}`,
+    {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }
+  )
+}
+
+export async function removeWeddingOwner(
+  weddingId: string,
+  username: string
+): Promise<RemoveWeddingOwnerResponse> {
+  return authenticatedFetch<RemoveWeddingOwnerResponse>(
+    `${SUPERADMIN_URL}/weddings/${encodeURIComponent(weddingId)}/users/${encodeURIComponent(username)}`,
+    { method: 'DELETE' }
+  )
+}
+
+export async function resetOwnerPassword(
+  weddingId: string,
+  username: string
+): Promise<ResetOwnerPasswordResponse> {
+  return authenticatedFetch<ResetOwnerPasswordResponse>(
+    `${SUPERADMIN_URL}/weddings/${encodeURIComponent(weddingId)}/users/${encodeURIComponent(username)}/reset-password`,
+    { method: 'POST' }
+  )
+}

@@ -9,6 +9,7 @@ import type {
 import type { UploadState, UploadProgress } from '@/types/upload'
 import {
   listGifts,
+  listGiftsAdmin,
   createGift,
   updateGift,
   deleteGift,
@@ -20,6 +21,7 @@ import {
   updateGiftSettings,
   listGiftReservations,
 } from '@/services/api'
+import { compressImage, formatBytes } from '@/utils/imageCompression'
 
 // Allowed MIME types for gift images
 const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp']
@@ -52,6 +54,10 @@ const isDeleting = ref(false)
 const isReordering = ref(false)
 const uploadProgress = ref<Map<string, UploadState>>(new Map())
 const uploadControllers = ref<Map<string, AbortController>>(new Map())
+
+// Multi-tenant context tracking
+const currentWeddingSlug = ref<string | null>(null)
+const currentWeddingId = ref<string | null>(null)
 
 export function useGifts() {
   // Computed
@@ -91,6 +97,9 @@ export function useGifts() {
       if (state.error !== undefined) {
         upload.error = state.error
       }
+      if (state.compression !== undefined) {
+        upload.compression = state.compression
+      }
       uploads.push(upload)
     })
     return uploads
@@ -117,13 +126,18 @@ export function useGifts() {
     return { valid: true }
   }
 
-  // Fetch all gifts
-  const fetchGifts = async (): Promise<void> => {
+  // Fetch all gifts (public API - uses weddingSlug)
+  const fetchGifts = async (weddingSlug?: string): Promise<void> => {
     isLoading.value = true
     loadError.value = ''
 
+    // Track current wedding context
+    if (weddingSlug !== undefined) {
+      currentWeddingSlug.value = weddingSlug
+    }
+
     try {
-      const response = await listGifts()
+      const response = await listGifts(weddingSlug)
       gifts.value = response.gifts
     } catch (err) {
       loadError.value = err instanceof Error ? err.message : 'Failed to load gifts'
@@ -132,12 +146,41 @@ export function useGifts() {
     }
   }
 
-  // Fetch gift settings
-  const fetchSettings = async (): Promise<void> => {
-    isLoadingSettings.value = true
+  // Fetch all gifts (admin API - uses weddingId)
+  const fetchGiftsAdmin = async (weddingId?: string): Promise<void> => {
+    isLoading.value = true
+    loadError.value = ''
+
+    // Track current wedding context
+    if (weddingId !== undefined) {
+      currentWeddingId.value = weddingId
+    }
 
     try {
-      const response = await getGiftSettings()
+      const response = await listGiftsAdmin(weddingId)
+      gifts.value = response.gifts
+      // Admin response also includes settings
+      if (response.settings) {
+        settings.value = response.settings
+      }
+    } catch (err) {
+      loadError.value = err instanceof Error ? err.message : 'Failed to load gifts'
+    } finally {
+      isLoading.value = false
+    }
+  }
+
+  // Fetch gift settings
+  const fetchSettings = async (weddingId?: string): Promise<void> => {
+    isLoadingSettings.value = true
+
+    // Track current wedding context
+    if (weddingId !== undefined) {
+      currentWeddingId.value = weddingId
+    }
+
+    try {
+      const response = await getGiftSettings(weddingId)
       settings.value = response
     } catch (err) {
       console.error('Failed to load gift settings:', err)
@@ -147,11 +190,11 @@ export function useGifts() {
   }
 
   // Fetch reservations
-  const fetchReservations = async (giftId?: string): Promise<void> => {
+  const fetchReservations = async (giftId?: string, weddingId?: string): Promise<void> => {
     isLoadingReservations.value = true
 
     try {
-      const response = await listGiftReservations(giftId)
+      const response = await listGiftReservations(giftId, weddingId)
       reservations.value = response.reservations
       reservationSummary.value = response.summary
     } catch (err) {
@@ -163,13 +206,14 @@ export function useGifts() {
 
   // Create a new gift
   const createGiftItem = async (
-    data: CreateGiftRequest
+    data: CreateGiftRequest,
+    weddingId?: string
   ): Promise<{ success: boolean; giftId?: string; error?: string }> => {
     isCreating.value = true
     operationError.value = ''
 
     try {
-      const response = await createGift(data)
+      const response = await createGift(data, weddingId)
       // Add to local state
       const newGift: GiftItem = {
         id: response.id,
@@ -201,13 +245,14 @@ export function useGifts() {
   // Update an existing gift
   const updateGiftItem = async (
     id: string,
-    data: UpdateGiftRequest
+    data: UpdateGiftRequest,
+    weddingId?: string
   ): Promise<{ success: boolean; error?: string }> => {
     isUpdating.value = true
     operationError.value = ''
 
     try {
-      const response = await updateGift(id, data)
+      const response = await updateGift(id, data, weddingId)
       // Update local state
       const index = gifts.value.findIndex((g) => g.id === id)
       if (index !== -1) {
@@ -224,12 +269,15 @@ export function useGifts() {
   }
 
   // Delete a gift
-  const deleteGiftItem = async (id: string): Promise<{ success: boolean; error?: string }> => {
+  const deleteGiftItem = async (
+    id: string,
+    weddingId?: string
+  ): Promise<{ success: boolean; error?: string }> => {
     isDeleting.value = true
     operationError.value = ''
 
     try {
-      await deleteGift(id)
+      await deleteGift(id, weddingId)
       // Remove from local state
       gifts.value = gifts.value.filter((g) => g.id !== id)
       return { success: true }
@@ -244,13 +292,14 @@ export function useGifts() {
 
   // Reorder gifts
   const reorderGiftItems = async (
-    giftIds: string[]
+    giftIds: string[],
+    weddingId?: string
   ): Promise<{ success: boolean; error?: string }> => {
     isReordering.value = true
     operationError.value = ''
 
     try {
-      await reorderGifts({ giftIds })
+      await reorderGifts({ giftIds }, weddingId)
       // Update local state order
       giftIds.forEach((id, index) => {
         const gift = gifts.value.find((g) => g.id === id)
@@ -271,37 +320,76 @@ export function useGifts() {
   // Upload gift image
   const uploadGiftImage = async (
     giftId: string,
-    file: File
+    file: File,
+    weddingId?: string
   ): Promise<{ success: boolean; imageUrl?: string; error?: string }> => {
-    const validation = validateFile(file)
-    if (!validation.valid) {
-      return { success: false, error: validation.error ?? 'Validation failed' }
-    }
-
     const fileId = `${file.name}-${Date.now()}`
     const abortController = new AbortController()
     uploadControllers.value.set(fileId, abortController)
-    uploadProgress.value.set(fileId, { progress: 0, status: 'uploading' })
+    uploadProgress.value.set(fileId, { progress: 0, status: 'compressing' })
+
+    // Step 0: Compress image before upload
+    let fileToUpload = file
+    let compressionInfo:
+      | { originalSize: number; compressedSize: number; savedPercent: number }
+      | undefined
+    try {
+      const result = await compressImage(file)
+      fileToUpload = result.file
+      if (result.compressionRatio > 1) {
+        compressionInfo = {
+          originalSize: result.originalSize,
+          compressedSize: result.compressedSize,
+          savedPercent: Math.round((1 - result.compressedSize / result.originalSize) * 100),
+        }
+        console.log(
+          `[Gifts] Compressed: ${formatBytes(result.originalSize)} → ${formatBytes(result.compressedSize)} (${compressionInfo.savedPercent}% saved)`
+        )
+      }
+    } catch (compressionError) {
+      console.warn('[Gifts] Compression failed, using original:', compressionError)
+    }
+
+    // Validate the (possibly compressed) file
+    const validation = validateFile(fileToUpload)
+    if (!validation.valid) {
+      uploadProgress.value.delete(fileId)
+      uploadControllers.value.delete(fileId)
+      return { success: false, error: validation.error ?? 'Validation failed' }
+    }
+
+    uploadProgress.value.set(fileId, {
+      progress: 10,
+      status: 'uploading',
+      compression: compressionInfo,
+    })
 
     try {
       // Step 1: Get presigned URL
-      const presignedResponse = await getGiftPresignedUrl({
-        filename: file.name,
-        mimeType: file.type,
-        fileSize: file.size,
-        giftId,
-      })
+      const presignedResponse = await getGiftPresignedUrl(
+        {
+          filename: fileToUpload.name,
+          mimeType: fileToUpload.type,
+          fileSize: fileToUpload.size,
+          giftId,
+        },
+        weddingId
+      )
 
       if (abortController.signal.aborted) {
         throw new DOMException('Upload cancelled', 'AbortError')
       }
 
-      uploadProgress.value.set(fileId, { progress: 30, status: 'uploading' })
+      uploadProgress.value.set(fileId, {
+        progress: 30,
+        status: 'uploading',
+        compression: compressionInfo,
+      })
 
       // Step 2: Upload to S3
       const uploadSuccess = await uploadToS3(
         presignedResponse.uploadUrl,
-        file,
+        fileToUpload,
         abortController.signal
       )
       if (!uploadSuccess) {
@@ -309,23 +397,35 @@ export function useGifts() {
           progress: 30,
           status: 'error',
           error: 'Failed to upload file to storage',
+          compression: compressionInfo,
         })
         uploadControllers.value.delete(fileId)
         setTimeout(() => uploadProgress.value.delete(fileId), 5000)
         return { success: false, error: 'Failed to upload file to storage' }
       }
 
-      uploadProgress.value.set(fileId, { progress: 70, status: 'uploading' })
-
-      // Step 3: Confirm upload
-      const confirmResponse = await confirmGiftUpload({
-        giftId: presignedResponse.giftId,
-        s3Key: presignedResponse.s3Key,
-        filename: file.name,
-        mimeType: file.type,
+      uploadProgress.value.set(fileId, {
+        progress: 70,
+        status: 'uploading',
+        compression: compressionInfo,
       })
 
-      uploadProgress.value.set(fileId, { progress: 100, status: 'completed' })
+      // Step 3: Confirm upload
+      const confirmResponse = await confirmGiftUpload(
+        {
+          giftId: presignedResponse.giftId,
+          s3Key: presignedResponse.s3Key,
+          filename: fileToUpload.name,
+          mimeType: fileToUpload.type,
+        },
+        weddingId
+      )
+
+      uploadProgress.value.set(fileId, {
+        progress: 100,
+        status: 'completed',
+        compression: compressionInfo,
+      })
       uploadControllers.value.delete(fileId)
 
       // Update local state
@@ -373,10 +473,11 @@ export function useGifts() {
 
   // Update settings
   const updateSettings = async (
-    data: Partial<GiftSettings>
+    data: Partial<GiftSettings>,
+    weddingId?: string
   ): Promise<{ success: boolean; error?: string }> => {
     try {
-      const response = await updateGiftSettings(data)
+      const response = await updateGiftSettings(data, weddingId)
       settings.value = response
       return { success: true }
     } catch (err) {
@@ -388,11 +489,13 @@ export function useGifts() {
   }
 
   // Toggle enabled
-  const toggleEnabled = async (): Promise<{
+  const toggleEnabled = async (
+    weddingId?: string
+  ): Promise<{
     success: boolean
     error?: string
   }> => {
-    return updateSettings({ enabled: !settings.value.enabled })
+    return updateSettings({ enabled: !settings.value.enabled }, weddingId)
   }
 
   return {
@@ -412,6 +515,10 @@ export function useGifts() {
     isReordering,
     activeUploads,
 
+    // Multi-tenant context
+    currentWeddingSlug,
+    currentWeddingId,
+
     // Computed
     canAddMore,
     remainingSlots,
@@ -419,6 +526,7 @@ export function useGifts() {
 
     // Methods
     fetchGifts,
+    fetchGiftsAdmin,
     fetchSettings,
     fetchReservations,
     createGiftItem,

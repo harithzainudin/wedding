@@ -7,6 +7,7 @@ import type {
 import { DEFAULT_QRCODE_HUB_SETTINGS } from '@/types/qrCodeHub'
 import {
   getQRCodeHub,
+  getQRCodeHubAdmin,
   updateQRCodeHub,
   getQRCodeHubPresignedUrl,
   uploadToS3,
@@ -27,6 +28,10 @@ const loadError = ref('')
 const saveError = ref('')
 const uploadError = ref('')
 const uploadProgress = ref(0)
+
+// Multi-tenant context tracking
+const currentWeddingSlug = ref<string | null>(null)
+const currentWeddingId = ref<string | null>(null)
 
 export function useQRCodeHub() {
   // Computed
@@ -64,13 +69,39 @@ export function useQRCodeHub() {
     return { valid: true }
   }
 
-  // Fetch QR Code Hub settings
-  const fetchSettings = async (): Promise<void> => {
+  // Fetch QR Code Hub settings (public API - uses weddingSlug)
+  const fetchSettings = async (weddingSlug?: string): Promise<void> => {
     isLoading.value = true
     loadError.value = ''
 
+    // Track current wedding context
+    if (weddingSlug !== undefined) {
+      currentWeddingSlug.value = weddingSlug
+    }
+
     try {
-      const response = await getQRCodeHub()
+      const response = await getQRCodeHub(weddingSlug)
+      settings.value = response
+    } catch (err) {
+      loadError.value = err instanceof Error ? err.message : 'Failed to load QR Code Hub settings'
+      console.error('Failed to load QR Code Hub settings:', err)
+    } finally {
+      isLoading.value = false
+    }
+  }
+
+  // Fetch QR Code Hub settings (admin API - uses weddingId)
+  const fetchSettingsAdmin = async (weddingId?: string): Promise<void> => {
+    isLoading.value = true
+    loadError.value = ''
+
+    // Track current wedding context
+    if (weddingId !== undefined) {
+      currentWeddingId.value = weddingId
+    }
+
+    try {
+      const response = await getQRCodeHubAdmin(weddingId)
       settings.value = response
     } catch (err) {
       loadError.value = err instanceof Error ? err.message : 'Failed to load QR Code Hub settings'
@@ -81,12 +112,20 @@ export function useQRCodeHub() {
   }
 
   // Update QR Code Hub settings
-  const saveSettings = async (data: QRCodeHubUpdateRequest): Promise<boolean> => {
+  const saveSettings = async (
+    data: QRCodeHubUpdateRequest,
+    weddingId?: string
+  ): Promise<boolean> => {
     isSaving.value = true
     saveError.value = ''
 
+    // Track current wedding context
+    if (weddingId !== undefined) {
+      currentWeddingId.value = weddingId
+    }
+
     try {
-      const response = await updateQRCodeHub(data)
+      const response = await updateQRCodeHub(data, weddingId)
       settings.value = response
       // Clear cache so public page gets fresh data
       clearCache(CACHE_KEYS.QRCODE_HUB)
@@ -101,7 +140,10 @@ export function useQRCodeHub() {
   }
 
   // Upload Restu Digital QR image
-  const uploadRestuDigitalImage = async (file: File): Promise<string | null> => {
+  const uploadRestuDigitalImage = async (
+    file: File,
+    weddingId?: string
+  ): Promise<string | null> => {
     // Validate file first
     const validation = validateFile(file)
     if (!validation.valid) {
@@ -119,7 +161,7 @@ export function useQRCodeHub() {
         mimeType: file.type,
         fileSize: file.size,
       }
-      const { uploadUrl, publicUrl } = await getQRCodeHubPresignedUrl(presignedData)
+      const { uploadUrl, publicUrl } = await getQRCodeHubPresignedUrl(presignedData, weddingId)
 
       // Upload to S3
       uploadProgress.value = 50
@@ -159,12 +201,17 @@ export function useQRCodeHub() {
     uploadError,
     uploadProgress,
 
+    // Multi-tenant context
+    currentWeddingSlug,
+    currentWeddingId,
+
     // Computed
     enabledQRCodes,
     enabledCount,
 
     // Methods
     fetchSettings,
+    fetchSettingsAdmin,
     saveSettings,
     uploadRestuDigitalImage,
     validateFile,

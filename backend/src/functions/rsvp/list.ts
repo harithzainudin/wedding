@@ -1,10 +1,27 @@
+/**
+ * List RSVPs Endpoint
+ *
+ * Public: Returns wishes only (messages from guests)
+ * Admin: Returns full RSVP data with statistics
+ *
+ * Public Route: GET /{weddingSlug}/rsvp
+ * Admin Route: GET /admin/w/{weddingId}/rsvp
+ */
+
 import type { APIGatewayProxyHandlerV2 } from 'aws-lambda'
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb'
-import { DynamoDBDocumentClient, ScanCommand, QueryCommand } from '@aws-sdk/lib-dynamodb'
+import { DynamoDBDocumentClient, QueryCommand } from '@aws-sdk/lib-dynamodb'
 import { Resource } from 'sst'
 import { createSuccessResponse, createErrorResponse } from '../shared/response'
-import { requireAuth } from '../shared/auth'
+import { requireWeddingAccess } from '../shared/auth'
 import { logError } from '../shared/logger'
+import {
+  resolveWeddingSlug,
+  requireActiveWedding,
+  getWeddingById,
+  requireAdminAccessibleWedding,
+} from '../shared/wedding-middleware'
+import { isValidWeddingId } from '../shared/validation'
 
 const client = new DynamoDBClient({})
 const docClient = DynamoDBDocumentClient.from(client)
@@ -13,6 +30,7 @@ interface RsvpRecord {
   pk: string
   sk: string
   id: string
+  weddingId: string
   title: string
   fullName: string
   isAttending: boolean
@@ -23,12 +41,68 @@ interface RsvpRecord {
 }
 
 export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
-  // Check authentication (optional - public can view wishes, admin gets full data)
-  const authResult = requireAuth(event)
-  const isAuthenticated = authResult.authenticated
-  const status = event.queryStringParameters?.status
-
   try {
+    let weddingId: string
+    let isAuthenticated = false
+
+    // ============================================
+    // Determine route type and extract wedding context
+    // ============================================
+
+    // Check if this is an admin route (has weddingId)
+    if (event.pathParameters?.weddingId) {
+      // Admin route: /admin/w/{weddingId}/rsvp
+      weddingId = event.pathParameters.weddingId
+
+      if (!isValidWeddingId(weddingId)) {
+        return createErrorResponse(400, 'Invalid wedding ID format', context, 'INVALID_WEDDING_ID')
+      }
+
+      const authResult = requireWeddingAccess(event, weddingId)
+      if (!authResult.authenticated) {
+        return createErrorResponse(authResult.statusCode, authResult.error, context, 'AUTH_ERROR')
+      }
+
+      const wedding = await getWeddingById(docClient, weddingId)
+      if (!wedding) {
+        return createErrorResponse(404, 'Wedding not found', context, 'WEDDING_NOT_FOUND')
+      }
+
+      const isSuperAdmin = authResult.user.type === 'super' || authResult.user.isMaster
+      const accessCheck = requireAdminAccessibleWedding(wedding, isSuperAdmin)
+      if (!accessCheck.success) {
+        return createErrorResponse(
+          accessCheck.statusCode,
+          accessCheck.error,
+          context,
+          'ACCESS_DENIED'
+        )
+      }
+
+      isAuthenticated = true
+    } else if (event.pathParameters?.weddingSlug) {
+      // Public route: /{weddingSlug}/rsvp
+      const weddingSlug = event.pathParameters.weddingSlug
+      const wedding = await resolveWeddingSlug(docClient, weddingSlug)
+      const weddingCheck = requireActiveWedding(wedding)
+      if (!weddingCheck.success) {
+        return createErrorResponse(
+          weddingCheck.statusCode,
+          weddingCheck.error,
+          context,
+          'WEDDING_ERROR'
+        )
+      }
+      weddingId = weddingCheck.wedding.weddingId
+    } else {
+      return createErrorResponse(400, 'Wedding identifier is required', context, 'MISSING_WEDDING')
+    }
+
+    const status = event.queryStringParameters?.status
+
+    // ============================================
+    // Query RSVPs for this wedding
+    // ============================================
     let items: RsvpRecord[] = []
 
     if (status && ['attending', 'not_attending'].includes(status)) {
@@ -37,23 +111,25 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
         new QueryCommand({
           TableName: Resource.AppDataTable.name,
           IndexName: 'byStatus',
-          KeyConditionExpression: 'gsi1pk = :status',
+          KeyConditionExpression: 'gsi1pk = :pk',
           ExpressionAttributeValues: {
-            ':status': `STATUS#${status}`,
+            ':pk': `WEDDING#${weddingId}#RSVP_STATUS#${status}`,
           },
-          ScanIndexForward: false, // Most recent first
+          ScanIndexForward: false,
         })
       )
       items = (result.Items ?? []) as RsvpRecord[]
     } else {
-      // Scan all RSVPs
+      // Query all RSVPs for this wedding using the GSI
       const result = await docClient.send(
-        new ScanCommand({
+        new QueryCommand({
           TableName: Resource.AppDataTable.name,
-          FilterExpression: 'begins_with(pk, :prefix)',
+          IndexName: 'byStatus',
+          KeyConditionExpression: 'gsi1pk = :pk',
           ExpressionAttributeValues: {
-            ':prefix': 'RSVP#',
+            ':pk': `WEDDING#${weddingId}#RSVPS`,
           },
+          ScanIndexForward: false,
         })
       )
       items = (result.Items ?? []) as RsvpRecord[]
@@ -108,7 +184,6 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
         endpoint: 'GET /rsvp',
         operation: 'listRsvps',
         requestId: context.awsRequestId,
-        input: { status, isAuthenticated },
       },
       error
     )
