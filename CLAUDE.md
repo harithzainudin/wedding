@@ -225,14 +225,16 @@ Admin panel uses path-based tabs for proper browser navigation (back/forward but
 
 The super admin dashboard (`/wedding/superadmin`) provides platform-wide management:
 
-| Feature         | Description                                                           |
-| --------------- | --------------------------------------------------------------------- |
-| List Weddings   | View all weddings with status, owner, and dates                       |
-| Create Wedding  | Create new wedding with slug, display name, and initial owner account |
-| Edit Wedding    | Update display name, wedding date, status, and plan                   |
-| Archive Wedding | Soft-delete a wedding (sets status to 'archived')                     |
-| Manage Owners   | Add/remove owners (co-owners) for a wedding                           |
-| Reset Password  | Generate temporary password for wedding owners                        |
+| Feature              | Description                                                           |
+| -------------------- | --------------------------------------------------------------------- |
+| List Weddings        | View all weddings with status, owner, and dates                       |
+| Create Wedding       | Create new wedding with slug, display name, and initial owner account |
+| Edit Wedding         | Update display name, wedding date, status, and plan                   |
+| Archive Wedding      | Soft-delete a wedding (sets status to 'archived')                     |
+| Hard Delete Wedding  | Permanently delete archived wedding + all data (DynamoDB + S3)        |
+| Manage Owners        | Add/remove owners (co-owners) for a wedding                           |
+| Reset Password       | Generate temporary password for wedding owners                        |
+| Cleanup Orphan Data  | One-time cleanup of legacy single-tenant data (dry run supported)     |
 
 ### Super Admin API Endpoints
 
@@ -241,11 +243,14 @@ GET    /superadmin/weddings                              # List all weddings
 POST   /superadmin/weddings                              # Create wedding + owner
 GET    /superadmin/weddings/{weddingId}                  # Get wedding details + admins
 PUT    /superadmin/weddings/{weddingId}                  # Update wedding
-DELETE /superadmin/weddings/{weddingId}                  # Archive wedding
+DELETE /superadmin/weddings/{weddingId}                  # Archive wedding (soft delete)
+DELETE /superadmin/weddings/{weddingId}/hard-delete      # Permanently delete (archived only)
+GET    /superadmin/weddings/{weddingId}/deletion-preview # Preview deletion counts
 POST   /superadmin/weddings/{weddingId}/users            # Add owner
 PUT    /superadmin/weddings/{weddingId}/users/{username} # Update owner details
 DELETE /superadmin/weddings/{weddingId}/users/{username} # Remove owner
 POST   /superadmin/weddings/{weddingId}/users/{username}/reset-password # Reset password
+POST   /superadmin/cleanup-orphan-data                   # Cleanup legacy orphan data
 ```
 
 ### Common Mistake
@@ -424,10 +429,13 @@ Backend handlers follow this structure:
 
 ```
 backend/src/functions/
-├── superadmin/weddings/     # Super admin endpoints
-│   ├── list.ts, create.ts, get.ts, update.ts, delete.ts
-│   ├── add-owner.ts, remove-owner.ts, update-owner.ts
-│   └── reset-owner-password.ts
+├── superadmin/              # Super admin endpoints
+│   ├── weddings/            # Wedding management
+│   │   ├── list.ts, create.ts, get.ts, update.ts, delete.ts
+│   │   ├── hard-delete.ts, deletion-preview.ts
+│   │   ├── add-owner.ts, remove-owner.ts, update-owner.ts
+│   │   └── reset-owner-password.ts
+│   └── cleanup-orphan-data.ts # Legacy data cleanup (dry run supported)
 ├── admin/                   # Admin user management
 │   ├── login.ts, refresh.ts, get-profile.ts
 │   ├── create.ts, delete.ts, list.ts

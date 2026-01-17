@@ -35,6 +35,8 @@ import type {
   RemoveWeddingOwnerResponse,
   ResetOwnerPasswordResponse,
   WeddingDetailResponse,
+  DeletionPreview,
+  HardDeleteResponse,
 } from '@/types/admin'
 import type {
   PresignedUrlRequest,
@@ -1132,5 +1134,18 @@ export async function resetOwnerPassword(
   return authenticatedFetch<ResetOwnerPasswordResponse>(
     `${SUPERADMIN_URL}/weddings/${encodeURIComponent(weddingId)}/users/${encodeURIComponent(username)}/reset-password`,
     { method: 'POST' }
+  )
+}
+
+export async function getDeletionPreview(weddingId: string): Promise<DeletionPreview> {
+  return authenticatedFetch<DeletionPreview>(
+    `${SUPERADMIN_URL}/weddings/${encodeURIComponent(weddingId)}/deletion-preview`
+  )
+}
+
+export async function hardDeleteWedding(weddingId: string): Promise<HardDeleteResponse> {
+  return authenticatedFetch<HardDeleteResponse>(
+    `${SUPERADMIN_URL}/weddings/${encodeURIComponent(weddingId)}/hard-delete`,
+    { method: 'DELETE' }
   )
 }

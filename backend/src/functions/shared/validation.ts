@@ -212,7 +212,7 @@ export interface CreateWeddingInput {
   slug: string
   displayName: string
   ownerUsername: string
-  ownerEmail: string
+  ownerEmail?: string
   weddingDate: string
   plan?: 'free' | 'basic' | 'premium'
 }
@@ -255,8 +255,8 @@ export function validateCreateWeddingInput(
     }
   }
 
-  // Validate ownerEmail
-  if (typeof body.ownerEmail !== 'string' || !isValidEmail(body.ownerEmail)) {
+  // Validate ownerEmail (optional - only validate if provided and non-empty)
+  if (body.ownerEmail && body.ownerEmail !== '' && !isValidEmail(body.ownerEmail as string)) {
     return { valid: false, error: 'Invalid email address' }
   }
 
@@ -289,7 +289,9 @@ export function validateCreateWeddingInput(
       slug: body.slug.toLowerCase(),
       displayName: body.displayName.trim(),
       ownerUsername: body.ownerUsername.toLowerCase(),
-      ownerEmail: body.ownerEmail.toLowerCase(),
+      ...(body.ownerEmail && body.ownerEmail !== ''
+        ? { ownerEmail: (body.ownerEmail as string).toLowerCase() }
+        : {}),
       weddingDate: body.weddingDate,
       plan,
     },

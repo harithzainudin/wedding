@@ -1451,6 +1451,26 @@ export interface AdminTranslations {
     pleaseWait: string
   }
 
+  // Hard Delete
+  hardDelete: {
+    title: string
+    warningMessage: string
+    loadingPreview: string
+    deletionSummary: string
+    rsvps: string
+    images: string
+    music: string
+    gifts: string
+    parking: string
+    qrCodes: string
+    files: string
+    noDataToDelete: string
+    confirmInstruction: string
+    deleteButton: string
+    deleting: string
+    successMessage: string
+  }
+
   // Messages
   messages: {
     saveSuccess: string
@@ -2131,6 +2151,26 @@ export const adminTranslations: Record<AdminLanguage, AdminTranslations> = {
       pleaseWait: 'Please wait...',
     },
 
+    hardDelete: {
+      title: 'Permanently Delete Wedding',
+      warningMessage:
+        'This action is permanent and cannot be undone. All wedding data, RSVPs, images, and files will be permanently deleted.',
+      loadingPreview: 'Loading deletion preview...',
+      deletionSummary: 'The following data will be permanently deleted:',
+      rsvps: 'RSVPs',
+      images: 'Images',
+      music: 'Music tracks',
+      gifts: 'Gifts',
+      parking: 'Parking images',
+      qrCodes: 'QR codes',
+      files: 'Files in storage',
+      noDataToDelete: 'No additional data to delete.',
+      confirmInstruction: 'To confirm, type the wedding slug:',
+      deleteButton: 'Delete Forever',
+      deleting: 'Deleting...',
+      successMessage: 'Wedding permanently deleted',
+    },
+
     messages: {
       saveSuccess: 'Saved successfully!',
       saveFailed: 'Failed to save. Please try again.',
@@ -2809,6 +2849,26 @@ export const adminTranslations: Record<AdminLanguage, AdminTranslations> = {
       unsavedChanges: 'Perubahan Belum Disimpan',
       discardChanges: 'Buang Perubahan',
       pleaseWait: 'Sila tunggu...',
+    },
+
+    hardDelete: {
+      title: 'Padam Majlis Secara Kekal',
+      warningMessage:
+        'Tindakan ini kekal dan tidak boleh dibatalkan. Semua data majlis, RSVP, gambar, dan fail akan dipadam secara kekal.',
+      loadingPreview: 'Memuatkan pratonton pemadaman...',
+      deletionSummary: 'Data berikut akan dipadam secara kekal:',
+      rsvps: 'RSVP',
+      images: 'Gambar',
+      music: 'Trek muzik',
+      gifts: 'Hadiah',
+      parking: 'Gambar parkir',
+      qrCodes: 'Kod QR',
+      files: 'Fail dalam storan',
+      noDataToDelete: 'Tiada data tambahan untuk dipadam.',
+      confirmInstruction: 'Untuk mengesahkan, taip slug majlis:',
+      deleteButton: 'Padam Selama-lamanya',
+      deleting: 'Memadam...',
+      successMessage: 'Majlis berjaya dipadam secara kekal',
     },
 
     messages: {

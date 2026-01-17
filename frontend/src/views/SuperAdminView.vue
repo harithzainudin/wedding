@@ -4,6 +4,7 @@
   import { useSuperAdmin } from '@/composables/useSuperAdmin'
   import { useAdminAuth } from '@/composables/useAdminAuth'
   import { setStoredPrimaryWeddingId } from '@/services/tokenManager'
+  import HardDeleteConfirmModal from '@/components/admin/HardDeleteConfirmModal.vue'
   import type {
     CreateWeddingRequest,
     AddWeddingOwnerRequest,
@@ -20,6 +21,9 @@
     isLoading,
     isCreating,
     isUpdating,
+    isHardDeleting,
+    isLoadingPreview,
+    deletionPreview,
     loadError,
     actionError,
     actionSuccess,
@@ -35,6 +39,9 @@
     updateOwner,
     removeOwner,
     resetPassword,
+    getDeletionPreview,
+    hardDeleteWedding,
+    clearDeletionPreview,
     clearMessages,
     clearSelectedWedding,
   } = useSuperAdmin()
@@ -51,6 +58,11 @@
   // Modal state
   const showCreateModal = ref(false)
   const showArchiveConfirm = ref<string | null>(null)
+  const showHardDeleteConfirm = ref<{
+    weddingId: string
+    slug: string
+    displayName: string
+  } | null>(null)
   const showDetailModal = ref(false)
   const showAddOwnerForm = ref(false)
   const showRemoveConfirm = ref<string | null>(null)
@@ -102,6 +114,10 @@
     weddingDate: '',
   })
   const createFormError = ref('')
+
+  // Password visibility toggles
+  const showCreateFormPassword = ref(false)
+  const showAddOwnerPassword = ref(false)
 
   // Generate slug from display name
   const generateSlug = (name: string): string => {
@@ -164,6 +180,27 @@
   const handleArchive = async (weddingId: string) => {
     await archiveWedding(weddingId)
     showArchiveConfirm.value = null
+  }
+
+  // Open hard delete modal
+  const openHardDeleteModal = async (weddingId: string, slug: string, displayName: string) => {
+    showHardDeleteConfirm.value = { weddingId, slug, displayName }
+    await getDeletionPreview(weddingId)
+  }
+
+  // Close hard delete modal
+  const closeHardDeleteModal = () => {
+    showHardDeleteConfirm.value = null
+    clearDeletionPreview()
+  }
+
+  // Handle hard delete confirmation
+  const handleHardDelete = async () => {
+    if (!showHardDeleteConfirm.value) return
+    const result = await hardDeleteWedding(showHardDeleteConfirm.value.weddingId)
+    if (result.success) {
+      showHardDeleteConfirm.value = null
+    }
   }
 
   // Navigate to wedding admin
@@ -829,6 +866,25 @@
                           />
                         </svg>
                       </button>
+                      <!-- Permanently Delete Button (only for archived weddings) -->
+                      <button
+                        v-if="wedding.status === 'archived'"
+                        type="button"
+                        class="p-2 text-charcoal-light hover:text-red-600 dark:text-dark-text-secondary dark:hover:text-red-500 transition-colors cursor-pointer"
+                        title="Permanently Delete"
+                        @click="
+                          openHardDeleteModal(wedding.weddingId, wedding.slug, wedding.displayName)
+                        "
+                      >
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                          />
+                        </svg>
+                      </button>
                     </div>
                   </td>
                 </tr>
@@ -955,12 +1011,44 @@
                       >
                         Password *
                       </label>
-                      <input
-                        v-model="createForm.ownerPassword"
-                        type="password"
-                        placeholder="Min. 8 characters"
-                        class="w-full px-4 py-2 rounded-lg border border-sand-dark dark:border-dark-border bg-white dark:bg-dark-bg text-charcoal dark:text-dark-text font-body text-sm focus:outline-none focus:ring-2 focus:ring-sage/50"
-                      />
+                      <div class="relative">
+                        <input
+                          v-model="createForm.ownerPassword"
+                          :type="showCreateFormPassword ? 'text' : 'password'"
+                          placeholder="Min. 8 characters"
+                          class="w-full px-4 py-2 pr-10 rounded-lg border border-sand-dark dark:border-dark-border bg-white dark:bg-dark-bg text-charcoal dark:text-dark-text font-body text-sm focus:outline-none focus:ring-2 focus:ring-sage/50"
+                        />
+                        <button
+                          type="button"
+                          class="absolute right-3 top-1/2 -translate-y-1/2 text-charcoal-light hover:text-charcoal dark:text-dark-text-secondary dark:hover:text-dark-text transition-colors cursor-pointer"
+                          @click="showCreateFormPassword = !showCreateFormPassword"
+                        >
+                          <svg
+                            v-if="showCreateFormPassword"
+                            class="w-5 h-5"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                          >
+                            <path
+                              d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"
+                            />
+                            <line x1="1" y1="1" x2="23" y2="23" />
+                          </svg>
+                          <svg
+                            v-else
+                            class="w-5 h-5"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                          >
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                            <circle cx="12" cy="12" r="3" />
+                          </svg>
+                        </button>
+                      </div>
                     </div>
                     <div>
                       <label
@@ -1340,12 +1428,44 @@
                             class="block font-body text-xs text-charcoal-light dark:text-dark-text-secondary mb-1"
                             >Password *</label
                           >
-                          <input
-                            v-model="addOwnerForm.password"
-                            type="password"
-                            placeholder="Min 8 characters"
-                            class="w-full px-3 py-2 rounded-lg border border-sand-dark dark:border-dark-border bg-white dark:bg-dark-bg-secondary text-charcoal dark:text-dark-text font-body text-sm focus:outline-none focus:ring-2 focus:ring-sage/50"
-                          />
+                          <div class="relative">
+                            <input
+                              v-model="addOwnerForm.password"
+                              :type="showAddOwnerPassword ? 'text' : 'password'"
+                              placeholder="Min 8 characters"
+                              class="w-full px-3 py-2 pr-10 rounded-lg border border-sand-dark dark:border-dark-border bg-white dark:bg-dark-bg-secondary text-charcoal dark:text-dark-text font-body text-sm focus:outline-none focus:ring-2 focus:ring-sage/50"
+                            />
+                            <button
+                              type="button"
+                              class="absolute right-3 top-1/2 -translate-y-1/2 text-charcoal-light hover:text-charcoal dark:text-dark-text-secondary dark:hover:text-dark-text transition-colors cursor-pointer"
+                              @click="showAddOwnerPassword = !showAddOwnerPassword"
+                            >
+                              <svg
+                                v-if="showAddOwnerPassword"
+                                class="w-5 h-5"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="2"
+                              >
+                                <path
+                                  d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"
+                                />
+                                <line x1="1" y1="1" x2="23" y2="23" />
+                              </svg>
+                              <svg
+                                v-else
+                                class="w-5 h-5"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="2"
+                              >
+                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                                <circle cx="12" cy="12" r="3" />
+                              </svg>
+                            </button>
+                          </div>
                         </div>
                         <div>
                           <label
@@ -1982,5 +2102,17 @@
         </div>
       </Transition>
     </template>
+
+    <!-- Hard Delete Confirmation Modal -->
+    <HardDeleteConfirmModal
+      :show="!!showHardDeleteConfirm"
+      :wedding-slug="showHardDeleteConfirm?.slug ?? ''"
+      :wedding-name="showHardDeleteConfirm?.displayName ?? ''"
+      :preview="deletionPreview"
+      :is-loading="isLoadingPreview"
+      :is-deleting="isHardDeleting"
+      @confirm="handleHardDelete"
+      @cancel="closeHardDeleteModal"
+    />
   </div>
 </template>

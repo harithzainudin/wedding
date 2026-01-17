@@ -227,3 +227,35 @@ export interface WeddingAdmin {
   addedAt: string
   addedBy: string
 }
+
+export interface DeletionPreview {
+  weddingId: string
+  weddingSlug: string
+  displayName: string
+  rsvpCount: number
+  imageCount: number
+  musicCount: number
+  giftCount: number
+  parkingCount: number
+  qrCodeCount: number
+  s3ObjectCount: number
+}
+
+export interface HardDeleteResponse {
+  message: string
+  weddingId: string
+  deletedAt: string
+  deletedBy: string
+  counts: {
+    settings: number
+    admins: number
+    rsvps: number
+    images: number
+    music: number
+    gifts: number
+    giftReservations: number
+    parking: number
+    qrCodes: number
+    s3Objects: number
+  }
+}

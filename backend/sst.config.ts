@@ -74,7 +74,7 @@ export default $config({
     addAuthRoutes(adminPassword, tokenSecret);
 
     // Add super admin routes (wedding management)
-    addSuperAdminRoutes(tokenSecret, brevoApiKey, senderEmail, adminLoginUrl);
+    addSuperAdminRoutes(tokenSecret, brevoApiKey, senderEmail, adminLoginUrl, imageBucket);
 
     return {
       apiUrl: api.url,

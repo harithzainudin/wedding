@@ -632,7 +632,8 @@ export function addSuperAdminRoutes(
   tokenSecret: sst.Secret,
   brevoApiKey: sst.Secret,
   senderEmail: sst.Secret,
-  adminLoginUrl: sst.Secret
+  adminLoginUrl: sst.Secret,
+  imageBucket: sst.aws.Bucket
 ) {
   // GET /superadmin/weddings - List all weddings
   api.route('GET /superadmin/weddings', {
@@ -694,6 +695,28 @@ export function addSuperAdminRoutes(
   api.route('POST /superadmin/weddings/{weddingId}/users/{username}/reset-password', {
     handler: 'src/functions/superadmin/weddings/reset-owner-password.handler',
     link: [table, tokenSecret],
+    ...functionConfig,
+  })
+
+  // GET /superadmin/weddings/{weddingId}/deletion-preview - Get deletion preview (counts)
+  api.route('GET /superadmin/weddings/{weddingId}/deletion-preview', {
+    handler: 'src/functions/superadmin/weddings/deletion-preview.handler',
+    link: [table, tokenSecret, imageBucket],
+    ...functionConfig,
+  })
+
+  // DELETE /superadmin/weddings/{weddingId}/hard-delete - Permanently delete wedding
+  api.route('DELETE /superadmin/weddings/{weddingId}/hard-delete', {
+    handler: 'src/functions/superadmin/weddings/hard-delete.handler',
+    link: [table, tokenSecret, imageBucket],
+    ...functionConfig,
+  })
+
+  // POST /superadmin/cleanup-orphan-data - One-time cleanup of legacy/orphan data
+  api.route('POST /superadmin/cleanup-orphan-data', {
+    handler: 'src/functions/superadmin/cleanup-orphan-data.handler',
+    link: [table, tokenSecret, imageBucket],
+    timeout: '5 minutes', // Longer timeout for cleanup operation
     ...functionConfig,
   })
 }

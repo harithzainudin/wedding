@@ -6,6 +6,7 @@ import type {
   AddWeddingOwnerRequest,
   UpdateWeddingOwnerRequest,
   WeddingAdmin,
+  DeletionPreview,
 } from '@/types/admin'
 import {
   listWeddings,
@@ -17,6 +18,8 @@ import {
   updateWeddingOwner as apiUpdateWeddingOwner,
   removeWeddingOwner as apiRemoveWeddingOwner,
   resetOwnerPassword as apiResetOwnerPassword,
+  getDeletionPreview as apiGetDeletionPreview,
+  hardDeleteWedding as apiHardDeleteWedding,
 } from '@/services/api'
 
 // Singleton state
@@ -26,6 +29,9 @@ const selectedWeddingAdmins = ref<WeddingAdmin[]>([])
 const isLoading = ref(false)
 const isCreating = ref(false)
 const isUpdating = ref(false)
+const isHardDeleting = ref(false)
+const isLoadingPreview = ref(false)
+const deletionPreview = ref<DeletionPreview | null>(null)
 const loadError = ref<string | null>(null)
 const actionError = ref<string | null>(null)
 const actionSuccess = ref<string | null>(null)
@@ -242,6 +248,56 @@ export function useSuperAdmin() {
     }
   }
 
+  // Get deletion preview for a wedding
+  const getDeletionPreview = async (
+    weddingId: string
+  ): Promise<{ success: boolean; preview?: DeletionPreview; error?: string }> => {
+    isLoadingPreview.value = true
+    deletionPreview.value = null
+    actionError.value = null
+
+    try {
+      const preview = await apiGetDeletionPreview(weddingId)
+      deletionPreview.value = preview
+      return { success: true, preview }
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to load deletion preview'
+      actionError.value = errorMessage
+      return { success: false, error: errorMessage }
+    } finally {
+      isLoadingPreview.value = false
+    }
+  }
+
+  // Permanently delete a wedding (hard delete)
+  const hardDeleteWedding = async (
+    weddingId: string
+  ): Promise<{ success: boolean; error?: string }> => {
+    isHardDeleting.value = true
+    actionError.value = null
+    actionSuccess.value = null
+
+    try {
+      await apiHardDeleteWedding(weddingId)
+      // Remove wedding from list
+      weddings.value = weddings.value.filter((w) => w.weddingId !== weddingId)
+      actionSuccess.value = 'Wedding permanently deleted'
+      deletionPreview.value = null
+      return { success: true }
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to delete wedding'
+      actionError.value = errorMessage
+      return { success: false, error: errorMessage }
+    } finally {
+      isHardDeleting.value = false
+    }
+  }
+
+  // Clear deletion preview
+  const clearDeletionPreview = (): void => {
+    deletionPreview.value = null
+  }
+
   // Clear messages
   const clearMessages = (): void => {
     actionError.value = null
@@ -263,6 +319,9 @@ export function useSuperAdmin() {
     isLoading,
     isCreating,
     isUpdating,
+    isHardDeleting,
+    isLoadingPreview,
+    deletionPreview,
     loadError,
     actionError,
     actionSuccess,
@@ -282,6 +341,9 @@ export function useSuperAdmin() {
     updateOwner,
     removeOwner,
     resetPassword,
+    getDeletionPreview,
+    hardDeleteWedding,
+    clearDeletionPreview,
     clearMessages,
     clearSelectedWedding,
   }
