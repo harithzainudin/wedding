@@ -291,7 +291,7 @@
   const goToWeddingAdmin = (slug: string, weddingId: string) => {
     // Store the weddingId so admin tabs can access it
     setStoredPrimaryWeddingId(weddingId)
-    router.push(`/${slug}/admin`)
+    window.open(`/wedding/${slug}/admin`, '_blank')
   }
 
   // Navigate to public wedding page
@@ -594,12 +594,12 @@
   // Get full URL (for display and copy)
   const getPublicUrl = (slug: string) => {
     const baseUrl = window.location.origin
-    return `${baseUrl}/${slug}`
+    return `${baseUrl}/wedding/${slug}`
   }
 
   const getAdminUrl = (slug: string) => {
     const baseUrl = window.location.origin
-    return `${baseUrl}/${slug}/admin`
+    return `${baseUrl}/wedding/${slug}/admin`
   }
 
   // Check auth and fetch weddings when authenticated
