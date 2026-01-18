@@ -428,20 +428,32 @@
           </div>
         </div>
 
-        <DashboardTab v-if="activeTab === 'dashboard'" @switch-tab="switchTab" />
-        <WeddingDetailsTab
-          v-if="activeTab === 'wedding'"
-          v-bind="weddingSlug ? { weddingSlug } : {}"
-        />
-        <LocationTab v-if="activeTab === 'venue'" />
-        <ScheduleTab v-if="activeTab === 'schedule'" />
-        <GalleryTab v-if="activeTab === 'gallery'" />
-        <MusicTab v-if="activeTab === 'music'" />
-        <GiftsTab v-if="activeTab === 'gifts'" />
-        <ThemeTab v-if="activeTab === 'theme'" />
-        <ContactsTab v-if="activeTab === 'contacts'" />
-        <RsvpsTab v-if="activeTab === 'rsvps'" />
-        <QRCodeHubTab v-if="activeTab === 'qrcodehub'" />
+        <Transition
+          mode="out-in"
+          enter-active-class="transition-all duration-200 ease-out"
+          enter-from-class="opacity-0 translate-y-2"
+          enter-to-class="opacity-100 translate-y-0"
+          leave-active-class="transition-all duration-150 ease-in"
+          leave-from-class="opacity-100 translate-y-0"
+          leave-to-class="opacity-0 -translate-y-2"
+        >
+          <div :key="activeTab">
+            <DashboardTab v-if="activeTab === 'dashboard'" @switch-tab="switchTab" />
+            <WeddingDetailsTab
+              v-else-if="activeTab === 'wedding'"
+              v-bind="weddingSlug ? { weddingSlug } : {}"
+            />
+            <LocationTab v-else-if="activeTab === 'venue'" />
+            <ScheduleTab v-else-if="activeTab === 'schedule'" />
+            <GalleryTab v-else-if="activeTab === 'gallery'" />
+            <MusicTab v-else-if="activeTab === 'music'" />
+            <GiftsTab v-else-if="activeTab === 'gifts'" />
+            <ThemeTab v-else-if="activeTab === 'theme'" />
+            <ContactsTab v-else-if="activeTab === 'contacts'" />
+            <RsvpsTab v-else-if="activeTab === 'rsvps'" />
+            <QRCodeHubTab v-else-if="activeTab === 'qrcodehub'" />
+          </div>
+        </Transition>
       </div>
     </template>
   </div>

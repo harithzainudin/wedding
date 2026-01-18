@@ -770,536 +770,550 @@
 
       <!-- Main Content -->
       <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <!-- Weddings Tab -->
-        <template v-if="activeTab === 'weddings'">
-          <!-- Header -->
-          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
-            <div>
-              <h2 class="font-heading text-xl font-bold text-charcoal dark:text-dark-text">
-                Wedding Management
-              </h2>
-              <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary">
-                Create and manage wedding sites
-              </p>
-            </div>
-            <button
-              type="button"
-              class="px-4 py-2 bg-sage text-white font-body text-sm font-medium rounded-lg hover:bg-sage-dark transition-colors cursor-pointer whitespace-nowrap self-start sm:self-auto"
-              @click="showCreateModal = true"
-            >
-              + Create Wedding
-            </button>
-          </div>
-
-          <!-- Stats Cards -->
-          <div class="grid grid-cols-3 gap-2 sm:gap-4 mb-6 sm:mb-8">
-            <div
-              class="bg-white dark:bg-dark-bg-secondary rounded-lg sm:rounded-xl p-3 sm:p-6 shadow-sm border border-sand-dark dark:border-dark-border"
-            >
-              <p
-                class="font-body text-xs sm:text-sm text-charcoal-light dark:text-dark-text-secondary"
-              >
-                Total
-              </p>
-              <p
-                class="font-heading text-xl sm:text-3xl font-bold text-charcoal dark:text-dark-text"
-              >
-                {{ totalWeddings }}
-              </p>
-            </div>
-            <div
-              class="bg-white dark:bg-dark-bg-secondary rounded-lg sm:rounded-xl p-3 sm:p-6 shadow-sm border border-sand-dark dark:border-dark-border"
-            >
-              <p
-                class="font-body text-xs sm:text-sm text-charcoal-light dark:text-dark-text-secondary"
-              >
-                Active
-              </p>
-              <p class="font-heading text-xl sm:text-3xl font-bold text-green-600">
-                {{ activeWeddings.length }}
-              </p>
-            </div>
-            <div
-              class="bg-white dark:bg-dark-bg-secondary rounded-lg sm:rounded-xl p-3 sm:p-6 shadow-sm border border-sand-dark dark:border-dark-border"
-            >
-              <p
-                class="font-body text-xs sm:text-sm text-charcoal-light dark:text-dark-text-secondary"
-              >
-                Archived
-              </p>
-              <p
-                class="font-heading text-xl sm:text-3xl font-bold text-charcoal-light dark:text-dark-text-secondary"
-              >
-                {{ archivedWeddings.length }}
-              </p>
-            </div>
-          </div>
-
-          <!-- Messages -->
-          <div
-            v-if="actionSuccess"
-            class="mb-4 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg"
-          >
-            <p class="font-body text-sm text-green-700 dark:text-green-300">{{ actionSuccess }}</p>
-            <button
-              type="button"
-              class="text-green-600 underline text-sm mt-1 cursor-pointer"
-              @click="clearMessages"
-            >
-              Dismiss
-            </button>
-          </div>
-          <div
-            v-if="actionError"
-            class="mb-4 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg"
-          >
-            <p class="font-body text-sm text-red-700 dark:text-red-300">{{ actionError }}</p>
-            <button
-              type="button"
-              class="text-red-600 underline text-sm mt-1 cursor-pointer"
-              @click="clearMessages"
-            >
-              Dismiss
-            </button>
-          </div>
-
-          <!-- Loading State -->
-          <div v-if="isLoading" class="flex items-center justify-center py-12">
-            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-sage"></div>
-          </div>
-
-          <!-- Error State -->
-          <div v-else-if="loadError" class="text-center py-12">
-            <p class="font-body text-red-500 mb-4">{{ loadError }}</p>
-            <button
-              type="button"
-              class="px-4 py-2 bg-sage text-white font-body text-sm rounded-lg hover:bg-sage-dark cursor-pointer"
-              @click="fetchWeddings"
-            >
-              Retry
-            </button>
-          </div>
-
-          <!-- Weddings Table -->
-          <div
-            v-else
-            class="bg-white dark:bg-dark-bg-secondary rounded-xl shadow-sm border border-sand-dark dark:border-dark-border overflow-hidden"
-          >
-            <div class="px-6 py-4 border-b border-sand-dark dark:border-dark-border">
-              <h2 class="font-heading text-lg font-medium text-charcoal dark:text-dark-text">
-                All Weddings
-              </h2>
-            </div>
-
-            <div v-if="weddings.length === 0" class="p-8 text-center">
-              <p class="font-body text-charcoal-light dark:text-dark-text-secondary mb-4">
-                No weddings created yet
-              </p>
+        <Transition
+          mode="out-in"
+          enter-active-class="transition-all duration-200 ease-out"
+          enter-from-class="opacity-0 translate-y-2"
+          enter-to-class="opacity-100 translate-y-0"
+          leave-active-class="transition-all duration-150 ease-in"
+          leave-from-class="opacity-100 translate-y-0"
+          leave-to-class="opacity-0 -translate-y-2"
+        >
+          <!-- Weddings Tab -->
+          <div v-if="activeTab === 'weddings'" key="weddings">
+            <!-- Header -->
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
+              <div>
+                <h2 class="font-heading text-xl font-bold text-charcoal dark:text-dark-text">
+                  Wedding Management
+                </h2>
+                <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary">
+                  Create and manage wedding sites
+                </p>
+              </div>
               <button
                 type="button"
-                class="px-4 py-2 bg-sage text-white font-body text-sm rounded-lg hover:bg-sage-dark cursor-pointer"
+                class="px-4 py-2 bg-sage text-white font-body text-sm font-medium rounded-lg hover:bg-sage-dark transition-colors cursor-pointer whitespace-nowrap self-start sm:self-auto"
                 @click="showCreateModal = true"
               >
-                Create Your First Wedding
+                + Create Wedding
               </button>
             </div>
 
-            <!-- Wedding List (Mobile + Desktop) -->
-            <div v-else>
-              <!-- Mobile Card View -->
-              <div class="sm:hidden divide-y divide-sand-dark dark:divide-dark-border">
-                <div
-                  v-for="wedding in weddings"
-                  :key="wedding.weddingId"
-                  class="p-4 hover:bg-sand/30 dark:hover:bg-dark-bg-elevated"
+            <!-- Stats Cards -->
+            <div class="grid grid-cols-3 gap-2 sm:gap-4 mb-6 sm:mb-8">
+              <div
+                class="bg-white dark:bg-dark-bg-secondary rounded-lg sm:rounded-xl p-3 sm:p-6 shadow-sm border border-sand-dark dark:border-dark-border"
+              >
+                <p
+                  class="font-body text-xs sm:text-sm text-charcoal-light dark:text-dark-text-secondary"
                 >
-                  <!-- Top row: Name + Status -->
-                  <div class="flex items-start justify-between gap-2 mb-2">
-                    <div class="min-w-0 flex-1">
-                      <p class="font-body text-sm font-medium text-charcoal dark:text-dark-text">
-                        {{ wedding.displayName }}
-                      </p>
-                      <code class="font-mono text-xs text-sage">{{ wedding.slug }}</code>
-                    </div>
-                    <span
-                      class="px-2 py-0.5 font-body text-xs font-medium rounded-full flex-shrink-0"
-                      :class="{
-                        'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400':
-                          wedding.status === 'active',
-                        'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400':
-                          wedding.status === 'archived',
-                        'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400':
-                          wedding.status === 'draft',
-                      }"
-                    >
-                      {{ wedding.status }}
-                    </span>
-                  </div>
+                  Total
+                </p>
+                <p
+                  class="font-heading text-xl sm:text-3xl font-bold text-charcoal dark:text-dark-text"
+                >
+                  {{ totalWeddings }}
+                </p>
+              </div>
+              <div
+                class="bg-white dark:bg-dark-bg-secondary rounded-lg sm:rounded-xl p-3 sm:p-6 shadow-sm border border-sand-dark dark:border-dark-border"
+              >
+                <p
+                  class="font-body text-xs sm:text-sm text-charcoal-light dark:text-dark-text-secondary"
+                >
+                  Active
+                </p>
+                <p class="font-heading text-xl sm:text-3xl font-bold text-green-600">
+                  {{ activeWeddings.length }}
+                </p>
+              </div>
+              <div
+                class="bg-white dark:bg-dark-bg-secondary rounded-lg sm:rounded-xl p-3 sm:p-6 shadow-sm border border-sand-dark dark:border-dark-border"
+              >
+                <p
+                  class="font-body text-xs sm:text-sm text-charcoal-light dark:text-dark-text-secondary"
+                >
+                  Archived
+                </p>
+                <p
+                  class="font-heading text-xl sm:text-3xl font-bold text-charcoal-light dark:text-dark-text-secondary"
+                >
+                  {{ archivedWeddings.length }}
+                </p>
+              </div>
+            </div>
 
-                  <!-- Info row -->
-                  <div
-                    class="flex items-center gap-4 text-xs text-charcoal-light dark:text-dark-text-secondary mb-3"
-                  >
-                    <span v-if="wedding.ownerUsername">{{ wedding.ownerUsername }}</span>
-                    <span>{{ formatDate(wedding.weddingDate) }}</span>
-                  </div>
+            <!-- Messages -->
+            <div
+              v-if="actionSuccess"
+              class="mb-4 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg"
+            >
+              <p class="font-body text-sm text-green-700 dark:text-green-300">
+                {{ actionSuccess }}
+              </p>
+              <button
+                type="button"
+                class="text-green-600 underline text-sm mt-1 cursor-pointer"
+                @click="clearMessages"
+              >
+                Dismiss
+              </button>
+            </div>
+            <div
+              v-if="actionError"
+              class="mb-4 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg"
+            >
+              <p class="font-body text-sm text-red-700 dark:text-red-300">{{ actionError }}</p>
+              <button
+                type="button"
+                class="text-red-600 underline text-sm mt-1 cursor-pointer"
+                @click="clearMessages"
+              >
+                Dismiss
+              </button>
+            </div>
 
-                  <!-- Actions row -->
-                  <div class="flex items-center gap-1">
-                    <button
-                      type="button"
-                      class="p-2 text-charcoal-light hover:text-sage dark:text-dark-text-secondary dark:hover:text-sage transition-colors cursor-pointer"
-                      title="View Public Page"
-                      @click="goToPublicPage(wedding.slug)"
-                    >
-                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          stroke-width="2"
-                          d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                        />
-                        <path
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          stroke-width="2"
-                          d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                        />
-                      </svg>
-                    </button>
-                    <button
-                      type="button"
-                      class="p-2 text-charcoal-light hover:text-sage dark:text-dark-text-secondary dark:hover:text-sage transition-colors cursor-pointer"
-                      title="Open Admin Panel"
-                      @click="goToWeddingAdmin(wedding.slug, wedding.weddingId)"
-                    >
-                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          stroke-width="2"
-                          d="M4 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM14 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1V5zM4 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1v-4zM14 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z"
-                        />
-                      </svg>
-                    </button>
-                    <button
-                      type="button"
-                      class="p-2 text-charcoal-light hover:text-sage dark:text-dark-text-secondary dark:hover:text-sage transition-colors cursor-pointer"
-                      title="Wedding Settings"
-                      @click="openSettingsModal(wedding.weddingId)"
-                    >
-                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          stroke-width="2"
-                          d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
-                        />
-                        <path
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          stroke-width="2"
-                          d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                        />
-                      </svg>
-                    </button>
-                    <button
-                      type="button"
-                      class="p-2 text-charcoal-light hover:text-amber-500 dark:text-dark-text-secondary dark:hover:text-amber-400 transition-colors cursor-pointer"
-                      title="Manage Users"
-                      @click="openDetailModal(wedding.weddingId)"
-                    >
-                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          stroke-width="2"
-                          d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"
-                        />
-                      </svg>
-                    </button>
-                    <button
-                      v-if="wedding.status === 'active'"
-                      type="button"
-                      class="p-2 text-charcoal-light hover:text-red-500 dark:text-dark-text-secondary dark:hover:text-red-400 transition-colors cursor-pointer"
-                      title="Archive Wedding"
-                      @click="showArchiveConfirm = wedding.weddingId"
-                    >
-                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          stroke-width="2"
-                          d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"
-                        />
-                      </svg>
-                    </button>
-                    <button
-                      v-if="wedding.status === 'archived'"
-                      type="button"
-                      class="p-2 text-charcoal-light hover:text-red-600 dark:text-dark-text-secondary dark:hover:text-red-500 transition-colors cursor-pointer"
-                      title="Permanently Delete"
-                      @click="
-                        openHardDeleteModal(wedding.weddingId, wedding.slug, wedding.displayName)
-                      "
-                    >
-                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          stroke-width="2"
-                          d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                        />
-                      </svg>
-                    </button>
-                  </div>
-                </div>
+            <!-- Loading State -->
+            <div v-if="isLoading" class="flex items-center justify-center py-12">
+              <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-sage"></div>
+            </div>
+
+            <!-- Error State -->
+            <div v-else-if="loadError" class="text-center py-12">
+              <p class="font-body text-red-500 mb-4">{{ loadError }}</p>
+              <button
+                type="button"
+                class="px-4 py-2 bg-sage text-white font-body text-sm rounded-lg hover:bg-sage-dark cursor-pointer"
+                @click="fetchWeddings"
+              >
+                Retry
+              </button>
+            </div>
+
+            <!-- Weddings Table -->
+            <div
+              v-else
+              class="bg-white dark:bg-dark-bg-secondary rounded-xl shadow-sm border border-sand-dark dark:border-dark-border overflow-hidden"
+            >
+              <div class="px-6 py-4 border-b border-sand-dark dark:border-dark-border">
+                <h2 class="font-heading text-lg font-medium text-charcoal dark:text-dark-text">
+                  All Weddings
+                </h2>
               </div>
 
-              <!-- Desktop Table View -->
-              <div class="hidden sm:block overflow-x-auto">
-                <table class="w-full">
-                  <thead class="bg-sand/50 dark:bg-dark-bg">
-                    <tr>
-                      <th
-                        class="px-6 py-3 text-left font-body text-xs font-medium text-charcoal-light dark:text-dark-text-secondary uppercase tracking-wider"
-                      >
-                        Wedding
-                      </th>
-                      <th
-                        class="px-6 py-3 text-left font-body text-xs font-medium text-charcoal-light dark:text-dark-text-secondary uppercase tracking-wider"
-                      >
-                        Slug
-                      </th>
-                      <th
-                        class="px-6 py-3 text-left font-body text-xs font-medium text-charcoal-light dark:text-dark-text-secondary uppercase tracking-wider"
-                      >
-                        Owner
-                      </th>
-                      <th
-                        class="px-6 py-3 text-left font-body text-xs font-medium text-charcoal-light dark:text-dark-text-secondary uppercase tracking-wider"
-                      >
-                        Date
-                      </th>
-                      <th
-                        class="px-6 py-3 text-left font-body text-xs font-medium text-charcoal-light dark:text-dark-text-secondary uppercase tracking-wider"
-                      >
-                        Status
-                      </th>
-                      <th
-                        class="px-6 py-3 text-right font-body text-xs font-medium text-charcoal-light dark:text-dark-text-secondary uppercase tracking-wider"
-                      >
-                        Actions
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody class="divide-y divide-sand-dark dark:divide-dark-border">
-                    <tr
-                      v-for="wedding in weddings"
-                      :key="wedding.weddingId"
-                      class="hover:bg-sand/30 dark:hover:bg-dark-bg-elevated"
-                    >
-                      <td class="px-6 py-4 whitespace-nowrap">
+              <div v-if="weddings.length === 0" class="p-8 text-center">
+                <p class="font-body text-charcoal-light dark:text-dark-text-secondary mb-4">
+                  No weddings created yet
+                </p>
+                <button
+                  type="button"
+                  class="px-4 py-2 bg-sage text-white font-body text-sm rounded-lg hover:bg-sage-dark cursor-pointer"
+                  @click="showCreateModal = true"
+                >
+                  Create Your First Wedding
+                </button>
+              </div>
+
+              <!-- Wedding List (Mobile + Desktop) -->
+              <div v-else>
+                <!-- Mobile Card View -->
+                <div class="sm:hidden divide-y divide-sand-dark dark:divide-dark-border">
+                  <div
+                    v-for="wedding in weddings"
+                    :key="wedding.weddingId"
+                    class="p-4 hover:bg-sand/30 dark:hover:bg-dark-bg-elevated"
+                  >
+                    <!-- Top row: Name + Status -->
+                    <div class="flex items-start justify-between gap-2 mb-2">
+                      <div class="min-w-0 flex-1">
                         <p class="font-body text-sm font-medium text-charcoal dark:text-dark-text">
                           {{ wedding.displayName }}
                         </p>
-                        <p
-                          class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary"
-                        >
-                          {{ wedding.weddingId.slice(0, 8) }}...
-                        </p>
-                      </td>
-                      <td class="px-6 py-4 whitespace-nowrap">
-                        <code class="font-mono text-sm text-sage bg-sage/10 px-2 py-1 rounded">{{
-                          wedding.slug
-                        }}</code>
-                      </td>
-                      <td class="px-6 py-4 whitespace-nowrap">
-                        <p class="font-body text-sm text-charcoal dark:text-dark-text">
-                          {{ wedding.ownerUsername || '-' }}
-                        </p>
-                        <p
-                          v-if="wedding.ownerEmail"
-                          class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary"
-                        >
-                          {{ wedding.ownerEmail }}
-                        </p>
-                      </td>
-                      <td
-                        class="px-6 py-4 whitespace-nowrap font-body text-sm text-charcoal dark:text-dark-text"
+                        <code class="font-mono text-xs text-sage">{{ wedding.slug }}</code>
+                      </div>
+                      <span
+                        class="px-2 py-0.5 font-body text-xs font-medium rounded-full flex-shrink-0"
+                        :class="{
+                          'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400':
+                            wedding.status === 'active',
+                          'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400':
+                            wedding.status === 'archived',
+                          'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400':
+                            wedding.status === 'draft',
+                        }"
                       >
-                        {{ formatDate(wedding.weddingDate) }}
-                      </td>
-                      <td class="px-6 py-4 whitespace-nowrap">
-                        <span
-                          class="px-2 py-1 font-body text-xs font-medium rounded-full"
-                          :class="{
-                            'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400':
-                              wedding.status === 'active',
-                            'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400':
-                              wedding.status === 'archived',
-                            'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400':
-                              wedding.status === 'draft',
-                          }"
+                        {{ wedding.status }}
+                      </span>
+                    </div>
+
+                    <!-- Info row -->
+                    <div
+                      class="flex items-center gap-4 text-xs text-charcoal-light dark:text-dark-text-secondary mb-3"
+                    >
+                      <span v-if="wedding.ownerUsername">{{ wedding.ownerUsername }}</span>
+                      <span>{{ formatDate(wedding.weddingDate) }}</span>
+                    </div>
+
+                    <!-- Actions row -->
+                    <div class="flex items-center gap-1">
+                      <button
+                        type="button"
+                        class="p-2 text-charcoal-light hover:text-sage dark:text-dark-text-secondary dark:hover:text-sage transition-colors cursor-pointer"
+                        title="View Public Page"
+                        @click="goToPublicPage(wedding.slug)"
+                      >
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                          />
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                          />
+                        </svg>
+                      </button>
+                      <button
+                        type="button"
+                        class="p-2 text-charcoal-light hover:text-sage dark:text-dark-text-secondary dark:hover:text-sage transition-colors cursor-pointer"
+                        title="Open Admin Panel"
+                        @click="goToWeddingAdmin(wedding.slug, wedding.weddingId)"
+                      >
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M4 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM14 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1V5zM4 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1v-4zM14 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z"
+                          />
+                        </svg>
+                      </button>
+                      <button
+                        type="button"
+                        class="p-2 text-charcoal-light hover:text-sage dark:text-dark-text-secondary dark:hover:text-sage transition-colors cursor-pointer"
+                        title="Wedding Settings"
+                        @click="openSettingsModal(wedding.weddingId)"
+                      >
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
+                          />
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                          />
+                        </svg>
+                      </button>
+                      <button
+                        type="button"
+                        class="p-2 text-charcoal-light hover:text-amber-500 dark:text-dark-text-secondary dark:hover:text-amber-400 transition-colors cursor-pointer"
+                        title="Manage Users"
+                        @click="openDetailModal(wedding.weddingId)"
+                      >
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"
+                          />
+                        </svg>
+                      </button>
+                      <button
+                        v-if="wedding.status === 'active'"
+                        type="button"
+                        class="p-2 text-charcoal-light hover:text-red-500 dark:text-dark-text-secondary dark:hover:text-red-400 transition-colors cursor-pointer"
+                        title="Archive Wedding"
+                        @click="showArchiveConfirm = wedding.weddingId"
+                      >
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"
+                          />
+                        </svg>
+                      </button>
+                      <button
+                        v-if="wedding.status === 'archived'"
+                        type="button"
+                        class="p-2 text-charcoal-light hover:text-red-600 dark:text-dark-text-secondary dark:hover:text-red-500 transition-colors cursor-pointer"
+                        title="Permanently Delete"
+                        @click="
+                          openHardDeleteModal(wedding.weddingId, wedding.slug, wedding.displayName)
+                        "
+                      >
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                          />
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Desktop Table View -->
+                <div class="hidden sm:block overflow-x-auto">
+                  <table class="w-full">
+                    <thead class="bg-sand/50 dark:bg-dark-bg">
+                      <tr>
+                        <th
+                          class="px-6 py-3 text-left font-body text-xs font-medium text-charcoal-light dark:text-dark-text-secondary uppercase tracking-wider"
                         >
-                          {{ wedding.status }}
-                        </span>
-                      </td>
-                      <td class="px-6 py-4 whitespace-nowrap text-right">
-                        <div class="flex items-center justify-end gap-2">
-                          <button
-                            type="button"
-                            class="p-2 text-charcoal-light hover:text-sage dark:text-dark-text-secondary dark:hover:text-sage transition-colors cursor-pointer"
-                            title="View Public Page"
-                            @click="goToPublicPage(wedding.slug)"
+                          Wedding
+                        </th>
+                        <th
+                          class="px-6 py-3 text-left font-body text-xs font-medium text-charcoal-light dark:text-dark-text-secondary uppercase tracking-wider"
+                        >
+                          Slug
+                        </th>
+                        <th
+                          class="px-6 py-3 text-left font-body text-xs font-medium text-charcoal-light dark:text-dark-text-secondary uppercase tracking-wider"
+                        >
+                          Owner
+                        </th>
+                        <th
+                          class="px-6 py-3 text-left font-body text-xs font-medium text-charcoal-light dark:text-dark-text-secondary uppercase tracking-wider"
+                        >
+                          Date
+                        </th>
+                        <th
+                          class="px-6 py-3 text-left font-body text-xs font-medium text-charcoal-light dark:text-dark-text-secondary uppercase tracking-wider"
+                        >
+                          Status
+                        </th>
+                        <th
+                          class="px-6 py-3 text-right font-body text-xs font-medium text-charcoal-light dark:text-dark-text-secondary uppercase tracking-wider"
+                        >
+                          Actions
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody class="divide-y divide-sand-dark dark:divide-dark-border">
+                      <tr
+                        v-for="wedding in weddings"
+                        :key="wedding.weddingId"
+                        class="hover:bg-sand/30 dark:hover:bg-dark-bg-elevated"
+                      >
+                        <td class="px-6 py-4 whitespace-nowrap">
+                          <p
+                            class="font-body text-sm font-medium text-charcoal dark:text-dark-text"
                           >
-                            <svg
-                              class="w-4 h-4"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                stroke-width="2"
-                                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                              />
-                              <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                stroke-width="2"
-                                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                              />
-                            </svg>
-                          </button>
-                          <button
-                            type="button"
-                            class="p-2 text-charcoal-light hover:text-sage dark:text-dark-text-secondary dark:hover:text-sage transition-colors cursor-pointer"
-                            title="Open Admin Panel"
-                            @click="goToWeddingAdmin(wedding.slug, wedding.weddingId)"
+                            {{ wedding.displayName }}
+                          </p>
+                          <p
+                            class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary"
                           >
-                            <svg
-                              class="w-4 h-4"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                stroke-width="2"
-                                d="M4 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM14 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1V5zM4 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1v-4zM14 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z"
-                              />
-                            </svg>
-                          </button>
-                          <button
-                            type="button"
-                            class="p-2 text-charcoal-light hover:text-sage dark:text-dark-text-secondary dark:hover:text-sage transition-colors cursor-pointer"
-                            title="Wedding Settings"
-                            @click="openSettingsModal(wedding.weddingId)"
+                            {{ wedding.weddingId.slice(0, 8) }}...
+                          </p>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                          <code class="font-mono text-sm text-sage bg-sage/10 px-2 py-1 rounded">{{
+                            wedding.slug
+                          }}</code>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                          <p class="font-body text-sm text-charcoal dark:text-dark-text">
+                            {{ wedding.ownerUsername || '-' }}
+                          </p>
+                          <p
+                            v-if="wedding.ownerEmail"
+                            class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary"
                           >
-                            <svg
-                              class="w-4 h-4"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                stroke-width="2"
-                                d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
-                              />
-                              <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                stroke-width="2"
-                                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                              />
-                            </svg>
-                          </button>
-                          <button
-                            type="button"
-                            class="p-2 text-charcoal-light hover:text-amber-500 dark:text-dark-text-secondary dark:hover:text-amber-400 transition-colors cursor-pointer"
-                            title="Manage Users"
-                            @click="openDetailModal(wedding.weddingId)"
+                            {{ wedding.ownerEmail }}
+                          </p>
+                        </td>
+                        <td
+                          class="px-6 py-4 whitespace-nowrap font-body text-sm text-charcoal dark:text-dark-text"
+                        >
+                          {{ formatDate(wedding.weddingDate) }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                          <span
+                            class="px-2 py-1 font-body text-xs font-medium rounded-full"
+                            :class="{
+                              'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400':
+                                wedding.status === 'active',
+                              'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400':
+                                wedding.status === 'archived',
+                              'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400':
+                                wedding.status === 'draft',
+                            }"
                           >
-                            <svg
-                              class="w-4 h-4"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
+                            {{ wedding.status }}
+                          </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-right">
+                          <div class="flex items-center justify-end gap-2">
+                            <button
+                              type="button"
+                              class="p-2 text-charcoal-light hover:text-sage dark:text-dark-text-secondary dark:hover:text-sage transition-colors cursor-pointer"
+                              title="View Public Page"
+                              @click="goToPublicPage(wedding.slug)"
                             >
-                              <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                stroke-width="2"
-                                d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"
-                              />
-                            </svg>
-                          </button>
-                          <button
-                            v-if="wedding.status === 'active'"
-                            type="button"
-                            class="p-2 text-charcoal-light hover:text-red-500 dark:text-dark-text-secondary dark:hover:text-red-400 transition-colors cursor-pointer"
-                            title="Archive Wedding"
-                            @click="showArchiveConfirm = wedding.weddingId"
-                          >
-                            <svg
-                              class="w-4 h-4"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
+                              <svg
+                                class="w-4 h-4"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  stroke-linecap="round"
+                                  stroke-linejoin="round"
+                                  stroke-width="2"
+                                  d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                                />
+                                <path
+                                  stroke-linecap="round"
+                                  stroke-linejoin="round"
+                                  stroke-width="2"
+                                  d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                                />
+                              </svg>
+                            </button>
+                            <button
+                              type="button"
+                              class="p-2 text-charcoal-light hover:text-sage dark:text-dark-text-secondary dark:hover:text-sage transition-colors cursor-pointer"
+                              title="Open Admin Panel"
+                              @click="goToWeddingAdmin(wedding.slug, wedding.weddingId)"
                             >
-                              <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                stroke-width="2"
-                                d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"
-                              />
-                            </svg>
-                          </button>
-                          <!-- Permanently Delete Button (only for archived weddings) -->
-                          <button
-                            v-if="wedding.status === 'archived'"
-                            type="button"
-                            class="p-2 text-charcoal-light hover:text-red-600 dark:text-dark-text-secondary dark:hover:text-red-500 transition-colors cursor-pointer"
-                            title="Permanently Delete"
-                            @click="
-                              openHardDeleteModal(
-                                wedding.weddingId,
-                                wedding.slug,
-                                wedding.displayName
-                              )
-                            "
-                          >
-                            <svg
-                              class="w-4 h-4"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
+                              <svg
+                                class="w-4 h-4"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  stroke-linecap="round"
+                                  stroke-linejoin="round"
+                                  stroke-width="2"
+                                  d="M4 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM14 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1V5zM4 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1v-4zM14 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z"
+                                />
+                              </svg>
+                            </button>
+                            <button
+                              type="button"
+                              class="p-2 text-charcoal-light hover:text-sage dark:text-dark-text-secondary dark:hover:text-sage transition-colors cursor-pointer"
+                              title="Wedding Settings"
+                              @click="openSettingsModal(wedding.weddingId)"
                             >
-                              <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                stroke-width="2"
-                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                              />
-                            </svg>
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
+                              <svg
+                                class="w-4 h-4"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  stroke-linecap="round"
+                                  stroke-linejoin="round"
+                                  stroke-width="2"
+                                  d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
+                                />
+                                <path
+                                  stroke-linecap="round"
+                                  stroke-linejoin="round"
+                                  stroke-width="2"
+                                  d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                                />
+                              </svg>
+                            </button>
+                            <button
+                              type="button"
+                              class="p-2 text-charcoal-light hover:text-amber-500 dark:text-dark-text-secondary dark:hover:text-amber-400 transition-colors cursor-pointer"
+                              title="Manage Users"
+                              @click="openDetailModal(wedding.weddingId)"
+                            >
+                              <svg
+                                class="w-4 h-4"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  stroke-linecap="round"
+                                  stroke-linejoin="round"
+                                  stroke-width="2"
+                                  d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"
+                                />
+                              </svg>
+                            </button>
+                            <button
+                              v-if="wedding.status === 'active'"
+                              type="button"
+                              class="p-2 text-charcoal-light hover:text-red-500 dark:text-dark-text-secondary dark:hover:text-red-400 transition-colors cursor-pointer"
+                              title="Archive Wedding"
+                              @click="showArchiveConfirm = wedding.weddingId"
+                            >
+                              <svg
+                                class="w-4 h-4"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  stroke-linecap="round"
+                                  stroke-linejoin="round"
+                                  stroke-width="2"
+                                  d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"
+                                />
+                              </svg>
+                            </button>
+                            <!-- Permanently Delete Button (only for archived weddings) -->
+                            <button
+                              v-if="wedding.status === 'archived'"
+                              type="button"
+                              class="p-2 text-charcoal-light hover:text-red-600 dark:text-dark-text-secondary dark:hover:text-red-500 transition-colors cursor-pointer"
+                              title="Permanently Delete"
+                              @click="
+                                openHardDeleteModal(
+                                  wedding.weddingId,
+                                  wedding.slug,
+                                  wedding.displayName
+                                )
+                              "
+                            >
+                              <svg
+                                class="w-4 h-4"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  stroke-linecap="round"
+                                  stroke-linejoin="round"
+                                  stroke-width="2"
+                                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                                />
+                              </svg>
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </div>
           </div>
-        </template>
 
-        <!-- Staff Tab -->
-        <StaffManagement v-else-if="activeTab === 'staff'" />
+          <!-- Staff Tab -->
+          <StaffManagement v-else key="staff" />
+        </Transition>
       </main>
 
       <!-- Create Wedding Modal -->
