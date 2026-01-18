@@ -3,6 +3,7 @@
   import { useWeddingDetails } from '@/composables/useWeddingDetails'
   import { useAdminLanguage } from '@/composables/useAdminLanguage'
   import { useLoadingOverlay } from '@/composables/useLoadingOverlay'
+  import { getStoredPrimaryWeddingId } from '@/services/tokenManager'
   import type {
     EventDisplayFormat,
     EventDisplayPreset,
@@ -23,6 +24,9 @@
 
   const { adminT } = useAdminLanguage()
   const { withLoading } = useLoadingOverlay()
+
+  // Get wedding ID for API calls
+  const weddingId = computed(() => getStoredPrimaryWeddingId())
 
   const {
     weddingDetails,
@@ -417,7 +421,7 @@
   const handleSave = async () => {
     await withLoading(
       async () => {
-        const result = await updateWeddingDetails(formData.value)
+        const result = await updateWeddingDetails(formData.value, weddingId.value ?? undefined)
         // Sync form data after successful save to ensure hasChanges is false
         if (result.success) {
           syncFormData()
