@@ -1,48 +1,48 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+  import { computed } from 'vue'
 
-const props = withDefaults(
-  defineProps<{
-    modelValue: boolean
-    loading?: boolean
-    disabled?: boolean
-    size?: 'sm' | 'md'
-  }>(),
-  {
-    loading: false,
-    disabled: false,
-    size: 'md',
-  }
-)
-
-const emit = defineEmits<{
-  'update:modelValue': [value: boolean]
-}>()
-
-const isDisabled = computed(() => props.disabled || props.loading)
-
-const handleClick = () => {
-  if (isDisabled.value) return
-  emit('update:modelValue', !props.modelValue)
-}
-
-// Size classes
-const sizeClasses = computed(() => {
-  if (props.size === 'sm') {
-    return {
-      track: 'h-5 w-9',
-      thumb: 'h-3.5 w-3.5',
-      thumbTranslate: props.modelValue ? 'translate-x-4' : 'translate-x-0.5',
-      spinner: 'h-2.5 w-2.5',
+  const props = withDefaults(
+    defineProps<{
+      modelValue: boolean
+      loading?: boolean
+      disabled?: boolean
+      size?: 'sm' | 'md'
+    }>(),
+    {
+      loading: false,
+      disabled: false,
+      size: 'md',
     }
+  )
+
+  const emit = defineEmits<{
+    'update:modelValue': [value: boolean]
+  }>()
+
+  const isDisabled = computed(() => props.disabled || props.loading)
+
+  const handleClick = () => {
+    if (isDisabled.value) return
+    emit('update:modelValue', !props.modelValue)
   }
-  return {
-    track: 'h-6 w-11',
-    thumb: 'h-4 w-4',
-    thumbTranslate: props.modelValue ? 'translate-x-6' : 'translate-x-1',
-    spinner: 'h-3 w-3',
-  }
-})
+
+  // Size classes
+  const sizeClasses = computed(() => {
+    if (props.size === 'sm') {
+      return {
+        track: 'h-5 w-9',
+        thumb: 'h-3.5 w-3.5',
+        thumbTranslate: props.modelValue ? 'translate-x-4' : 'translate-x-0.5',
+        spinner: 'h-2.5 w-2.5',
+      }
+    }
+    return {
+      track: 'h-6 w-11',
+      thumb: 'h-4 w-4',
+      thumbTranslate: props.modelValue ? 'translate-x-6' : 'translate-x-1',
+      spinner: 'h-3 w-3',
+    }
+  })
 </script>
 
 <template>
@@ -74,14 +74,7 @@ const sizeClasses = computed(() => {
         fill="none"
         viewBox="0 0 24 24"
       >
-        <circle
-          class="opacity-25"
-          cx="12"
-          cy="12"
-          r="10"
-          stroke="currentColor"
-          stroke-width="4"
-        />
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
         <path
           class="opacity-75"
           fill="currentColor"

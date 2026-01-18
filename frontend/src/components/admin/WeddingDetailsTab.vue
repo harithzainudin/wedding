@@ -514,18 +514,23 @@
           "
           @click="toggleSection('couple')"
         >
-          <h3
-            class="font-heading text-base font-medium transition-colors"
-            :class="
-              expandedSections.couple
-                ? 'text-sage-dark dark:text-sage-light'
-                : 'text-charcoal dark:text-dark-text group-hover:text-sage-dark dark:group-hover:text-sage-light'
-            "
-          >
-            {{ adminT.wedding.coupleInfo }}
-          </h3>
+          <div>
+            <h3
+              class="font-heading text-base font-medium transition-colors"
+              :class="
+                expandedSections.couple
+                  ? 'text-sage-dark dark:text-sage-light'
+                  : 'text-charcoal dark:text-dark-text group-hover:text-sage-dark dark:group-hover:text-sage-light'
+              "
+            >
+              {{ adminT.wedding.coupleInfo }}
+            </h3>
+            <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary mt-1">
+              {{ adminT.wedding.coupleInfoDesc }}
+            </p>
+          </div>
           <svg
-            class="w-5 h-5 transition-all"
+            class="w-5 h-5 transition-all flex-shrink-0 ml-2"
             :class="[
               expandedSections.couple
                 ? 'rotate-180 text-sage'
@@ -642,7 +647,7 @@
           "
           @click="toggleSection('nameOrder')"
         >
-          <div class="flex items-center gap-2">
+          <div>
             <h3
               class="font-heading text-base font-medium transition-colors"
               :class="
@@ -653,9 +658,12 @@
             >
               {{ adminT.wedding.nameDisplayOrder }}
             </h3>
+            <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary mt-1">
+              {{ adminT.wedding.nameDisplayOrderDesc }}
+            </p>
           </div>
           <svg
-            class="w-5 h-5 transition-all"
+            class="w-5 h-5 transition-all flex-shrink-0 ml-2"
             :class="[
               expandedSections.nameOrder
                 ? 'rotate-180 text-sage'
@@ -679,10 +687,6 @@
         >
           <div class="overflow-hidden min-h-0">
             <div class="px-4 sm:px-6 pt-2 pb-4 sm:pb-6">
-              <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary mb-4">
-                {{ adminT.wedding.nameDisplayOrderDesc }}
-              </p>
-
               <div class="flex flex-col sm:flex-row gap-3">
                 <label
                   class="flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors"
@@ -833,18 +837,23 @@
           "
           @click="toggleSection('parents')"
         >
-          <h3
-            class="font-heading text-base font-medium transition-colors"
-            :class="
-              expandedSections.parents
-                ? 'text-sage-dark dark:text-sage-light'
-                : 'text-charcoal dark:text-dark-text group-hover:text-sage-dark dark:group-hover:text-sage-light'
-            "
-          >
-            {{ adminT.wedding.parentsInfo }}
-          </h3>
+          <div>
+            <h3
+              class="font-heading text-base font-medium transition-colors"
+              :class="
+                expandedSections.parents
+                  ? 'text-sage-dark dark:text-sage-light'
+                  : 'text-charcoal dark:text-dark-text group-hover:text-sage-dark dark:group-hover:text-sage-light'
+              "
+            >
+              {{ adminT.wedding.parentsInfo }}
+            </h3>
+            <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary mt-1">
+              {{ adminT.wedding.parentsVisibilityDesc }}
+            </p>
+          </div>
           <svg
-            class="w-5 h-5 transition-all"
+            class="w-5 h-5 transition-all flex-shrink-0 ml-2"
             :class="[
               expandedSections.parents
                 ? 'rotate-180 text-sage'
@@ -870,10 +879,6 @@
             <div class="px-4 sm:px-6 pt-2 pb-4 sm:pb-6">
               <!-- Parents Visibility Settings -->
               <div class="mb-6 space-y-3">
-                <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary mb-2">
-                  {{ adminT.wedding.parentsVisibilityDesc }}
-                </p>
-
                 <!-- Show Bride's Parents Toggle -->
                 <div
                   class="flex items-center justify-between py-3 px-4 bg-sand/50 dark:bg-dark-bg rounded-lg"
@@ -1065,18 +1070,23 @@
           "
           @click="toggleSection('event')"
         >
-          <h3
-            class="font-heading text-base font-medium transition-colors"
-            :class="
-              expandedSections.event
-                ? 'text-sage-dark dark:text-sage-light'
-                : 'text-charcoal dark:text-dark-text group-hover:text-sage-dark dark:group-hover:text-sage-light'
-            "
-          >
-            {{ adminT.wedding.eventDetails }}
-          </h3>
+          <div>
+            <h3
+              class="font-heading text-base font-medium transition-colors"
+              :class="
+                expandedSections.event
+                  ? 'text-sage-dark dark:text-sage-light'
+                  : 'text-charcoal dark:text-dark-text group-hover:text-sage-dark dark:group-hover:text-sage-light'
+              "
+            >
+              {{ adminT.wedding.eventDetails }}
+            </h3>
+            <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary mt-1">
+              {{ adminT.wedding.eventDetailsDesc }}
+            </p>
+          </div>
           <svg
-            class="w-5 h-5 transition-all"
+            class="w-5 h-5 transition-all flex-shrink-0 ml-2"
             :class="[
               expandedSections.event
                 ? 'rotate-180 text-sage'
@@ -1422,18 +1432,23 @@
           "
           @click="toggleSection('website')"
         >
-          <h3
-            class="font-heading text-base font-medium transition-colors"
-            :class="
-              expandedSections.website
-                ? 'text-sage-dark dark:text-sage-light'
-                : 'text-charcoal dark:text-dark-text group-hover:text-sage-dark dark:group-hover:text-sage-light'
-            "
-          >
-            {{ adminT.wedding.websiteDetails }}
-          </h3>
+          <div>
+            <h3
+              class="font-heading text-base font-medium transition-colors"
+              :class="
+                expandedSections.website
+                  ? 'text-sage-dark dark:text-sage-light'
+                  : 'text-charcoal dark:text-dark-text group-hover:text-sage-dark dark:group-hover:text-sage-light'
+              "
+            >
+              {{ adminT.wedding.websiteDetails }}
+            </h3>
+            <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary mt-1">
+              {{ adminT.wedding.websiteDetailsDesc }}
+            </p>
+          </div>
           <svg
-            class="w-5 h-5 transition-all"
+            class="w-5 h-5 transition-all flex-shrink-0 ml-2"
             :class="[
               expandedSections.website
                 ? 'rotate-180 text-sage'

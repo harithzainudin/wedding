@@ -1123,6 +1123,7 @@ export interface AdminTranslations {
     subtitle: string
     loadingDetails: string
     coupleInfo: string
+    coupleInfoDesc: string
     fullName: string
     fullNamePlaceholder: string
     nickname: string
@@ -1157,6 +1158,7 @@ export interface AdminTranslations {
     showGroomParents: string
     showGroomParentsDesc: string
     eventDetails: string
+    eventDetailsDesc: string
     eventStartDateTime: string
     eventEndTime: string
     dressCode: string
@@ -1188,6 +1190,7 @@ export interface AdminTranslations {
     presetFullDetails: string
     presetCustom: string
     websiteDetails: string
+    websiteDetailsDesc: string
     hashtag: string
     hashtagPlaceholder: string
     savedSuccess: string
@@ -1858,6 +1861,7 @@ export const adminTranslations: Record<AdminLanguage, AdminTranslations> = {
       subtitle: 'Manage couple information, parents, and event details',
       loadingDetails: 'Loading wedding details...',
       coupleInfo: 'Couple Information',
+      coupleInfoDesc: 'Enter the names that will appear on the wedding invitation',
       fullName: 'Full Name',
       fullNamePlaceholder: 'Full name',
       nickname: 'Nickname',
@@ -1893,6 +1897,7 @@ export const adminTranslations: Record<AdminLanguage, AdminTranslations> = {
       showGroomParents: "Show Groom's Parents",
       showGroomParentsDesc: "Display groom's parents names on the invitation",
       eventDetails: 'Event Details',
+      eventDetailsDesc: 'Set the wedding date, time, and dress code for your guests',
       eventStartDateTime: 'Event Start Date & Time',
       eventEndTime: 'Event End Time',
       dressCode: 'Dress Code',
@@ -1924,6 +1929,7 @@ export const adminTranslations: Record<AdminLanguage, AdminTranslations> = {
       presetFullDetails: 'Full Details (Separate Lines)',
       presetCustom: 'Custom',
       websiteDetails: 'Website Details',
+      websiteDetailsDesc: 'Set a hashtag for guests to use when sharing photos on social media',
       hashtag: 'Wedding Hashtag',
       hashtagPlaceholder: '#YourWeddingHashtag',
       savedSuccess: 'Wedding details saved successfully!',
@@ -2583,6 +2589,7 @@ export const adminTranslations: Record<AdminLanguage, AdminTranslations> = {
       subtitle: 'Urus maklumat pasangan, ibu bapa, dan butiran acara',
       loadingDetails: 'Memuatkan butiran perkahwinan...',
       coupleInfo: 'Maklumat Pasangan',
+      coupleInfoDesc: 'Masukkan nama yang akan dipaparkan pada kad jemputan',
       fullName: 'Nama Penuh',
       fullNamePlaceholder: 'Nama penuh',
       nickname: 'Nama Panggilan',
@@ -2618,6 +2625,7 @@ export const adminTranslations: Record<AdminLanguage, AdminTranslations> = {
       showGroomParents: 'Papar Ibu Bapa Pengantin Lelaki',
       showGroomParentsDesc: 'Paparkan nama ibu bapa pengantin lelaki pada jemputan',
       eventDetails: 'Butiran Acara',
+      eventDetailsDesc: 'Tetapkan tarikh, masa, dan kod pakaian untuk tetamu anda',
       eventStartDateTime: 'Tarikh & Masa Mula Acara',
       eventEndTime: 'Masa Tamat Acara',
       dressCode: 'Kod Pakaian',
@@ -2651,6 +2659,8 @@ export const adminTranslations: Record<AdminLanguage, AdminTranslations> = {
       presetFullDetails: 'Butiran Penuh (Baris Berasingan)',
       presetCustom: 'Tersuai',
       websiteDetails: 'Butiran Laman Web',
+      websiteDetailsDesc:
+        'Tetapkan hashtag untuk tetamu gunakan semasa berkongsi foto di media sosial',
       hashtag: 'Hashtag Perkahwinan',
       hashtagPlaceholder: '#HashtagPerkahwinanAnda',
       savedSuccess: 'Butiran perkahwinan berjaya disimpan!',
