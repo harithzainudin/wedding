@@ -398,6 +398,19 @@
     }
   }
 
+  // Hashtag without the # prefix for display/editing
+  const hashtagWithoutPrefix = computed({
+    get: () => {
+      const tag = formData.value.hashtag
+      return tag.startsWith('#') ? tag.slice(1) : tag
+    },
+    set: (value: string) => {
+      // Remove any # the user might type and clean the value
+      const cleanValue = value.replace(/#/g, '').trim()
+      formData.value.hashtag = cleanValue ? `#${cleanValue}` : ''
+    },
+  })
+
   // Save changes
   const handleSave = async () => {
     const result = await updateWeddingDetails(formData.value)
@@ -1450,13 +1463,20 @@
                 >
                   {{ adminT.wedding.hashtag }}
                 </label>
-                <input
-                  v-model="formData.hashtag"
-                  type="text"
-                  class="w-full px-3 py-2.5 font-body text-base border border-sand-dark dark:border-dark-border rounded-lg bg-sand dark:bg-dark-bg-elevated text-charcoal dark:text-dark-text focus:outline-none focus:border-sage"
-                  :placeholder="adminT.wedding.hashtagPlaceholder"
-                  :disabled="isSaving"
-                />
+                <div class="flex">
+                  <span
+                    class="inline-flex items-center px-3 py-2.5 font-body text-base text-charcoal-light dark:text-dark-text-secondary bg-sand-dark/50 dark:bg-dark-bg border border-r-0 border-sand-dark dark:border-dark-border rounded-l-lg"
+                  >
+                    #
+                  </span>
+                  <input
+                    v-model="hashtagWithoutPrefix"
+                    type="text"
+                    class="flex-1 px-3 py-2.5 font-body text-base border border-sand-dark dark:border-dark-border rounded-r-lg bg-sand dark:bg-dark-bg-elevated text-charcoal dark:text-dark-text focus:outline-none focus:border-sage"
+                    placeholder="YourWeddingHashtag"
+                    :disabled="isSaving"
+                  />
+                </div>
               </div>
             </div>
           </div>
