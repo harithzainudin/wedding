@@ -1578,6 +1578,8 @@ export interface AdminTranslations {
     // Assignment modal
     assignStaff: string
     createClient: string
+    noAssignment: string
+    noAssignmentDesc: string
     selectStaff: string
     selectStaffPlaceholder: string
     clientDetails: string
@@ -2337,6 +2339,8 @@ export const adminTranslations: Record<AdminLanguage, AdminTranslations> = {
       createdAt: 'Created',
       assignStaff: 'Assign Staff',
       createClient: 'Create Client',
+      noAssignment: 'No Assignment',
+      noAssignmentDesc: 'Super admin will manage this wedding directly. You can add owners later.',
       selectStaff: 'Select Staff Member',
       selectStaffPlaceholder: 'Choose a staff member...',
       clientDetails: 'Client Details',
@@ -3097,6 +3101,9 @@ export const adminTranslations: Record<AdminLanguage, AdminTranslations> = {
       createdAt: 'Dicipta',
       assignStaff: 'Tugaskan Staf',
       createClient: 'Cipta Klien',
+      noAssignment: 'Tiada Tugasan',
+      noAssignmentDesc:
+        'Super admin akan menguruskan perkahwinan ini secara langsung. Anda boleh menambah pemilik kemudian.',
       selectStaff: 'Pilih Ahli Staf',
       selectStaffPlaceholder: 'Pilih ahli staf...',
       clientDetails: 'Butiran Klien',

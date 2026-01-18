@@ -107,6 +107,72 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
     const gsi2Keys = Keys.gsi2.bySlug(slug)
 
     // ============================================
+    // MODE 0: No Owner Assignment (Super Admin manages)
+    // ============================================
+    if (!assignStaffUsername && !ownerUsername) {
+      await docClient.send(
+        new TransactWriteCommand({
+          TransactItems: [
+            // Wedding record (no ownerId - super admin manages directly)
+            {
+              Put: {
+                TableName: Resource.AppDataTable.name,
+                Item: {
+                  ...weddingKey,
+                  weddingId,
+                  slug,
+                  displayName,
+                  status: 'active',
+                  // No ownerId - super admin manages directly
+                  coOwnerIds: [],
+                  weddingDate,
+                  plan: plan ?? 'free',
+                  createdAt: now,
+                  createdBy: authResult.user.username,
+                  ...gsiKeys,
+                  ...gsi2Keys,
+                },
+                ConditionExpression: 'attribute_not_exists(pk)',
+              },
+            },
+            // Slug lookup record
+            {
+              Put: {
+                TableName: Resource.AppDataTable.name,
+                Item: {
+                  ...slugKey,
+                  weddingId,
+                  slug,
+                },
+                ConditionExpression: 'attribute_not_exists(pk)',
+              },
+            },
+            // NO wedding-admin link - super admin has full access anyway
+          ],
+        })
+      )
+
+      return createSuccessResponse(
+        201,
+        {
+          wedding: {
+            weddingId,
+            slug,
+            displayName,
+            status: 'active',
+            weddingDate,
+            plan: plan ?? 'free',
+            createdAt: now,
+          },
+          // No owner field in response - super admin manages directly
+          publicUrl: `/${slug}`,
+          adminUrl: `/${slug}/admin`,
+        },
+        context
+      )
+    }
+
+    // ============================================
     // MODE 1: Assign Existing Staff Member
     // ============================================
     if (assignStaffUsername) {

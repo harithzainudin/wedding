@@ -9,11 +9,7 @@
 
 import type { APIGatewayProxyHandlerV2 } from 'aws-lambda'
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb'
-import {
-  DynamoDBDocumentClient,
-  QueryCommand,
-  BatchGetCommand,
-} from '@aws-sdk/lib-dynamodb'
+import { DynamoDBDocumentClient, QueryCommand, BatchGetCommand } from '@aws-sdk/lib-dynamodb'
 import { createSuccessResponse, createErrorResponse } from '../shared/response'
 import { requireAuth } from '../shared/auth'
 import { logError } from '../shared/logger'

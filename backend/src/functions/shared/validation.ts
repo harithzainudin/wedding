@@ -282,14 +282,21 @@ export function validateCreateWeddingInput(
     plan = body.plan as 'free' | 'basic' | 'premium'
   }
 
-  // Determine owner mode: assign staff OR create client
+  // Determine owner mode: assign staff OR create client OR no owner (super admin manages)
   const hasAssignStaff = body.assignStaffUsername !== undefined && body.assignStaffUsername !== ''
   const hasCreateClient = body.ownerUsername !== undefined && body.ownerUsername !== ''
 
+  // Mode 0: No owner assignment - super admin will manage directly
   if (!hasAssignStaff && !hasCreateClient) {
     return {
-      valid: false,
-      error: 'Either assignStaffUsername or ownerUsername must be provided',
+      valid: true,
+      data: {
+        slug: body.slug.toLowerCase(),
+        displayName: body.displayName.trim(),
+        weddingDate: body.weddingDate,
+        plan,
+        // No owner fields - super admin manages
+      },
     }
   }
 

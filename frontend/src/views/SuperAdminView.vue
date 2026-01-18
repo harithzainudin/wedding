@@ -141,8 +141,8 @@
   const copyFeedback = ref(false)
 
   // Create wedding form - owner assignment mode
-  type OwnerMode = 'staff' | 'client'
-  const createOwnerMode = ref<OwnerMode>('staff')
+  type OwnerMode = 'staff' | 'client' | 'none'
+  const createOwnerMode = ref<OwnerMode>('none')
   const createSelectedStaff = ref('')
 
   const createForm = ref<CreateWeddingRequest>({
@@ -198,13 +198,13 @@
       return
     }
 
-    // Validate owner based on mode
+    // Validate owner based on mode (skip validation for 'none' mode)
     if (createOwnerMode.value === 'staff') {
       if (!createSelectedStaff.value) {
         createFormError.value = 'Please select a staff member'
         return
       }
-    } else {
+    } else if (createOwnerMode.value === 'client') {
       if (!createClientForm.value.username || createClientForm.value.username.length < 3) {
         createFormError.value = 'Owner username must be at least 3 characters'
         return
@@ -214,6 +214,7 @@
         return
       }
     }
+    // 'none' mode: no owner validation needed
 
     // Build request based on mode
     const request: CreateWeddingRequest = {
@@ -222,9 +223,10 @@
       ...(createForm.value.weddingDate && { weddingDate: createForm.value.weddingDate }),
     }
 
+    // Add owner fields based on mode (skip for 'none' mode)
     if (createOwnerMode.value === 'staff') {
       request.assignStaffUsername = createSelectedStaff.value
-    } else {
+    } else if (createOwnerMode.value === 'client') {
       request.ownerUsername = createClientForm.value.username
       request.ownerPassword = createClientForm.value.password
       if (createClientForm.value.email) {
@@ -238,6 +240,7 @@
             : createClientForm.value.roleLabel
       }
     }
+    // 'none' mode: no owner fields added - super admin will manage directly
 
     showCreateModal.value = false
 
@@ -263,7 +266,7 @@
       displayName: '',
       weddingDate: '',
     }
-    createOwnerMode.value = 'staff'
+    createOwnerMode.value = 'none'
     createSelectedStaff.value = ''
     createClientForm.value = {
       username: '',
@@ -1404,13 +1407,25 @@
                       type="button"
                       class="px-4 py-2 font-body text-sm font-medium transition-colors cursor-pointer -mb-px"
                       :class="
+                        createOwnerMode === 'none'
+                          ? 'text-sage border-b-2 border-sage'
+                          : 'text-charcoal-light dark:text-dark-text-secondary hover:text-charcoal dark:hover:text-dark-text'
+                      "
+                      @click="createOwnerMode = 'none'"
+                    >
+                      {{ adminT.staff.noAssignment }}
+                    </button>
+                    <button
+                      type="button"
+                      class="px-4 py-2 font-body text-sm font-medium transition-colors cursor-pointer -mb-px"
+                      :class="
                         createOwnerMode === 'staff'
                           ? 'text-sage border-b-2 border-sage'
                           : 'text-charcoal-light dark:text-dark-text-secondary hover:text-charcoal dark:hover:text-dark-text'
                       "
                       @click="createOwnerMode = 'staff'"
                     >
-                      Assign Staff
+                      {{ adminT.staff.assignStaff }}
                     </button>
                     <button
                       type="button"
@@ -1422,12 +1437,22 @@
                       "
                       @click="createOwnerMode = 'client'"
                     >
-                      Create Client
+                      {{ adminT.staff.createClient }}
                     </button>
                   </div>
 
+                  <!-- No Assignment Info -->
+                  <div
+                    v-if="createOwnerMode === 'none'"
+                    class="p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg"
+                  >
+                    <p class="font-body text-sm text-blue-700 dark:text-blue-300">
+                      {{ adminT.staff.noAssignmentDesc }}
+                    </p>
+                  </div>
+
                   <!-- Staff Selection -->
-                  <div v-if="createOwnerMode === 'staff'" class="space-y-3">
+                  <div v-else-if="createOwnerMode === 'staff'" class="space-y-3">
                     <div>
                       <label
                         class="block font-body text-sm text-charcoal-light dark:text-dark-text-secondary mb-1"
@@ -1470,7 +1495,7 @@
                   </div>
 
                   <!-- Client Creation Form -->
-                  <div v-else class="space-y-3">
+                  <div v-else-if="createOwnerMode === 'client'" class="space-y-3">
                     <div>
                       <label
                         class="block font-body text-sm text-charcoal-light dark:text-dark-text-secondary mb-1"

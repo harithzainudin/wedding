@@ -216,7 +216,8 @@ export interface CreateWeddingRequest {
 
 export interface CreateWeddingResponse {
   wedding: Wedding
-  owner: {
+  // Owner is optional - when using "No Assignment" mode, super admin manages directly
+  owner?: {
     username: string
     email?: string
     temporaryPassword?: string
