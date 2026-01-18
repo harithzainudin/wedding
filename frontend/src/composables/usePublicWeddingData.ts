@@ -361,6 +361,7 @@ export function usePublicWeddingData() {
     weddingDetails,
     scheduleData,
     contactsData,
+    currentWeddingSlug,
     // Error states
     weddingError,
     weddingErrorMessage,

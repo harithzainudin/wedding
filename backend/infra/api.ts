@@ -39,6 +39,13 @@ api.route('POST /{weddingSlug}/rsvp', {
   ...functionConfig,
 })
 
+// GET /{weddingSlug}/rsvps - List RSVPs for guestbook (public, wishes only)
+api.route('GET /{weddingSlug}/rsvps', {
+  handler: 'src/functions/rsvp/list.handler',
+  link: [table],
+  ...functionConfig,
+})
+
 // Function to add admin routes with secrets
 export function addAdminRoutes(
   adminPassword: sst.Secret,

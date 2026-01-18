@@ -2,9 +2,11 @@
   import { ref, onMounted, computed } from 'vue'
   import { listRsvpsCached } from '@/services/api'
   import { useLanguage } from '@/composables/useLanguage'
+  import { usePublicWeddingData } from '@/composables/usePublicWeddingData'
   import type { RsvpSubmission } from '@/types/rsvp'
 
   const { t } = useLanguage()
+  const { currentWeddingSlug } = usePublicWeddingData()
 
   const wishes = ref<RsvpSubmission[]>([])
   const isLoading = ref(true)
@@ -29,7 +31,7 @@
     hasError.value = false
 
     try {
-      const response = await listRsvpsCached()
+      const response = await listRsvpsCached(currentWeddingSlug.value ?? undefined)
       wishes.value = response.rsvps
     } catch {
       hasError.value = true

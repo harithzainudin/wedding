@@ -17,7 +17,7 @@
   } from '@/utils/qrCodeFormats'
 
   const { currentLanguage } = useLanguage()
-  const { getQrCodeUrl, weddingDetails } = usePublicWeddingData()
+  const { getQrCodeUrl, weddingDetails, currentWeddingSlug } = usePublicWeddingData()
 
   // State
   const settings = ref<QRCodeHubSettings>({ ...DEFAULT_QRCODE_HUB_SETTINGS })
@@ -313,7 +313,11 @@
   const loadSettings = async (): Promise<void> => {
     isLoading.value = true
     try {
-      const [hubSettings, venue] = await Promise.all([getQRCodeHubCached(), getVenueCached()])
+      const slug = currentWeddingSlug.value ?? undefined
+      const [hubSettings, venue] = await Promise.all([
+        getQRCodeHubCached(slug),
+        getVenueCached(slug),
+      ])
       settings.value = hubSettings
       venueData.value = venue
       await generateAllQRCodes()

@@ -1,9 +1,11 @@
 <script setup lang="ts">
   import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue'
   import { useLanguage } from '@/composables/useLanguage'
+  import { usePublicWeddingData } from '@/composables/usePublicWeddingData'
   import { listGalleryImagesCached } from '@/services/api'
 
   const { t } = useLanguage()
+  const { currentWeddingSlug } = usePublicWeddingData()
 
   interface Photo {
     src: string
@@ -24,7 +26,7 @@
   const hasMorePhotos = computed(() => photos.value.length > MAX_VISIBLE_PHOTOS)
   const fetchPublicGallery = async (): Promise<void> => {
     try {
-      const data = await listGalleryImagesCached()
+      const data = await listGalleryImagesCached(currentWeddingSlug.value ?? undefined)
       showGallery.value = data.settings?.showGallery ?? true
       if (data.images?.length > 0) {
         photos.value = data.images.map((img) => ({

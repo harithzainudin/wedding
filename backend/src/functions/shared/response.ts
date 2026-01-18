@@ -45,6 +45,7 @@ export function createSuccessResponse<T>(
     statusCode,
     headers: {
       'Content-Type': 'application/json',
+      'Cache-Control': 'no-cache, no-store, must-revalidate',
     },
     body: JSON.stringify(response),
   }
@@ -83,6 +84,7 @@ export function createErrorResponse(
       statusCode,
       headers: {
         'Content-Type': 'application/json',
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
       },
       body: JSON.stringify(response),
     }
@@ -92,6 +94,7 @@ export function createErrorResponse(
       statusCode,
       headers: {
         'Content-Type': 'application/json',
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
       },
       body: JSON.stringify({
         success: false,
@@ -110,6 +113,7 @@ export function createResponse<T>(statusCode: number, body: T): APIGatewayProxyR
     statusCode,
     headers: {
       'Content-Type': 'application/json',
+      'Cache-Control': 'no-cache, no-store, must-revalidate',
     },
     body: JSON.stringify(body),
   }

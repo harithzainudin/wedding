@@ -2,6 +2,9 @@
   import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
   import type { MusicTrack, MusicSettings, PlayMode } from '@/types/music'
   import { getMusic } from '@/services/api'
+  import { usePublicWeddingData } from '@/composables/usePublicWeddingData'
+
+  const { currentWeddingSlug } = usePublicWeddingData()
 
   const CROSSFADE_DURATION = 2000 // 2 seconds
   const STORAGE_KEY = 'wedding-music-state'
@@ -242,7 +245,7 @@
   const fetchMusicData = async (): Promise<void> => {
     isLoading.value = true
     try {
-      const response = await getMusic()
+      const response = await getMusic(currentWeddingSlug.value ?? undefined)
       settings.value = response.settings
       tracks.value = response.tracks
 
