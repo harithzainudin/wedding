@@ -65,6 +65,16 @@
     showCustomizer.value = themeSettings.value.activeThemeId === 'custom'
   })
 
+  // Watch for wedding slug changes (user switching between weddings)
+  watch(weddingSlug, async (newSlug, oldSlug) => {
+    if (newSlug && newSlug !== oldSlug) {
+      await loadTheme(newSlug)
+      selectedThemeId.value = themeSettings.value.activeThemeId
+      customThemeData.value = themeSettings.value.customTheme
+      showCustomizer.value = themeSettings.value.activeThemeId === 'custom'
+    }
+  })
+
   // Watch for settings changes (e.g., from other tabs)
   watch(
     () => themeSettings.value,

@@ -163,6 +163,14 @@
     }
     syncFormData()
   })
+
+  // Watch for wedding slug changes (user switching between weddings)
+  watch(weddingSlug, async (newSlug, oldSlug) => {
+    if (newSlug && newSlug !== oldSlug) {
+      await fetchVenue(newSlug)
+      syncFormData()
+    }
+  })
 </script>
 
 <template>

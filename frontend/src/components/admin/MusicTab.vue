@@ -45,6 +45,13 @@
     fetchTracksAdmin(weddingId.value ?? undefined)
   })
 
+  // Watch for wedding ID changes (user switching between weddings)
+  watch(weddingId, (newId, oldId) => {
+    if (newId && newId !== oldId) {
+      fetchTracksAdmin(newId)
+    }
+  })
+
   const handleFilesSelected = async (
     files: { file: File; title: string; artist?: string }[]
   ): Promise<void> => {

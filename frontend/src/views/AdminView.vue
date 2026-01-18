@@ -8,6 +8,7 @@
   import { useAdminLanguage } from '@/composables/useAdminLanguage'
   import { resolveWeddingSlug } from '@/services/api'
   import { setStoredPrimaryWeddingId, getStoredPrimaryWeddingId } from '@/services/tokenManager'
+  import { clearCache } from '@/utils/apiCache'
   import AdminHeader from '@/components/admin/AdminHeader.vue'
   import PasswordChangeModal from '@/components/admin/PasswordChangeModal.vue'
   import ProfileSettingsModal from '@/components/admin/ProfileSettingsModal.vue'
@@ -26,6 +27,7 @@
   import QRCodeHubTab from '@/components/admin/QRCodeHubTab.vue'
   import WeddingContextBar from '@/components/admin/WeddingContextBar.vue'
   import { useWeddingMetadata } from '@/composables/useWeddingMetadata'
+  import { usePublicWeddingData } from '@/composables/usePublicWeddingData'
 
   const { adminT } = useAdminLanguage()
   const route = useRoute()
@@ -33,6 +35,9 @@
 
   // Wedding metadata for context bar
   const { fetchWeddings } = useWeddingMetadata()
+
+  // Public wedding data for document title
+  const { fetchPublicData } = usePublicWeddingData()
 
   // Get wedding slug from route params (for multi-tenant routes like /:weddingSlug/admin)
   const weddingSlug = computed(() => {
@@ -150,21 +155,27 @@
   )
 
   // Resolve wedding slug when user becomes authenticated (e.g., after login)
+  // Always verify the stored weddingId matches the current slug
   watch(isAuthenticated, async (authenticated) => {
     if (authenticated && weddingSlug.value) {
-      const currentWeddingId = getStoredPrimaryWeddingId()
-      if (!currentWeddingId) {
-        isResolvingSlug.value = true
-        slugResolutionError.value = null
+      isResolvingSlug.value = true
+      slugResolutionError.value = null
 
-        try {
-          const resolved = await resolveWeddingSlug(weddingSlug.value)
+      try {
+        const resolved = await resolveWeddingSlug(weddingSlug.value)
+        const storedWeddingId = getStoredPrimaryWeddingId()
+
+        // Update stored weddingId if it doesn't match the current slug
+        if (storedWeddingId !== resolved.weddingId) {
           setStoredPrimaryWeddingId(resolved.weddingId)
-        } catch (err) {
-          slugResolutionError.value = err instanceof Error ? err.message : 'Failed to load wedding'
-        } finally {
-          isResolvingSlug.value = false
         }
+
+        // Fetch public data for document title
+        fetchPublicData(weddingSlug.value)
+      } catch (err) {
+        slugResolutionError.value = err instanceof Error ? err.message : 'Failed to load wedding'
+      } finally {
+        isResolvingSlug.value = false
       }
     }
   })
@@ -249,22 +260,26 @@
 
     // If we have a wedding slug in the URL, resolve it to get the weddingId
     // This handles the case where user directly navigates to /{slug}/admin
+    // Always verify the stored weddingId matches the current slug to prevent stale data issues
     if (weddingSlug.value) {
-      const currentWeddingId = getStoredPrimaryWeddingId()
+      isResolvingSlug.value = true
+      slugResolutionError.value = null
 
-      // Only resolve if we don't have a weddingId stored, or need to verify it matches the slug
-      if (!currentWeddingId) {
-        isResolvingSlug.value = true
-        slugResolutionError.value = null
+      try {
+        const resolved = await resolveWeddingSlug(weddingSlug.value)
+        const storedWeddingId = getStoredPrimaryWeddingId()
 
-        try {
-          const resolved = await resolveWeddingSlug(weddingSlug.value)
+        // Update stored weddingId if it doesn't match the current slug
+        if (storedWeddingId !== resolved.weddingId) {
           setStoredPrimaryWeddingId(resolved.weddingId)
-        } catch (err) {
-          slugResolutionError.value = err instanceof Error ? err.message : 'Failed to load wedding'
-        } finally {
-          isResolvingSlug.value = false
         }
+
+        // Fetch public data for document title
+        fetchPublicData(weddingSlug.value)
+      } catch (err) {
+        slugResolutionError.value = err instanceof Error ? err.message : 'Failed to load wedding'
+      } finally {
+        isResolvingSlug.value = false
       }
     }
   })
@@ -279,6 +294,33 @@
       }
     },
     { immediate: false }
+  )
+
+  // Watch for wedding slug changes (user switching between weddings)
+  // Clear cache and update weddingId to ensure fresh data is loaded
+  watch(
+    () => route.params.weddingSlug,
+    async (newSlug, oldSlug) => {
+      // Only handle actual changes, not initial mount (handled by onMounted)
+      if (!newSlug || newSlug === oldSlug || typeof newSlug !== 'string') return
+
+      // Clear all cached data from previous wedding
+      clearCache()
+
+      // Resolve the new slug and update stored weddingId
+      isResolvingSlug.value = true
+      slugResolutionError.value = null
+
+      try {
+        const resolved = await resolveWeddingSlug(newSlug)
+        setStoredPrimaryWeddingId(resolved.weddingId)
+        fetchPublicData(newSlug)
+      } catch (err) {
+        slugResolutionError.value = err instanceof Error ? err.message : 'Failed to load wedding'
+      } finally {
+        isResolvingSlug.value = false
+      }
+    }
   )
 </script>
 

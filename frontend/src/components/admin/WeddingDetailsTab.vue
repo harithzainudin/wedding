@@ -3,6 +3,7 @@
   import { useWeddingDetails } from '@/composables/useWeddingDetails'
   import { useAdminLanguage } from '@/composables/useAdminLanguage'
   import { useLoadingOverlay } from '@/composables/useLoadingOverlay'
+  import { usePublicWeddingData } from '@/composables/usePublicWeddingData'
   import { getStoredPrimaryWeddingId } from '@/services/tokenManager'
   import type {
     EventDisplayFormat,
@@ -24,6 +25,7 @@
 
   const { adminT } = useAdminLanguage()
   const { withLoading } = useLoadingOverlay()
+  const { fetchPublicData } = usePublicWeddingData()
 
   // Get wedding ID for API calls
   const weddingId = computed(() => getStoredPrimaryWeddingId())
@@ -425,6 +427,10 @@
         // Sync form data after successful save to ensure hasChanges is false
         if (result.success) {
           syncFormData()
+          // Refresh public data to update document title with new names
+          if (props.weddingSlug) {
+            fetchPublicData(props.weddingSlug, true)
+          }
         }
       },
       {
@@ -454,6 +460,18 @@
     await fetchWeddingDetails(props.weddingSlug)
     syncFormData()
   })
+
+  // Watch for wedding slug changes (user switching between weddings)
+  // Refetch data while preserving UI state (expanded sections, etc.)
+  watch(
+    () => props.weddingSlug,
+    async (newSlug, oldSlug) => {
+      if (newSlug && newSlug !== oldSlug) {
+        await fetchWeddingDetails(newSlug)
+        syncFormData()
+      }
+    }
+  )
 </script>
 
 <template>

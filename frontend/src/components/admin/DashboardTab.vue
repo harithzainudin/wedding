@@ -1,13 +1,13 @@
 <script setup lang="ts">
-  import { ref, computed, onMounted } from 'vue'
+  import { ref, computed, onMounted, watch } from 'vue'
   import { listRsvpsAdminCached, listGalleryImagesAdminCached } from '@/services/api'
   import { useAdminLanguage } from '@/composables/useAdminLanguage'
   import { getStoredPrimaryWeddingId } from '@/services/tokenManager'
 
   const { adminT } = useAdminLanguage()
 
-  // Get the wedding ID for API calls
-  const weddingId = getStoredPrimaryWeddingId()
+  // Get the wedding ID for API calls (reactive)
+  const weddingId = computed(() => getStoredPrimaryWeddingId())
 
   type TabType =
     | 'dashboard'
@@ -40,11 +40,11 @@
     isLoading.value = true
     try {
       // Fetch RSVP stats (cached unless force refresh)
-      const rsvpData = await listRsvpsAdminCached(weddingId ?? undefined, forceRefresh)
+      const rsvpData = await listRsvpsAdminCached(weddingId.value ?? undefined, forceRefresh)
       rsvpStats.value = rsvpData.summary
 
       // Fetch gallery count (cached unless force refresh)
-      const galleryData = await listGalleryImagesAdminCached(weddingId ?? undefined, forceRefresh)
+      const galleryData = await listGalleryImagesAdminCached(weddingId.value ?? undefined, forceRefresh)
       galleryCount.value = galleryData.images.length
     } catch (error) {
       console.error('Failed to load dashboard stats:', error)
@@ -96,6 +96,13 @@
 
   onMounted(() => {
     loadStats()
+  })
+
+  // Watch for wedding ID changes (user switching between weddings)
+  watch(weddingId, (newId, oldId) => {
+    if (newId && newId !== oldId) {
+      loadStats(true) // Force refresh to bypass cache
+    }
   })
 </script>
 

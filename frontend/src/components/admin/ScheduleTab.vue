@@ -132,6 +132,14 @@
     await fetchScheduleAdmin(weddingId.value ?? undefined)
     syncLocalItems()
   })
+
+  // Watch for wedding ID changes (user switching between weddings)
+  watch(weddingId, async (newId, oldId) => {
+    if (newId && newId !== oldId) {
+      await fetchScheduleAdmin(newId)
+      syncLocalItems()
+    }
+  })
 </script>
 
 <template>

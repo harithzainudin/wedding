@@ -50,6 +50,13 @@
     fetchImages(weddingId.value ?? undefined)
   })
 
+  // Watch for wedding ID changes (user switching between weddings)
+  watch(weddingId, (newId, oldId) => {
+    if (newId && newId !== oldId) {
+      fetchImages(newId)
+    }
+  })
+
   const handleFilesSelected = async (files: File[]): Promise<void> => {
     uploadErrors.value = []
 

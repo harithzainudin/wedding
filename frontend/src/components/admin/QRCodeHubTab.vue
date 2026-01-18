@@ -150,6 +150,14 @@
     initializeForm()
   })
 
+  // Watch for wedding ID changes (user switching between weddings)
+  watch(weddingId, async (newId, oldId) => {
+    if (newId && newId !== oldId) {
+      await fetchSettingsAdmin(newId)
+      initializeForm()
+    }
+  })
+
   // Watch for external settings changes
   watch(
     () => settings.value,

@@ -90,6 +90,13 @@
     await fetchGiftsAdmin(weddingId.value ?? undefined)
   })
 
+  // Watch for wedding ID changes (user switching between weddings)
+  watch(weddingId, async (newId, oldId) => {
+    if (newId && newId !== oldId) {
+      await fetchGiftsAdmin(newId)
+    }
+  })
+
   // Modal handlers
   const openCreateModal = () => {
     editingGift.value = null

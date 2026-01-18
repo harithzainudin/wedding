@@ -120,6 +120,14 @@
     await fetchContactsAdmin(weddingId.value ?? undefined)
     syncLocalContacts()
   })
+
+  // Watch for wedding ID changes (user switching between weddings)
+  watch(weddingId, async (newId, oldId) => {
+    if (newId && newId !== oldId) {
+      await fetchContactsAdmin(newId)
+      syncLocalContacts()
+    }
+  })
 </script>
 
 <template>

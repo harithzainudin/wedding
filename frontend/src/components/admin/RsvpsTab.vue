@@ -104,6 +104,13 @@
   onMounted(() => {
     fetchRsvps(weddingId.value ?? undefined)
   })
+
+  // Watch for wedding ID changes (user switching between weddings)
+  watch(weddingId, (newId, oldId) => {
+    if (newId && newId !== oldId) {
+      fetchRsvps(newId)
+    }
+  })
 </script>
 
 <template>
