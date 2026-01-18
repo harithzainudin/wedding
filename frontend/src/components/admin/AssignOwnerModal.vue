@@ -2,7 +2,6 @@
   import { ref, computed, onMounted } from 'vue'
   import { useStaff } from '@/composables/useStaff'
   import { useAdminLanguage } from '@/composables/useAdminLanguage'
-  import type { StaffMember } from '@/types/admin'
 
   const props = defineProps<{
     isSubmitting?: boolean

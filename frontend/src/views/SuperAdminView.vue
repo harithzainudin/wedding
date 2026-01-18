@@ -1,5 +1,5 @@
 <script setup lang="ts">
-  import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue'
+  import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
   import { useRouter, useRoute } from 'vue-router'
   import { useSuperAdmin } from '@/composables/useSuperAdmin'
   import { useAdminAuth } from '@/composables/useAdminAuth'

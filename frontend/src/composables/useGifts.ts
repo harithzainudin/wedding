@@ -361,7 +361,7 @@ export function useGifts() {
     uploadProgress.value.set(fileId, {
       progress: 10,
       status: 'uploading',
-      compression: compressionInfo,
+      ...(compressionInfo && { compression: compressionInfo }),
     })
 
     try {
@@ -383,7 +383,7 @@ export function useGifts() {
       uploadProgress.value.set(fileId, {
         progress: 30,
         status: 'uploading',
-        compression: compressionInfo,
+        ...(compressionInfo && { compression: compressionInfo }),
       })
 
       // Step 2: Upload to S3
@@ -397,7 +397,7 @@ export function useGifts() {
           progress: 30,
           status: 'error',
           error: 'Failed to upload file to storage',
-          compression: compressionInfo,
+          ...(compressionInfo && { compression: compressionInfo }),
         })
         uploadControllers.value.delete(fileId)
         setTimeout(() => uploadProgress.value.delete(fileId), 5000)
@@ -407,7 +407,7 @@ export function useGifts() {
       uploadProgress.value.set(fileId, {
         progress: 70,
         status: 'uploading',
-        compression: compressionInfo,
+        ...(compressionInfo && { compression: compressionInfo }),
       })
 
       // Step 3: Confirm upload
@@ -424,7 +424,7 @@ export function useGifts() {
       uploadProgress.value.set(fileId, {
         progress: 100,
         status: 'completed',
-        compression: compressionInfo,
+        ...(compressionInfo && { compression: compressionInfo }),
       })
       uploadControllers.value.delete(fileId)
 

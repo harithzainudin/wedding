@@ -77,17 +77,75 @@ Remove unused imports, variables, and parameters to avoid build failures.
 
 ### Common CI Failure Patterns
 
-1. **Missing i18n translations**: When adding new UI text, update both:
-   - The `AdminTranslations` interface (type definition)
-   - Both `en` and `ms` objects in `adminTranslations`
+1. **Missing i18n translations**: When adding new UI text, update THREE places:
+   - The interface (e.g., `AdminTranslations` or `Translations`)
+   - The `en` translation object
+   - The `ms` translation object
 
-2. **Passing `undefined` to optional props**: Use nullish coalescing (`?? []`) or spread patterns instead
+2. **Passing `undefined` to optional props in Vue templates**: Use `v-bind` with conditional object:
+   ```vue
+   <!-- BAD - weddingSlug can be undefined -->
+   <Component :wedding-slug="weddingSlug" />
 
-3. **Unused imports after refactoring**: Remove imports that are no longer used
+   <!-- GOOD - only pass prop if it has a value -->
+   <Component v-bind="weddingSlug ? { weddingSlug } : {}" />
+   ```
 
-4. **Type mismatches with readonly arrays**: Cast readonly arrays when passing to components:
+3. **Using `.value` in Vue templates**: Refs are auto-unwrapped in templates:
+   ```vue
+   <!-- BAD - don't use .value in templates -->
+   @click="fetchData(someRef.value)"
+
+   <!-- GOOD - refs are auto-unwrapped -->
+   @click="fetchData(someRef)"
+   ```
+
+4. **Unused imports after refactoring**: Remove imports that are no longer used
+
+5. **Type mismatches with readonly arrays**: Cast readonly arrays when passing to components:
    ```typescript
    :prop="(readonlyArray as MutableType[]) ?? []"
+   ```
+
+6. **Optional properties with `| undefined` values**: Use conditional spread, not direct assignment:
+   ```typescript
+   // BAD - compressionInfo can be undefined
+   uploadProgress.set(id, {
+     progress: 10,
+     compression: compressionInfo,  // ❌ Type error
+   })
+
+   // GOOD - conditionally spread
+   uploadProgress.set(id, {
+     progress: 10,
+     ...(compressionInfo && { compression: compressionInfo }),  // ✅
+   })
+   ```
+
+7. **Missing type properties**: When using a property in code/template, ensure it exists in the type:
+   ```typescript
+   // If template uses `{{ wedding.plan }}`, the Wedding interface must have:
+   interface Wedding {
+     plan?: string  // Add this!
+   }
+   ```
+
+8. **TabType mismatches between components**: When emitting tab changes, ensure the `TabType` union matches between parent and child components
+
+9. **Closure type narrowing with async callbacks**: TypeScript can't track variable assignments inside Promise callbacks:
+   ```typescript
+   // BAD - TypeScript narrows criticalError to 'never' after Promise.all
+   let criticalError: ErrorType | null = null
+   await Promise.all([promise.catch(err => { criticalError = err })])
+   if (criticalError) {
+     console.log(criticalError.message)  // ❌ Property 'message' does not exist on type 'never'
+   }
+
+   // GOOD - use type assertion
+   if (criticalError !== null) {
+     const error = criticalError as ErrorType
+     console.log(error.message)  // ✅
+   }
    ```
 
 ## Commands

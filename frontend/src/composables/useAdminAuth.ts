@@ -8,8 +8,6 @@ import {
   getStoredUsername,
   getStoredIsMaster,
   getStoredUserType,
-  getStoredWeddingIds,
-  getStoredPrimaryWeddingId,
   refreshTokens,
   AUTH_EXPIRED_EVENT,
 } from '@/services/tokenManager'
@@ -80,8 +78,8 @@ export function useAdminAuth() {
           username: response.username ?? '',
           isMaster: response.isMaster ?? false,
           userType: response.userType ?? 'legacy',
-          weddingIds: response.weddingIds,
-          primaryWeddingId: response.primaryWeddingId,
+          ...(response.weddingIds && { weddingIds: response.weddingIds }),
+          ...(response.primaryWeddingId && { primaryWeddingId: response.primaryWeddingId }),
         })
 
         isAuthenticated.value = true

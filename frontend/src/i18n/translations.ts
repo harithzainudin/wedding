@@ -166,6 +166,17 @@ export interface Translations {
     tapToView: string
     linkCopied: string
   }
+  // Wedding Unavailable Page
+  weddingUnavailable?: {
+    archivedTitle: string
+    archivedMessage: string
+    draftTitle: string
+    draftMessage: string
+    notFoundTitle: string
+    notFoundMessage: string
+    errorTitle: string
+    errorMessage: string
+  }
 }
 
 export const translations: Record<Language, Translations> = {
@@ -810,6 +821,7 @@ export interface AdminTranslations {
     enabled: string
     disabled: string
     compressing: string
+    backToSuperAdmin: string
   }
 
   // Authentication
@@ -1557,6 +1569,7 @@ export const adminTranslations: Record<AdminLanguage, AdminTranslations> = {
       enabled: 'Enabled',
       disabled: 'Disabled',
       compressing: 'Compressing...',
+      backToSuperAdmin: 'Back to Super Admin',
     },
 
     auth: {
@@ -2279,6 +2292,7 @@ export const adminTranslations: Record<AdminLanguage, AdminTranslations> = {
       enabled: 'Diaktifkan',
       disabled: 'Dinyahaktifkan',
       compressing: 'Memampatkan...',
+      backToSuperAdmin: 'Kembali ke Super Admin',
     },
 
     auth: {

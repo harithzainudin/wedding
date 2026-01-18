@@ -88,6 +88,7 @@ export interface GiftListResponse {
   gifts: GiftItem[]
   total: number
   enabled: boolean
+  settings?: GiftSettings
 }
 
 export interface CreateGiftResponse {

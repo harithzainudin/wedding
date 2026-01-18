@@ -158,9 +158,10 @@ export function usePublicWeddingData() {
       await Promise.all([weddingPromise, schedulePromise, contactsPromise])
 
       // Set error state if we detected a critical error
-      if (criticalError) {
-        weddingError.value = criticalError.type
-        weddingErrorMessage.value = criticalError.message
+      if (criticalError !== null) {
+        const error = criticalError as { type: WeddingErrorType; message: string }
+        weddingError.value = error.type
+        weddingErrorMessage.value = error.message
       }
     } catch (error) {
       console.error('Failed to fetch public data:', error)

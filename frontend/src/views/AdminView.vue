@@ -422,7 +422,10 @@
         </div>
 
         <DashboardTab v-if="activeTab === 'dashboard'" @switch-tab="switchTab" />
-        <WeddingDetailsTab v-if="activeTab === 'wedding'" :wedding-slug="weddingSlug" />
+        <WeddingDetailsTab
+          v-if="activeTab === 'wedding'"
+          v-bind="weddingSlug ? { weddingSlug } : {}"
+        />
         <LocationTab v-if="activeTab === 'venue'" />
         <ScheduleTab v-if="activeTab === 'schedule'" />
         <GalleryTab v-if="activeTab === 'gallery'" />

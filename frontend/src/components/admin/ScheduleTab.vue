@@ -147,7 +147,7 @@
       <button
         type="button"
         class="px-4 py-2 rounded-lg bg-sage text-white font-body text-sm hover:bg-sage-dark transition-colors cursor-pointer"
-        @click="fetchScheduleAdmin(weddingId.value ?? undefined)"
+        @click="fetchScheduleAdmin(weddingId ?? undefined)"
       >
         {{ adminT.common.tryAgain }}
       </button>

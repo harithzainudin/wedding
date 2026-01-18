@@ -188,6 +188,7 @@ export interface Wedding {
   ownerUsername?: string
   ownerEmail?: string
   weddingDate?: string
+  plan?: string
   createdAt: string
   updatedAt?: string
 }
@@ -205,6 +206,7 @@ export interface CreateWeddingRequest {
   assignStaffUsername?: string
   // Mode 2: Create new client user
   ownerUsername?: string
+  ownerPassword?: string
   ownerEmail?: string
   roleLabel?: string // 'Bride', 'Groom', 'Parent', or custom text
 }

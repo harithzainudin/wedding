@@ -45,7 +45,7 @@ export function useStaff() {
       const response = await apiCreateStaff(data)
       const newStaff: StaffMember = {
         username: response.staff.username,
-        email: response.staff.email,
+        ...(response.staff.email && { email: response.staff.email }),
         weddingIds: response.staff.weddingIds,
         createdAt: response.staff.createdAt,
         createdBy: '', // Not returned from API
@@ -76,9 +76,10 @@ export function useStaff() {
       // Update in local list
       const index = staff.value.findIndex((s) => s.username === username)
       if (index !== -1 && response.updated.email !== undefined) {
+        const existingStaff = staff.value[index]!
         staff.value[index] = {
-          ...staff.value[index]!,
-          email: response.updated.email ?? undefined,
+          ...existingStaff,
+          ...(response.updated.email !== null ? { email: response.updated.email } : {}),
         }
       }
       actionSuccess.value = `Staff member "${username}" updated successfully!`

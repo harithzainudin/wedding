@@ -15,9 +15,12 @@
     | 'venue'
     | 'schedule'
     | 'gallery'
+    | 'music'
+    | 'gifts'
+    | 'theme'
     | 'contacts'
     | 'rsvps'
-    | 'settings'
+    | 'qrcodehub'
 
   const emit = defineEmits<{
     (e: 'switch-tab', tab: TabType): void
