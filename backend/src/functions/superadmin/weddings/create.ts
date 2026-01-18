@@ -1,15 +1,19 @@
 /**
  * Create Wedding Endpoint (Super Admin Only)
  *
- * Creates a new wedding and its owner account.
- * - Creates wedding record with unique slug
- * - Creates slug lookup record for public URL resolution
- * - Creates owner account with temporary password
+ * Creates a new wedding with an owner. Supports two modes:
+ * 1. Assign Staff: Assign an existing staff member as owner
+ * 2. Create Client: Create a new client user as owner
  */
 
 import type { APIGatewayProxyHandlerV2 } from 'aws-lambda'
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb'
-import { DynamoDBDocumentClient, TransactWriteCommand, GetCommand } from '@aws-sdk/lib-dynamodb'
+import {
+  DynamoDBDocumentClient,
+  TransactWriteCommand,
+  GetCommand,
+  UpdateCommand,
+} from '@aws-sdk/lib-dynamodb'
 import bcrypt from 'bcryptjs'
 import { randomUUID } from 'crypto'
 import { createSuccessResponse, createErrorResponse } from '../../shared/response'
@@ -65,7 +69,16 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
       return createErrorResponse(400, validation.error, context, 'VALIDATION_ERROR')
     }
 
-    const { slug, displayName, ownerUsername, ownerEmail, weddingDate, plan } = validation.data
+    const {
+      slug,
+      displayName,
+      weddingDate,
+      plan,
+      assignStaffUsername,
+      ownerUsername,
+      ownerEmail,
+      roleLabel,
+    } = validation.data
 
     // ============================================
     // 3. Check for Existing Slug
@@ -87,9 +100,143 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
       )
     }
 
+    const weddingId = randomUUID()
+    const now = new Date().toISOString()
+    const weddingKey = Keys.wedding(weddingId)
+    const gsiKeys = Keys.gsi.allWeddings(now)
+    const gsi2Keys = Keys.gsi2.bySlug(slug)
+
     // ============================================
-    // 4. Check for Existing Username
+    // MODE 1: Assign Existing Staff Member
     // ============================================
+    if (assignStaffUsername) {
+      const staffKey = Keys.weddingAdmin(assignStaffUsername)
+      const existingStaff = await docClient.send(
+        new GetCommand({
+          TableName: Resource.AppDataTable.name,
+          Key: staffKey,
+        })
+      )
+
+      if (!existingStaff.Item) {
+        return createErrorResponse(
+          404,
+          `Staff member "${assignStaffUsername}" not found`,
+          context,
+          'STAFF_NOT_FOUND'
+        )
+      }
+
+      if (existingStaff.Item.userType !== 'staff') {
+        return createErrorResponse(
+          400,
+          `User "${assignStaffUsername}" is not a staff member`,
+          context,
+          'NOT_STAFF'
+        )
+      }
+
+      // Get current weddingIds
+      const currentWeddingIds = (existingStaff.Item.weddingIds as string[]) ?? []
+
+      // Create wedding and link staff in transaction
+      await docClient.send(
+        new TransactWriteCommand({
+          TransactItems: [
+            // Wedding record
+            {
+              Put: {
+                TableName: Resource.AppDataTable.name,
+                Item: {
+                  ...weddingKey,
+                  weddingId,
+                  slug,
+                  displayName,
+                  status: 'active',
+                  ownerId: assignStaffUsername,
+                  coOwnerIds: [],
+                  weddingDate,
+                  plan: plan ?? 'free',
+                  createdAt: now,
+                  createdBy: authResult.user.username,
+                  ...gsiKeys,
+                  ...gsi2Keys,
+                },
+                ConditionExpression: 'attribute_not_exists(pk)',
+              },
+            },
+            // Slug lookup record
+            {
+              Put: {
+                TableName: Resource.AppDataTable.name,
+                Item: {
+                  ...slugKey,
+                  weddingId,
+                  slug,
+                },
+                ConditionExpression: 'attribute_not_exists(pk)',
+              },
+            },
+            // Wedding-Admin link
+            {
+              Put: {
+                TableName: Resource.AppDataTable.name,
+                Item: {
+                  ...Keys.weddingAdminLink(weddingId, assignStaffUsername),
+                  role: 'owner',
+                  addedAt: now,
+                  addedBy: authResult.user.username,
+                },
+              },
+            },
+          ],
+        })
+      )
+
+      // Update staff's weddingIds (separate operation to avoid transaction limits)
+      await docClient.send(
+        new UpdateCommand({
+          TableName: Resource.AppDataTable.name,
+          Key: staffKey,
+          UpdateExpression: 'SET weddingIds = :weddingIds',
+          ExpressionAttributeValues: {
+            ':weddingIds': [...currentWeddingIds, weddingId],
+          },
+        })
+      )
+
+      return createSuccessResponse(
+        201,
+        {
+          wedding: {
+            weddingId,
+            slug,
+            displayName,
+            status: 'active',
+            weddingDate,
+            plan: plan ?? 'free',
+            createdAt: now,
+          },
+          owner: {
+            username: assignStaffUsername,
+            email: existingStaff.Item.email as string | undefined,
+            linked: true,
+            userType: 'staff',
+          },
+          publicUrl: `/${slug}`,
+          adminUrl: `/${slug}/admin`,
+        },
+        context
+      )
+    }
+
+    // ============================================
+    // MODE 2: Create New Client User
+    // ============================================
+    if (!ownerUsername) {
+      return createErrorResponse(400, 'Owner username is required', context, 'MISSING_OWNER')
+    }
+
     const adminKey = Keys.weddingAdmin(ownerUsername)
     const existingAdmin = await docClient.send(
       new GetCommand({
@@ -107,20 +254,8 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
       )
     }
 
-    // ============================================
-    // 5. Generate IDs and Timestamps
-    // ============================================
-    const weddingId = randomUUID()
-    const now = new Date().toISOString()
     const tempPassword = generateTempPassword()
     const passwordHash = await bcrypt.hash(tempPassword, BCRYPT_ROUNDS)
-
-    // ============================================
-    // 6. Create Wedding + Slug + Owner in Transaction
-    // ============================================
-    const weddingKey = Keys.wedding(weddingId)
-    const gsiKeys = Keys.gsi.allWeddings(now)
-    const gsi2Keys = Keys.gsi2.bySlug(slug)
 
     await docClient.send(
       new TransactWriteCommand({
@@ -141,9 +276,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
                 plan: plan ?? 'free',
                 createdAt: now,
                 createdBy: authResult.user.username,
-                // GSI1: List all weddings
                 ...gsiKeys,
-                // GSI2: Slug lookup
                 ...gsi2Keys,
               },
               ConditionExpression: 'attribute_not_exists(pk)',
@@ -161,7 +294,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
               ConditionExpression: 'attribute_not_exists(pk)',
             },
           },
-          // Owner account
+          // Client account
           {
             Put: {
               TableName: Resource.AppDataTable.name,
@@ -169,8 +302,10 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
                 ...adminKey,
                 username: ownerUsername,
                 passwordHash,
-                email: ownerEmail,
+                ...(ownerEmail && { email: ownerEmail }),
                 weddingIds: [weddingId],
+                userType: 'client',
+                ...(roleLabel && { roleLabel }),
                 createdAt: now,
                 createdBy: authResult.user.username,
                 mustChangePassword: true,
@@ -197,9 +332,6 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
       })
     )
 
-    // ============================================
-    // 7. Return Success with Temporary Password
-    // ============================================
     return createSuccessResponse(
       201,
       {
@@ -215,8 +347,10 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
         owner: {
           username: ownerUsername,
           email: ownerEmail,
-          temporaryPassword: tempPassword, // Send to owner via email in production
+          temporaryPassword: tempPassword,
           mustChangePassword: true,
+          userType: 'client',
+          roleLabel,
         },
         publicUrl: `/${slug}`,
         adminUrl: `/${slug}/admin`,

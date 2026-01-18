@@ -1486,6 +1486,37 @@ export interface AdminTranslations {
     unsavedChanges: string
     savedSuccess: string
   }
+
+  // Staff Management (Super Admin)
+  staff: {
+    title: string
+    description: string
+    addStaff: string
+    editStaff: string
+    deleteStaff: string
+    username: string
+    email: string
+    password: string
+    managingWeddings: string
+    noWeddings: string
+    noStaffYet: string
+    createFirst: string
+    deleteConfirm: string
+    deleteWarning: string
+    createdAt: string
+    // Assignment modal
+    assignStaff: string
+    createClient: string
+    selectStaff: string
+    selectStaffPlaceholder: string
+    clientDetails: string
+    roleLabel: string
+    roleLabelPlaceholder: string
+    bride: string
+    groom: string
+    parent: string
+    other: string
+  }
 }
 
 // String interpolation helper
@@ -2184,6 +2215,35 @@ export const adminTranslations: Record<AdminLanguage, AdminTranslations> = {
       by: 'by',
       unsavedChanges: 'You have unsaved changes',
       savedSuccess: 'Changes saved successfully!',
+    },
+
+    staff: {
+      title: 'Staff Management',
+      description: 'Manage your team who can help manage weddings',
+      addStaff: 'Add Staff',
+      editStaff: 'Edit Staff',
+      deleteStaff: 'Delete Staff',
+      username: 'Username',
+      email: 'Email',
+      password: 'Password',
+      managingWeddings: 'Managing {count} wedding(s)',
+      noWeddings: 'No weddings assigned',
+      noStaffYet: 'No staff members yet',
+      createFirst: 'Create your first staff member to get started',
+      deleteConfirm: 'Are you sure you want to delete "{username}"?',
+      deleteWarning: 'They will be removed from all weddings they manage.',
+      createdAt: 'Created',
+      assignStaff: 'Assign Staff',
+      createClient: 'Create Client',
+      selectStaff: 'Select Staff Member',
+      selectStaffPlaceholder: 'Choose a staff member...',
+      clientDetails: 'Client Details',
+      roleLabel: 'Role',
+      roleLabelPlaceholder: 'e.g., Bride, Groom, Parent',
+      bride: 'Bride',
+      groom: 'Groom',
+      parent: 'Parent',
+      other: 'Other',
     },
   },
 
@@ -2884,6 +2944,35 @@ export const adminTranslations: Record<AdminLanguage, AdminTranslations> = {
       by: 'oleh',
       unsavedChanges: 'Anda mempunyai perubahan yang belum disimpan',
       savedSuccess: 'Perubahan berjaya disimpan!',
+    },
+
+    staff: {
+      title: 'Pengurusan Staf',
+      description: 'Urus pasukan anda yang membantu menguruskan majlis',
+      addStaff: 'Tambah Staf',
+      editStaff: 'Edit Staf',
+      deleteStaff: 'Padam Staf',
+      username: 'Nama Pengguna',
+      email: 'Emel',
+      password: 'Kata Laluan',
+      managingWeddings: 'Menguruskan {count} majlis',
+      noWeddings: 'Tiada majlis ditugaskan',
+      noStaffYet: 'Tiada staf lagi',
+      createFirst: 'Cipta staf pertama anda untuk bermula',
+      deleteConfirm: 'Adakah anda pasti mahu memadam "{username}"?',
+      deleteWarning: 'Mereka akan dikeluarkan dari semua majlis yang diuruskan.',
+      createdAt: 'Dicipta',
+      assignStaff: 'Tugaskan Staf',
+      createClient: 'Cipta Klien',
+      selectStaff: 'Pilih Ahli Staf',
+      selectStaffPlaceholder: 'Pilih ahli staf...',
+      clientDetails: 'Butiran Klien',
+      roleLabel: 'Peranan',
+      roleLabelPlaceholder: 'cth., Pengantin Perempuan, Pengantin Lelaki, Ibu Bapa',
+      bride: 'Pengantin Perempuan',
+      groom: 'Pengantin Lelaki',
+      parent: 'Ibu Bapa',
+      other: 'Lain-lain',
     },
   },
 }

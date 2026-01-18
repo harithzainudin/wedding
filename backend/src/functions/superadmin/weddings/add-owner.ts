@@ -27,6 +27,7 @@ interface CreateNewUserInput {
   username: string
   password: string
   email?: string
+  roleLabel?: string // 'Bride', 'Groom', 'Parent', or custom text
 }
 
 interface LinkExistingUserInput {
@@ -97,6 +98,14 @@ function validateAddOwnerInput(
     data.email = input.email
   }
 
+  // Validate roleLabel (optional - any string up to 50 chars)
+  if (input.roleLabel !== undefined && input.roleLabel !== '') {
+    if (typeof input.roleLabel !== 'string' || input.roleLabel.trim().length > 50) {
+      return { valid: false, error: 'Role label must be a string up to 50 characters' }
+    }
+    data.roleLabel = input.roleLabel.trim()
+  }
+
   return { valid: true, data }
 }
 
@@ -162,8 +171,8 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
     // 5. Handle Based on Input Mode
     // ============================================
     if (isCreateNewUser(validation.data)) {
-      // Mode: Create New User
-      const { username, password, email } = validation.data
+      // Mode: Create New Client User
+      const { username, password, email, roleLabel } = validation.data
 
       // Check if username already exists
       const adminKey = Keys.weddingAdmin(username)
@@ -189,7 +198,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
       await docClient.send(
         new TransactWriteCommand({
           TransactItems: [
-            // Create new admin account
+            // Create new client account
             {
               Put: {
                 TableName: Resource.AppDataTable.name,
@@ -199,6 +208,8 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
                   passwordHash,
                   ...(email && { email }),
                   weddingIds: [weddingId],
+                  userType: 'client',
+                  ...(roleLabel && { roleLabel }),
                   createdAt: now,
                   createdBy: authResult.user.username,
                   mustChangePassword: true,
@@ -227,11 +238,13 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
       return createSuccessResponse(
         201,
         {
-          message: 'New admin created and added to wedding',
+          message: 'New client created and added to wedding',
           admin: {
             username,
             email,
             role: 'coowner',
+            userType: 'client',
+            roleLabel,
             mustChangePassword: true,
           },
           weddingId,

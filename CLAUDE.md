@@ -218,8 +218,11 @@ Admin panel uses path-based tabs for proper browser navigation (back/forward but
 ### User Types
 
 - **Super Admin**: Platform owner who can create/manage all weddings. Access via `/wedding/superadmin`
-- **Wedding Admin**: Couple who manages their own wedding. Access via `/wedding/{slug}/admin` or `/wedding/admin`
+- **Staff**: Colleagues who help manage weddings. Can be assigned to multiple weddings. Created in Super Admin → Staff tab
+- **Client**: Wedding couples/families who manage their own wedding. Usually assigned to 1 wedding. Has optional role label (Bride, Groom, Parent, etc.)
 - **Guest**: Public visitors viewing wedding pages
+
+Note: Staff and Client are both stored as `ADMIN#{username}` with a `userType` field distinguishing them.
 
 ### Super Admin Capabilities
 
@@ -235,12 +238,23 @@ The super admin dashboard (`/wedding/superadmin`) provides platform-wide managem
 | Manage Owners        | Add/remove owners (co-owners) for a wedding                           |
 | Reset Password       | Generate temporary password for wedding owners                        |
 | Cleanup Orphan Data  | One-time cleanup of legacy single-tenant data (dry run supported)     |
+| **Staff Management** | Create/edit/delete staff members who can manage multiple weddings     |
+
+### Staff Management
+
+The Staff tab in Super Admin allows managing reusable team accounts:
+
+- **Create Staff**: Add colleagues with username, email, password
+- **Assign to Weddings**: When creating a wedding, choose "Assign Staff" to link existing staff
+- **Multi-Wedding Access**: Staff can manage multiple weddings with one account
+- **Auto-Cleanup**: Deleting a staff member removes them from all assigned weddings
 
 ### Super Admin API Endpoints
 
 ```
+# Wedding Management
 GET    /superadmin/weddings                              # List all weddings
-POST   /superadmin/weddings                              # Create wedding + owner
+POST   /superadmin/weddings                              # Create wedding + owner (staff or client)
 GET    /superadmin/weddings/{weddingId}                  # Get wedding details + admins
 PUT    /superadmin/weddings/{weddingId}                  # Update wedding
 DELETE /superadmin/weddings/{weddingId}                  # Archive wedding (soft delete)
@@ -250,6 +264,14 @@ POST   /superadmin/weddings/{weddingId}/users            # Add owner
 PUT    /superadmin/weddings/{weddingId}/users/{username} # Update owner details
 DELETE /superadmin/weddings/{weddingId}/users/{username} # Remove owner
 POST   /superadmin/weddings/{weddingId}/users/{username}/reset-password # Reset password
+
+# Staff Management
+GET    /superadmin/staff                                 # List all staff members
+POST   /superadmin/staff                                 # Create staff member
+PUT    /superadmin/staff/{username}                      # Update staff (email/password)
+DELETE /superadmin/staff/{username}                      # Delete staff (removes from all weddings)
+
+# Utilities
 POST   /superadmin/cleanup-orphan-data                   # Cleanup legacy orphan data
 ```
 
@@ -337,6 +359,7 @@ The frontend uses Vue composables for state management and API interactions:
 | Composable             | Purpose                                   | Location                            |
 | ---------------------- | ----------------------------------------- | ----------------------------------- |
 | `useSuperAdmin()`      | Super admin wedding/user management       | `composables/useSuperAdmin.ts`      |
+| `useStaff()`           | Staff member CRUD operations              | `composables/useStaff.ts`           |
 | `useAdminAuth()`       | Admin authentication state and login      | `composables/useAdminAuth.ts`       |
 | `useAdminUsers()`      | Admin user CRUD operations                | `composables/useAdminUsers.ts`      |
 | `useWeddingContext()`  | Multi-tenant wedding context/slug         | `composables/useWeddingContext.ts`  |
@@ -400,7 +423,9 @@ Helper utilities in `/frontend/src/utils/`:
 ```
 # User profiles
 SUPERADMIN#{username}/PROFILE            # Super admin profile
-ADMIN#{username}/PROFILE                 # Wedding admin profile
+ADMIN#{username}/PROFILE                 # Wedding admin profile (staff or client)
+                                         # - userType: 'staff' | 'client'
+                                         # - roleLabel: 'Bride' | 'Groom' | 'Parent' | custom (clients only)
 
 # Wedding core
 WEDDING#{weddingId}/META                 # Wedding metadata
@@ -418,6 +443,7 @@ WEDDING#{weddingId}#QRCODE#{id}/META     # QR code image
 
 # GSI patterns for queries
 WEDDINGS/{createdAt}                     # All weddings list
+STAFF/{createdAt}                        # All staff members list (gsi1pk='STAFF')
 USER#{username}#WEDDINGS/{weddingId}     # User's weddings
 WEDDING#{weddingId}#RSVPS/{submittedAt}  # Wedding RSVPs
 WEDDING#{weddingId}#IMAGES/{order}#{id}  # Ordered images
@@ -435,6 +461,8 @@ backend/src/functions/
 │   │   ├── hard-delete.ts, deletion-preview.ts
 │   │   ├── add-owner.ts, remove-owner.ts, update-owner.ts
 │   │   └── reset-owner-password.ts
+│   ├── staff/               # Staff management
+│   │   ├── list.ts, create.ts, update.ts, delete.ts
 │   └── cleanup-orphan-data.ts # Legacy data cleanup (dry run supported)
 ├── admin/                   # Admin user management
 │   ├── login.ts, refresh.ts, get-profile.ts

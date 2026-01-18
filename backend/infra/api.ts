@@ -719,4 +719,36 @@ export function addSuperAdminRoutes(
     timeout: '5 minutes', // Longer timeout for cleanup operation
     ...functionConfig,
   })
+
+  // ============================================
+  // STAFF MANAGEMENT
+  // ============================================
+
+  // GET /superadmin/staff - List all staff members
+  api.route('GET /superadmin/staff', {
+    handler: 'src/functions/superadmin/staff/list.handler',
+    link: [table, tokenSecret],
+    ...functionConfig,
+  })
+
+  // POST /superadmin/staff - Create a new staff member
+  api.route('POST /superadmin/staff', {
+    handler: 'src/functions/superadmin/staff/create.handler',
+    link: [table, tokenSecret],
+    ...functionConfig,
+  })
+
+  // PUT /superadmin/staff/{username} - Update staff member
+  api.route('PUT /superadmin/staff/{username}', {
+    handler: 'src/functions/superadmin/staff/update.handler',
+    link: [table, tokenSecret],
+    ...functionConfig,
+  })
+
+  // DELETE /superadmin/staff/{username} - Delete staff member
+  api.route('DELETE /superadmin/staff/{username}', {
+    handler: 'src/functions/superadmin/staff/delete.handler',
+    link: [table, tokenSecret],
+    ...functionConfig,
+  })
 }

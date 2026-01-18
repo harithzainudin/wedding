@@ -206,15 +206,28 @@ export function isValidPassword(password: string): {
 }
 
 /**
+ * Role labels for client users
+ */
+export const CLIENT_ROLE_LABELS = ['Bride', 'Groom', 'Parent', 'Other'] as const
+export type ClientRoleLabel = (typeof CLIENT_ROLE_LABELS)[number]
+
+/**
  * Wedding creation input validation
+ * Supports two modes:
+ * 1. Assign Staff: assignStaffUsername is provided
+ * 2. Create Client: ownerUsername (and optionally ownerEmail, roleLabel) is provided
  */
 export interface CreateWeddingInput {
   slug: string
   displayName: string
-  ownerUsername: string
-  ownerEmail?: string
   weddingDate: string
   plan?: 'free' | 'basic' | 'premium'
+  // Mode 1: Assign existing staff member
+  assignStaffUsername?: string
+  // Mode 2: Create new client user
+  ownerUsername?: string
+  ownerEmail?: string
+  roleLabel?: string // 'Bride', 'Groom', 'Parent', or custom text
 }
 
 export function validateCreateWeddingInput(
@@ -246,20 +259,6 @@ export function validateCreateWeddingInput(
     }
   }
 
-  // Validate ownerUsername
-  if (typeof body.ownerUsername !== 'string' || !isValidUsername(body.ownerUsername)) {
-    return {
-      valid: false,
-      error:
-        'Invalid username. Must be 3-30 characters, start with a letter, alphanumeric and underscores only',
-    }
-  }
-
-  // Validate ownerEmail (optional - only validate if provided and non-empty)
-  if (body.ownerEmail && body.ownerEmail !== '' && !isValidEmail(body.ownerEmail as string)) {
-    return { valid: false, error: 'Invalid email address' }
-  }
-
   // Validate weddingDate (ISO date format)
   if (typeof body.weddingDate !== 'string') {
     return { valid: false, error: 'Wedding date is required' }
@@ -283,17 +282,83 @@ export function validateCreateWeddingInput(
     plan = body.plan as 'free' | 'basic' | 'premium'
   }
 
+  // Determine owner mode: assign staff OR create client
+  const hasAssignStaff = body.assignStaffUsername !== undefined && body.assignStaffUsername !== ''
+  const hasCreateClient = body.ownerUsername !== undefined && body.ownerUsername !== ''
+
+  if (!hasAssignStaff && !hasCreateClient) {
+    return {
+      valid: false,
+      error: 'Either assignStaffUsername or ownerUsername must be provided',
+    }
+  }
+
+  if (hasAssignStaff && hasCreateClient) {
+    return {
+      valid: false,
+      error: 'Cannot provide both assignStaffUsername and ownerUsername',
+    }
+  }
+
+  // Mode 1: Assign existing staff member
+  if (hasAssignStaff) {
+    if (
+      typeof body.assignStaffUsername !== 'string' ||
+      !isValidUsername(body.assignStaffUsername)
+    ) {
+      return {
+        valid: false,
+        error: 'Invalid staff username format',
+      }
+    }
+
+    return {
+      valid: true,
+      data: {
+        slug: body.slug.toLowerCase(),
+        displayName: body.displayName.trim(),
+        weddingDate: body.weddingDate,
+        plan,
+        assignStaffUsername: body.assignStaffUsername.toLowerCase(),
+      },
+    }
+  }
+
+  // Mode 2: Create new client user
+  if (typeof body.ownerUsername !== 'string' || !isValidUsername(body.ownerUsername)) {
+    return {
+      valid: false,
+      error:
+        'Invalid username. Must be 3-30 characters, start with a letter, alphanumeric and underscores only',
+    }
+  }
+
+  // Validate ownerEmail (optional - only validate if provided and non-empty)
+  if (body.ownerEmail && body.ownerEmail !== '' && !isValidEmail(body.ownerEmail as string)) {
+    return { valid: false, error: 'Invalid email address' }
+  }
+
+  // Validate roleLabel (optional - any string up to 50 chars)
+  if (body.roleLabel !== undefined && body.roleLabel !== '') {
+    if (typeof body.roleLabel !== 'string' || body.roleLabel.trim().length > 50) {
+      return { valid: false, error: 'Role label must be a string up to 50 characters' }
+    }
+  }
+
   return {
     valid: true,
     data: {
       slug: body.slug.toLowerCase(),
       displayName: body.displayName.trim(),
+      weddingDate: body.weddingDate,
+      plan,
       ownerUsername: body.ownerUsername.toLowerCase(),
       ...(body.ownerEmail && body.ownerEmail !== ''
         ? { ownerEmail: (body.ownerEmail as string).toLowerCase() }
         : {}),
-      weddingDate: body.weddingDate,
-      plan,
+      ...(body.roleLabel && body.roleLabel !== ''
+        ? { roleLabel: (body.roleLabel as string).trim() }
+        : {}),
     },
   }
 }

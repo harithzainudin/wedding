@@ -6,6 +6,65 @@ export interface AdminLoginRequest {
 // User type for multi-tenant support
 export type UserType = 'super' | 'wedding' | 'legacy'
 
+// Admin user type for staff/client distinction
+export type AdminUserType = 'staff' | 'client'
+
+// Client role labels
+export const CLIENT_ROLE_LABELS = ['Bride', 'Groom', 'Parent', 'Other'] as const
+export type ClientRoleLabel = (typeof CLIENT_ROLE_LABELS)[number]
+
+// Staff member (for super admin management)
+export interface StaffMember {
+  username: string
+  email?: string
+  weddingIds: string[]
+  createdAt: string
+  createdBy: string
+}
+
+export interface ListStaffResponse {
+  staff: StaffMember[]
+  total: number
+  hasMore: boolean
+  nextKey?: string | null
+}
+
+export interface CreateStaffRequest {
+  username: string
+  password: string
+  email?: string
+}
+
+export interface CreateStaffResponse {
+  message: string
+  staff: {
+    username: string
+    email?: string
+    weddingIds: string[]
+    createdAt: string
+  }
+}
+
+export interface UpdateStaffRequest {
+  email?: string
+  password?: string
+}
+
+export interface UpdateStaffResponse {
+  message: string
+  username: string
+  updated: {
+    email?: string | null
+    passwordChanged?: boolean
+  }
+}
+
+export interface DeleteStaffResponse {
+  message: string
+  username: string
+  removedFromWeddings: number
+}
+
 // Response data from login endpoint (unwrapped from API response)
 export interface AdminLoginResponse {
   token?: string // Legacy - for backward compatibility
@@ -141,17 +200,25 @@ export interface ListWeddingsResponse {
 export interface CreateWeddingRequest {
   slug: string
   displayName: string
-  ownerUsername: string
-  ownerPassword: string
-  ownerEmail?: string
   weddingDate?: string
+  // Mode 1: Assign existing staff member
+  assignStaffUsername?: string
+  // Mode 2: Create new client user
+  ownerUsername?: string
+  ownerEmail?: string
+  roleLabel?: string // 'Bride', 'Groom', 'Parent', or custom text
 }
 
 export interface CreateWeddingResponse {
   wedding: Wedding
   owner: {
     username: string
+    email?: string
     temporaryPassword?: string
+    mustChangePassword?: boolean
+    linked?: boolean // true if existing staff was linked
+    userType?: AdminUserType
+    roleLabel?: string
     emailSent?: boolean
   }
 }
@@ -167,9 +234,13 @@ export interface UpdateWeddingResponse {
 }
 
 export interface AddWeddingOwnerRequest {
-  username: string
-  password: string
+  // Mode 1: Create new client user
+  username?: string
+  password?: string
   email?: string
+  roleLabel?: string // 'Bride', 'Groom', 'Parent', or custom text
+  // Mode 2: Link existing user (staff or client)
+  existingUsername?: string
 }
 
 export interface AddWeddingOwnerResponse {
@@ -178,6 +249,8 @@ export interface AddWeddingOwnerResponse {
     username: string
     email?: string
     role: 'owner' | 'coowner'
+    userType?: AdminUserType
+    roleLabel?: string
     mustChangePassword?: boolean
   }
   weddingId: string

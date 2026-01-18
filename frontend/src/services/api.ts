@@ -37,6 +37,12 @@ import type {
   WeddingDetailResponse,
   DeletionPreview,
   HardDeleteResponse,
+  ListStaffResponse,
+  CreateStaffRequest,
+  CreateStaffResponse,
+  UpdateStaffRequest,
+  UpdateStaffResponse,
+  DeleteStaffResponse,
 } from '@/types/admin'
 import type {
   PresignedUrlRequest,
@@ -1146,6 +1152,41 @@ export async function getDeletionPreview(weddingId: string): Promise<DeletionPre
 export async function hardDeleteWedding(weddingId: string): Promise<HardDeleteResponse> {
   return authenticatedFetch<HardDeleteResponse>(
     `${SUPERADMIN_URL}/weddings/${encodeURIComponent(weddingId)}/hard-delete`,
+    { method: 'DELETE' }
+  )
+}
+
+// ============================================
+// STAFF MANAGEMENT (Super Admin)
+// ============================================
+
+export async function listStaff(): Promise<ListStaffResponse> {
+  return authenticatedFetch<ListStaffResponse>(`${SUPERADMIN_URL}/staff`)
+}
+
+export async function createStaff(data: CreateStaffRequest): Promise<CreateStaffResponse> {
+  return authenticatedFetch<CreateStaffResponse>(`${SUPERADMIN_URL}/staff`, {
+    method: 'POST',
+    body: JSON.stringify(data),
+  })
+}
+
+export async function updateStaff(
+  username: string,
+  data: UpdateStaffRequest
+): Promise<UpdateStaffResponse> {
+  return authenticatedFetch<UpdateStaffResponse>(
+    `${SUPERADMIN_URL}/staff/${encodeURIComponent(username)}`,
+    {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }
+  )
+}
+
+export async function deleteStaff(username: string): Promise<DeleteStaffResponse> {
+  return authenticatedFetch<DeleteStaffResponse>(
+    `${SUPERADMIN_URL}/staff/${encodeURIComponent(username)}`,
     { method: 'DELETE' }
   )
 }

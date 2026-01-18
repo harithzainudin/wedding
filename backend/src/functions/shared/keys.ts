@@ -249,6 +249,15 @@ export const Keys = {
     }),
 
     /**
+     * List all staff members (for super admin)
+     * gsi1pk: STAFF, gsi1sk: {createdAt}
+     */
+    allStaff: (createdAt: string): GsiKey => ({
+      gsi1pk: 'STAFF',
+      gsi1sk: createdAt,
+    }),
+
+    /**
      * List user's weddings
      * gsi1pk: USER#{username}#WEDDINGS, gsi1sk: {weddingId}
      */

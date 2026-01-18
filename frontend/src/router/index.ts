@@ -29,7 +29,7 @@ const routes: RouteRecordRaw[] = [
   // Super Admin routes
   // ============================================
   {
-    path: '/superadmin',
+    path: '/superadmin/:tab?',
     name: 'superadmin',
     component: () => import('@/views/SuperAdminView.vue'),
     meta: { requiresAuth: true, requiresSuperAdmin: true },
@@ -86,7 +86,7 @@ const router = createRouter({
       return savedPosition
     }
     // Admin routes use path-based tabs, always scroll to top
-    if (to.name === 'admin' || to.name === 'wedding-admin') {
+    if (to.name === 'admin' || to.name === 'wedding-admin' || to.name === 'superadmin') {
       return { top: 0 }
     }
     if (to.hash) {
