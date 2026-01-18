@@ -125,7 +125,9 @@ const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3000'
  * Otherwise uses legacy path: /endpoint
  */
 function buildPublicUrl(endpoint: string, weddingSlug?: string): string {
-  if (weddingSlug) {
+  // Guard against the literal string "undefined" being passed as a slug
+  // This can happen if undefined is accidentally coerced to string somewhere
+  if (weddingSlug && weddingSlug !== 'undefined') {
     return `${API_URL}/${encodeURIComponent(weddingSlug)}${endpoint}`
   }
   return `${API_URL}${endpoint}`
@@ -137,7 +139,8 @@ function buildPublicUrl(endpoint: string, weddingSlug?: string): string {
  * Otherwise uses legacy path: /endpoint (for backward compatibility)
  */
 function buildAdminUrl(endpoint: string, weddingId?: string): string {
-  if (weddingId) {
+  // Guard against the literal string "undefined" being passed as a wedding ID
+  if (weddingId && weddingId !== 'undefined') {
     return `${API_URL}/admin/w/${encodeURIComponent(weddingId)}${endpoint}`
   }
   return `${API_URL}${endpoint}`

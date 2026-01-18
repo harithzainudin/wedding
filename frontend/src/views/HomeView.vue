@@ -20,9 +20,13 @@
   const route = useRoute()
 
   // Get the wedding slug from route params
+  // Only return valid slugs - reject 'undefined' and other invalid values
   const weddingSlug = computed(() => {
     const slug = route.params.weddingSlug
-    return typeof slug === 'string' ? slug : null
+    if (typeof slug !== 'string') return null
+    // Reject the literal string "undefined" (can happen from accidental coercion)
+    if (slug === 'undefined') return null
+    return slug
   })
 
   // Fetch all public wedding data once at the top level

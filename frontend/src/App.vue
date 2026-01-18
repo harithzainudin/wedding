@@ -10,9 +10,14 @@
   const { loadTheme, applyStoredTheme } = useTheme()
 
   // Get the wedding slug from route params
+  // Only return valid slugs - reject 'undefined', 'superadmin', and other invalid values
   const weddingSlug = computed(() => {
     const slug = route.params.weddingSlug
-    return typeof slug === 'string' ? slug : null
+    if (typeof slug !== 'string') return null
+    // Reject the literal string "undefined" (can happen from accidental coercion)
+    // Reject "superadmin" as it's a reserved route, not a wedding slug
+    if (slug === 'undefined' || slug === 'superadmin') return null
+    return slug
   })
 
   // Apply stored theme immediately to prevent flash
