@@ -906,6 +906,21 @@
                     <button
                       type="button"
                       class="p-2 text-charcoal-light hover:text-sage dark:text-dark-text-secondary dark:hover:text-sage transition-colors cursor-pointer"
+                      title="Open Admin Panel"
+                      @click="goToWeddingAdmin(wedding.slug, wedding.weddingId)"
+                    >
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M4 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM14 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1V5zM4 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1v-4zM14 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z"
+                        />
+                      </svg>
+                    </button>
+                    <button
+                      type="button"
+                      class="p-2 text-charcoal-light hover:text-sage dark:text-dark-text-secondary dark:hover:text-sage transition-colors cursor-pointer"
                       title="Wedding Settings"
                       @click="openSettingsModal(wedding.weddingId)"
                     >
@@ -1091,6 +1106,26 @@
                                 stroke-linejoin="round"
                                 stroke-width="2"
                                 d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                              />
+                            </svg>
+                          </button>
+                          <button
+                            type="button"
+                            class="p-2 text-charcoal-light hover:text-sage dark:text-dark-text-secondary dark:hover:text-sage transition-colors cursor-pointer"
+                            title="Open Admin Panel"
+                            @click="goToWeddingAdmin(wedding.slug, wedding.weddingId)"
+                          >
+                            <svg
+                              class="w-4 h-4"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M4 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM14 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1V5zM4 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1v-4zM14 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z"
                               />
                             </svg>
                           </button>
