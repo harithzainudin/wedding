@@ -953,6 +953,7 @@
                     >
                       <span v-if="wedding.ownerUsername">{{ wedding.ownerUsername }}</span>
                       <span>{{ formatDate(wedding.weddingDate) }}</span>
+                      <span>Created: {{ formatDate(wedding.createdAt) }}</span>
                     </div>
 
                     <!-- Actions row -->
@@ -1095,6 +1096,11 @@
                         <th
                           class="px-6 py-3 text-left font-body text-xs font-medium text-charcoal-light dark:text-dark-text-secondary uppercase tracking-wider"
                         >
+                          Created
+                        </th>
+                        <th
+                          class="px-6 py-3 text-left font-body text-xs font-medium text-charcoal-light dark:text-dark-text-secondary uppercase tracking-wider"
+                        >
                           Status
                         </th>
                         <th
@@ -1142,6 +1148,11 @@
                           class="px-6 py-4 whitespace-nowrap font-body text-sm text-charcoal dark:text-dark-text"
                         >
                           {{ formatDate(wedding.weddingDate) }}
+                        </td>
+                        <td
+                          class="px-6 py-4 whitespace-nowrap font-body text-sm text-charcoal-light dark:text-dark-text-secondary"
+                        >
+                          {{ formatDate(wedding.createdAt) }}
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
                           <span
