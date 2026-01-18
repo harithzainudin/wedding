@@ -1,7 +1,7 @@
 import { ref, readonly } from 'vue'
 import { weddingConfig } from '@/config/wedding'
 import type { VenueData } from '@/types/venue'
-import { getVenue, listParkingImages } from '@/services/api'
+import { getVenueCached, listParkingImages } from '@/services/api'
 
 // Initialize with static config as fallback
 const venueData = ref<VenueData>({
@@ -29,7 +29,7 @@ export function useVenueConfig() {
     try {
       // Fetch venue data and parking images in parallel
       const [venueResponse, parkingImagesResponse] = await Promise.all([
-        getVenue(weddingSlug),
+        getVenueCached(weddingSlug),
         listParkingImages(weddingSlug).catch(() => ({ images: [] })),
       ])
 
