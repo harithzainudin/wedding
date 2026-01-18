@@ -109,6 +109,11 @@
 
   const closeLightbox = (): void => {
     lightboxImage.value = null
+    // Note: body overflow is reset in onLightboxClosed (via @after-leave)
+  }
+
+  // Reset body overflow after lightbox leave animation completes
+  const onLightboxClosed = (): void => {
     document.body.style.overflow = ''
   }
 
@@ -180,7 +185,7 @@
     />
 
     <!-- Lightbox -->
-    <Transition name="lightbox">
+    <Transition name="lightbox" @after-leave="onLightboxClosed">
       <div
         v-if="lightboxImage"
         class="fixed inset-0 z-[60] bg-black/80 backdrop-blur-sm flex items-center justify-center"

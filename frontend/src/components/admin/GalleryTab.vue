@@ -119,13 +119,18 @@
     }
   }
 
+  // Reset body overflow after settings panel leave animation completes
+  const onSettingsClosed = (): void => {
+    document.body.style.overflow = ''
+  }
+
   watch(showSettings, (isOpen) => {
     if (isOpen) {
       document.addEventListener('keydown', handleEscapeKey)
       document.body.style.overflow = 'hidden'
     } else {
       document.removeEventListener('keydown', handleEscapeKey)
-      document.body.style.overflow = ''
+      // Note: body overflow is reset in onSettingsClosed (via @after-leave)
     }
   })
 
@@ -211,7 +216,7 @@
 
         <!-- Desktop: Popover | Mobile: Bottom Sheet -->
         <Teleport to="body">
-          <Transition name="settings-panel">
+          <Transition name="settings-panel" @after-leave="onSettingsClosed">
             <div v-if="showSettings" class="settings-container" @click.self="showSettings = false">
               <div
                 class="settings-panel bg-white dark:bg-dark-bg-secondary border-sand-dark dark:border-dark-border"

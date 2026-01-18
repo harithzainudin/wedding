@@ -343,13 +343,21 @@
     }
   }
 
+  // Reset body overflow after modal leave animation completes
+  // Only reset if no modals are open
+  const onModalClosed = (): void => {
+    if (!showSettings.value && !showGiftForm.value) {
+      document.body.style.overflow = ''
+    }
+  }
+
   watch([showSettings, showGiftForm], ([settingsOpen, formOpen]) => {
     if (settingsOpen || formOpen) {
       document.addEventListener('keydown', handleEscapeKey)
       document.body.style.overflow = 'hidden'
     } else {
       document.removeEventListener('keydown', handleEscapeKey)
-      document.body.style.overflow = ''
+      // Note: body overflow is reset in onModalClosed (via @after-leave)
     }
   })
 
@@ -776,7 +784,7 @@
 
     <!-- Gift Form Modal -->
     <Teleport to="body">
-      <Transition name="modal">
+      <Transition name="modal" @after-leave="onModalClosed">
         <div v-if="showGiftForm" class="modal-backdrop" @click.self="closeGiftForm">
           <div class="modal-content max-w-lg bg-white dark:bg-dark-bg-secondary">
             <div class="modal-header border-sand-dark dark:border-dark-border">
@@ -1037,7 +1045,7 @@
 
     <!-- Settings Modal -->
     <Teleport to="body">
-      <Transition name="modal">
+      <Transition name="modal" @after-leave="onModalClosed">
         <div v-if="showSettings" class="modal-backdrop" @click.self="showSettings = false">
           <div class="modal-content bg-white dark:bg-dark-bg-secondary">
             <div class="modal-header border-sand-dark dark:border-dark-border">
@@ -1160,7 +1168,14 @@
 
   .modal-enter-active,
   .modal-leave-active {
-    transition: all 0.2s ease-out;
+    transition: opacity 0.2s ease-out;
+  }
+
+  .modal-enter-active .modal-content,
+  .modal-leave-active .modal-content {
+    transition:
+      transform 0.2s ease-out,
+      opacity 0.2s ease-out;
   }
 
   .modal-enter-from,
@@ -1170,6 +1185,7 @@
 
   .modal-enter-from .modal-content,
   .modal-leave-to .modal-content {
+    opacity: 0;
     transform: scale(0.95);
   }
 

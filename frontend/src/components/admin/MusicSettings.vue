@@ -49,6 +49,11 @@
   const volumePercentage = (vol: number): string => {
     return `${Math.round(vol * 100)}%`
   }
+
+  // Update volume display in real-time (no API call)
+  const updateVolumePreview = (value: number): void => {
+    localSettings.value.volume = value
+  }
 </script>
 
 <template>
@@ -204,7 +209,8 @@
         step="0.05"
         :value="localSettings.volume"
         class="w-full h-2 bg-sand dark:bg-dark-bg rounded-full appearance-none cursor-pointer"
-        @input="(e) => updateSetting('volume', parseFloat((e.target as HTMLInputElement).value))"
+        @input="(e) => updateVolumePreview(parseFloat((e.target as HTMLInputElement).value))"
+        @change="(e) => updateSetting('volume', parseFloat((e.target as HTMLInputElement).value))"
       />
       <div class="flex justify-between mt-1">
         <span class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary">0%</span>

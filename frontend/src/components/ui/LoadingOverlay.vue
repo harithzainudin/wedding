@@ -1,48 +1,48 @@
 <script setup lang="ts">
-import { computed, ref, watch, onUnmounted } from 'vue'
-import { useLoadingOverlay } from '@/composables/useLoadingOverlay'
-import { useAdminLanguage } from '@/composables/useAdminLanguage'
+  import { computed, ref, watch, onUnmounted } from 'vue'
+  import { useLoadingOverlay } from '@/composables/useLoadingOverlay'
+  import { useAdminLanguage } from '@/composables/useAdminLanguage'
 
-const { isVisible, message, showSuccess } = useLoadingOverlay()
-const { adminT } = useAdminLanguage()
+  const { isVisible, message, showSuccess } = useLoadingOverlay()
+  const { adminT } = useAdminLanguage()
 
-// Simple professional rotating messages (indexes into translation keys)
-const rotatingMessageKeys = ['workingOnIt', 'almostThere', 'justAMoment', 'processing2'] as const
+  // Simple professional rotating messages (indexes into translation keys)
+  const rotatingMessageKeys = ['workingOnIt', 'almostThere', 'justAMoment', 'processing2'] as const
 
-// Rotate messages every 3 seconds when loading
-const messageIndex = ref(0)
-let messageInterval: ReturnType<typeof setInterval> | null = null
+  // Rotate messages every 3 seconds when loading
+  const messageIndex = ref(0)
+  let messageInterval: ReturnType<typeof setInterval> | null = null
 
-watch(isVisible, (visible) => {
-  if (visible && !showSuccess.value) {
-    messageIndex.value = 0
-    messageInterval = setInterval(() => {
-      messageIndex.value = (messageIndex.value + 1) % rotatingMessageKeys.length
-    }, 3000)
-  } else if (messageInterval) {
-    clearInterval(messageInterval)
-    messageInterval = null
-  }
-})
+  watch(isVisible, (visible) => {
+    if (visible && !showSuccess.value) {
+      messageIndex.value = 0
+      messageInterval = setInterval(() => {
+        messageIndex.value = (messageIndex.value + 1) % rotatingMessageKeys.length
+      }, 3000)
+    } else if (messageInterval) {
+      clearInterval(messageInterval)
+      messageInterval = null
+    }
+  })
 
-onUnmounted(() => {
-  if (messageInterval) {
-    clearInterval(messageInterval)
-  }
-})
+  onUnmounted(() => {
+    if (messageInterval) {
+      clearInterval(messageInterval)
+    }
+  })
 
-const displayMessage = computed(() => {
-  return message.value || adminT.value.loadingOverlay.loading
-})
+  const displayMessage = computed(() => {
+    return message.value || adminT.value.loadingOverlay.loading
+  })
 
-const rotatingMessage = computed(() => {
-  const key = rotatingMessageKeys[messageIndex.value]
-  return key ? adminT.value.loadingOverlay[key] : ''
-})
+  const rotatingMessage = computed(() => {
+    const key = rotatingMessageKeys[messageIndex.value]
+    return key ? adminT.value.loadingOverlay[key] : ''
+  })
 
-const successMessage = computed(() => {
-  return message.value || adminT.value.loadingOverlay.success
-})
+  const successMessage = computed(() => {
+    return message.value || adminT.value.loadingOverlay.success
+  })
 </script>
 
 <template>
