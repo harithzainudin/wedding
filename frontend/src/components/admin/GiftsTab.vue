@@ -7,6 +7,7 @@
   import type { GiftItem, GiftCategory, GiftPriority } from '@/types/gift'
   import DeleteConfirmModal from './DeleteConfirmModal.vue'
   import UploadProgressBar from './UploadProgressBar.vue'
+  import ToggleSwitch from '@/components/ui/ToggleSwitch.vue'
 
   const { adminT } = useAdminLanguage()
 
@@ -24,6 +25,7 @@
     isCreating,
     isUpdating,
     isDeleting,
+    isTogglingEnabled,
     activeUploads,
     canAddMore,
     summary,
@@ -422,17 +424,11 @@
           {{ settings.enabled ? adminT.gifts.visibleToGuests : adminT.gifts.hiddenFromGuests }}
         </p>
       </div>
-      <button
-        type="button"
-        class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors cursor-pointer"
-        :class="settings.enabled ? 'bg-sage' : 'bg-gray-300 dark:bg-gray-600'"
-        @click="handleToggleEnabled"
-      >
-        <span
-          class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform"
-          :class="settings.enabled ? 'translate-x-6' : 'translate-x-1'"
-        />
-      </button>
+      <ToggleSwitch
+        :model-value="settings.enabled"
+        :loading="isTogglingEnabled"
+        @update:model-value="handleToggleEnabled"
+      />
     </div>
 
     <!-- Upload Progress Bar -->

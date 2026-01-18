@@ -52,6 +52,7 @@ const isCreating = ref(false)
 const isUpdating = ref(false)
 const isDeleting = ref(false)
 const isReordering = ref(false)
+const isTogglingEnabled = ref(false)
 const uploadProgress = ref<Map<string, UploadState>>(new Map())
 const uploadControllers = ref<Map<string, AbortController>>(new Map())
 
@@ -495,7 +496,12 @@ export function useGifts() {
     success: boolean
     error?: string
   }> => {
-    return updateSettings({ enabled: !settings.value.enabled }, weddingId)
+    isTogglingEnabled.value = true
+    try {
+      return await updateSettings({ enabled: !settings.value.enabled }, weddingId)
+    } finally {
+      isTogglingEnabled.value = false
+    }
   }
 
   return {
@@ -513,6 +519,7 @@ export function useGifts() {
     isUpdating,
     isDeleting,
     isReordering,
+    isTogglingEnabled,
     activeUploads,
 
     // Multi-tenant context
