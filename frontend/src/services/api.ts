@@ -1050,6 +1050,28 @@ export function getQRCodeHubCached(
 export { clearCache }
 
 // ============================================
+// Admin Utility Functions
+// ============================================
+
+interface ResolveSlugResponse {
+  weddingId: string
+  slug: string
+  displayName: string
+  status: string
+}
+
+/**
+ * Resolve a wedding slug to its weddingId
+ * Requires authentication - only returns if user has access to the wedding
+ */
+export async function resolveWeddingSlug(slug: string): Promise<ResolveSlugResponse> {
+  return authenticatedFetch<ResolveSlugResponse>(
+    `${API_URL}/admin/resolve-slug/${encodeURIComponent(slug)}`,
+    { method: 'GET' }
+  )
+}
+
+// ============================================
 // Super Admin API Functions
 // ============================================
 

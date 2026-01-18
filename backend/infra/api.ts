@@ -116,6 +116,13 @@ export function addAdminRoutes(
     link: [table, tokenSecret],
     ...functionConfig,
   })
+
+  // GET /admin/resolve-slug/{slug} - Resolve wedding slug to weddingId (auth required)
+  api.route('GET /admin/resolve-slug/{slug}', {
+    handler: 'src/functions/admin/resolve-slug.handler',
+    link: [table, tokenSecret],
+    ...functionConfig,
+  })
 }
 
 // Function to add RSVP routes with token secret for protected endpoints

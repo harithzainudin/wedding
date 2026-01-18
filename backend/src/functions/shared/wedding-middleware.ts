@@ -145,10 +145,12 @@ export async function getWeddingById(
   weddingId: string
 ): Promise<WeddingContext | null> {
   const weddingKey = Keys.wedding(weddingId)
+  // Use strongly consistent read to ensure we get newly created weddings
   const result = await docClient.send(
     new GetCommand({
       TableName: Resource.AppDataTable.name,
       Key: weddingKey,
+      ConsistentRead: true,
     })
   )
 

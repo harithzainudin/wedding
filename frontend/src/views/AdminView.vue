@@ -6,6 +6,8 @@
   import { useProfile } from '@/composables/useProfile'
   import { useDocumentTitle } from '@/composables/useDocumentTitle'
   import { useAdminLanguage } from '@/composables/useAdminLanguage'
+  import { resolveWeddingSlug } from '@/services/api'
+  import { setStoredPrimaryWeddingId, getStoredPrimaryWeddingId } from '@/services/tokenManager'
   import AdminLoginForm from '@/components/admin/AdminLoginForm.vue'
   import AdminHeader from '@/components/admin/AdminHeader.vue'
   import PasswordChangeModal from '@/components/admin/PasswordChangeModal.vue'
@@ -91,6 +93,10 @@
   // Mobile menu state
   const showMobileMenu = ref(false)
 
+  // Slug resolution state
+  const isResolvingSlug = ref(false)
+  const slugResolutionError = ref<string | null>(null)
+
   const openMobileMenu = (): void => {
     showMobileMenu.value = true
   }
@@ -144,6 +150,26 @@
       activeTab.value = getTabFromRoute()
     }
   )
+
+  // Resolve wedding slug when user becomes authenticated (e.g., after login)
+  watch(isAuthenticated, async (authenticated) => {
+    if (authenticated && weddingSlug.value) {
+      const currentWeddingId = getStoredPrimaryWeddingId()
+      if (!currentWeddingId) {
+        isResolvingSlug.value = true
+        slugResolutionError.value = null
+
+        try {
+          const resolved = await resolveWeddingSlug(weddingSlug.value)
+          setStoredPrimaryWeddingId(resolved.weddingId)
+        } catch (err) {
+          slugResolutionError.value = err instanceof Error ? err.message : 'Failed to load wedding'
+        } finally {
+          isResolvingSlug.value = false
+        }
+      }
+    }
+  })
 
   interface TabConfig {
     key: TabType
@@ -217,18 +243,66 @@
 
   onMounted(async () => {
     await checkExistingAuth()
+
+    // If we have a wedding slug in the URL, resolve it to get the weddingId
+    // This handles the case where user directly navigates to /{slug}/admin
+    if (weddingSlug.value && isAuthenticated.value) {
+      const currentWeddingId = getStoredPrimaryWeddingId()
+
+      // Only resolve if we don't have a weddingId stored, or need to verify it matches the slug
+      if (!currentWeddingId) {
+        isResolvingSlug.value = true
+        slugResolutionError.value = null
+
+        try {
+          const resolved = await resolveWeddingSlug(weddingSlug.value)
+          setStoredPrimaryWeddingId(resolved.weddingId)
+        } catch (err) {
+          slugResolutionError.value = err instanceof Error ? err.message : 'Failed to load wedding'
+        } finally {
+          isResolvingSlug.value = false
+        }
+      }
+    }
   })
 </script>
 
 <template>
   <div class="min-h-screen bg-sand dark:bg-dark-bg transition-colors duration-300">
-    <!-- Loading state while checking auth -->
-    <div v-if="isCheckingAuth" class="min-h-screen flex items-center justify-center">
+    <!-- Loading state while checking auth or resolving slug -->
+    <div
+      v-if="isCheckingAuth || isResolvingSlug"
+      class="min-h-screen flex items-center justify-center"
+    >
       <div class="flex flex-col items-center gap-3">
         <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-sage"></div>
         <span class="text-charcoal-light dark:text-dark-text-secondary text-sm font-body">{{
           adminT.common.loading
         }}</span>
+      </div>
+    </div>
+
+    <!-- Error state if slug resolution failed -->
+    <div v-else-if="slugResolutionError" class="min-h-screen flex items-center justify-center">
+      <div class="flex flex-col items-center gap-3 text-center px-4">
+        <svg class="w-12 h-12 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+          />
+        </svg>
+        <p class="text-charcoal dark:text-dark-text font-body font-medium">
+          {{ slugResolutionError }}
+        </p>
+        <button
+          type="button"
+          class="mt-2 px-4 py-2 bg-sage text-white rounded-lg hover:bg-sage-dark transition-colors cursor-pointer"
+          @click="router.push('/superadmin')"
+        >
+          {{ adminT.common.backToSuperAdmin || 'Back to Super Admin' }}
+        </button>
       </div>
     </div>
 
