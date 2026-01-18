@@ -130,6 +130,13 @@ export function addAdminRoutes(
     link: [table, tokenSecret],
     ...functionConfig,
   })
+
+  // GET /admin/my-weddings - Get weddings assigned to current user (auth required)
+  api.route('GET /admin/my-weddings', {
+    handler: 'src/functions/admin/my-weddings.handler',
+    link: [table, tokenSecret],
+    ...functionConfig,
+  })
 }
 
 // Function to add RSVP routes with token secret for protected endpoints

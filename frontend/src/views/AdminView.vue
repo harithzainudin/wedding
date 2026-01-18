@@ -24,10 +24,15 @@
   import ThemeTab from '@/components/admin/ThemeTab.vue'
   import GiftsTab from '@/components/admin/GiftsTab.vue'
   import QRCodeHubTab from '@/components/admin/QRCodeHubTab.vue'
+  import WeddingContextBar from '@/components/admin/WeddingContextBar.vue'
+  import { useWeddingMetadata } from '@/composables/useWeddingMetadata'
 
   const { adminT } = useAdminLanguage()
   const route = useRoute()
   const router = useRouter()
+
+  // Wedding metadata for context bar
+  const { fetchWeddings } = useWeddingMetadata()
 
   // Get wedding slug from route params (for multi-tenant routes like /:weddingSlug/admin)
   const weddingSlug = computed(() => {
@@ -239,6 +244,9 @@
       return
     }
 
+    // Fetch wedding metadata for context bar
+    fetchWeddings()
+
     // If we have a wedding slug in the URL, resolve it to get the weddingId
     // This handles the case where user directly navigates to /{slug}/admin
     if (weddingSlug.value) {
@@ -372,6 +380,7 @@
         :username="currentUser"
         :is-master-user="isMasterUser"
         :user-type="userType"
+        v-bind="weddingSlug ? { weddingSlug } : {}"
         @close="closeMobileMenu"
         @open-profile="openProfileModal"
         @change-password="openPasswordChangeModal"
@@ -383,11 +392,15 @@
           :current-user="currentUser"
           :is-master-user="isMasterUser"
           :user-type="userType"
+          v-bind="weddingSlug ? { weddingSlug } : {}"
           @open-profile="openProfileModal"
           @change-password="openPasswordChangeModal"
           @logout="onLogout"
           @open-mobile-menu="openMobileMenu"
         />
+
+        <!-- Wedding Context Bar (desktop only) -->
+        <WeddingContextBar />
 
         <!-- Tab Navigation with Icons -->
         <div class="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">

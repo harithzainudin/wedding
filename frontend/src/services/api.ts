@@ -1071,6 +1071,29 @@ export async function resolveWeddingSlug(slug: string): Promise<ResolveSlugRespo
   )
 }
 
+export interface WeddingMetadata {
+  weddingId: string
+  slug: string
+  displayName: string
+  status: 'active' | 'draft' | 'archived'
+  weddingDate?: string
+}
+
+interface MyWeddingsResponse {
+  weddings: WeddingMetadata[]
+  primaryWeddingId: string | null
+}
+
+/**
+ * Get all weddings assigned to the current user
+ * Super admins get all weddings, wedding admins get their assigned weddings
+ */
+export async function getMyWeddings(): Promise<MyWeddingsResponse> {
+  return authenticatedFetch<MyWeddingsResponse>(`${API_URL}/admin/my-weddings`, {
+    method: 'GET',
+  })
+}
+
 // ============================================
 // Super Admin API Functions
 // ============================================

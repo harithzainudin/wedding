@@ -1,15 +1,21 @@
 <script setup lang="ts">
+  import { computed } from 'vue'
   import DarkModeToggle from '@/components/ui/DarkModeToggle.vue'
   import UserProfileDropdown from '@/components/admin/UserProfileDropdown.vue'
   import AdminLanguageToggle from '@/components/admin/AdminLanguageToggle.vue'
   import { useAdminLanguage } from '@/composables/useAdminLanguage'
   import type { UserType } from '@/types/admin'
 
-  defineProps<{
+  const props = defineProps<{
     currentUser: string
     isMasterUser: boolean
     userType: UserType
+    weddingSlug?: string
   }>()
+
+  const viewSiteUrl = computed(() =>
+    props.weddingSlug ? `/wedding/${props.weddingSlug}` : '/wedding/'
+  )
 
   const emit = defineEmits<{
     openProfile: []
@@ -53,7 +59,7 @@
         {{ adminT.common.superAdmin }}
       </a>
       <a
-        href="/wedding/"
+        :href="viewSiteUrl"
         target="_blank"
         rel="noopener noreferrer"
         class="flex items-center gap-2 px-3 py-2 text-sm font-body text-white bg-sage hover:bg-sage-dark rounded-lg transition-colors"

@@ -1588,6 +1588,18 @@ export interface AdminTranslations {
     parent: string
     other: string
   }
+
+  // Wedding context bar
+  weddingContext: {
+    switchWedding: string
+    selectWedding: string
+    statusActive: string
+    statusDraft: string
+    statusArchived: string
+    loading: string
+    errorLoading: string
+    noWeddingSelected: string
+  }
 }
 
 // String interpolation helper
@@ -2334,6 +2346,17 @@ export const adminTranslations: Record<AdminLanguage, AdminTranslations> = {
       groom: 'Groom',
       parent: 'Parent',
       other: 'Other',
+    },
+
+    weddingContext: {
+      switchWedding: 'Switch Wedding',
+      selectWedding: 'Select Wedding',
+      statusActive: 'Active',
+      statusDraft: 'Draft',
+      statusArchived: 'Archived',
+      loading: 'Loading...',
+      errorLoading: 'Failed to load weddings',
+      noWeddingSelected: 'No wedding selected',
     },
   },
 
@@ -3083,6 +3106,17 @@ export const adminTranslations: Record<AdminLanguage, AdminTranslations> = {
       groom: 'Pengantin Lelaki',
       parent: 'Ibu Bapa',
       other: 'Lain-lain',
+    },
+
+    weddingContext: {
+      switchWedding: 'Tukar Majlis',
+      selectWedding: 'Pilih Majlis',
+      statusActive: 'Aktif',
+      statusDraft: 'Draf',
+      statusArchived: 'Diarkib',
+      loading: 'Memuatkan...',
+      errorLoading: 'Gagal memuatkan senarai majlis',
+      noWeddingSelected: 'Tiada majlis dipilih',
     },
   },
 }
