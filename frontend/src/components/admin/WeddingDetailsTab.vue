@@ -45,13 +45,13 @@
   // Toggle for custom options
   const showCustomOptions = ref(false)
 
-  // Section visibility toggles (all expanded by default)
+  // Section visibility toggles (all collapsed by default)
   const expandedSections = ref({
-    couple: true,
+    couple: false,
     nameOrder: false,
     calligraphy: false,
     parents: false,
-    event: true,
+    event: false,
     displayFormat: false,
     website: false,
   })
