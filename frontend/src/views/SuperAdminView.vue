@@ -77,8 +77,14 @@
     isCheckingAuth,
     currentUser: username,
     userType,
+    adminUserType,
     checkExistingAuth,
   } = useAdminAuth()
+
+  // Check if user can access super admin (super admin or staff)
+  const canAccessSuperAdmin = computed(
+    () => userType.value === 'super' || adminUserType.value === 'staff'
+  )
 
   // Modal state
   const showCreateModal = ref(false)
@@ -290,7 +296,7 @@
 
   // Navigate to public wedding page
   const goToPublicPage = (slug: string) => {
-    window.open(`/${slug}`, '_blank')
+    window.open(`/wedding/${slug}`, '_blank')
   }
 
   // Format date
@@ -604,8 +610,8 @@
     // Check if user has existing valid session
     await checkExistingAuth()
 
-    // After auth check, if user is super admin, fetch weddings
-    if (isAuthenticated.value && userType.value === 'super') {
+    // After auth check, if user can access super admin, fetch weddings
+    if (isAuthenticated.value && canAccessSuperAdmin.value) {
       await fetchWeddings()
     }
   })
@@ -616,21 +622,15 @@
   })
 
   // Watch for auth changes to handle redirect or fetch
+  // Note: Router guards handle most auth redirects, but this handles logout scenarios
   watch(
-    [isAuthenticated, userType, isCheckingAuth],
-    ([authenticated, type, checking]) => {
+    [isAuthenticated, isCheckingAuth],
+    ([authenticated, checking]) => {
       if (checking) return // Still checking, wait
 
       if (!authenticated) {
-        // Not logged in, redirect to admin login
-        router.push('/admin')
-        return
-      }
-
-      if (type !== 'super') {
-        // Logged in but not super admin, redirect to regular admin
-        router.push('/admin')
-        return
+        // Not logged in, redirect to login page
+        router.push('/login')
       }
     },
     { immediate: false }
@@ -656,8 +656,8 @@
       </div>
     </div>
 
-    <!-- Main content when authenticated as super admin -->
-    <template v-else-if="isAuthenticated && userType === 'super'">
+    <!-- Main content when authenticated as super admin or staff -->
+    <template v-else-if="isAuthenticated && canAccessSuperAdmin">
       <!-- Header -->
       <header
         class="bg-white dark:bg-dark-bg-secondary shadow-sm border-b border-sand-dark dark:border-dark-border"

@@ -102,10 +102,6 @@
           </div>
         </div>
 
-        <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary text-center">
-          {{ adminT.auth.masterHint }}
-        </p>
-
         <p v-if="loginError" class="text-red-600 dark:text-red-400 font-body text-sm text-center">
           {{ loginError }}
         </p>

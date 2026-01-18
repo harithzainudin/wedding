@@ -177,6 +177,15 @@ export interface Translations {
     errorTitle: string
     errorMessage: string
   }
+  // 404 Not Found Page
+  notFound?: {
+    title: string
+    subtitle: string
+    message: string
+    goToLogin: string
+    goToDashboard: string
+    goHome: string
+  }
 }
 
 export const translations: Record<Language, Translations> = {
@@ -328,6 +337,14 @@ export const translations: Record<Language, Translations> = {
       tapToView: 'Ketik untuk lihat',
       linkCopied: 'Pautan disalin!',
     },
+    notFound: {
+      title: '404',
+      subtitle: 'Halaman Tidak Dijumpai',
+      message: 'Maaf, halaman yang anda cari tidak wujud atau telah dialihkan.',
+      goToLogin: 'Pergi ke Log Masuk',
+      goToDashboard: 'Pergi ke Papan Pemuka',
+      goHome: 'Kembali ke Laman Utama',
+    },
   },
 
   // English
@@ -477,6 +494,14 @@ export const translations: Record<Language, Translations> = {
       tapToView: 'Tap to view',
       linkCopied: 'Link copied!',
     },
+    notFound: {
+      title: '404',
+      subtitle: 'Page Not Found',
+      message: 'Sorry, the page you are looking for does not exist or has been moved.',
+      goToLogin: 'Go to Login',
+      goToDashboard: 'Go to Dashboard',
+      goHome: 'Back to Home',
+    },
   },
 
   // Mandarin (Chinese)
@@ -623,6 +648,14 @@ export const translations: Record<Language, Translations> = {
       close: '关闭',
       tapToView: '点击查看',
       linkCopied: '链接已复制！',
+    },
+    notFound: {
+      title: '404',
+      subtitle: '页面未找到',
+      message: '抱歉，您要查找的页面不存在或已被移动。',
+      goToLogin: '前往登录',
+      goToDashboard: '前往仪表板',
+      goHome: '返回首页',
     },
   },
 
@@ -773,6 +806,14 @@ export const translations: Record<Language, Translations> = {
       close: 'மூடு',
       tapToView: 'பார்க்க தட்டவும்',
       linkCopied: 'இணைப்பு நகலெடுக்கப்பட்டது!',
+    },
+    notFound: {
+      title: '404',
+      subtitle: 'பக்கம் காணப்படவில்லை',
+      message: 'மன்னிக்கவும், நீங்கள் தேடும் பக்கம் இல்லை அல்லது நகர்த்தப்பட்டுள்ளது.',
+      goToLogin: 'உள்நுழைவுக்கு செல்',
+      goToDashboard: 'டாஷ்போர்டுக்கு செல்',
+      goHome: 'முகப்புக்கு திரும்பு',
     },
   },
 }
@@ -1573,7 +1614,7 @@ export const adminTranslations: Record<AdminLanguage, AdminTranslations> = {
     },
 
     auth: {
-      adminLogin: 'Admin Login',
+      adminLogin: 'Your Wedding Hub',
       username: 'Username',
       password: 'Password',
       enterUsername: 'Enter username',
@@ -2296,7 +2337,7 @@ export const adminTranslations: Record<AdminLanguage, AdminTranslations> = {
     },
 
     auth: {
-      adminLogin: 'Log Masuk Pentadbir',
+      adminLogin: 'Hub Perkahwinan Anda',
       username: 'Nama Pengguna',
       password: 'Kata Laluan',
       enterUsername: 'Masukkan nama pengguna',

@@ -8,7 +8,6 @@
   import { useAdminLanguage } from '@/composables/useAdminLanguage'
   import { resolveWeddingSlug } from '@/services/api'
   import { setStoredPrimaryWeddingId, getStoredPrimaryWeddingId } from '@/services/tokenManager'
-  import AdminLoginForm from '@/components/admin/AdminLoginForm.vue'
   import AdminHeader from '@/components/admin/AdminHeader.vue'
   import PasswordChangeModal from '@/components/admin/PasswordChangeModal.vue'
   import ProfileSettingsModal from '@/components/admin/ProfileSettingsModal.vue'
@@ -41,11 +40,6 @@
   const {
     isAuthenticated,
     isCheckingAuth,
-    username,
-    password,
-    showLoginPassword,
-    loginError,
-    isLoggingIn,
     currentUser,
     isMasterUser,
     userType,
@@ -57,7 +51,6 @@
     forcedPasswordChangeError,
     isSettingNewPassword,
     checkExistingAuth,
-    handleLogin,
     handleLogout,
     handleSetNewPassword,
   } = useAdminAuth()
@@ -224,16 +217,11 @@
     router.push(newPath)
   }
 
-  const onLogin = async (): Promise<void> => {
-    await handleLogin()
-  }
-
   const onLogout = (): void => {
     handleLogout()
     activeTab.value = 'dashboard'
-    // Navigate to base admin path (dashboard)
-    const basePath = weddingSlug.value ? `/${weddingSlug.value}/admin` : '/admin'
-    router.push(basePath)
+    // Navigate to login page
+    router.push('/login')
   }
 
   const handleOpenPasswordChangeFromProfile = (): void => {
@@ -244,9 +232,16 @@
   onMounted(async () => {
     await checkExistingAuth()
 
+    // If not authenticated, router guards should redirect to login
+    // but we also check here as a fallback
+    if (!isAuthenticated.value) {
+      router.push('/login')
+      return
+    }
+
     // If we have a wedding slug in the URL, resolve it to get the weddingId
     // This handles the case where user directly navigates to /{slug}/admin
-    if (weddingSlug.value && isAuthenticated.value) {
+    if (weddingSlug.value) {
       const currentWeddingId = getStoredPrimaryWeddingId()
 
       // Only resolve if we don't have a weddingId stored, or need to verify it matches the slug
@@ -265,6 +260,18 @@
       }
     }
   })
+
+  // Watch for auth changes to handle logout scenarios
+  watch(
+    [isAuthenticated, isCheckingAuth],
+    ([authenticated, checking]) => {
+      if (checking) return // Still checking, wait
+      if (!authenticated) {
+        router.push('/login')
+      }
+    },
+    { immediate: false }
+  )
 </script>
 
 <template>
@@ -371,20 +378,7 @@
         @logout="onLogout"
       />
 
-      <AdminLoginForm
-        v-if="!isAuthenticated"
-        :username="username"
-        :password="password"
-        :show-password="showLoginPassword"
-        :login-error="loginError"
-        :is-logging-in="isLoggingIn"
-        @update:username="username = $event"
-        @update:password="password = $event"
-        @update:show-password="showLoginPassword = $event"
-        @submit="onLogin"
-      />
-
-      <div v-else class="max-w-6xl mx-auto px-4 py-8">
+      <div class="max-w-6xl mx-auto px-4 py-8">
         <AdminHeader
           :current-user="currentUser"
           :is-master-user="isMasterUser"

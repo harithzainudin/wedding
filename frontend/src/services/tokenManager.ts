@@ -1,4 +1,4 @@
-import type { UserType } from '@/types/admin'
+import type { UserType, AdminUserType } from '@/types/admin'
 
 const ACCESS_TOKEN_KEY = 'admin_access_token'
 const REFRESH_TOKEN_KEY = 'admin_refresh_token'
@@ -8,6 +8,8 @@ const IS_MASTER_KEY = 'admin_is_master'
 const USER_TYPE_KEY = 'admin_user_type'
 const WEDDING_IDS_KEY = 'admin_wedding_ids'
 const PRIMARY_WEDDING_ID_KEY = 'admin_primary_wedding_id'
+const ADMIN_USER_TYPE_KEY = 'admin_admin_user_type'
+const PRIMARY_WEDDING_SLUG_KEY = 'admin_primary_wedding_slug'
 
 // Refresh threshold: refresh when less than 2 minutes remaining
 const REFRESH_THRESHOLD_MS = 2 * 60 * 1000
@@ -30,6 +32,8 @@ export interface TokenInfo {
   userType: UserType
   weddingIds?: string[]
   primaryWeddingId?: string
+  adminUserType?: AdminUserType
+  primaryWeddingSlug?: string
 }
 
 export function storeTokens(info: TokenInfo): void {
@@ -44,6 +48,12 @@ export function storeTokens(info: TokenInfo): void {
   }
   if (info.primaryWeddingId) {
     localStorage.setItem(PRIMARY_WEDDING_ID_KEY, info.primaryWeddingId)
+  }
+  if (info.adminUserType) {
+    localStorage.setItem(ADMIN_USER_TYPE_KEY, info.adminUserType)
+  }
+  if (info.primaryWeddingSlug) {
+    localStorage.setItem(PRIMARY_WEDDING_SLUG_KEY, info.primaryWeddingSlug)
   }
 
   scheduleProactiveRefresh(info.expiresIn * 1000)
@@ -91,6 +101,18 @@ export function setStoredPrimaryWeddingId(weddingId: string): void {
   localStorage.setItem(PRIMARY_WEDDING_ID_KEY, weddingId)
 }
 
+export function getStoredAdminUserType(): AdminUserType | null {
+  const stored = localStorage.getItem(ADMIN_USER_TYPE_KEY)
+  if (stored === 'staff' || stored === 'client') {
+    return stored
+  }
+  return null
+}
+
+export function getStoredPrimaryWeddingSlug(): string | null {
+  return localStorage.getItem(PRIMARY_WEDDING_SLUG_KEY)
+}
+
 export function canAccessWedding(weddingId: string): boolean {
   const userType = getStoredUserType()
   if (userType === 'super' || userType === 'legacy') {
@@ -109,6 +131,8 @@ export function clearTokens(): void {
   localStorage.removeItem(USER_TYPE_KEY)
   localStorage.removeItem(WEDDING_IDS_KEY)
   localStorage.removeItem(PRIMARY_WEDDING_ID_KEY)
+  localStorage.removeItem(ADMIN_USER_TYPE_KEY)
+  localStorage.removeItem(PRIMARY_WEDDING_SLUG_KEY)
 
   if (refreshTimer) {
     clearTimeout(refreshTimer)
@@ -190,6 +214,8 @@ export async function refreshTokens(): Promise<boolean> {
       if (result.success) {
         const storedWeddingIds = getStoredWeddingIds()
         const storedPrimaryWeddingId = getStoredPrimaryWeddingId()
+        const storedAdminUserType = getStoredAdminUserType()
+        const storedPrimaryWeddingSlug = getStoredPrimaryWeddingSlug()
         storeTokens({
           accessToken: result.data.accessToken,
           refreshToken: result.data.refreshToken,
@@ -199,6 +225,8 @@ export async function refreshTokens(): Promise<boolean> {
           userType: getStoredUserType(),
           ...(storedWeddingIds.length > 0 && { weddingIds: storedWeddingIds }),
           ...(storedPrimaryWeddingId && { primaryWeddingId: storedPrimaryWeddingId }),
+          ...(storedAdminUserType && { adminUserType: storedAdminUserType }),
+          ...(storedPrimaryWeddingSlug && { primaryWeddingSlug: storedPrimaryWeddingSlug }),
         })
         return true
       }

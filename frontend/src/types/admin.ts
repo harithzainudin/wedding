@@ -78,6 +78,9 @@ export interface AdminLoginResponse {
   userType: UserType
   weddingIds?: string[] // Wedding IDs the user has access to
   primaryWeddingId?: string // Primary wedding for wedding admins
+  // Staff/Client distinction for redirect logic
+  adminUserType?: AdminUserType // 'staff' | 'client'
+  primaryWeddingSlug?: string // Wedding slug for client redirect
 }
 
 export interface RefreshTokenRequest {

@@ -136,6 +136,24 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
     // Determine user type: 'wedding' if has weddingIds, otherwise 'legacy'
     const userType = weddingIds && weddingIds.length > 0 ? 'wedding' : 'legacy'
 
+    // Get admin user type ('staff' or 'client') from the record
+    const adminUserType = result.Item.userType as 'staff' | 'client' | undefined
+
+    // For clients, fetch the wedding slug so frontend can redirect directly
+    let primaryWeddingSlug: string | undefined
+    if (adminUserType === 'client' && primaryWeddingId) {
+      const weddingResult = await docClient.send(
+        new GetCommand({
+          TableName: Resource.AppDataTable.name,
+          Key: {
+            pk: `WEDDING#${primaryWeddingId}`,
+            sk: 'META',
+          },
+        })
+      )
+      primaryWeddingSlug = weddingResult.Item?.slug as string | undefined
+    }
+
     return createSuccessResponse(
       200,
       {
@@ -149,6 +167,8 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
         ...(weddingIds && weddingIds.length > 0 && { weddingIds }),
         ...(primaryWeddingId && { primaryWeddingId }),
         ...(mustChangePassword && { mustChangePassword: true }),
+        ...(adminUserType && { adminUserType }),
+        ...(primaryWeddingSlug && { primaryWeddingSlug }),
       },
       context
     )

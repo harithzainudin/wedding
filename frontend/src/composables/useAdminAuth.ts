@@ -1,5 +1,5 @@
 import { ref, onMounted, onUnmounted } from 'vue'
-import type { UserType } from '@/types/admin'
+import type { UserType, AdminUserType } from '@/types/admin'
 import { adminLogin, setNewPassword } from '@/services/api'
 import {
   storeTokens,
@@ -8,6 +8,8 @@ import {
   getStoredUsername,
   getStoredIsMaster,
   getStoredUserType,
+  getStoredAdminUserType,
+  getStoredPrimaryWeddingSlug,
   refreshTokens,
   AUTH_EXPIRED_EVENT,
 } from '@/services/tokenManager'
@@ -23,6 +25,8 @@ export function useAdminAuth() {
   const currentUser = ref('')
   const isMasterUser = ref(false)
   const userType = ref<UserType>('legacy')
+  const adminUserType = ref<AdminUserType | null>(null)
+  const primaryWeddingSlug = ref<string | null>(null)
   const mustChangePassword = ref(false)
 
   // Forced password change state
@@ -44,6 +48,8 @@ export function useAdminAuth() {
           currentUser.value = getStoredUsername() ?? ''
           isMasterUser.value = getStoredIsMaster()
           userType.value = getStoredUserType()
+          adminUserType.value = getStoredAdminUserType()
+          primaryWeddingSlug.value = getStoredPrimaryWeddingSlug()
           return true
         }
       }
@@ -80,12 +86,16 @@ export function useAdminAuth() {
           userType: response.userType ?? 'legacy',
           ...(response.weddingIds && { weddingIds: response.weddingIds }),
           ...(response.primaryWeddingId && { primaryWeddingId: response.primaryWeddingId }),
+          ...(response.adminUserType && { adminUserType: response.adminUserType }),
+          ...(response.primaryWeddingSlug && { primaryWeddingSlug: response.primaryWeddingSlug }),
         })
 
         isAuthenticated.value = true
         currentUser.value = response.username ?? ''
         isMasterUser.value = response.isMaster ?? false
         userType.value = response.userType ?? 'legacy'
+        adminUserType.value = response.adminUserType ?? null
+        primaryWeddingSlug.value = response.primaryWeddingSlug ?? null
         mustChangePassword.value = response.mustChangePassword ?? false
         username.value = ''
         password.value = ''
@@ -109,6 +119,8 @@ export function useAdminAuth() {
     currentUser.value = ''
     isMasterUser.value = false
     userType.value = 'legacy'
+    adminUserType.value = null
+    primaryWeddingSlug.value = null
     mustChangePassword.value = false
     resetForcedPasswordChangeForm()
   }
@@ -119,6 +131,36 @@ export function useAdminAuth() {
     showNewPasswordForChange.value = false
     showConfirmNewPasswordForChange.value = false
     forcedPasswordChangeError.value = ''
+  }
+
+  /**
+   * Get the appropriate redirect path based on user type after login.
+   * - Super admin / Staff → /superadmin
+   * - Client → /{primaryWeddingSlug}/admin
+   */
+  const getRedirectPath = (): string => {
+    // Super admin or master user goes to superadmin dashboard
+    if (isMasterUser.value || userType.value === 'super') {
+      return '/superadmin'
+    }
+
+    // Staff goes to superadmin dashboard
+    if (adminUserType.value === 'staff') {
+      return '/superadmin'
+    }
+
+    // Client goes to their wedding admin
+    if (adminUserType.value === 'client' && primaryWeddingSlug.value) {
+      return `/${primaryWeddingSlug.value}/admin`
+    }
+
+    // Fallback: if we have a wedding slug, go there; otherwise superadmin
+    if (primaryWeddingSlug.value) {
+      return `/${primaryWeddingSlug.value}/admin`
+    }
+
+    // Default fallback to superadmin
+    return '/superadmin'
   }
 
   const handleSetNewPassword = async (): Promise<boolean> => {
@@ -181,6 +223,8 @@ export function useAdminAuth() {
     currentUser,
     isMasterUser,
     userType,
+    adminUserType,
+    primaryWeddingSlug,
     mustChangePassword,
     newPasswordForChange,
     confirmNewPasswordForChange,
@@ -192,5 +236,6 @@ export function useAdminAuth() {
     handleLogin,
     handleLogout,
     handleSetNewPassword,
+    getRedirectPath,
   }
 }

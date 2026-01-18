@@ -1,7 +1,23 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import type { RouteRecordRaw } from 'vue-router'
+import {
+  hasValidTokens,
+  getStoredIsMaster,
+  getStoredUserType,
+  getStoredAdminUserType,
+  getStoredPrimaryWeddingSlug,
+} from '@/services/tokenManager'
 
 const routes: RouteRecordRaw[] = [
+  // ============================================
+  // Authentication routes
+  // ============================================
+  {
+    path: '/login',
+    name: 'login',
+    component: () => import('@/views/LoginView.vue'),
+  },
+
   // ============================================
   // Legacy routes (backward compatibility)
   // These will continue to work for existing single-wedding setup
@@ -17,12 +33,6 @@ const routes: RouteRecordRaw[] = [
     name: 'rsvp',
     component: () => import('@/views/RsvpView.vue'),
     meta: { isLegacy: true },
-  },
-  {
-    path: '/admin/:tab?',
-    name: 'admin',
-    component: () => import('@/views/AdminView.vue'),
-    meta: { isLegacy: true, requiresAuth: true },
   },
 
   // ============================================
@@ -86,7 +96,7 @@ const router = createRouter({
       return savedPosition
     }
     // Admin routes use path-based tabs, always scroll to top
-    if (to.name === 'admin' || to.name === 'wedding-admin' || to.name === 'superadmin') {
+    if (to.name === 'wedding-admin' || to.name === 'superadmin') {
       return { top: 0 }
     }
     if (to.hash) {
@@ -94,6 +104,64 @@ const router = createRouter({
     }
     return { top: 0, behavior: 'smooth' }
   },
+})
+
+// ============================================
+// Navigation Guards
+// ============================================
+router.beforeEach((to, _from, next) => {
+  const isAuthenticated = hasValidTokens()
+  const requiresAuth = to.meta.requiresAuth === true
+  const requiresSuperAdmin = to.meta.requiresSuperAdmin === true
+
+  // If route requires auth and user is not authenticated, redirect to login
+  if (requiresAuth && !isAuthenticated) {
+    return next({ name: 'login' })
+  }
+
+  // If user is already authenticated and tries to access login page, redirect to appropriate dashboard
+  if (to.name === 'login' && isAuthenticated) {
+    const isMaster = getStoredIsMaster()
+    const userType = getStoredUserType()
+    const adminUserType = getStoredAdminUserType()
+    const primaryWeddingSlug = getStoredPrimaryWeddingSlug()
+
+    // Super admin or staff goes to superadmin dashboard
+    if (isMaster || userType === 'super' || adminUserType === 'staff') {
+      return next({ name: 'superadmin' })
+    }
+
+    // Client goes to their wedding admin
+    if (adminUserType === 'client' && primaryWeddingSlug) {
+      return next({ name: 'wedding-admin', params: { weddingSlug: primaryWeddingSlug } })
+    }
+
+    // Fallback to superadmin
+    return next({ name: 'superadmin' })
+  }
+
+  // If route requires super admin access, verify user type
+  if (requiresSuperAdmin && isAuthenticated) {
+    const isMaster = getStoredIsMaster()
+    const userType = getStoredUserType()
+    const adminUserType = getStoredAdminUserType()
+
+    // Allow super admins and staff
+    if (isMaster || userType === 'super' || adminUserType === 'staff') {
+      return next()
+    }
+
+    // Redirect clients to their wedding admin
+    const primaryWeddingSlug = getStoredPrimaryWeddingSlug()
+    if (primaryWeddingSlug) {
+      return next({ name: 'wedding-admin', params: { weddingSlug: primaryWeddingSlug } })
+    }
+
+    // If no wedding slug, redirect to login
+    return next({ name: 'login' })
+  }
+
+  next()
 })
 
 export default router
