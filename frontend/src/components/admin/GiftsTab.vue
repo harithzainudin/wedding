@@ -2,6 +2,7 @@
   import { onMounted, onUnmounted, ref, watch, computed } from 'vue'
   import { useGifts } from '@/composables/useGifts'
   import { useAdminLanguage } from '@/composables/useAdminLanguage'
+  import { useLoadingOverlay } from '@/composables/useLoadingOverlay'
   import { interpolate } from '@/i18n/translations'
   import { getStoredPrimaryWeddingId } from '@/services/tokenManager'
   import type { GiftItem, GiftCategory, GiftPriority } from '@/types/gift'
@@ -10,6 +11,7 @@
   import ToggleSwitch from '@/components/ui/ToggleSwitch.vue'
 
   const { adminT } = useAdminLanguage()
+  const { withLoading } = useLoadingOverlay()
 
   const weddingId = computed(() => getStoredPrimaryWeddingId())
 
@@ -173,23 +175,37 @@
       ...(formData.value.notes ? { notes: formData.value.notes } : {}),
     }
 
-    if (editingGift.value) {
-      const result = await updateGiftItem(editingGift.value.id, data, weddingId.value ?? undefined)
-      if (result.success && imageFile.value) {
-        await uploadGiftImage(editingGift.value.id, imageFile.value, weddingId.value ?? undefined)
+    const currentEditingGift = editingGift.value
+    const currentImageFile = imageFile.value
+    closeGiftForm()
+
+    await withLoading(
+      async () => {
+        if (currentEditingGift) {
+          const result = await updateGiftItem(
+            currentEditingGift.id,
+            data,
+            weddingId.value ?? undefined
+          )
+          if (result.success && currentImageFile) {
+            await uploadGiftImage(
+              currentEditingGift.id,
+              currentImageFile,
+              weddingId.value ?? undefined
+            )
+          }
+        } else {
+          const result = await createGiftItem(data, weddingId.value ?? undefined)
+          if (result.success && result.giftId && currentImageFile) {
+            await uploadGiftImage(result.giftId, currentImageFile, weddingId.value ?? undefined)
+          }
+        }
+      },
+      {
+        message: adminT.value.loadingOverlay.saving,
+        showSuccess: true,
       }
-      if (result.success) {
-        closeGiftForm()
-      }
-    } else {
-      const result = await createGiftItem(data, weddingId.value ?? undefined)
-      if (result.success && result.giftId && imageFile.value) {
-        await uploadGiftImage(result.giftId, imageFile.value, weddingId.value ?? undefined)
-      }
-      if (result.success) {
-        closeGiftForm()
-      }
-    }
+    )
   }
 
   // Delete handlers
@@ -199,10 +215,18 @@
 
   const handleDeleteConfirm = async () => {
     if (!deleteConfirmId.value) return
-    const result = await deleteGiftItem(deleteConfirmId.value, weddingId.value ?? undefined)
-    if (result.success) {
-      deleteConfirmId.value = null
-    }
+    const giftIdToDelete = deleteConfirmId.value
+    deleteConfirmId.value = null
+
+    await withLoading(
+      async () => {
+        await deleteGiftItem(giftIdToDelete, weddingId.value ?? undefined)
+      },
+      {
+        message: adminT.value.loadingOverlay.deleting,
+        showSuccess: true,
+      }
+    )
   }
 
   const handleDeleteCancel = () => {
@@ -237,11 +261,27 @@
 
   // Settings handlers
   const handleToggleEnabled = async () => {
-    await toggleEnabled(weddingId.value ?? undefined)
+    await withLoading(
+      async () => {
+        await toggleEnabled(weddingId.value ?? undefined)
+      },
+      {
+        message: adminT.value.loadingOverlay.saving,
+        showSuccess: true,
+      }
+    )
   }
 
   const handleSettingsUpdate = async (newSettings: Partial<typeof settings.value>) => {
-    await updateSettings(newSettings, weddingId.value ?? undefined)
+    await withLoading(
+      async () => {
+        await updateSettings(newSettings, weddingId.value ?? undefined)
+      },
+      {
+        message: adminT.value.loadingOverlay.saving,
+        showSuccess: true,
+      }
+    )
   }
 
   // View reservations

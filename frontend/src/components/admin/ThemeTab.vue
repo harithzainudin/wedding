@@ -5,12 +5,14 @@
   import { useTheme } from '@/composables/useTheme'
   import { useThemePreview } from '@/composables/useThemePreview'
   import { useAdminLanguage } from '@/composables/useAdminLanguage'
+  import { useLoadingOverlay } from '@/composables/useLoadingOverlay'
   import { getStoredPrimaryWeddingId } from '@/services/tokenManager'
   import { DEFAULT_THEMES, PRESET_THEME_IDS } from '@/constants/themes'
   import ThemeCard from './ThemeCard.vue'
   import ThemeCustomizer from './ThemeCustomizer.vue'
 
   const { adminT } = useAdminLanguage()
+  const { withLoading } = useLoadingOverlay()
   const route = useRoute()
 
   // Get wedding context from route and token
@@ -163,24 +165,29 @@
     saveSuccess.value = false
 
     const id = weddingId.value ?? undefined
-    const result = await saveTheme(
-      {
-        activeThemeId: selectedThemeId.value,
-        customTheme: selectedThemeId.value === 'custom' ? customThemeData.value : undefined,
-      },
-      id
-    )
 
-    if (result.success) {
-      saveSuccess.value = true
-      // End preview mode since we've saved
-      endPreview()
-      setTimeout(() => {
-        saveSuccess.value = false
-      }, 3000)
-    } else {
-      saveError.value = result.error ?? 'Failed to save theme'
-    }
+    await withLoading(
+      async () => {
+        const result = await saveTheme(
+          {
+            activeThemeId: selectedThemeId.value,
+            customTheme: selectedThemeId.value === 'custom' ? customThemeData.value : undefined,
+          },
+          id
+        )
+
+        if (result.success) {
+          // End preview mode since we've saved
+          endPreview()
+        } else {
+          saveError.value = result.error ?? 'Failed to save theme'
+        }
+      },
+      {
+        message: adminT.value.loadingOverlay.saving,
+        showSuccess: true,
+      }
+    )
   }
 
   // Toggle custom theme section

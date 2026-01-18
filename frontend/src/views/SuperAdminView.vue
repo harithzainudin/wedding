@@ -4,6 +4,8 @@
   import { useSuperAdmin } from '@/composables/useSuperAdmin'
   import { useAdminAuth } from '@/composables/useAdminAuth'
   import { useStaff } from '@/composables/useStaff'
+  import { useLoadingOverlay } from '@/composables/useLoadingOverlay'
+  import { useAdminLanguage } from '@/composables/useAdminLanguage'
   import { setStoredPrimaryWeddingId } from '@/services/tokenManager'
   import HardDeleteConfirmModal from '@/components/admin/HardDeleteConfirmModal.vue'
   import StaffManagement from '@/components/admin/StaffManagement.vue'
@@ -30,6 +32,9 @@
 
   // Staff for owner assignment
   const { staff: staffList, fetchStaff: fetchStaffList, isLoading: isLoadingStaff } = useStaff()
+  const { withLoading } = useLoadingOverlay()
+  const { adminT } = useAdminLanguage()
+
   import type {
     CreateWeddingRequest,
     AddWeddingOwnerRequest,
@@ -234,11 +239,22 @@
       }
     }
 
-    const result = await createWedding(request)
-    if (result.success) {
-      showCreateModal.value = false
-      resetCreateForm()
-    }
+    showCreateModal.value = false
+
+    await withLoading(
+      async () => {
+        const result = await createWedding(request)
+        if (!result.success) {
+          showCreateModal.value = true
+        } else {
+          resetCreateForm()
+        }
+      },
+      {
+        message: adminT.value.loadingOverlay.saving,
+        showSuccess: true,
+      }
+    )
   }
 
   const resetCreateForm = () => {
@@ -262,8 +278,16 @@
 
   // Archive wedding
   const handleArchive = async (weddingId: string) => {
-    await archiveWedding(weddingId)
     showArchiveConfirm.value = null
+    await withLoading(
+      async () => {
+        await archiveWedding(weddingId)
+      },
+      {
+        message: adminT.value.loadingOverlay.processing,
+        showSuccess: true,
+      }
+    )
   }
 
   // Open hard delete modal
@@ -281,10 +305,18 @@
   // Handle hard delete confirmation
   const handleHardDelete = async () => {
     if (!showHardDeleteConfirm.value) return
-    const result = await hardDeleteWedding(showHardDeleteConfirm.value.weddingId)
-    if (result.success) {
-      showHardDeleteConfirm.value = null
-    }
+    const weddingIdToDelete = showHardDeleteConfirm.value.weddingId
+    showHardDeleteConfirm.value = null
+
+    await withLoading(
+      async () => {
+        await hardDeleteWedding(weddingIdToDelete)
+      },
+      {
+        message: adminT.value.loadingOverlay.deleting,
+        showSuccess: true,
+      }
+    )
   }
 
   // Navigate to wedding admin
@@ -408,34 +440,63 @@
       return
     }
 
-    const result = await addOwner(selectedWedding.value.weddingId, addOwnerForm.value)
-    if (result.success) {
-      showAddOwnerForm.value = false
-      resetAddOwnerForm()
-    } else {
-      addOwnerFormError.value = result.error ?? 'Failed to add owner'
-    }
+    const weddingId = selectedWedding.value.weddingId
+    showAddOwnerForm.value = false
+
+    await withLoading(
+      async () => {
+        const result = await addOwner(weddingId, addOwnerForm.value)
+        if (result.success) {
+          resetAddOwnerForm()
+        } else {
+          addOwnerFormError.value = result.error ?? 'Failed to add owner'
+          showAddOwnerForm.value = true
+        }
+      },
+      {
+        message: adminT.value.loadingOverlay.saving,
+        showSuccess: true,
+      }
+    )
   }
 
   // Handle remove owner
   const handleRemoveOwner = async (username: string) => {
     if (!selectedWedding.value) return
 
-    const result = await removeOwner(selectedWedding.value.weddingId, username)
-    if (result.success) {
-      showRemoveConfirm.value = null
-    }
+    const weddingId = selectedWedding.value.weddingId
+    showRemoveConfirm.value = null
+
+    await withLoading(
+      async () => {
+        await removeOwner(weddingId, username)
+      },
+      {
+        message: adminT.value.loadingOverlay.deleting,
+        showSuccess: true,
+      }
+    )
   }
 
   // Handle reset password
   const handleResetPassword = async (username: string) => {
     if (!selectedWedding.value) return
 
-    const result = await resetPassword(selectedWedding.value.weddingId, username)
-    if (result.success && result.temporaryPassword) {
-      temporaryPassword.value = result.temporaryPassword
-      showResetConfirm.value = null
-    }
+    const weddingId = selectedWedding.value.weddingId
+    showResetConfirm.value = null
+
+    await withLoading(
+      async () => {
+        const result = await resetPassword(weddingId, username)
+        if (result.success && result.temporaryPassword) {
+          temporaryPassword.value = result.temporaryPassword
+        }
+      },
+      {
+        message: adminT.value.loadingOverlay.processing,
+        showSuccess: true,
+      }
+    )
   }
 
   // Start editing an owner

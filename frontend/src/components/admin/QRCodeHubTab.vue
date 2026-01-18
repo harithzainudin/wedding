@@ -15,9 +15,11 @@
   } from '@/types/qrCodeHub'
   import { useQRCodeHub } from '@/composables/useQRCodeHub'
   import { useAdminLanguage } from '@/composables/useAdminLanguage'
+  import { useLoadingOverlay } from '@/composables/useLoadingOverlay'
   import { getStoredPrimaryWeddingId } from '@/services/tokenManager'
 
   const { adminT } = useAdminLanguage()
+  const { withLoading } = useLoadingOverlay()
 
   // Wedding context
   const weddingId = computed(() => getStoredPrimaryWeddingId())
@@ -229,13 +231,15 @@
       displayOrder: formData.value.displayOrder,
     }
 
-    const success = await saveSettings(updateData, weddingId.value ?? undefined)
-    if (success) {
-      saveSuccess.value = true
-      setTimeout(() => {
-        saveSuccess.value = false
-      }, 3000)
-    }
+    await withLoading(
+      async () => {
+        await saveSettings(updateData, weddingId.value ?? undefined)
+      },
+      {
+        message: adminT.value.loadingOverlay.saving,
+        showSuccess: true,
+      }
+    )
   }
 </script>
 

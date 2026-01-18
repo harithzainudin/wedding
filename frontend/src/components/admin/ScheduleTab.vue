@@ -3,6 +3,7 @@
   import { useSchedule } from '@/composables/useSchedule'
   import { useCrudList } from '@/composables/useCrudList'
   import { useAdminLanguage } from '@/composables/useAdminLanguage'
+  import { useLoadingOverlay } from '@/composables/useLoadingOverlay'
   import { interpolate } from '@/i18n/translations'
   import { getStoredPrimaryWeddingId } from '@/services/tokenManager'
   import ConfirmModal from './ConfirmModal.vue'
@@ -12,6 +13,7 @@
   import type { ScheduleItem, MultilingualText } from '@/types/schedule'
 
   const { adminT } = useAdminLanguage()
+  const { withLoading } = useLoadingOverlay()
 
   const weddingId = computed(() => getStoredPrimaryWeddingId())
 
@@ -26,6 +28,9 @@
     updateSchedule,
     generateId,
   } = useSchedule()
+
+  // Clear all state
+  const showClearAllModal = ref(false)
 
   const {
     localItems,
@@ -97,6 +102,32 @@
     closeModal()
   }
 
+  // Save with loading overlay
+  const saveWithOverlay = async () => {
+    await withLoading(() => handleSave(), {
+      message: adminT.value.loadingOverlay.saving,
+      showSuccess: true,
+    })
+  }
+
+  // Clear all items
+  const clearAllItems = async () => {
+    showClearAllModal.value = false
+    await withLoading(
+      async () => {
+        const result = await updateSchedule([], weddingId.value ?? undefined)
+        if (result.success) {
+          localItems.value = []
+          syncLocalItems()
+        }
+      },
+      {
+        message: adminT.value.loadingOverlay.deleting,
+        showSuccess: true,
+      }
+    )
+  }
+
   onMounted(async () => {
     await fetchScheduleAdmin(weddingId.value ?? undefined)
     syncLocalItems()
@@ -114,21 +145,40 @@
           {{ adminT.schedule.subtitle }}
         </p>
       </div>
-      <button
-        type="button"
-        class="flex items-center justify-center gap-2 px-4 py-2 font-body text-sm text-white bg-sage rounded-lg hover:bg-sage-dark transition-colors cursor-pointer"
-        @click="openModal()"
-      >
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M12 4v16m8-8H4"
-          />
-        </svg>
-        {{ adminT.schedule.addItem }}
-      </button>
+      <div class="flex items-center gap-2">
+        <button
+          type="button"
+          class="flex items-center justify-center gap-2 px-4 py-2 font-body text-sm text-white bg-sage rounded-lg hover:bg-sage-dark transition-colors cursor-pointer"
+          @click="openModal()"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 4v16m8-8H4"
+            />
+          </svg>
+          {{ adminT.schedule.addItem }}
+        </button>
+        <button
+          type="button"
+          class="flex items-center justify-center gap-2 px-4 py-2 font-body text-sm text-red-600 dark:text-red-400 border border-red-300 dark:border-red-700 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+          :disabled="localItems.length === 0 || isLoading"
+          @click="showClearAllModal = true"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+            />
+          </svg>
+          {{ adminT.schedule.clearAll }}
+          <span v-if="localItems.length > 0" class="text-xs">({{ localItems.length }})</span>
+        </button>
+      </div>
     </div>
 
     <div v-if="isLoading" class="text-center py-12">
@@ -252,10 +302,10 @@
           <button
             type="button"
             class="px-6 py-2.5 font-body text-sm text-white bg-sage rounded-lg hover:bg-sage-dark transition-colors cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed"
-            :disabled="isSaving || !hasChanges"
-            @click="handleSave"
+            :disabled="!hasChanges"
+            @click="saveWithOverlay"
           >
-            {{ isSaving ? adminT.common.saving : adminT.common.saveChanges }}
+            {{ adminT.common.saveChanges }}
           </button>
         </div>
       </div>
@@ -295,7 +345,7 @@
     </BaseFormModal>
 
     <ConfirmModal
-      v-if="showDeleteModal"
+      :show="showDeleteModal"
       :title="adminT.schedule.deleteItem"
       :message="
         interpolate(adminT.schedule.deleteItemConfirm, { title: itemToDelete?.title.en || '' })
@@ -304,6 +354,16 @@
       variant="danger"
       @confirm="deleteItem"
       @cancel="cancelDelete"
+    />
+
+    <ConfirmModal
+      :show="showClearAllModal"
+      :title="adminT.schedule.clearAll"
+      :message="interpolate(adminT.schedule.clearAllConfirm, { count: String(localItems.length) })"
+      :confirm-text="adminT.schedule.clearAll"
+      variant="danger"
+      @confirm="clearAllItems"
+      @cancel="showClearAllModal = false"
     />
   </div>
 </template>

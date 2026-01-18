@@ -3,6 +3,7 @@
   import { useContacts } from '@/composables/useContacts'
   import { useCrudList } from '@/composables/useCrudList'
   import { useAdminLanguage } from '@/composables/useAdminLanguage'
+  import { useLoadingOverlay } from '@/composables/useLoadingOverlay'
   import { interpolate } from '@/i18n/translations'
   import { getStoredPrimaryWeddingId } from '@/services/tokenManager'
   import ConfirmModal from './ConfirmModal.vue'
@@ -12,6 +13,7 @@
   import type { ContactPerson, MultilingualText } from '@/types/contacts'
 
   const { adminT } = useAdminLanguage()
+  const { withLoading } = useLoadingOverlay()
 
   const weddingId = computed(() => getStoredPrimaryWeddingId())
 
@@ -104,6 +106,14 @@
 
   const formatPhone = (phone: string): string => {
     return phone.replace(/(\+60)(\d{2,3})(\d{3,4})(\d{4})/, '$1 $2-$3 $4')
+  }
+
+  // Save with loading overlay
+  const saveWithOverlay = async () => {
+    await withLoading(() => handleSave(), {
+      message: adminT.value.loadingOverlay.saving,
+      showSuccess: true,
+    })
   }
 
   onMounted(async () => {
@@ -266,10 +276,10 @@
           <button
             type="button"
             class="px-6 py-2.5 font-body text-sm text-white bg-sage rounded-lg hover:bg-sage-dark transition-colors cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed"
-            :disabled="isSaving || !hasChanges"
-            @click="handleSave"
+            :disabled="!hasChanges"
+            @click="saveWithOverlay"
           >
-            {{ isSaving ? adminT.common.saving : adminT.common.saveChanges }}
+            {{ adminT.common.saveChanges }}
           </button>
         </div>
       </div>
@@ -321,7 +331,7 @@
     </BaseFormModal>
 
     <ConfirmModal
-      v-if="showDeleteModal"
+      :show="showDeleteModal"
       :title="adminT.contacts.deleteContact"
       :message="
         interpolate(adminT.contacts.deleteContactConfirm, { name: contactToDelete?.name || '' })

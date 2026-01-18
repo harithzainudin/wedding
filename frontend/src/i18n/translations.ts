@@ -1291,6 +1291,9 @@ export interface AdminTranslations {
     noItems: string
     savedSuccess: string
     deleteItemConfirm: string
+    clearAll: string
+    clearAllConfirm: string
+    clearAllSuccess: string
   }
 
   // Contacts
@@ -1503,6 +1506,20 @@ export interface AdminTranslations {
     unsavedChanges: string
     discardChanges: string
     pleaseWait: string
+  }
+
+  // Loading Overlay
+  loadingOverlay: {
+    loading: string
+    saving: string
+    deleting: string
+    uploading: string
+    processing: string
+    success: string
+    workingOnIt: string
+    almostThere: string
+    justAMoment: string
+    processing2: string
   }
 
   // Hard Delete
@@ -2029,6 +2046,10 @@ export const adminTranslations: Record<AdminLanguage, AdminTranslations> = {
       noItems: 'No events added yet.',
       savedSuccess: 'Schedule saved successfully!',
       deleteItemConfirm: 'Are you sure you want to delete "{title}"?',
+      clearAll: 'Clear All',
+      clearAllConfirm:
+        'Are you sure you want to delete all {count} schedule events? This action cannot be undone.',
+      clearAllSuccess: 'All schedule events cleared successfully!',
     },
 
     contacts: {
@@ -2236,6 +2257,19 @@ export const adminTranslations: Record<AdminLanguage, AdminTranslations> = {
       unsavedChanges: 'Unsaved Changes',
       discardChanges: 'Discard Changes',
       pleaseWait: 'Please wait...',
+    },
+
+    loadingOverlay: {
+      loading: 'Loading...',
+      saving: 'Saving changes...',
+      deleting: 'Deleting...',
+      uploading: 'Uploading...',
+      processing: 'Processing...',
+      success: 'Done!',
+      workingOnIt: 'Working on it...',
+      almostThere: 'Almost there...',
+      justAMoment: 'Just a moment...',
+      processing2: 'Processing your request...',
     },
 
     hardDelete: {
@@ -2760,6 +2794,10 @@ export const adminTranslations: Record<AdminLanguage, AdminTranslations> = {
       noItems: 'Belum ada acara ditambah.',
       savedSuccess: 'Jadual berjaya disimpan!',
       deleteItemConfirm: 'Adakah anda pasti mahu memadam "{title}"?',
+      clearAll: 'Kosongkan Semua',
+      clearAllConfirm:
+        'Adakah anda pasti mahu memadam semua {count} acara jadual? Tindakan ini tidak boleh dibatalkan.',
+      clearAllSuccess: 'Semua acara jadual berjaya dikosongkan!',
     },
 
     contacts: {
@@ -2968,6 +3006,19 @@ export const adminTranslations: Record<AdminLanguage, AdminTranslations> = {
       unsavedChanges: 'Perubahan Belum Disimpan',
       discardChanges: 'Buang Perubahan',
       pleaseWait: 'Sila tunggu...',
+    },
+
+    loadingOverlay: {
+      loading: 'Memuatkan...',
+      saving: 'Menyimpan perubahan...',
+      deleting: 'Memadam...',
+      uploading: 'Memuat naik...',
+      processing: 'Memproses...',
+      success: 'Selesai!',
+      workingOnIt: 'Sedang diproses...',
+      almostThere: 'Hampir siap...',
+      justAMoment: 'Sebentar lagi...',
+      processing2: 'Memproses permintaan anda...',
     },
 
     hardDelete: {

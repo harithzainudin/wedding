@@ -2,6 +2,7 @@
   import { ref, onMounted, watch, computed } from 'vue'
   import { useRsvps } from '@/composables/useRsvps'
   import { useAdminLanguage } from '@/composables/useAdminLanguage'
+  import { useLoadingOverlay } from '@/composables/useLoadingOverlay'
   import { interpolate } from '@/i18n/translations'
   import { getStoredPrimaryWeddingId } from '@/services/tokenManager'
   import type { RsvpSubmission, AdminRsvpRequest } from '@/types/rsvp'
@@ -9,6 +10,7 @@
   import ConfirmModal from './ConfirmModal.vue'
 
   const { adminT } = useAdminLanguage()
+  const { withLoading } = useLoadingOverlay()
 
   const weddingId = computed(() => getStoredPrimaryWeddingId())
 
@@ -24,7 +26,6 @@
     exportToCsv,
     isCreating,
     isUpdating,
-    isDeleting,
     operationError,
     createRsvpEntry,
     updateRsvpEntry,
@@ -57,24 +58,37 @@
 
   // Handle form submit (create or update)
   const handleFormSubmit = async (data: AdminRsvpRequest) => {
-    let success: boolean
-    if (selectedRsvp.value) {
-      success = await updateRsvpEntry(selectedRsvp.value.id, data, weddingId.value ?? undefined)
-    } else {
-      success = await createRsvpEntry(data, weddingId.value ?? undefined)
-    }
-    if (success) {
-      showFormModal.value = false
-    }
+    showFormModal.value = false
+    await withLoading(
+      async () => {
+        if (selectedRsvp.value) {
+          await updateRsvpEntry(selectedRsvp.value.id, data, weddingId.value ?? undefined)
+        } else {
+          await createRsvpEntry(data, weddingId.value ?? undefined)
+        }
+      },
+      {
+        message: selectedRsvp.value
+          ? adminT.value.loadingOverlay.saving
+          : adminT.value.loadingOverlay.saving,
+        showSuccess: true,
+      }
+    )
   }
 
   // Handle delete confirm
   const handleDeleteConfirm = async () => {
     if (selectedRsvp.value) {
-      const success = await deleteRsvpEntry(selectedRsvp.value.id, weddingId.value ?? undefined)
-      if (success) {
-        showDeleteModal.value = false
-      }
+      showDeleteModal.value = false
+      await withLoading(
+        async () => {
+          await deleteRsvpEntry(selectedRsvp.value!.id, weddingId.value ?? undefined)
+        },
+        {
+          message: adminT.value.loadingOverlay.deleting,
+          showSuccess: true,
+        }
+      )
     }
   }
 
@@ -368,14 +382,13 @@
 
     <!-- Delete Confirmation Modal -->
     <ConfirmModal
-      v-if="showDeleteModal"
+      :show="showDeleteModal"
       :title="adminT.rsvps.deleteGuest"
       :message="
         interpolate(adminT.rsvps.deleteGuestConfirm, { name: selectedRsvp?.fullName || '' })
       "
       :confirm-text="adminT.common.delete"
       variant="danger"
-      :is-loading="isDeleting"
       @confirm="handleDeleteConfirm"
       @cancel="showDeleteModal = false"
     />

@@ -3,6 +3,7 @@
   import { useRoute } from 'vue-router'
   import { useVenue } from '@/composables/useVenue'
   import { useAdminLanguage } from '@/composables/useAdminLanguage'
+  import { useLoadingOverlay } from '@/composables/useLoadingOverlay'
   import { getStoredPrimaryWeddingId } from '@/services/tokenManager'
   import type { ParkingStep } from '@/types/venue'
   import LocationMapPicker from './LocationMapPicker.vue'
@@ -11,6 +12,7 @@
   import ParkingForm from './ParkingForm.vue'
 
   const { adminT } = useAdminLanguage()
+  const { withLoading } = useLoadingOverlay()
 
   const route = useRoute()
   const weddingSlug = computed(() => {
@@ -128,11 +130,20 @@
     if (formData.value.parkingVideoUrl) {
       data.parkingVideoUrl = formData.value.parkingVideoUrl
     }
-    const result = await updateVenue(data, weddingId.value ?? undefined)
-    // Sync form data after successful save to ensure hasChanges is false
-    if (result.success) {
-      syncFormData()
-    }
+
+    await withLoading(
+      async () => {
+        const result = await updateVenue(data, weddingId.value ?? undefined)
+        // Sync form data after successful save to ensure hasChanges is false
+        if (result.success) {
+          syncFormData()
+        }
+      },
+      {
+        message: adminT.value.loadingOverlay.saving,
+        showSuccess: true,
+      }
+    )
   }
 
   // Watch for venue changes and sync form

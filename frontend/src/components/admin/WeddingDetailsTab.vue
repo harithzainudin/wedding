@@ -2,6 +2,7 @@
   import { ref, computed, onMounted, watch } from 'vue'
   import { useWeddingDetails } from '@/composables/useWeddingDetails'
   import { useAdminLanguage } from '@/composables/useAdminLanguage'
+  import { useLoadingOverlay } from '@/composables/useLoadingOverlay'
   import type {
     EventDisplayFormat,
     EventDisplayPreset,
@@ -21,6 +22,7 @@
   }>()
 
   const { adminT } = useAdminLanguage()
+  const { withLoading } = useLoadingOverlay()
 
   const {
     weddingDetails,
@@ -413,11 +415,19 @@
 
   // Save changes
   const handleSave = async () => {
-    const result = await updateWeddingDetails(formData.value)
-    // Sync form data after successful save to ensure hasChanges is false
-    if (result.success) {
-      syncFormData()
-    }
+    await withLoading(
+      async () => {
+        const result = await updateWeddingDetails(formData.value)
+        // Sync form data after successful save to ensure hasChanges is false
+        if (result.success) {
+          syncFormData()
+        }
+      },
+      {
+        message: adminT.value.loadingOverlay.saving,
+        showSuccess: true,
+      }
+    )
   }
 
   // Discard changes

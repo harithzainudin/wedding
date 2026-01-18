@@ -3,6 +3,7 @@
   import { watch, computed } from 'vue'
   import { useVenueConfig } from '@/composables/useVenueConfig'
   import { useTheme } from '@/composables/useTheme'
+  import LoadingOverlay from '@/components/ui/LoadingOverlay.vue'
 
   const route = useRoute()
   const { loadVenue } = useVenueConfig()
@@ -32,4 +33,5 @@
 
 <template>
   <RouterView />
+  <LoadingOverlay />
 </template>

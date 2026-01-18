@@ -2,6 +2,7 @@
   import { onMounted, onUnmounted, ref, watch, computed } from 'vue'
   import { useMusic } from '@/composables/useMusic'
   import { useAdminLanguage } from '@/composables/useAdminLanguage'
+  import { useLoadingOverlay } from '@/composables/useLoadingOverlay'
   import { interpolate } from '@/i18n/translations'
   import { getStoredPrimaryWeddingId } from '@/services/tokenManager'
   import type { MusicTrack } from '@/types/music'
@@ -12,6 +13,7 @@
   import UploadProgressBar from './UploadProgressBar.vue'
 
   const { adminT } = useAdminLanguage()
+  const { withLoading } = useLoadingOverlay()
 
   const weddingId = computed(() => getStoredPrimaryWeddingId())
 
@@ -73,15 +75,21 @@
   const handleDeleteConfirm = async (): Promise<void> => {
     if (!deleteConfirmId.value) return
 
-    isDeleting.value = true
-    const result = await removeTrack(deleteConfirmId.value, weddingId.value ?? undefined)
-    isDeleting.value = false
-
-    if (!result.success) {
-      console.error('Delete failed:', result.error)
-    }
-
+    const trackIdToDelete = deleteConfirmId.value
     deleteConfirmId.value = null
+
+    await withLoading(
+      async () => {
+        const result = await removeTrack(trackIdToDelete, weddingId.value ?? undefined)
+        if (!result.success) {
+          console.error('Delete failed:', result.error)
+        }
+      },
+      {
+        message: adminT.value.loadingOverlay.deleting,
+        showSuccess: true,
+      }
+    )
   }
 
   const handleDeleteCancel = (): void => {
@@ -89,22 +97,38 @@
   }
 
   const handleSettingsUpdate = async (newSettings: Record<string, unknown>): Promise<void> => {
-    const result = await saveSettings(newSettings, weddingId.value ?? undefined)
-    if (!result.success) {
-      console.error('Settings update failed:', result.error)
-    }
+    await withLoading(
+      async () => {
+        const result = await saveSettings(newSettings, weddingId.value ?? undefined)
+        if (!result.success) {
+          console.error('Settings update failed:', result.error)
+        }
+      },
+      {
+        message: adminT.value.loadingOverlay.saving,
+        showSuccess: true,
+      }
+    )
   }
 
   const handleSelectTrack = async (trackId: string): Promise<void> => {
     // Toggle selection: if clicking the already selected track, deselect it
     const newSelectedId = settings.value.selectedTrackId === trackId ? null : trackId
-    const result = await saveSettings(
-      { selectedTrackId: newSelectedId },
-      weddingId.value ?? undefined
+    await withLoading(
+      async () => {
+        const result = await saveSettings(
+          { selectedTrackId: newSelectedId },
+          weddingId.value ?? undefined
+        )
+        if (!result.success) {
+          console.error('Failed to select track:', result.error)
+        }
+      },
+      {
+        message: adminT.value.loadingOverlay.saving,
+        showSuccess: true,
+      }
     )
-    if (!result.success) {
-      console.error('Failed to select track:', result.error)
-    }
   }
 
   const dismissError = (index: number): void => {
