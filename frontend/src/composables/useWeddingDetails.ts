@@ -40,7 +40,6 @@ const DEFAULT_WEDDING_DETAILS: WeddingDetailsData = {
   bismillahCalligraphy: DEFAULT_BISMILLAH_SETTINGS,
   dressCode: 'Pastel / Earthy Tones',
   hashtag: '#AisyahAhmadWedding',
-  qrCodeUrl: 'https://harithzainudin.github.io/wedding',
 }
 
 // Singleton state

@@ -82,7 +82,6 @@
     } as BismillahCalligraphySettings,
     dressCode: '',
     hashtag: '',
-    qrCodeUrl: '',
   })
 
   // Track if form has unsaved changes
@@ -101,7 +100,6 @@
           weddingDetails.value.bismillahCalligraphy ?? DEFAULT_BISMILLAH_SETTINGS,
         dressCode: weddingDetails.value.dressCode,
         hashtag: weddingDetails.value.hashtag,
-        qrCodeUrl: weddingDetails.value.qrCodeUrl,
       })
     )
   })
@@ -139,7 +137,6 @@
         : { ...DEFAULT_BISMILLAH_SETTINGS },
       dressCode: weddingDetails.value.dressCode,
       hashtag: weddingDetails.value.hashtag,
-      qrCodeUrl: weddingDetails.value.qrCodeUrl,
     }
     // Set custom options toggle based on preset
     showCustomOptions.value = formData.value.eventDisplayFormat.preset === 'custom'
@@ -1447,35 +1444,19 @@
         >
           <div class="overflow-hidden min-h-0">
             <div class="px-4 sm:px-6 pt-2 pb-4 sm:pb-6">
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label
-                    class="block font-body text-xs text-charcoal-light dark:text-dark-text-secondary mb-1"
-                  >
-                    {{ adminT.wedding.hashtag }}
-                  </label>
-                  <input
-                    v-model="formData.hashtag"
-                    type="text"
-                    class="w-full px-3 py-2.5 font-body text-base border border-sand-dark dark:border-dark-border rounded-lg bg-sand dark:bg-dark-bg-elevated text-charcoal dark:text-dark-text focus:outline-none focus:border-sage"
-                    :placeholder="adminT.wedding.hashtagPlaceholder"
-                    :disabled="isSaving"
-                  />
-                </div>
-                <div>
-                  <label
-                    class="block font-body text-xs text-charcoal-light dark:text-dark-text-secondary mb-1"
-                  >
-                    {{ adminT.wedding.qrCodeUrl }}
-                  </label>
-                  <input
-                    v-model="formData.qrCodeUrl"
-                    type="url"
-                    class="w-full px-3 py-2.5 font-body text-base border border-sand-dark dark:border-dark-border rounded-lg bg-sand dark:bg-dark-bg-elevated text-charcoal dark:text-dark-text focus:outline-none focus:border-sage"
-                    :placeholder="adminT.wedding.qrCodeUrlPlaceholder"
-                    :disabled="isSaving"
-                  />
-                </div>
+              <div>
+                <label
+                  class="block font-body text-xs text-charcoal-light dark:text-dark-text-secondary mb-1"
+                >
+                  {{ adminT.wedding.hashtag }}
+                </label>
+                <input
+                  v-model="formData.hashtag"
+                  type="text"
+                  class="w-full px-3 py-2.5 font-body text-base border border-sand-dark dark:border-dark-border rounded-lg bg-sand dark:bg-dark-bg-elevated text-charcoal dark:text-dark-text focus:outline-none focus:border-sage"
+                  :placeholder="adminT.wedding.hashtagPlaceholder"
+                  :disabled="isSaving"
+                />
               </div>
             </div>
           </div>

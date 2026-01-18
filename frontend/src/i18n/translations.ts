@@ -1190,8 +1190,6 @@ export interface AdminTranslations {
     websiteDetails: string
     hashtag: string
     hashtagPlaceholder: string
-    qrCodeUrl: string
-    qrCodeUrlPlaceholder: string
     savedSuccess: string
     unsavedChanges: string
     lastUpdated: string
@@ -1928,8 +1926,6 @@ export const adminTranslations: Record<AdminLanguage, AdminTranslations> = {
       websiteDetails: 'Website Details',
       hashtag: 'Wedding Hashtag',
       hashtagPlaceholder: '#YourWeddingHashtag',
-      qrCodeUrl: 'QR Code URL',
-      qrCodeUrlPlaceholder: 'https://your-wedding-site.com',
       savedSuccess: 'Wedding details saved successfully!',
       unsavedChanges: 'You have unsaved changes',
       lastUpdated: 'Last updated: {date} by {user}',
@@ -2657,8 +2653,6 @@ export const adminTranslations: Record<AdminLanguage, AdminTranslations> = {
       websiteDetails: 'Butiran Laman Web',
       hashtag: 'Hashtag Perkahwinan',
       hashtagPlaceholder: '#HashtagPerkahwinanAnda',
-      qrCodeUrl: 'URL Kod QR',
-      qrCodeUrlPlaceholder: 'https://laman-perkahwinan-anda.com',
       savedSuccess: 'Butiran perkahwinan berjaya disimpan!',
       unsavedChanges: 'Anda mempunyai perubahan yang belum disimpan',
       lastUpdated: 'Terakhir dikemaskini: {date} oleh {user}',

@@ -261,12 +261,17 @@ export function usePublicWeddingData() {
     return weddingConfig.hashtag
   }
 
-  // QR Code URL with fallback
+  // QR Code URL - auto-generated from current domain and wedding slug
   const getQrCodeUrl = (): string => {
-    if (weddingDetails.value?.qrCodeUrl) {
-      return weddingDetails.value.qrCodeUrl
+    const baseUrl = window.location.origin
+    const basePath = import.meta.env.BASE_URL || '/wedding'
+    const slug = currentWeddingSlug.value
+
+    if (slug) {
+      return `${baseUrl}${basePath}${slug}`
     }
-    return 'https://harithzainudin.github.io/wedding'
+    // Fallback to just the base wedding path
+    return `${baseUrl}${basePath}`
   }
 
   // Schedule with fallback - converts to legacy format for backward compatibility

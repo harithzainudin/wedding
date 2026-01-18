@@ -126,7 +126,6 @@ export interface WeddingDetailsData {
   bismillahCalligraphy?: BismillahCalligraphySettings
   dressCode: string
   hashtag: string
-  qrCodeUrl: string
   updatedAt?: string
   updatedBy?: string
 }
@@ -148,7 +147,6 @@ export interface WeddingDetailsUpdateRequest {
   bismillahCalligraphy?: BismillahCalligraphySettings
   dressCode: string
   hashtag: string
-  qrCodeUrl: string
 }
 
 function validateCoupleInfo(
@@ -460,17 +458,6 @@ export function validateWeddingDetailsUpdate(
     return { valid: false, error: 'Hashtag must be 50 characters or less' }
   }
 
-  // Validate qrCodeUrl
-  if (typeof body.qrCodeUrl !== 'string' || !body.qrCodeUrl.trim()) {
-    return { valid: false, error: 'QR code URL is required' }
-  }
-  if (body.qrCodeUrl.length > 500) {
-    return {
-      valid: false,
-      error: 'QR code URL must be 500 characters or less',
-    }
-  }
-
   return {
     valid: true,
     data: {
@@ -490,7 +477,6 @@ export function validateWeddingDetailsUpdate(
       bismillahCalligraphy: validatedBismillahCalligraphy,
       dressCode: body.dressCode.trim(),
       hashtag: body.hashtag.trim(),
-      qrCodeUrl: body.qrCodeUrl.trim(),
     },
   }
 }
@@ -524,5 +510,4 @@ export const DEFAULT_WEDDING_DETAILS: WeddingDetailsData = {
   bismillahCalligraphy: DEFAULT_BISMILLAH_SETTINGS,
   dressCode: 'Pastel / Earthy Tones',
   hashtag: '#AisyahAhmadWedding',
-  qrCodeUrl: 'https://harithzainudin.github.io/wedding',
 }

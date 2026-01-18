@@ -97,7 +97,6 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
       eventDate: validation.data.eventDate,
       dressCode: validation.data.dressCode,
       hashtag: validation.data.hashtag,
-      qrCodeUrl: validation.data.qrCodeUrl,
       updatedAt: now,
       updatedBy: authResult.user.username,
     }
@@ -139,7 +138,6 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
         weddingItem.bismillahCalligraphy as WeddingDetailsData['bismillahCalligraphy'],
       dressCode: weddingItem.dressCode as string,
       hashtag: weddingItem.hashtag as string,
-      qrCodeUrl: weddingItem.qrCodeUrl as string,
       updatedAt: weddingItem.updatedAt as string,
       updatedBy: weddingItem.updatedBy as string,
     }
