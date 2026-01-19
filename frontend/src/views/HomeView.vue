@@ -85,7 +85,7 @@
     <ScheduleSection />
     <ContactSection />
     <QRCodeHubSection />
-    <GuestbookSection />
+    <GuestbookSection v-if="showRsvpSection()" />
     <WishlistSection />
     <RsvpSection
       v-if="showRsvpSection()"

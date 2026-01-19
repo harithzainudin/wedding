@@ -1234,9 +1234,7 @@
                   role="switch"
                   :aria-checked="formData.showDressCode"
                   class="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-sage focus:ring-offset-2"
-                  :class="
-                    formData.showDressCode ? 'bg-sage' : 'bg-gray-300 dark:bg-dark-border'
-                  "
+                  :class="formData.showDressCode ? 'bg-sage' : 'bg-gray-300 dark:bg-dark-border'"
                   :disabled="isSaving"
                   @click="formData.showDressCode = !formData.showDressCode"
                 >
@@ -1605,9 +1603,7 @@
                   role="switch"
                   :aria-checked="formData.showHashtag"
                   class="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-sage focus:ring-offset-2"
-                  :class="
-                    formData.showHashtag ? 'bg-sage' : 'bg-gray-300 dark:bg-dark-border'
-                  "
+                  :class="formData.showHashtag ? 'bg-sage' : 'bg-gray-300 dark:bg-dark-border'"
                   :disabled="isSaving"
                   @click="formData.showHashtag = !formData.showHashtag"
                 >
