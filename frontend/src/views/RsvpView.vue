@@ -76,7 +76,11 @@
       v-else
       :show-rsvp="rsvpSettings?.settings.showRsvp ?? true"
       :is-accepting-rsvps="rsvpSettings?.isAcceptingRsvps ?? true"
-      :rsvp-deadline="rsvpSettings?.settings.rsvpDeadline"
+      v-bind="
+        rsvpSettings?.settings.rsvpDeadline
+          ? { rsvpDeadline: rsvpSettings.settings.rsvpDeadline }
+          : {}
+      "
     />
 
     <!-- Back Link -->

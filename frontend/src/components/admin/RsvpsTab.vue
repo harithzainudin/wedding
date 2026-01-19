@@ -98,9 +98,9 @@
           {
             showRsvp: localShowRsvp.value,
             acceptingRsvps: localAcceptingRsvps.value,
-            rsvpDeadline: localRsvpDeadline.value
-              ? new Date(localRsvpDeadline.value).toISOString()
-              : null,
+            ...(localRsvpDeadline.value
+              ? { rsvpDeadline: new Date(localRsvpDeadline.value).toISOString() }
+              : {}),
           },
           weddingId.value ?? undefined
         )

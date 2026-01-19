@@ -88,7 +88,7 @@
       v-if="showRsvpSection()"
       :show-rsvp="true"
       :is-accepting-rsvps="isAcceptingRsvps()"
-      :rsvp-deadline="getRsvpDeadline()"
+      v-bind="getRsvpDeadline() ? { rsvpDeadline: getRsvpDeadline() } : {}"
     />
     <StickyNavigation :show-rsvp-button="showRsvpSection()" />
   </main>
