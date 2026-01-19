@@ -4,7 +4,8 @@ export default $config({
   app(input) {
     return {
       name: "wedding",
-      removal: input?.stage === "production" ? "retain" : "remove",
+      // removal: input?.stage === "production" ? "retain" : "remove",
+      removal: "remove",
       protect: ["production"].includes(input?.stage ?? ""),
       home: "aws",
       providers: {

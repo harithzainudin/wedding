@@ -381,7 +381,7 @@
             v-if="hasAnyChanges"
             type="button"
             class="px-4 py-2 font-body text-sm text-charcoal border border-charcoal-light rounded-lg hover:bg-sand-dark transition-colors cursor-pointer"
-            @click="discardAllChanges"
+            @click="discardChanges"
           >
             {{ adminT.common.discard }}
           </button>

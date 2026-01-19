@@ -159,6 +159,22 @@ Remove unused imports, variables, and parameters to avoid build failures.
    }
    ```
 
+10. **Undefined functions/variables in Vue templates**: Ensure functions used in templates are actually defined or imported in `<script setup>`. Typos like `@click="discardAllChanges"` when only `discardChanges` exists will fail in CI but may pass locally due to vue-tsc caching:
+
+    ```vue
+    <!-- BAD - function name typo, discardAllChanges doesn't exist -->
+    <button @click="discardAllChanges">Discard</button>
+
+    <!-- GOOD - use the actual function name from script setup -->
+    <button @click="discardChanges">Discard</button>
+    ```
+
+    **Tip**: If CI fails but local build passes, clear the TypeScript build cache:
+
+    ```bash
+    rm -rf node_modules/.tmp node_modules/.vite && pnpm type-check
+    ```
+
 ## Commands
 
 ### Frontend
@@ -192,6 +208,14 @@ Before pushing, run checks in both frontend and backend:
 ```bash
 cd frontend && pnpm check && cd ../backend && pnpm check
 ```
+
+**Important**: If you've made significant changes or want to ensure CI won't fail, clear the TypeScript build cache first to match CI's fresh environment:
+
+```bash
+cd frontend && rm -rf node_modules/.tmp node_modules/.vite && pnpm check
+```
+
+This prevents the common issue where local builds pass (due to caching) but CI fails.
 
 ## Tech Stack
 
