@@ -9,6 +9,7 @@
   import type { RsvpSubmission, AdminRsvpRequest } from '@/types/rsvp'
   import RsvpFormModal from './RsvpFormModal.vue'
   import ConfirmModal from './ConfirmModal.vue'
+  import SectionVisibilityToggle from './SectionVisibilityToggle.vue'
 
   const { adminT } = useAdminLanguage()
   const { withLoading } = useLoadingOverlay()
@@ -41,34 +42,43 @@
     updateSettings,
   } = useRsvps()
 
-  // Local state for settings (saved when clicking save button)
-  const localShowRsvp = ref(true)
+  // Show/hide toggle state (auto-saves on change)
+  const showRsvp = computed(() => rsvpSettings.value.showRsvp)
+  const isTogglingVisibility = ref(false)
+
+  // Handle visibility toggle with auto-save
+  const handleToggleVisibility = async (value: boolean) => {
+    isTogglingVisibility.value = true
+    try {
+      // If disabling, also disable accepting RSVPs
+      const updates: { showRsvp: boolean; acceptingRsvps?: boolean } = { showRsvp: value }
+      if (!value) {
+        updates.acceptingRsvps = false
+      }
+      await updateSettings(updates, weddingId.value ?? undefined)
+    } finally {
+      isTogglingVisibility.value = false
+    }
+  }
+
+  // Local state for other settings (saved when clicking save button in modal)
   const localAcceptingRsvps = ref(true)
   const localRsvpDeadline = ref<string>('')
 
   // Sync local settings state from rsvpSettings
   const syncLocalSettings = () => {
-    localShowRsvp.value = rsvpSettings.value.showRsvp
     localAcceptingRsvps.value = rsvpSettings.value.acceptingRsvps
     localRsvpDeadline.value = rsvpSettings.value.rsvpDeadline
       ? rsvpSettings.value.rsvpDeadline.slice(0, 16) // Format for datetime-local input
       : ''
   }
 
-  // When showRsvp is disabled, also disable acceptingRsvps
-  watch(localShowRsvp, (newValue) => {
-    if (!newValue) {
-      localAcceptingRsvps.value = false
-    }
-  })
-
-  // Check if settings have changed
+  // Check if settings have changed (only for modal settings, not visibility toggle)
   const hasSettingsChanges = computed(() => {
     const currentDeadline = rsvpSettings.value.rsvpDeadline
       ? rsvpSettings.value.rsvpDeadline.slice(0, 16)
       : ''
     return (
-      localShowRsvp.value !== rsvpSettings.value.showRsvp ||
       localAcceptingRsvps.value !== rsvpSettings.value.acceptingRsvps ||
       localRsvpDeadline.value !== currentDeadline
     )
@@ -90,13 +100,12 @@
     localRsvpDeadline.value = ''
   }
 
-  // Save settings
+  // Save settings (for modal - acceptingRsvps and deadline only, visibility auto-saves)
   const saveSettings = async () => {
     await withLoading(
       async () => {
         await updateSettings(
           {
-            showRsvp: localShowRsvp.value,
             acceptingRsvps: localAcceptingRsvps.value,
             ...(localRsvpDeadline.value
               ? { rsvpDeadline: new Date(localRsvpDeadline.value).toISOString() }
@@ -270,6 +279,16 @@
         </p>
       </div>
     </div>
+
+    <!-- Show/Hide RSVP Toggle -->
+    <SectionVisibilityToggle
+      :model-value="showRsvp"
+      :loading="isTogglingVisibility"
+      :disabled="isLoading"
+      :label="adminT.rsvps.showRsvpSection"
+      :description="adminT.rsvps.showRsvpDesc"
+      @update:model-value="handleToggleVisibility"
+    />
 
     <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
       <div class="flex gap-2 flex-wrap">
@@ -619,49 +638,21 @@
 
             <!-- Settings Content -->
             <div class="p-4 space-y-4">
-              <!-- Show RSVP Section Toggle -->
-              <div
-                class="flex items-center justify-between py-3 px-4 bg-sand/50 dark:bg-dark-bg rounded-lg"
-              >
-                <div>
-                  <label class="font-body text-sm font-medium text-charcoal dark:text-dark-text">
-                    {{ adminT.rsvps.showRsvpSection }}
-                  </label>
-                  <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary">
-                    {{ adminT.rsvps.showRsvpDesc }}
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  role="switch"
-                  :aria-checked="localShowRsvp"
-                  :disabled="isLoading"
-                  class="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-sage focus:ring-offset-2"
-                  :class="localShowRsvp ? 'bg-sage' : 'bg-gray-300 dark:bg-dark-border'"
-                  @click="localShowRsvp = !localShowRsvp"
-                >
-                  <span
-                    class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"
-                    :class="localShowRsvp ? 'translate-x-5' : 'translate-x-0'"
-                  />
-                </button>
-              </div>
-
               <!-- Accept RSVPs Toggle -->
               <div
                 class="flex items-center justify-between py-3 px-4 bg-sand/50 dark:bg-dark-bg rounded-lg transition-opacity"
-                :class="{ 'opacity-50': !localShowRsvp }"
+                :class="{ 'opacity-50': !showRsvp }"
               >
                 <div>
                   <label
                     class="font-body text-sm font-medium text-charcoal dark:text-dark-text"
-                    :class="{ 'text-charcoal-light dark:text-dark-text-secondary': !localShowRsvp }"
+                    :class="{ 'text-charcoal-light dark:text-dark-text-secondary': !showRsvp }"
                   >
                     {{ adminT.rsvps.acceptRsvps }}
                   </label>
                   <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary">
                     {{
-                      !localShowRsvp
+                      !showRsvp
                         ? adminT.rsvps.acceptRsvpsDisabledHint
                         : adminT.rsvps.acceptRsvpsDesc
                     }}
@@ -671,15 +662,13 @@
                   type="button"
                   role="switch"
                   :aria-checked="localAcceptingRsvps"
-                  :disabled="isLoading || !localShowRsvp"
+                  :disabled="isLoading || !showRsvp"
                   class="relative inline-flex h-6 w-11 flex-shrink-0 rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-sage focus:ring-offset-2"
                   :class="[
-                    localAcceptingRsvps && localShowRsvp
-                      ? 'bg-sage'
-                      : 'bg-gray-300 dark:bg-dark-border',
-                    !localShowRsvp ? 'cursor-not-allowed' : 'cursor-pointer',
+                    localAcceptingRsvps && showRsvp ? 'bg-sage' : 'bg-gray-300 dark:bg-dark-border',
+                    !showRsvp ? 'cursor-not-allowed' : 'cursor-pointer',
                   ]"
-                  @click="localShowRsvp && (localAcceptingRsvps = !localAcceptingRsvps)"
+                  @click="showRsvp && (localAcceptingRsvps = !localAcceptingRsvps)"
                 >
                   <span
                     class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"

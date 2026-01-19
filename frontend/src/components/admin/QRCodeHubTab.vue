@@ -17,6 +17,7 @@
   import { useAdminLanguage } from '@/composables/useAdminLanguage'
   import { useLoadingOverlay } from '@/composables/useLoadingOverlay'
   import { getStoredPrimaryWeddingId } from '@/services/tokenManager'
+  import SectionVisibilityToggle from './SectionVisibilityToggle.vue'
 
   const emit = defineEmits<{
     'dirty-state-change': [
@@ -52,6 +53,22 @@
   const formData = ref<QRCodeHubSettings>({ ...DEFAULT_QRCODE_HUB_SETTINGS })
   const saveSuccess = ref(false)
   const expandedSection = ref<string | null>(null)
+
+  // Show/hide toggle state (auto-saves on change)
+  const hubEnabled = computed(() => settings.value.hubEnabled)
+  const isTogglingVisibility = ref(false)
+
+  // Handle visibility toggle with auto-save
+  const handleToggleVisibility = async (value: boolean) => {
+    isTogglingVisibility.value = true
+    try {
+      await saveSettings({ hubEnabled: value }, weddingId.value ?? undefined)
+      // Re-initialize form to fully sync with updated settings
+      initializeForm()
+    } finally {
+      isTogglingVisibility.value = false
+    }
+  }
 
   // File input ref
   const fileInputRef = ref<HTMLInputElement | null>(null)
@@ -115,9 +132,14 @@
     })
   )
 
-  // Check if there are unsaved changes
+  // Check if there are unsaved changes (excluding hubEnabled which auto-saves)
   const hasChanges = computed(() => {
-    return JSON.stringify(formData.value) !== JSON.stringify(settings.value)
+    const formCopy = { ...formData.value }
+    const settingsCopy = { ...settings.value }
+    // Exclude hubEnabled from comparison since it auto-saves
+    delete (formCopy as Partial<QRCodeHubSettings>).hubEnabled
+    delete (settingsCopy as Partial<QRCodeHubSettings>).hubEnabled
+    return JSON.stringify(formCopy) !== JSON.stringify(settingsCopy)
   })
 
   // Helper to check if a QR type is enabled
@@ -332,44 +354,37 @@
 <template>
   <div class="space-y-6">
     <!-- Header -->
-    <div class="flex items-center justify-between">
-      <div>
-        <h2 class="font-heading text-xl font-semibold text-gray-900">{{ adminT.qrHub.title }}</h2>
-        <p class="mt-1 font-body text-sm text-gray-500">
-          {{ adminT.qrHub.subtitle }}
-        </p>
-      </div>
-
-      <!-- Master Toggle -->
-      <label class="flex cursor-pointer items-center gap-3">
-        <span class="font-body text-sm text-gray-600">
-          {{ formData.hubEnabled ? adminT.qrHub.qrHubVisible : adminT.qrHub.qrHubHidden }}
-        </span>
-        <div class="relative">
-          <input
-            v-model="formData.hubEnabled"
-            type="checkbox"
-            class="sr-only"
-            @change="saveSuccess = false"
-          />
-          <div
-            class="h-6 w-11 rounded-full transition-colors"
-            :class="formData.hubEnabled ? 'bg-green-500' : 'bg-gray-300'"
-          ></div>
-          <div
-            class="absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform"
-            :class="formData.hubEnabled ? 'translate-x-5' : ''"
-          ></div>
-        </div>
-      </label>
+    <div>
+      <h2 class="font-heading text-xl font-semibold text-charcoal dark:text-dark-text">
+        {{ adminT.qrHub.title }}
+      </h2>
+      <p class="mt-1 font-body text-sm text-charcoal-light dark:text-dark-text-secondary">
+        {{ adminT.qrHub.subtitle }}
+      </p>
     </div>
 
-    <!-- Hub Disabled Info Banner -->
+    <!-- Show/Hide QR Hub Toggle -->
+    <SectionVisibilityToggle
+      :model-value="hubEnabled"
+      :loading="isTogglingVisibility"
+      :disabled="isLoading"
+      :label="adminT.qrHub.showQrHubSection"
+      :description="adminT.qrHub.showQrHubDesc"
+      @update:model-value="handleToggleVisibility"
+    />
+
+    <!-- Hub Disabled Info Banner (always rendered, uses opacity for smooth transition) -->
     <div
-      v-if="!formData.hubEnabled && !isLoading && !loadError"
-      class="rounded-lg border border-amber-200 bg-amber-50 p-3"
+      class="rounded-lg border border-amber-200 bg-amber-50 dark:bg-amber-900/20 dark:border-amber-700 p-3 transition-opacity duration-200"
+      :class="
+        !hubEnabled && !isLoading && !loadError
+          ? 'opacity-100'
+          : 'opacity-0 h-0 p-0 overflow-hidden'
+      "
     >
-      <p class="font-body text-sm text-amber-700">ℹ️ {{ adminT.qrHub.hubDisabledInfo }}</p>
+      <p class="font-body text-sm text-amber-700 dark:text-amber-300">
+        ℹ️ {{ adminT.qrHub.hubDisabledInfo }}
+      </p>
     </div>
 
     <!-- Loading State -->
@@ -397,10 +412,10 @@
           :key="type"
           class="rounded-lg border bg-white p-4 shadow-sm transition-all"
           :class="{
-            'border-green-300 bg-green-50': formData.hubEnabled && isTypeEnabled(type),
-            'border-gray-200': !formData.hubEnabled || !isTypeEnabled(type),
-            'opacity-50': !formData.hubEnabled,
-            'hover:shadow-md': formData.hubEnabled,
+            'border-green-300 bg-green-50': hubEnabled && isTypeEnabled(type),
+            'border-gray-200': !hubEnabled || !isTypeEnabled(type),
+            'opacity-50': !hubEnabled,
+            'hover:shadow-md': hubEnabled,
           }"
         >
           <div class="flex items-start justify-between">
@@ -419,16 +434,14 @@
             <!-- Toggle -->
             <label
               class="flex items-center"
-              :class="
-                formData.hubEnabled ? 'cursor-pointer' : 'cursor-not-allowed pointer-events-none'
-              "
+              :class="hubEnabled ? 'cursor-pointer' : 'cursor-not-allowed pointer-events-none'"
             >
               <input
                 type="checkbox"
                 class="sr-only"
                 :checked="isTypeEnabled(type)"
-                :disabled="!formData.hubEnabled"
-                @change="formData.hubEnabled && toggleQRCode(type)"
+                :disabled="!hubEnabled"
+                @change="hubEnabled && toggleQRCode(type)"
               />
               <div
                 class="relative h-5 w-9 rounded-full transition-colors"
@@ -466,12 +479,12 @@
             v-if="type === 'restuDigital' || type === 'wifi' || type === 'location'"
             class="mt-3 w-full rounded px-3 py-1.5 font-body text-xs transition-colors"
             :class="
-              formData.hubEnabled
+              hubEnabled
                 ? 'bg-gray-100 text-gray-600 hover:bg-gray-200 cursor-pointer'
                 : 'bg-gray-100 text-gray-400 cursor-not-allowed'
             "
-            :disabled="!formData.hubEnabled"
-            @click="formData.hubEnabled && toggleSection(type)"
+            :disabled="!hubEnabled"
+            @click="hubEnabled && toggleSection(type)"
           >
             {{ expandedSection === type ? adminT.qrHub.close : adminT.qrHub.configure }}
           </button>

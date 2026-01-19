@@ -13,6 +13,7 @@
   import HelpTooltip from './HelpTooltip.vue'
   import GalleryHelpContent from './GalleryHelpContent.vue'
   import UploadProgressBar from './UploadProgressBar.vue'
+  import SectionVisibilityToggle from './SectionVisibilityToggle.vue'
 
   const { adminT } = useAdminLanguage()
 
@@ -45,6 +46,21 @@
   const deleteConfirmId = ref<string | null>(null)
   const isDeleting = ref(false)
   const uploadErrors = ref<{ file: string; error: string }[]>([])
+  const isTogglingVisibility = ref(false)
+
+  // Handle visibility toggle with auto-save
+  const handleToggleVisibility = async (value: boolean) => {
+    isTogglingVisibility.value = true
+    try {
+      await updateSettings(
+        { showGallery: value },
+        weddingId.value ?? undefined,
+        weddingSlug.value ?? undefined
+      )
+    } finally {
+      isTogglingVisibility.value = false
+    }
+  }
 
   onMounted(() => {
     fetchImages(weddingId.value ?? undefined)
@@ -266,6 +282,16 @@
         </Teleport>
       </div>
     </div>
+
+    <!-- Show/Hide Gallery Toggle -->
+    <SectionVisibilityToggle
+      :model-value="settings.showGallery"
+      :loading="isTogglingVisibility"
+      :disabled="isLoading"
+      :label="adminT.gallery.showGallerySection"
+      :description="adminT.gallery.showGalleryDesc"
+      @update:model-value="handleToggleVisibility"
+    />
 
     <!-- Upload Progress Bar -->
     <UploadProgressBar

@@ -10,6 +10,7 @@
   import ItemActions from './ItemActions.vue'
   import MultilingualInput from './MultilingualInput.vue'
   import BaseFormModal from './BaseFormModal.vue'
+  import SectionVisibilityToggle from './SectionVisibilityToggle.vue'
   import type { ScheduleItem, MultilingualText } from '@/types/schedule'
 
   const emit = defineEmits<{
@@ -40,23 +41,19 @@
     generateId,
   } = useSchedule()
 
-  // Local state for show/hide toggle (saved with Save Changes button)
-  const localShowSchedule = ref(true)
+  // Show/hide toggle state (auto-saves on change)
+  const showSchedule = computed(() => schedule.value.settings?.showSchedule ?? true)
+  const isTogglingVisibility = ref(false)
 
-  // Sync local toggle state from schedule data
-  const syncLocalShowSchedule = () => {
-    localShowSchedule.value = schedule.value.settings?.showSchedule ?? true
+  // Handle toggle with auto-save
+  const handleToggleVisibility = async (value: boolean) => {
+    isTogglingVisibility.value = true
+    try {
+      await updateScheduleSettings({ showSchedule: value }, weddingId.value ?? undefined)
+    } finally {
+      isTogglingVisibility.value = false
+    }
   }
-
-  // Toggle updates local state only (saved when clicking Save Changes)
-  const toggleScheduleVisibility = () => {
-    localShowSchedule.value = !localShowSchedule.value
-  }
-
-  // Check if settings have changed
-  const hasSettingsChanges = computed(() => {
-    return localShowSchedule.value !== (schedule.value.settings?.showSchedule ?? true)
-  })
 
   // Clear all state
   const showClearAllModal = ref(false)
@@ -131,23 +128,15 @@
     closeModal()
   }
 
-  // Combined hasChanges check (items OR settings)
-  const hasAnyChanges = computed(() => hasChanges.value || hasSettingsChanges.value)
+  // Combined hasChanges check (items only - toggle auto-saves)
+  const hasAnyChanges = computed(() => hasChanges.value)
 
-  // Save with loading overlay - saves both items and settings
+  // Save with loading overlay - saves items only (toggle auto-saves)
   const saveWithOverlay = async () => {
     await withLoading(
       async () => {
-        // Save items if changed
         if (hasChanges.value) {
           await handleSave()
-        }
-        // Save settings if changed
-        if (hasSettingsChanges.value) {
-          await updateScheduleSettings(
-            { showSchedule: localShowSchedule.value },
-            weddingId.value ?? undefined
-          )
         }
       },
       {
@@ -157,16 +146,9 @@
     )
   }
 
-  // Discard all changes (items and settings)
-  const discardAllChanges = () => {
-    discardChanges()
-    syncLocalShowSchedule()
-  }
-
-  // Save function for external callers (returns result)
+  // Save function for external callers (returns result) - items only (toggle auto-saves)
   const saveForEmit = async (): Promise<{ success: boolean; error?: string }> => {
     try {
-      // Save items if changed
       if (hasChanges.value) {
         const itemsResult = await updateSchedule(
           localItems.value as ScheduleItem[],
@@ -176,17 +158,6 @@
           return itemsResult
         }
         syncLocalItems()
-      }
-      // Save settings if changed
-      if (hasSettingsChanges.value) {
-        const settingsResult = await updateScheduleSettings(
-          { showSchedule: localShowSchedule.value },
-          weddingId.value ?? undefined
-        )
-        if (!settingsResult.success) {
-          return settingsResult
-        }
-        syncLocalShowSchedule()
       }
       return { success: true }
     } catch (err) {
@@ -201,7 +172,7 @@
       emit('dirty-state-change', {
         isDirty,
         save: saveForEmit,
-        discard: discardAllChanges,
+        discard: discardChanges,
       })
     },
     { immediate: true }
@@ -228,7 +199,6 @@
   onMounted(async () => {
     await fetchScheduleAdmin(weddingId.value ?? undefined)
     syncLocalItems()
-    syncLocalShowSchedule()
   })
 
   // Watch for wedding ID changes (user switching between weddings)
@@ -236,7 +206,6 @@
     if (newId && newId !== oldId) {
       await fetchScheduleAdmin(newId)
       syncLocalItems()
-      syncLocalShowSchedule()
     }
   })
 </script>
@@ -289,32 +258,14 @@
     </div>
 
     <!-- Show/Hide Schedule Toggle -->
-    <div
-      class="flex items-center justify-between py-3 px-4 bg-sand/50 dark:bg-dark-bg-secondary rounded-lg border border-sand-dark dark:border-dark-border mb-6"
-    >
-      <div>
-        <label class="font-body text-sm font-medium text-charcoal dark:text-dark-text">
-          {{ adminT.schedule.showScheduleSection }}
-        </label>
-        <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary mt-0.5">
-          {{ adminT.schedule.showScheduleDesc }}
-        </p>
-      </div>
-      <button
-        type="button"
-        role="switch"
-        :aria-checked="localShowSchedule"
-        :disabled="isLoading"
-        class="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-sage focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
-        :class="localShowSchedule ? 'bg-sage' : 'bg-gray-300 dark:bg-dark-border'"
-        @click="toggleScheduleVisibility"
-      >
-        <span
-          class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"
-          :class="localShowSchedule ? 'translate-x-5' : 'translate-x-0'"
-        />
-      </button>
-    </div>
+    <SectionVisibilityToggle
+      :model-value="showSchedule"
+      :loading="isTogglingVisibility"
+      :disabled="isLoading"
+      :label="adminT.schedule.showScheduleSection"
+      :description="adminT.schedule.showScheduleDesc"
+      @update:model-value="handleToggleVisibility"
+    />
 
     <div v-if="isLoading" class="text-center py-12">
       <div

@@ -14,7 +14,6 @@
   }>()
 
   const localSettings = ref({
-    enabled: props.settings.enabled,
     autoplay: props.settings.autoplay,
     mode: props.settings.mode as PlayMode,
     shuffle: props.settings.shuffle,
@@ -27,7 +26,6 @@
     () => props.settings,
     (newSettings) => {
       localSettings.value = {
-        enabled: newSettings.enabled,
         autoplay: newSettings.autoplay,
         mode: newSettings.mode,
         shuffle: newSettings.shuffle,
@@ -58,29 +56,6 @@
 
 <template>
   <div class="space-y-6">
-    <!-- Enable Music -->
-    <div class="flex items-center justify-between">
-      <div>
-        <p class="font-body text-sm font-medium text-charcoal dark:text-dark-text">
-          {{ adminT.music.enableMusic }}
-        </p>
-        <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary">
-          {{ adminT.music.enableMusicDesc }}
-        </p>
-      </div>
-      <button
-        type="button"
-        class="relative w-12 h-6 rounded-full transition-colors cursor-pointer"
-        :class="localSettings.enabled ? 'bg-sage' : 'bg-sand-dark dark:bg-dark-border'"
-        @click="updateSetting('enabled', !localSettings.enabled)"
-      >
-        <span
-          class="absolute top-1 w-4 h-4 bg-white rounded-full transition-transform shadow"
-          :class="localSettings.enabled ? 'left-7' : 'left-1'"
-        />
-      </button>
-    </div>
-
     <!-- Autoplay -->
     <div class="flex items-center justify-between">
       <div>

@@ -8,7 +8,7 @@
   import type { GiftItem, GiftCategory, GiftPriority } from '@/types/gift'
   import DeleteConfirmModal from './DeleteConfirmModal.vue'
   import UploadProgressBar from './UploadProgressBar.vue'
-  import ToggleSwitch from '@/components/ui/ToggleSwitch.vue'
+  import SectionVisibilityToggle from './SectionVisibilityToggle.vue'
 
   const { adminT } = useAdminLanguage()
   const { withLoading } = useLoadingOverlay()
@@ -267,16 +267,8 @@
   }
 
   // Settings handlers
-  const handleToggleEnabled = async () => {
-    await withLoading(
-      async () => {
-        await toggleEnabled(weddingId.value ?? undefined)
-      },
-      {
-        message: adminT.value.loadingOverlay.saving,
-        showSuccess: true,
-      }
-    )
+  const handleToggleEnabled = async (_value: boolean) => {
+    await toggleEnabled(weddingId.value ?? undefined)
   }
 
   const handleSettingsUpdate = async (newSettings: Partial<typeof settings.value>) => {
@@ -477,23 +469,14 @@
     </div>
 
     <!-- Enable/Disable Toggle -->
-    <div
-      class="flex items-center justify-between p-4 bg-white dark:bg-dark-bg-secondary rounded-lg border border-sand-dark dark:border-dark-border"
-    >
-      <div>
-        <h3 class="font-body text-sm font-medium text-charcoal dark:text-dark-text">
-          {{ adminT.gifts.registryStatus }}
-        </h3>
-        <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary mt-0.5">
-          {{ settings.enabled ? adminT.gifts.visibleToGuests : adminT.gifts.hiddenFromGuests }}
-        </p>
-      </div>
-      <ToggleSwitch
-        :model-value="settings.enabled"
-        :loading="isTogglingEnabled"
-        @update:model-value="handleToggleEnabled"
-      />
-    </div>
+    <SectionVisibilityToggle
+      :model-value="settings.enabled"
+      :loading="isTogglingEnabled"
+      :disabled="isLoading"
+      :label="adminT.gifts.showGiftsSection"
+      :description="adminT.gifts.showGiftsDesc"
+      @update:model-value="handleToggleEnabled"
+    />
 
     <!-- Upload Progress Bar -->
     <UploadProgressBar

@@ -1195,6 +1195,8 @@ export interface AdminTranslations {
     maxItems: string
     maxImageSize: string
     settingsAutoSave: string
+    showGiftsSection: string
+    showGiftsDesc: string
     // Delete
     deleteGift: string
     deleteGiftConfirm: string
@@ -1598,6 +1600,8 @@ export interface AdminTranslations {
     qrHubVisible: string
     qrHubHidden: string
     hubDisabledInfo: string
+    showQrHubSection: string
+    showQrHubDesc: string
   }
 
   // Admin Settings (Master user)
@@ -2072,6 +2076,8 @@ export const adminTranslations: Record<AdminLanguage, AdminTranslations> = {
       maxItems: 'Maximum Items',
       maxImageSize: 'Maximum Image Size (MB)',
       settingsAutoSave: 'Settings are saved automatically when changed.',
+      showGiftsSection: 'Show Gift Registry on Public Site',
+      showGiftsDesc: 'Enable or disable the gift registry for your guests',
       deleteGift: 'Delete Gift',
       deleteGiftConfirm:
         "Are you sure you want to delete '{name}'? This will also delete all reservations for this gift.",
@@ -2473,6 +2479,8 @@ export const adminTranslations: Record<AdminLanguage, AdminTranslations> = {
       qrHubVisible: 'QR Hub is available',
       qrHubHidden: 'QR Hub is hidden',
       hubDisabledInfo: 'Enable the QR Code Hub above to configure individual QR codes.',
+      showQrHubSection: 'Show QR Code Hub on Public Site',
+      showQrHubDesc: 'Enable or disable the QR code hub for your guests',
     },
 
     adminUsers: {
@@ -2932,6 +2940,8 @@ export const adminTranslations: Record<AdminLanguage, AdminTranslations> = {
       maxItems: 'Maksimum Item',
       maxImageSize: 'Saiz Imej Maksimum (MB)',
       settingsAutoSave: 'Tetapan disimpan secara automatik apabila diubah.',
+      showGiftsSection: 'Papar Senarai Hadiah di Laman Awam',
+      showGiftsDesc: 'Aktifkan atau nyahaktifkan senarai hadiah untuk tetamu anda',
       deleteGift: 'Padam Hadiah',
       deleteGiftConfirm:
         "Adakah anda pasti mahu memadam '{name}'? Ini juga akan memadam semua tempahan untuk hadiah ini.",
@@ -3338,6 +3348,8 @@ export const adminTranslations: Record<AdminLanguage, AdminTranslations> = {
       qrHubVisible: 'Hub QR tersedia',
       qrHubHidden: 'Hub QR disembunyikan',
       hubDisabledInfo: 'Aktifkan QR Code Hub di atas untuk mengkonfigurasi kod QR individu.',
+      showQrHubSection: 'Papar Hub Kod QR di Laman Awam',
+      showQrHubDesc: 'Aktifkan atau nyahaktifkan hub kod QR untuk tetamu anda',
     },
 
     adminUsers: {

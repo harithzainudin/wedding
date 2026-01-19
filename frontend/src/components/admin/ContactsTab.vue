@@ -10,6 +10,7 @@
   import ItemActions from './ItemActions.vue'
   import MultilingualInput from './MultilingualInput.vue'
   import BaseFormModal from './BaseFormModal.vue'
+  import SectionVisibilityToggle from './SectionVisibilityToggle.vue'
   import type { ContactPerson, MultilingualText } from '@/types/contacts'
 
   const emit = defineEmits<{
@@ -40,23 +41,19 @@
     generateId,
   } = useContacts()
 
-  // Local state for show/hide toggle (saved with Save Changes button)
-  const localShowContacts = ref(true)
+  // Show/hide toggle state (auto-saves on change)
+  const showContacts = computed(() => contacts.value.settings?.showContacts ?? true)
+  const isTogglingVisibility = ref(false)
 
-  // Sync local toggle state from contacts data
-  const syncLocalShowContacts = () => {
-    localShowContacts.value = contacts.value.settings?.showContacts ?? true
+  // Handle toggle with auto-save
+  const handleToggleVisibility = async (value: boolean) => {
+    isTogglingVisibility.value = true
+    try {
+      await updateContactsSettings({ showContacts: value }, weddingId.value ?? undefined)
+    } finally {
+      isTogglingVisibility.value = false
+    }
   }
-
-  // Toggle updates local state only (saved when clicking Save Changes)
-  const toggleContactsVisibility = () => {
-    localShowContacts.value = !localShowContacts.value
-  }
-
-  // Check if settings have changed
-  const hasSettingsChanges = computed(() => {
-    return localShowContacts.value !== (contacts.value.settings?.showContacts ?? true)
-  })
 
   const {
     localItems: localContacts,
@@ -137,23 +134,15 @@
     return phone.replace(/(\+60)(\d{2,3})(\d{3,4})(\d{4})/, '$1 $2-$3 $4')
   }
 
-  // Combined changes check (items OR settings)
-  const hasAnyChanges = computed(() => hasChanges.value || hasSettingsChanges.value)
+  // Combined changes check (items only - toggle auto-saves)
+  const hasAnyChanges = computed(() => hasChanges.value)
 
-  // Save with loading overlay - saves both items and settings
+  // Save with loading overlay - saves items only (toggle auto-saves)
   const saveWithOverlay = async () => {
     await withLoading(
       async () => {
-        // Save items if changed
         if (hasChanges.value) {
           await handleSave()
-        }
-        // Save settings if changed
-        if (hasSettingsChanges.value) {
-          await updateContactsSettings(
-            { showContacts: localShowContacts.value },
-            weddingId.value ?? undefined
-          )
         }
       },
       {
@@ -163,16 +152,9 @@
     )
   }
 
-  // Discard all changes (items and settings)
-  const discardAllChanges = () => {
-    discardChanges()
-    syncLocalShowContacts()
-  }
-
-  // Save function for external callers (returns result)
+  // Save function for external callers (returns result) - items only (toggle auto-saves)
   const saveForEmit = async (): Promise<{ success: boolean; error?: string }> => {
     try {
-      // Save items if changed
       if (hasChanges.value) {
         const itemsResult = await updateContacts(
           localContacts.value as ContactPerson[],
@@ -182,17 +164,6 @@
           return itemsResult
         }
         syncLocalContacts()
-      }
-      // Save settings if changed
-      if (hasSettingsChanges.value) {
-        const settingsResult = await updateContactsSettings(
-          { showContacts: localShowContacts.value },
-          weddingId.value ?? undefined
-        )
-        if (!settingsResult.success) {
-          return settingsResult
-        }
-        syncLocalShowContacts()
       }
       return { success: true }
     } catch (err) {
@@ -207,7 +178,7 @@
       emit('dirty-state-change', {
         isDirty,
         save: saveForEmit,
-        discard: discardAllChanges,
+        discard: discardChanges,
       })
     },
     { immediate: true }
@@ -216,7 +187,6 @@
   onMounted(async () => {
     await fetchContactsAdmin(weddingId.value ?? undefined)
     syncLocalContacts()
-    syncLocalShowContacts()
   })
 
   // Watch for wedding ID changes (user switching between weddings)
@@ -224,7 +194,6 @@
     if (newId && newId !== oldId) {
       await fetchContactsAdmin(newId)
       syncLocalContacts()
-      syncLocalShowContacts()
     }
   })
 </script>
@@ -258,32 +227,14 @@
     </div>
 
     <!-- Show/Hide Contacts Toggle -->
-    <div
-      class="flex items-center justify-between py-3 px-4 bg-sand/50 dark:bg-dark-bg-secondary rounded-lg border border-sand-dark dark:border-dark-border mb-6"
-    >
-      <div>
-        <label class="font-body text-sm font-medium text-charcoal dark:text-dark-text">
-          {{ adminT.contacts.showContactsSection }}
-        </label>
-        <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary mt-0.5">
-          {{ adminT.contacts.showContactsDesc }}
-        </p>
-      </div>
-      <button
-        type="button"
-        role="switch"
-        :aria-checked="localShowContacts"
-        :disabled="isLoading"
-        class="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-sage focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
-        :class="localShowContacts ? 'bg-sage' : 'bg-gray-300 dark:bg-dark-border'"
-        @click="toggleContactsVisibility"
-      >
-        <span
-          class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"
-          :class="localShowContacts ? 'translate-x-5' : 'translate-x-0'"
-        />
-      </button>
-    </div>
+    <SectionVisibilityToggle
+      :model-value="showContacts"
+      :loading="isTogglingVisibility"
+      :disabled="isLoading"
+      :label="adminT.contacts.showContactsSection"
+      :description="adminT.contacts.showContactsDesc"
+      @update:model-value="handleToggleVisibility"
+    />
 
     <div v-if="isLoading" class="text-center py-12">
       <div
