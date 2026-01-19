@@ -78,7 +78,7 @@
   <WeddingUnavailable v-else-if="showErrorPage" :error-type="weddingError" />
 
   <!-- Normal wedding page -->
-  <main v-else class="min-h-screen">
+  <main v-else class="min-h-screen pb-20">
     <HeroSection />
     <DetailsSection />
     <GallerySection />
