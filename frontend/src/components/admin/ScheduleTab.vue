@@ -26,8 +26,27 @@
     saveSuccess,
     fetchScheduleAdmin,
     updateSchedule,
+    updateScheduleSettings,
     generateId,
   } = useSchedule()
+
+  // Local state for show/hide toggle (saved with Save Changes button)
+  const localShowSchedule = ref(true)
+
+  // Sync local toggle state from schedule data
+  const syncLocalShowSchedule = () => {
+    localShowSchedule.value = schedule.value.settings?.showSchedule ?? true
+  }
+
+  // Toggle updates local state only (saved when clicking Save Changes)
+  const toggleScheduleVisibility = () => {
+    localShowSchedule.value = !localShowSchedule.value
+  }
+
+  // Check if settings have changed
+  const hasSettingsChanges = computed(() => {
+    return localShowSchedule.value !== (schedule.value.settings?.showSchedule ?? true)
+  })
 
   // Clear all state
   const showClearAllModal = ref(false)
@@ -102,12 +121,36 @@
     closeModal()
   }
 
-  // Save with loading overlay
+  // Combined hasChanges check (items OR settings)
+  const hasAnyChanges = computed(() => hasChanges.value || hasSettingsChanges.value)
+
+  // Save with loading overlay - saves both items and settings
   const saveWithOverlay = async () => {
-    await withLoading(() => handleSave(), {
-      message: adminT.value.loadingOverlay.saving,
-      showSuccess: true,
-    })
+    await withLoading(
+      async () => {
+        // Save items if changed
+        if (hasChanges.value) {
+          await handleSave()
+        }
+        // Save settings if changed
+        if (hasSettingsChanges.value) {
+          await updateScheduleSettings(
+            { showSchedule: localShowSchedule.value },
+            weddingId.value ?? undefined
+          )
+        }
+      },
+      {
+        message: adminT.value.loadingOverlay.saving,
+        showSuccess: true,
+      }
+    )
+  }
+
+  // Discard all changes (items and settings)
+  const discardAllChanges = () => {
+    discardChanges()
+    syncLocalShowSchedule()
   }
 
   // Clear all items
@@ -131,6 +174,7 @@
   onMounted(async () => {
     await fetchScheduleAdmin(weddingId.value ?? undefined)
     syncLocalItems()
+    syncLocalShowSchedule()
   })
 
   // Watch for wedding ID changes (user switching between weddings)
@@ -138,6 +182,7 @@
     if (newId && newId !== oldId) {
       await fetchScheduleAdmin(newId)
       syncLocalItems()
+      syncLocalShowSchedule()
     }
   })
 </script>
@@ -187,6 +232,34 @@
           <span v-if="localItems.length > 0" class="text-xs">({{ localItems.length }})</span>
         </button>
       </div>
+    </div>
+
+    <!-- Show/Hide Schedule Toggle -->
+    <div
+      class="flex items-center justify-between py-3 px-4 bg-sand/50 dark:bg-dark-bg-secondary rounded-lg border border-sand-dark dark:border-dark-border mb-6"
+    >
+      <div>
+        <label class="font-body text-sm font-medium text-charcoal dark:text-dark-text">
+          {{ adminT.schedule.showScheduleSection }}
+        </label>
+        <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary mt-0.5">
+          {{ adminT.schedule.showScheduleDesc }}
+        </p>
+      </div>
+      <button
+        type="button"
+        role="switch"
+        :aria-checked="localShowSchedule"
+        :disabled="isLoading"
+        class="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-sage focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+        :class="localShowSchedule ? 'bg-sage' : 'bg-gray-300 dark:bg-dark-border'"
+        @click="toggleScheduleVisibility"
+      >
+        <span
+          class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"
+          :class="localShowSchedule ? 'translate-x-5' : 'translate-x-0'"
+        />
+      </button>
     </div>
 
     <div v-if="isLoading" class="text-center py-12">
@@ -282,7 +355,7 @@
             </p>
           </div>
           <div
-            v-if="hasChanges && !isSaving && !saveSuccess"
+            v-if="hasAnyChanges && !isSaving && !saveSuccess"
             class="p-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg"
           >
             <p class="font-body text-sm text-amber-700 dark:text-amber-400 flex items-center gap-2">
@@ -300,17 +373,17 @@
         </div>
         <div class="flex gap-2">
           <button
-            v-if="hasChanges"
+            v-if="hasAnyChanges"
             type="button"
             class="px-4 py-2 font-body text-sm text-charcoal border border-charcoal-light rounded-lg hover:bg-sand-dark transition-colors cursor-pointer"
-            @click="discardChanges"
+            @click="discardAllChanges"
           >
             {{ adminT.common.discard }}
           </button>
           <button
             type="button"
             class="px-6 py-2.5 font-body text-sm text-white bg-sage rounded-lg hover:bg-sage-dark transition-colors cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed"
-            :disabled="!hasChanges"
+            :disabled="!hasAnyChanges"
             @click="saveWithOverlay"
           >
             {{ adminT.common.saveChanges }}

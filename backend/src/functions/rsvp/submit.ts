@@ -7,7 +7,7 @@
 
 import type { APIGatewayProxyHandlerV2 } from 'aws-lambda'
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb'
-import { DynamoDBDocumentClient, PutCommand } from '@aws-sdk/lib-dynamodb'
+import { DynamoDBDocumentClient, PutCommand, GetCommand } from '@aws-sdk/lib-dynamodb'
 import { v4 as uuidv4 } from 'uuid'
 import { Resource } from 'sst'
 import { createSuccessResponse, createErrorResponse } from '../shared/response'
@@ -15,6 +15,7 @@ import { validateRsvpInput } from '../shared/validation'
 import { logError } from '../shared/logger'
 import { Keys } from '../shared/keys'
 import { resolveWeddingSlug, requireActiveWedding } from '../shared/wedding-middleware'
+import { DEFAULT_RSVP_SETTINGS, type RsvpSettings, canAcceptRsvp } from '../shared/rsvp-validation'
 
 const client = new DynamoDBClient({})
 const docClient = DynamoDBDocumentClient.from(client)
@@ -46,6 +47,30 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
     }
 
     const { weddingId } = weddingCheck.wedding
+
+    // ============================================
+    // 2b. Check if RSVPs are accepting submissions
+    // ============================================
+    const settingsKey = Keys.settings(weddingId, 'RSVP')
+    const settingsResult = await docClient.send(
+      new GetCommand({
+        TableName: Resource.AppDataTable.name,
+        Key: settingsKey,
+      })
+    )
+
+    const rsvpSettings: RsvpSettings = settingsResult.Item?.settings || DEFAULT_RSVP_SETTINGS
+
+    // Check if RSVP section is visible
+    if (!rsvpSettings.showRsvp) {
+      return createErrorResponse(403, 'RSVP section is not available', context, 'RSVP_HIDDEN')
+    }
+
+    // Check if RSVPs are being accepted (using the acceptingRsvps flag and deadline)
+    const eventDate = weddingCheck.wedding.weddingDate
+    if (!canAcceptRsvp(rsvpSettings, eventDate)) {
+      return createErrorResponse(403, 'RSVPs are currently closed', context, 'RSVP_CLOSED')
+    }
 
     // ============================================
     // 3. Parse and Validate Input

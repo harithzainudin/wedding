@@ -99,6 +99,7 @@
   // Slug resolution state
   const isResolvingSlug = ref(false)
   const slugResolutionError = ref<string | null>(null)
+  const hasResolvedSlug = ref(false)
 
   const openMobileMenu = (): void => {
     showMobileMenu.value = true
@@ -155,9 +156,10 @@
   )
 
   // Resolve wedding slug when user becomes authenticated (e.g., after login)
-  // Always verify the stored weddingId matches the current slug
+  // Skip if already resolved to prevent duplicate API calls
   watch(isAuthenticated, async (authenticated) => {
-    if (authenticated && weddingSlug.value) {
+    if (authenticated && weddingSlug.value && !hasResolvedSlug.value) {
+      hasResolvedSlug.value = true
       isResolvingSlug.value = true
       slugResolutionError.value = null
 
@@ -174,6 +176,7 @@
         fetchPublicData(weddingSlug.value)
       } catch (err) {
         slugResolutionError.value = err instanceof Error ? err.message : 'Failed to load wedding'
+        hasResolvedSlug.value = false // Reset on error to allow retry
       } finally {
         isResolvingSlug.value = false
       }
@@ -260,8 +263,9 @@
 
     // If we have a wedding slug in the URL, resolve it to get the weddingId
     // This handles the case where user directly navigates to /{slug}/admin
-    // Always verify the stored weddingId matches the current slug to prevent stale data issues
-    if (weddingSlug.value) {
+    // Skip if already resolved by the isAuthenticated watch to prevent duplicate API calls
+    if (weddingSlug.value && !hasResolvedSlug.value) {
+      hasResolvedSlug.value = true
       isResolvingSlug.value = true
       slugResolutionError.value = null
 
@@ -278,6 +282,7 @@
         fetchPublicData(weddingSlug.value)
       } catch (err) {
         slugResolutionError.value = err instanceof Error ? err.message : 'Failed to load wedding'
+        hasResolvedSlug.value = false // Reset on error to allow retry
       } finally {
         isResolvingSlug.value = false
       }
@@ -307,6 +312,9 @@
       // Clear all cached data from previous wedding
       clearCache()
 
+      // Reset the flag to allow resolution for the new slug
+      hasResolvedSlug.value = true
+
       // Resolve the new slug and update stored weddingId
       isResolvingSlug.value = true
       slugResolutionError.value = null
@@ -317,6 +325,7 @@
         fetchPublicData(newSlug)
       } catch (err) {
         slugResolutionError.value = err instanceof Error ? err.message : 'Failed to load wedding'
+        hasResolvedSlug.value = false // Reset on error to allow retry
       } finally {
         isResolvingSlug.value = false
       }

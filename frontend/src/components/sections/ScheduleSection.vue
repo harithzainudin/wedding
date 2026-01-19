@@ -12,7 +12,10 @@
     selector: '.schedule-item',
   })
 
-  const { getScheduleMultilingual, isLoadingSchedule } = usePublicWeddingData()
+  const { getScheduleMultilingual, isLoadingSchedule, scheduleData } = usePublicWeddingData()
+
+  // Check if schedule section should be shown (default to true)
+  const showSchedule = computed(() => scheduleData.value?.settings?.showSchedule ?? true)
 
   // Re-observe elements when loading completes (elements are now in DOM)
   watch(isLoadingSchedule, (loading) => {
@@ -42,6 +45,7 @@
 
 <template>
   <section
+    v-if="showSchedule"
     class="py-12 sm:py-16 px-4 sm:px-6 bg-white dark:bg-dark-bg-secondary transition-colors duration-300"
   >
     <div class="max-w-xl mx-auto">
@@ -66,6 +70,16 @@
             <div class="h-4 w-1/2 bg-charcoal/5 dark:bg-dark-text/5 rounded"></div>
           </div>
         </div>
+      </div>
+
+      <!-- Empty State -->
+      <div
+        v-else-if="schedule.length === 0"
+        class="py-6 px-4 rounded-lg bg-charcoal/5 dark:bg-dark-text/5 border border-dashed border-charcoal/20 dark:border-dark-text/20 text-center"
+      >
+        <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary italic">
+          {{ t.placeholder?.scheduleInfo ?? 'Schedule coming soon' }}
+        </p>
       </div>
 
       <!-- Actual Schedule -->

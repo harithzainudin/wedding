@@ -1,55 +1,23 @@
 import { ref } from 'vue'
-import type { ScheduleData, ScheduleItem, ScheduleUpdateRequest } from '@/types/schedule'
-import { getSchedule, getScheduleAdmin, updateSchedule as apiUpdateSchedule } from '@/services/api'
+import type {
+  ScheduleData,
+  ScheduleItem,
+  ScheduleUpdateRequest,
+  ScheduleSettings,
+} from '@/types/schedule'
+import { DEFAULT_SCHEDULE_SETTINGS } from '@/types/schedule'
+import {
+  getSchedule,
+  getScheduleAdmin,
+  updateSchedule as apiUpdateSchedule,
+  updateScheduleSettings as apiUpdateScheduleSettings,
+} from '@/services/api'
 
 // Default schedule data (matches backend defaults)
+// Empty array to show empty state - admins should add their own schedule items
 const DEFAULT_SCHEDULE: ScheduleData = {
-  items: [
-    {
-      id: '1',
-      time: '11:00 AM',
-      title: {
-        ms: 'Ketibaan Tetamu',
-        en: 'Guest Arrival',
-        zh: '宾客到达',
-        ta: 'விருந்தினர் வருகை',
-      },
-      order: 0,
-    },
-    {
-      id: '2',
-      time: '11:30 AM',
-      title: {
-        ms: 'Jamuan Makan Bermula',
-        en: 'Lunch Begins',
-        zh: '午餐开始',
-        ta: 'மதிய உணவு தொடங்குகிறது',
-      },
-      order: 1,
-    },
-    {
-      id: '3',
-      time: '12:30 PM',
-      title: {
-        ms: 'Ketibaan Pengantin',
-        en: 'Bride & Groom Arrival',
-        zh: '新人入场',
-        ta: 'மணமக்கள் வருகை',
-      },
-      order: 2,
-    },
-    {
-      id: '4',
-      time: '4:00 PM',
-      title: {
-        ms: 'Majlis Tamat',
-        en: 'Event Ends',
-        zh: '活动结束',
-        ta: 'நிகழ்ச்சி முடிவு',
-      },
-      order: 3,
-    },
-  ],
+  items: [],
+  settings: DEFAULT_SCHEDULE_SETTINGS,
 }
 
 // Singleton state
@@ -143,6 +111,31 @@ export function useSchedule() {
     return `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`
   }
 
+  // Update schedule settings (showSchedule toggle)
+  const updateScheduleSettings = async (
+    settings: Partial<ScheduleSettings>,
+    weddingId?: string
+  ): Promise<{ success: boolean; error?: string }> => {
+    isSaving.value = true
+    saveError.value = ''
+
+    try {
+      const response = await apiUpdateScheduleSettings(settings, weddingId)
+      // Update local state with new settings
+      schedule.value = {
+        ...schedule.value,
+        settings: response.settings,
+      }
+      return { success: true }
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to update settings'
+      saveError.value = errorMessage
+      return { success: false, error: errorMessage }
+    } finally {
+      isSaving.value = false
+    }
+  }
+
   // Reset to defaults (for form reset)
   const resetToDefaults = (): void => {
     schedule.value = {
@@ -163,6 +156,7 @@ export function useSchedule() {
     fetchSchedule,
     fetchScheduleAdmin,
     updateSchedule,
+    updateScheduleSettings,
     generateId,
     resetToDefaults,
   }

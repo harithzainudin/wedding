@@ -155,20 +155,21 @@ export function generateWazeUrl(lat: number, lng: number): string {
 }
 
 // Default venue data (fallback when no data exists in DB)
+// Uses bracket notation placeholders to clearly indicate data needs to be updated
+// Coordinates (0,0) indicate venue location has not been set
 export const DEFAULT_VENUE: VenueData = {
-  venueName: 'Dewan Seri Endon',
-  address: 'Persiaran Mahameru, Presint 10, 62502 Putrajaya, Wilayah Persekutuan Putrajaya',
+  venueName: '[Your Venue Name]',
+  address: '[Venue address]',
   coordinates: {
-    lat: 2.9264,
-    lng: 101.6964,
+    lat: 0,
+    lng: 0,
   },
-  parkingInfo:
-    'Parking percuma disediakan di kawasan hadapan dewan. Sila ikut papan tanda ke tempat letak kereta.',
+  parkingInfo: null,
   parkingSteps: [],
   parkingVideoUrl: null,
   showParkingImages: true,
   showParkingDirections: true,
   showParkingVideo: true,
-  googleMapsUrl: 'https://www.google.com/maps/search/?api=1&query=2.9264,101.6964',
-  wazeUrl: 'https://waze.com/ul?ll=2.9264,101.6964&navigate=yes',
+  googleMapsUrl: 'https://www.google.com/maps/search/?api=1&query=0,0',
+  wazeUrl: 'https://waze.com/ul?ll=0,0&navigate=yes',
 }

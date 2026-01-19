@@ -69,6 +69,10 @@ export interface Translations {
     errorName: string
     errorPhone: string
     errorGeneric: string
+    // RSVP closed messages
+    rsvpClosed: string
+    rsvpClosedMessage: string
+    rsvpClosedDeadline: string
   }
   // Gallery Section
   gallery: {
@@ -186,6 +190,16 @@ export interface Translations {
     goToDashboard: string
     goHome: string
   }
+  // Placeholder messages for incomplete data
+  placeholder?: {
+    coupleInfo: string
+    venueInfo: string
+    contactInfo: string
+    scheduleInfo: string
+    giftInfo: string
+    galleryInfo: string
+    qrHubInfo: string
+  }
 }
 
 export const translations: Record<Language, Translations> = {
@@ -248,6 +262,10 @@ export const translations: Record<Language, Translations> = {
       errorName: 'Sila masukkan nama penuh anda.',
       errorPhone: 'Sila masukkan nombor telefon anda.',
       errorGeneric: 'Maaf, terdapat masalah. Sila cuba lagi.',
+      // RSVP closed messages
+      rsvpClosed: 'RSVP Ditutup',
+      rsvpClosedMessage: 'RSVP untuk majlis ini telah ditutup. Terima kasih atas minat anda.',
+      rsvpClosedDeadline: 'Tarikh akhir RSVP telah berlalu pada {date}.',
     },
     gallery: {
       title: 'Galeri Foto',
@@ -345,6 +363,15 @@ export const translations: Record<Language, Translations> = {
       goToDashboard: 'Pergi ke Papan Pemuka',
       goHome: 'Kembali ke Laman Utama',
     },
+    placeholder: {
+      coupleInfo: 'Maklumat pasangan belum dikemaskini',
+      venueInfo: 'Maklumat lokasi akan dikemaskini',
+      contactInfo: 'Tiada kenalan ditambah lagi',
+      scheduleInfo: 'Jadual akan dikemaskini',
+      giftInfo: 'Tiada hadiah dalam senarai buat masa ini',
+      galleryInfo: 'Tiada gambar dalam galeri buat masa ini',
+      qrHubInfo: 'Tiada QR code diaktifkan buat masa ini',
+    },
   },
 
   // English
@@ -405,6 +432,10 @@ export const translations: Record<Language, Translations> = {
       errorName: 'Please enter your full name.',
       errorPhone: 'Please enter your phone number.',
       errorGeneric: 'Sorry, there was an error. Please try again.',
+      // RSVP closed messages
+      rsvpClosed: 'RSVPs Closed',
+      rsvpClosedMessage: 'RSVPs for this event are now closed. Thank you for your interest.',
+      rsvpClosedDeadline: 'The RSVP deadline has passed on {date}.',
     },
     gallery: {
       title: 'Photo Gallery',
@@ -502,6 +533,15 @@ export const translations: Record<Language, Translations> = {
       goToDashboard: 'Go to Dashboard',
       goHome: 'Back to Home',
     },
+    placeholder: {
+      coupleInfo: 'Couple information not provided yet',
+      venueInfo: 'Venue details coming soon',
+      contactInfo: 'No contacts added yet',
+      scheduleInfo: 'Schedule coming soon',
+      giftInfo: 'No gifts in the wishlist yet',
+      galleryInfo: 'No photos in the gallery yet',
+      qrHubInfo: 'No QR codes enabled yet',
+    },
   },
 
   // Mandarin (Chinese)
@@ -562,6 +602,10 @@ export const translations: Record<Language, Translations> = {
       errorName: '请输入您的全名。',
       errorPhone: '请输入您的电话号码。',
       errorGeneric: '抱歉，发生错误。请重试。',
+      // RSVP closed messages
+      rsvpClosed: '回复已关闭',
+      rsvpClosedMessage: '此活动的回复已关闭。感谢您的关注。',
+      rsvpClosedDeadline: '回复截止日期已于 {date} 过期。',
     },
     gallery: {
       title: '照片集',
@@ -657,6 +701,15 @@ export const translations: Record<Language, Translations> = {
       goToDashboard: '前往仪表板',
       goHome: '返回首页',
     },
+    placeholder: {
+      coupleInfo: '新人信息尚未提供',
+      venueInfo: '场地详情即将公布',
+      contactInfo: '尚未添加联系人',
+      scheduleInfo: '日程安排即将公布',
+      giftInfo: '礼物清单暂无内容',
+      galleryInfo: '相册暂无照片',
+      qrHubInfo: '暂无启用的二维码',
+    },
   },
 
   // Tamil
@@ -718,6 +771,10 @@ export const translations: Record<Language, Translations> = {
       errorName: 'உங்கள் முழுப் பெயரை உள்ளிடவும்.',
       errorPhone: 'உங்கள் தொலைபேசி எண்ணை உள்ளிடவும்.',
       errorGeneric: 'மன்னிக்கவும், பிழை ஏற்பட்டது. மீண்டும் முயற்சிக்கவும்.',
+      // RSVP closed messages
+      rsvpClosed: 'பதில் மூடப்பட்டது',
+      rsvpClosedMessage: 'இந்த நிகழ்வுக்கான பதில்கள் மூடப்பட்டன. உங்கள் ஆர்வத்திற்கு நன்றி.',
+      rsvpClosedDeadline: 'பதில் கடைசி தேதி {date} அன்று முடிந்தது.',
     },
     gallery: {
       title: 'புகைப்பட தொகுப்பு',
@@ -814,6 +871,15 @@ export const translations: Record<Language, Translations> = {
       goToLogin: 'உள்நுழைவுக்கு செல்',
       goToDashboard: 'டாஷ்போர்டுக்கு செல்',
       goHome: 'முகப்புக்கு திரும்பு',
+    },
+    placeholder: {
+      coupleInfo: 'தம்பதியினர் தகவல் இன்னும் வழங்கப்படவில்லை',
+      venueInfo: 'இடம் விவரங்கள் விரைவில்',
+      contactInfo: 'தொடர்புகள் இன்னும் சேர்க்கப்படவில்லை',
+      scheduleInfo: 'அட்டவணை விரைவில்',
+      giftInfo: 'பரிசுப் பட்டியல் இன்னும் காலியாக உள்ளது',
+      galleryInfo: 'கேலரியில் புகைப்படங்கள் இன்னும் இல்லை',
+      qrHubInfo: 'QR குறியீடுகள் இன்னும் இயக்கப்படவில்லை',
     },
   },
 }
@@ -936,6 +1002,57 @@ export interface AdminTranslations {
     managePhotos: string
     contactPeople: string
     guestResponses: string
+    // Setup Progress Card
+    setupProgress: string
+    setupComplete: string
+    setupItems: {
+      weddingDetails: string
+      weddingDetailsComplete: string
+      weddingDetailsIncomplete: string
+      weddingDetailsCoupleIncomplete: string
+      weddingDetailsParentsIncomplete: string
+      weddingDetailsDressCodeIncomplete: string
+      weddingDetailsHashtagIncomplete: string
+      venue: string
+      venueComplete: string
+      venueIncomplete: string
+      venueNameIncomplete: string
+      venueAddressIncomplete: string
+      venueLocationIncomplete: string
+      contacts: string
+      contactsComplete: string
+      contactsIncomplete: string
+      contactsDisabled: string
+      schedule: string
+      scheduleComplete: string
+      scheduleIncomplete: string
+      scheduleDisabled: string
+      gallery: string
+      galleryComplete: string
+      galleryIncomplete: string
+      galleryDisabled: string
+      theme: string
+      themeComplete: string
+      themeDefault: string
+      themeIncomplete: string
+      music: string
+      musicComplete: string
+      musicIncomplete: string
+      musicDisabled: string
+      gifts: string
+      giftsComplete: string
+      giftsIncomplete: string
+      giftsDisabled: string
+      qrHub: string
+      qrHubComplete: string
+      qrHubIncomplete: string
+      qrHubDisabled: string
+      rsvps: string
+      rsvpsComplete: string
+      rsvpsIncomplete: string
+      rsvpsDisabled: string
+      rsvpsClosed: string
+    }
   }
 
   // RSVPs
@@ -978,6 +1095,19 @@ export interface AdminTranslations {
     wishesPlaceholder: string
     savingGuest: string
     pressEscToClose: string
+    // Settings
+    showRsvpSection: string
+    showRsvpDesc: string
+    acceptRsvps: string
+    acceptRsvpsDesc: string
+    acceptRsvpsDisabledHint: string
+    rsvpDeadline: string
+    rsvpDeadlineDesc: string
+    noDeadline: string
+    clearDeadline: string
+    deadlineAfterEventError: string
+    rsvpDisabled: string
+    rsvpClosed: string
   }
 
   // Gallery
@@ -1282,6 +1412,8 @@ export interface AdminTranslations {
     title: string
     subtitle: string
     loadingSchedule: string
+    showScheduleSection: string
+    showScheduleDesc: string
     addItem: string
     editItem: string
     deleteItem: string
@@ -1312,6 +1444,8 @@ export interface AdminTranslations {
     noContacts: string
     savedSuccess: string
     deleteContactConfirm: string
+    showContactsSection: string
+    showContactsDesc: string
   }
 
   // Theme
@@ -1522,6 +1656,23 @@ export interface AdminTranslations {
     processing2: string
   }
 
+  // Toast notifications
+  toast: {
+    // Success messages
+    archiveSuccess: string
+    deleteSuccess: string
+    createSuccess: string
+    updateSuccess: string
+    addOwnerSuccess: string
+    removeOwnerSuccess: string
+    resetPasswordSuccess: string
+    addStaffSuccess: string
+    updateStaffSuccess: string
+    deleteStaffSuccess: string
+    // Error messages
+    genericError: string
+  }
+
   // Hard Delete
   hardDelete: {
     title: string
@@ -1712,6 +1863,57 @@ export const adminTranslations: Record<AdminLanguage, AdminTranslations> = {
       managePhotos: 'Manage photos',
       contactPeople: 'Contact people',
       guestResponses: 'Guest responses',
+      // Setup Progress Card
+      setupProgress: 'Setup Progress',
+      setupComplete: 'Setup Complete',
+      setupItems: {
+        weddingDetails: 'Wedding Details',
+        weddingDetailsComplete: 'All wedding details configured',
+        weddingDetailsIncomplete: 'Add bride and groom names',
+        weddingDetailsCoupleIncomplete: 'Complete couple names',
+        weddingDetailsParentsIncomplete: 'Complete parents names',
+        weddingDetailsDressCodeIncomplete: 'Update dress code',
+        weddingDetailsHashtagIncomplete: 'Add hashtag',
+        venue: 'Venue Location',
+        venueComplete: 'Venue details configured',
+        venueIncomplete: 'Set venue name and location',
+        venueNameIncomplete: 'Set venue name',
+        venueAddressIncomplete: 'Add address',
+        venueLocationIncomplete: 'Set map location',
+        contacts: 'Contact Information',
+        contactsComplete: '{count} contact(s) added',
+        contactsIncomplete: 'Add at least 1 contact person',
+        contactsDisabled: 'Contacts hidden from guests',
+        schedule: 'Event Schedule',
+        scheduleComplete: '{count} event(s) scheduled',
+        scheduleIncomplete: 'Add event timeline items',
+        scheduleDisabled: 'Schedule hidden from guests',
+        gallery: 'Photo Gallery',
+        galleryComplete: '{count} photo(s) uploaded',
+        galleryIncomplete: 'Upload at least 1 photo',
+        galleryDisabled: 'Gallery disabled',
+        theme: 'Theme Selection',
+        themeComplete: 'Theme customized',
+        themeDefault: 'Using default theme',
+        themeIncomplete: 'Review and customize theme',
+        music: 'Background Music',
+        musicComplete: '{count} track(s) uploaded',
+        musicIncomplete: 'Upload at least 1 music track',
+        musicDisabled: 'Music hidden from guests',
+        gifts: 'Gift Registry',
+        giftsComplete: '{count} gift(s) added',
+        giftsIncomplete: 'Add at least 1 gift item',
+        giftsDisabled: 'Gift registry disabled',
+        qrHub: 'QR Code Hub',
+        qrHubComplete: '{count} QR code(s) enabled',
+        qrHubIncomplete: 'Enable at least 1 QR code type',
+        qrHubDisabled: 'QR Hub disabled',
+        rsvps: 'RSVPs',
+        rsvpsComplete: '{count} RSVP(s) received',
+        rsvpsIncomplete: 'Waiting for RSVPs',
+        rsvpsDisabled: 'RSVP section hidden',
+        rsvpsClosed: '{count} RSVP(s) - Closed',
+      },
     },
 
     rsvps: {
@@ -1753,6 +1955,19 @@ export const adminTranslations: Record<AdminLanguage, AdminTranslations> = {
       wishesPlaceholder: 'Any wishes or notes...',
       savingGuest: 'Saving...',
       pressEscToClose: 'Press Esc to close',
+      // Settings
+      showRsvpSection: 'Show RSVP Section',
+      showRsvpDesc: 'Display the RSVP section on the public website',
+      acceptRsvps: 'Accept RSVPs',
+      acceptRsvpsDesc: 'Allow guests to submit new RSVPs',
+      acceptRsvpsDisabledHint: 'Enable RSVP section first to accept RSVPs',
+      rsvpDeadline: 'RSVP Deadline',
+      rsvpDeadlineDesc: 'Optional deadline for RSVP submissions. Leave empty for no deadline (open until event day).',
+      noDeadline: 'No deadline set',
+      clearDeadline: 'Clear deadline',
+      deadlineAfterEventError: 'Deadline cannot be after the event date',
+      rsvpDisabled: 'Disabled',
+      rsvpClosed: 'RSVPs Closed',
     },
 
     gallery: {
@@ -2051,6 +2266,8 @@ export const adminTranslations: Record<AdminLanguage, AdminTranslations> = {
       title: 'Schedule Management',
       subtitle: 'Manage your wedding event timeline',
       loadingSchedule: 'Loading schedule...',
+      showScheduleSection: 'Show Schedule Section',
+      showScheduleDesc: 'Display the event timeline on the public website',
       addItem: 'Add Event',
       editItem: 'Edit Event',
       deleteItem: 'Delete Event',
@@ -2081,6 +2298,8 @@ export const adminTranslations: Record<AdminLanguage, AdminTranslations> = {
       noContacts: 'No contacts added yet.',
       savedSuccess: 'Contacts saved successfully!',
       deleteContactConfirm: 'Are you sure you want to delete "{name}"?',
+      showContactsSection: 'Show Contacts Section',
+      showContactsDesc: 'Display contact information on the public website',
     },
 
     theme: {
@@ -2286,6 +2505,20 @@ export const adminTranslations: Record<AdminLanguage, AdminTranslations> = {
       processing2: 'Processing your request...',
     },
 
+    toast: {
+      archiveSuccess: 'Wedding archived successfully',
+      deleteSuccess: 'Wedding deleted permanently',
+      createSuccess: 'Wedding created successfully',
+      updateSuccess: 'Changes saved successfully',
+      addOwnerSuccess: 'Admin added successfully',
+      removeOwnerSuccess: 'Admin removed successfully',
+      resetPasswordSuccess: 'Password reset successfully',
+      addStaffSuccess: 'Staff member added successfully',
+      updateStaffSuccess: 'Staff member updated successfully',
+      deleteStaffSuccess: 'Staff member deleted successfully',
+      genericError: 'An error occurred. Please try again.',
+    },
+
     hardDelete: {
       title: 'Permanently Delete Wedding',
       warningMessage:
@@ -2468,6 +2701,57 @@ export const adminTranslations: Record<AdminLanguage, AdminTranslations> = {
       managePhotos: 'Urus foto',
       contactPeople: 'Kenalan',
       guestResponses: 'Maklum balas tetamu',
+      // Setup Progress Card
+      setupProgress: 'Kemajuan Persediaan',
+      setupComplete: 'Persediaan Selesai',
+      setupItems: {
+        weddingDetails: 'Butiran Perkahwinan',
+        weddingDetailsComplete: 'Semua butiran perkahwinan telah dikonfigurasikan',
+        weddingDetailsIncomplete: 'Tambah nama pengantin',
+        weddingDetailsCoupleIncomplete: 'Lengkapkan nama pasangan',
+        weddingDetailsParentsIncomplete: 'Lengkapkan nama ibu bapa',
+        weddingDetailsDressCodeIncomplete: 'Kemas kini kod pakaian',
+        weddingDetailsHashtagIncomplete: 'Tambah hashtag',
+        venue: 'Lokasi Majlis',
+        venueComplete: 'Butiran lokasi telah dikonfigurasikan',
+        venueIncomplete: 'Tetapkan nama dan lokasi tempat',
+        venueNameIncomplete: 'Tetapkan nama tempat',
+        venueAddressIncomplete: 'Tambah alamat',
+        venueLocationIncomplete: 'Tetapkan lokasi peta',
+        contacts: 'Maklumat Hubungan',
+        contactsComplete: '{count} kenalan ditambah',
+        contactsIncomplete: 'Tambah sekurang-kurangnya 1 kenalan',
+        contactsDisabled: 'Kenalan disembunyikan daripada tetamu',
+        schedule: 'Jadual Acara',
+        scheduleComplete: '{count} acara dijadualkan',
+        scheduleIncomplete: 'Tambah item garis masa acara',
+        scheduleDisabled: 'Jadual disembunyikan daripada tetamu',
+        gallery: 'Galeri Foto',
+        galleryComplete: '{count} foto dimuat naik',
+        galleryIncomplete: 'Muat naik sekurang-kurangnya 1 foto',
+        galleryDisabled: 'Galeri dinyahaktifkan',
+        theme: 'Pilihan Tema',
+        themeComplete: 'Tema telah disesuaikan',
+        themeDefault: 'Menggunakan tema lalai',
+        themeIncomplete: 'Semak dan sesuaikan tema',
+        music: 'Muzik Latar',
+        musicComplete: '{count} lagu dimuat naik',
+        musicIncomplete: 'Muat naik sekurang-kurangnya 1 lagu',
+        musicDisabled: 'Muzik disembunyikan daripada tetamu',
+        gifts: 'Senarai Hadiah',
+        giftsComplete: '{count} hadiah ditambah',
+        giftsIncomplete: 'Tambah sekurang-kurangnya 1 hadiah',
+        giftsDisabled: 'Senarai hadiah dinyahaktifkan',
+        qrHub: 'Hub Kod QR',
+        qrHubComplete: '{count} kod QR diaktifkan',
+        qrHubIncomplete: 'Aktifkan sekurang-kurangnya 1 jenis kod QR',
+        qrHubDisabled: 'Hub QR dinyahaktifkan',
+        rsvps: 'RSVP',
+        rsvpsComplete: '{count} RSVP diterima',
+        rsvpsIncomplete: 'Menunggu RSVP',
+        rsvpsDisabled: 'Bahagian RSVP disembunyikan',
+        rsvpsClosed: '{count} RSVP - Ditutup',
+      },
     },
 
     rsvps: {
@@ -2509,6 +2793,19 @@ export const adminTranslations: Record<AdminLanguage, AdminTranslations> = {
       wishesPlaceholder: 'Sebarang ucapan atau catatan...',
       savingGuest: 'Menyimpan...',
       pressEscToClose: 'Tekan Esc untuk tutup',
+      // Settings
+      showRsvpSection: 'Papar Bahagian RSVP',
+      showRsvpDesc: 'Paparkan bahagian RSVP di laman web awam',
+      acceptRsvps: 'Terima RSVP',
+      acceptRsvpsDesc: 'Benarkan tetamu menghantar RSVP baharu',
+      acceptRsvpsDisabledHint: 'Aktifkan bahagian RSVP dahulu untuk menerima RSVP',
+      rsvpDeadline: 'Tarikh Akhir RSVP',
+      rsvpDeadlineDesc: 'Tarikh akhir pilihan untuk penghantaran RSVP. Biarkan kosong untuk tiada tarikh akhir (terbuka sehingga hari majlis).',
+      noDeadline: 'Tiada tarikh akhir ditetapkan',
+      clearDeadline: 'Kosongkan tarikh akhir',
+      deadlineAfterEventError: 'Tarikh akhir tidak boleh selepas tarikh majlis',
+      rsvpDisabled: 'Dilumpuhkan',
+      rsvpClosed: 'RSVP Ditutup',
     },
 
     gallery: {
@@ -2812,6 +3109,8 @@ export const adminTranslations: Record<AdminLanguage, AdminTranslations> = {
       title: 'Pengurusan Jadual',
       subtitle: 'Urus garis masa acara perkahwinan anda',
       loadingSchedule: 'Memuatkan jadual...',
+      showScheduleSection: 'Papar Bahagian Jadual',
+      showScheduleDesc: 'Paparkan garis masa acara di laman web awam',
       addItem: 'Tambah Acara',
       editItem: 'Sunting Acara',
       deleteItem: 'Padam Acara',
@@ -2842,6 +3141,8 @@ export const adminTranslations: Record<AdminLanguage, AdminTranslations> = {
       noContacts: 'Belum ada hubungan ditambah.',
       savedSuccess: 'Hubungan berjaya disimpan!',
       deleteContactConfirm: 'Adakah anda pasti mahu memadam "{name}"?',
+      showContactsSection: 'Papar Bahagian Kenalan',
+      showContactsDesc: 'Paparkan maklumat hubungan di laman web awam',
     },
 
     theme: {
@@ -3046,6 +3347,20 @@ export const adminTranslations: Record<AdminLanguage, AdminTranslations> = {
       almostThere: 'Hampir siap...',
       justAMoment: 'Sebentar lagi...',
       processing2: 'Memproses permintaan anda...',
+    },
+
+    toast: {
+      archiveSuccess: 'Majlis berjaya diarkib',
+      deleteSuccess: 'Majlis dipadam secara kekal',
+      createSuccess: 'Majlis berjaya dicipta',
+      updateSuccess: 'Perubahan berjaya disimpan',
+      addOwnerSuccess: 'Admin berjaya ditambah',
+      removeOwnerSuccess: 'Admin berjaya dialih keluar',
+      resetPasswordSuccess: 'Kata laluan berjaya ditetapkan semula',
+      addStaffSuccess: 'Staf berjaya ditambah',
+      updateStaffSuccess: 'Staf berjaya dikemaskini',
+      deleteStaffSuccess: 'Staf berjaya dipadam',
+      genericError: 'Ralat berlaku. Sila cuba lagi.',
     },
 
     hardDelete: {

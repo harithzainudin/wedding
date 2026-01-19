@@ -13,7 +13,11 @@ import { Resource } from 'sst'
 import { createSuccessResponse, createErrorResponse } from '../shared/response'
 import { requireWeddingAccess } from '../shared/auth'
 import { logError } from '../shared/logger'
-import { DEFAULT_CONTACTS, type ContactsData } from '../shared/contacts-validation'
+import {
+  DEFAULT_CONTACTS,
+  DEFAULT_CONTACTS_SETTINGS,
+  type ContactsData,
+} from '../shared/contacts-validation'
 import { Keys } from '../shared/keys'
 import {
   resolveWeddingSlug,
@@ -85,6 +89,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
 
     const contactsData: ContactsData = {
       contacts: result.Item.contacts,
+      settings: result.Item.settings || DEFAULT_CONTACTS_SETTINGS,
       updatedAt: result.Item.updatedAt,
       updatedBy: result.Item.updatedBy,
     }

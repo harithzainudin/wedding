@@ -1,11 +1,36 @@
 <script setup lang="ts">
-  import { ref, reactive } from 'vue'
+  import { ref, reactive, computed } from 'vue'
   import type { RsvpFormData } from '@/types/rsvp'
   import { HONORIFIC_TITLES } from '@/types'
   import { submitRsvp } from '@/services/api'
   import { useLanguage } from '@/composables/useLanguage'
 
+  const props = withDefaults(
+    defineProps<{
+      showRsvp?: boolean
+      isAcceptingRsvps?: boolean
+      rsvpDeadline?: string
+    }>(),
+    {
+      showRsvp: true,
+      isAcceptingRsvps: true,
+    },
+  )
+
   const { t } = useLanguage()
+
+  // Format the deadline for display
+  const formattedDeadline = computed(() => {
+    if (!props.rsvpDeadline) return null
+    const date = new Date(props.rsvpDeadline)
+    return date.toLocaleDateString(undefined, {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    })
+  })
 
   const guestOptions = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 
@@ -66,8 +91,35 @@
         {{ t.rsvp.subtitle }}
       </p>
 
+      <!-- RSVP Closed Message -->
+      <div v-if="!showRsvp || !isAcceptingRsvps" class="text-center p-6 sm:p-8">
+        <div
+          class="w-14 h-14 sm:w-16 sm:h-16 mx-auto mb-3 sm:mb-4 flex items-center justify-center text-2xl sm:text-3xl text-charcoal-light dark:text-dark-text-secondary bg-sand dark:bg-dark-bg-elevated rounded-full"
+        >
+          <svg class="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M18 6L6 18M6 6l12 12" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+        </div>
+        <h3
+          class="font-heading text-xl sm:text-2xl text-charcoal-dark dark:text-dark-text mb-2"
+        >
+          {{ t.rsvp.rsvpClosed }}
+        </h3>
+        <p
+          class="font-body text-sm sm:text-base text-charcoal-light dark:text-dark-text-secondary mb-3 sm:mb-4"
+        >
+          {{ t.rsvp.rsvpClosedMessage }}
+        </p>
+        <p
+          v-if="formattedDeadline"
+          class="font-body text-xs sm:text-sm italic text-charcoal-light dark:text-dark-text-secondary p-3 sm:p-4 bg-sand dark:bg-dark-bg-elevated rounded-lg"
+        >
+          {{ t.rsvp.rsvpClosedDeadline }} {{ formattedDeadline }}
+        </p>
+      </div>
+
       <!-- Success Message -->
-      <div v-if="isSubmitted" class="text-center p-6 sm:p-8">
+      <div v-else-if="isSubmitted" class="text-center p-6 sm:p-8">
         <div
           class="w-14 h-14 sm:w-16 sm:h-16 mx-auto mb-3 sm:mb-4 flex items-center justify-center text-2xl sm:text-3xl text-white bg-sage rounded-full"
         >

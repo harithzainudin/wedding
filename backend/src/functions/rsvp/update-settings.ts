@@ -1,8 +1,8 @@
 /**
- * Update Contacts Endpoint (Admin)
+ * Update RSVP Settings Endpoint (Admin)
  *
- * Updates contacts for a specific wedding.
- * Route: PUT /admin/w/{weddingId}/contacts
+ * Updates RSVP settings (showRsvp toggle) for a specific wedding.
+ * Route: PUT /admin/w/{weddingId}/rsvp/settings
  *
  * SECURITY: Requires wedding access authorization
  */
@@ -15,10 +15,10 @@ import { createSuccessResponse, createErrorResponse } from '../shared/response'
 import { requireWeddingAccess } from '../shared/auth'
 import { logError } from '../shared/logger'
 import {
-  validateContactsUpdate,
-  DEFAULT_CONTACTS_SETTINGS,
-  type ContactsData,
-} from '../shared/contacts-validation'
+  type RsvpSettings,
+  DEFAULT_RSVP_SETTINGS,
+  validateRsvpSettingsUpdate,
+} from '../shared/rsvp-validation'
 import { Keys } from '../shared/keys'
 import { getWeddingById, requireAdminAccessibleWedding } from '../shared/wedding-middleware'
 import { isValidWeddingId } from '../shared/validation'
@@ -82,18 +82,37 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
     return createErrorResponse(400, 'Invalid JSON body', context, 'INVALID_JSON')
   }
 
-  const validation = validateContactsUpdate(body)
+  const validation = validateRsvpSettingsUpdate(body)
   if (!validation.valid) {
     return createErrorResponse(400, validation.error, context, 'VALIDATION_ERROR')
   }
 
   // ============================================
-  // 5. Update Contacts (preserve existing settings)
+  // 5. Validate deadline against event date
+  // ============================================
+  if (validation.data.rsvpDeadline) {
+    const eventDate = wedding.weddingDate
+    if (eventDate) {
+      const deadline = new Date(validation.data.rsvpDeadline)
+      const event = new Date(eventDate)
+      if (deadline > event) {
+        return createErrorResponse(
+          400,
+          'RSVP deadline cannot be after the event date',
+          context,
+          'INVALID_DEADLINE'
+        )
+      }
+    }
+  }
+
+  // ============================================
+  // 6. Get existing RSVP settings and merge
   // ============================================
   try {
-    const settingsKey = Keys.settings(weddingId, 'CONTACTS')
+    const settingsKey = Keys.settings(weddingId, 'RSVP')
 
-    // Get existing data to preserve settings
+    // Get existing data
     const existingResult = await docClient.send(
       new GetCommand({
         TableName: Resource.AppDataTable.name,
@@ -101,13 +120,39 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
       })
     )
 
-    const existingSettings = existingResult.Item?.settings || DEFAULT_CONTACTS_SETTINGS
+    const existingData = existingResult.Item || {}
+    const existingSettings: RsvpSettings = existingData.settings || DEFAULT_RSVP_SETTINGS
+
+    // Merge new settings
+    const updatedSettings: RsvpSettings = {
+      showRsvp:
+        validation.data.showRsvp !== undefined
+          ? validation.data.showRsvp
+          : existingSettings.showRsvp,
+      acceptingRsvps:
+        validation.data.acceptingRsvps !== undefined
+          ? validation.data.acceptingRsvps
+          : existingSettings.acceptingRsvps,
+    }
+
+    // Handle rsvpDeadline: null means remove, undefined means keep existing
+    if (validation.data.rsvpDeadline === null) {
+      // Remove deadline - don't include it in the settings
+      delete updatedSettings.rsvpDeadline
+    } else if (validation.data.rsvpDeadline !== undefined) {
+      // Set new deadline
+      updatedSettings.rsvpDeadline = validation.data.rsvpDeadline
+    } else if (existingSettings.rsvpDeadline) {
+      // Keep existing deadline
+      updatedSettings.rsvpDeadline = existingSettings.rsvpDeadline
+    }
+
     const now = new Date().toISOString()
 
-    const contactsItem = {
+    // Update with merged settings
+    const rsvpSettingsItem = {
       ...settingsKey,
-      contacts: validation.data.contacts,
-      settings: existingSettings,
+      settings: updatedSettings,
       updatedAt: now,
       updatedBy: authResult.user.username,
     }
@@ -115,28 +160,21 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
     await docClient.send(
       new PutCommand({
         TableName: Resource.AppDataTable.name,
-        Item: contactsItem,
+        Item: rsvpSettingsItem,
       })
     )
 
-    const responseData: ContactsData = {
-      contacts: contactsItem.contacts,
-      settings: contactsItem.settings,
-      updatedAt: contactsItem.updatedAt,
-      updatedBy: contactsItem.updatedBy,
-    }
-
-    return createSuccessResponse(200, responseData, context)
+    return createSuccessResponse(200, { settings: updatedSettings }, context)
   } catch (error) {
     logError(
       {
-        endpoint: 'PUT /admin/w/{weddingId}/contacts',
-        operation: 'updateContacts',
+        endpoint: 'PUT /admin/w/{weddingId}/rsvp/settings',
+        operation: 'updateRsvpSettings',
         requestId: context.awsRequestId,
-        input: { weddingId, contactCount: validation.data.contacts?.length },
+        input: { weddingId },
       },
       error
     )
-    return createErrorResponse(500, 'Failed to update contacts', context, 'DB_ERROR')
+    return createErrorResponse(500, 'Failed to update RSVP settings', context, 'DB_ERROR')
   }
 }

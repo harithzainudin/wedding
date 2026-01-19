@@ -184,7 +184,7 @@
 
 <template>
   <section
-    v-if="showGallery && photos.length > 0"
+    v-if="showGallery"
     class="py-12 sm:py-16 px-4 sm:px-6 bg-sand dark:bg-dark-bg transition-colors duration-300"
   >
     <div class="max-w-4xl mx-auto">
@@ -199,7 +199,27 @@
         {{ t.gallery.subtitle }}
       </p>
 
-      <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3">
+      <!-- Loading State -->
+      <div v-if="isLoadingPhotos" class="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3">
+        <div
+          v-for="i in 6"
+          :key="i"
+          class="aspect-square bg-charcoal/10 dark:bg-dark-text/10 rounded-lg animate-pulse"
+        ></div>
+      </div>
+
+      <!-- Empty State -->
+      <div
+        v-else-if="photos.length === 0"
+        class="py-6 px-4 rounded-lg bg-charcoal/5 dark:bg-dark-text/5 border border-dashed border-charcoal/20 dark:border-dark-text/20 text-center"
+      >
+        <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary italic">
+          {{ t.placeholder?.galleryInfo ?? 'No photos in the gallery yet' }}
+        </p>
+      </div>
+
+      <!-- Photos Grid -->
+      <div v-else class="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3">
         <button
           v-for="(photo, index) in visiblePhotos"
           :key="photo.src"
@@ -214,28 +234,28 @@
             loading="lazy"
           />
         </button>
-      </div>
 
-      <div v-if="hasMorePhotos" class="mt-6 text-center">
-        <button
-          type="button"
-          class="inline-flex items-center gap-2 px-6 py-3 font-body text-sm font-medium text-sage-dark dark:text-sage-light border-2 border-sage dark:border-sage-light rounded-full hover:bg-sage hover:text-white dark:hover:bg-sage-light dark:hover:text-dark-bg transition-colors focus:outline-none focus:ring-2 focus:ring-sage focus:ring-offset-2"
-          @click="openLightbox(0)"
-        >
-          <svg
-            class="w-5 h-5"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
+        <div v-if="hasMorePhotos" class="col-span-full mt-4 text-center">
+          <button
+            type="button"
+            class="inline-flex items-center gap-2 px-6 py-3 font-body text-sm font-medium text-sage-dark dark:text-sage-light border-2 border-sage dark:border-sage-light rounded-full hover:bg-sage hover:text-white dark:hover:bg-sage-light dark:hover:text-dark-bg transition-colors focus:outline-none focus:ring-2 focus:ring-sage focus:ring-offset-2"
+            @click="openLightbox(0)"
           >
-            <rect x="3" y="3" width="7" height="7" rx="1" />
-            <rect x="14" y="3" width="7" height="7" rx="1" />
-            <rect x="3" y="14" width="7" height="7" rx="1" />
-            <rect x="14" y="14" width="7" height="7" rx="1" />
-          </svg>
-          {{ t.gallery.viewAll }} ({{ photos.length }})
-        </button>
+            <svg
+              class="w-5 h-5"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <rect x="3" y="3" width="7" height="7" rx="1" />
+              <rect x="14" y="3" width="7" height="7" rx="1" />
+              <rect x="3" y="14" width="7" height="7" rx="1" />
+              <rect x="14" y="14" width="7" height="7" rx="1" />
+            </svg>
+            {{ t.gallery.viewAll }} ({{ photos.length }})
+          </button>
+        </div>
       </div>
     </div>
 

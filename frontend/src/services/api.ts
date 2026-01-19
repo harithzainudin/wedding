@@ -6,6 +6,8 @@ import type {
   CreateRsvpResponse,
   UpdateRsvpResponse,
   DeleteRsvpResponse,
+  RsvpSettings,
+  RsvpSettingsResponse,
 } from '@/types/rsvp'
 import type {
   AdminLoginRequest,
@@ -65,8 +67,8 @@ import type {
   ParkingImagesResponse,
 } from '@/types/venue'
 import type { WeddingDetailsData, WeddingDetailsUpdateRequest } from '@/types/weddingDetails'
-import type { ScheduleData, ScheduleUpdateRequest } from '@/types/schedule'
-import type { ContactsData, ContactsUpdateRequest } from '@/types/contacts'
+import type { ScheduleData, ScheduleUpdateRequest, ScheduleSettings } from '@/types/schedule'
+import type { ContactsData, ContactsUpdateRequest, ContactsSettings } from '@/types/contacts'
 import type {
   MusicResponse,
   MusicSettingsUpdateRequest,
@@ -291,6 +293,33 @@ export async function deleteRsvp(id: string, weddingId?: string): Promise<Delete
     buildAdminUrl(`/rsvps/${encodeURIComponent(id)}`, weddingId),
     {
       method: 'DELETE',
+    }
+  )
+}
+
+// Get RSVP settings (public)
+export async function getRsvpSettings(weddingSlug?: string): Promise<RsvpSettingsResponse> {
+  const response = await fetch(buildPublicUrl('/rsvp/settings', weddingSlug), {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  })
+
+  const json = (await response.json()) as ApiResponse<RsvpSettingsResponse>
+  return unwrapResponse(json)
+}
+
+// Update RSVP settings (admin)
+export async function updateRsvpSettings(
+  settings: Partial<RsvpSettings>,
+  weddingId?: string
+): Promise<{ settings: RsvpSettings }> {
+  return authenticatedFetch<{ settings: RsvpSettings }>(
+    buildAdminUrl('/rsvp/settings', weddingId),
+    {
+      method: 'PUT',
+      body: JSON.stringify(settings),
     }
   )
 }
@@ -588,6 +617,19 @@ export async function updateSchedule(
   })
 }
 
+export async function updateScheduleSettings(
+  settings: Partial<ScheduleSettings>,
+  weddingId?: string
+): Promise<{ settings: ScheduleSettings }> {
+  return authenticatedFetch<{ settings: ScheduleSettings }>(
+    buildAdminUrl('/schedule/settings', weddingId),
+    {
+      method: 'PUT',
+      body: JSON.stringify(settings),
+    }
+  )
+}
+
 // Contacts API functions
 
 export async function getContacts(weddingSlug?: string): Promise<ContactsData> {
@@ -616,6 +658,19 @@ export async function updateContacts(
     method: 'PUT',
     body: JSON.stringify(data),
   })
+}
+
+export async function updateContactsSettings(
+  settings: Partial<ContactsSettings>,
+  weddingId?: string
+): Promise<{ settings: ContactsSettings }> {
+  return authenticatedFetch<{ settings: ContactsSettings }>(
+    buildAdminUrl('/contacts/settings', weddingId),
+    {
+      method: 'PUT',
+      body: JSON.stringify(settings),
+    }
+  )
 }
 
 // Music API functions

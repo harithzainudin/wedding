@@ -127,7 +127,7 @@
 
 <template>
   <section
-    v-if="isEnabled && hasGifts"
+    v-if="isEnabled"
     id="wishlist"
     class="py-12 sm:py-16 px-4 sm:px-6 bg-sand dark:bg-dark-bg transition-colors duration-300"
   >
@@ -165,6 +165,16 @@
         >
           {{ t.wishlist?.tryAgain || 'Try Again' }}
         </button>
+      </div>
+
+      <!-- Empty State -->
+      <div
+        v-else-if="!hasGifts"
+        class="py-6 px-4 rounded-lg bg-charcoal/5 dark:bg-dark-text/5 border border-dashed border-charcoal/20 dark:border-dark-text/20 text-center"
+      >
+        <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary italic">
+          {{ t.placeholder?.giftInfo ?? 'No gifts in the wishlist yet' }}
+        </p>
       </div>
 
       <!-- Gifts Grid -->

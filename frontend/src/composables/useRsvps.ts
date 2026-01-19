@@ -1,6 +1,7 @@
 import { ref, computed } from 'vue'
-import { listRsvps, createRsvp, updateRsvp, deleteRsvp } from '@/services/api'
-import type { RsvpSubmission, AdminRsvpRequest } from '@/types/rsvp'
+import { listRsvps, createRsvp, updateRsvp, deleteRsvp, updateRsvpSettings } from '@/services/api'
+import type { RsvpSubmission, AdminRsvpRequest, RsvpSettings } from '@/types/rsvp'
+import { DEFAULT_RSVP_SETTINGS } from '@/types/rsvp'
 
 export interface RsvpSummary {
   total: number
@@ -25,6 +26,9 @@ export function useRsvps() {
     notAttending: 0,
     totalGuests: 0,
   })
+
+  // RSVP settings
+  const rsvpSettings = ref<RsvpSettings>(DEFAULT_RSVP_SETTINGS)
 
   // CRUD operation states
   const isCreating = ref(false)
@@ -51,6 +55,9 @@ export function useRsvps() {
       const data = await listRsvps(undefined, weddingId ?? currentWeddingId.value)
       rsvps.value = data.rsvps
       summary.value = data.summary
+      if (data.settings) {
+        rsvpSettings.value = data.settings
+      }
     } catch {
       loadError.value = 'Failed to load RSVPs. Please try again.'
     } finally {
@@ -171,6 +178,23 @@ export function useRsvps() {
     rsvps.value = []
   }
 
+  // Update RSVP settings
+  const updateSettings = async (
+    settings: Partial<RsvpSettings>,
+    weddingId?: string
+  ): Promise<{ success: boolean; error?: string }> => {
+    const effectiveWeddingId = weddingId ?? currentWeddingId.value
+
+    try {
+      const response = await updateRsvpSettings(settings, effectiveWeddingId)
+      rsvpSettings.value = response.settings
+      return { success: true }
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to update RSVP settings'
+      return { success: false, error: errorMessage }
+    }
+  }
+
   return {
     rsvps,
     isLoading,
@@ -196,5 +220,8 @@ export function useRsvps() {
     updateRsvpEntry,
     deleteRsvpEntry,
     clearOperationError,
+    // Settings
+    rsvpSettings,
+    updateSettings,
   }
 }

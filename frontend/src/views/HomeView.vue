@@ -30,7 +30,8 @@
   })
 
   // Fetch all public wedding data once at the top level
-  const { fetchPublicData, weddingError, isLoading, hasLoaded } = usePublicWeddingData()
+  const { fetchPublicData, weddingError, isLoading, hasLoaded, showRsvpSection, isAcceptingRsvps, getRsvpDeadline } =
+    usePublicWeddingData()
 
   // Fetch data when wedding slug is available
   // Always force refresh to ensure we get the latest wedding status
@@ -76,7 +77,12 @@
     <QRCodeHubSection />
     <GuestbookSection />
     <WishlistSection />
-    <RsvpSection />
-    <StickyNavigation />
+    <RsvpSection
+      v-if="showRsvpSection()"
+      :show-rsvp="true"
+      :is-accepting-rsvps="isAcceptingRsvps()"
+      :rsvp-deadline="getRsvpDeadline()"
+    />
+    <StickyNavigation :show-rsvp-button="showRsvpSection()" />
   </main>
 </template>

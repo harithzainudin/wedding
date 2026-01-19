@@ -15,8 +15,17 @@ export interface ContactPerson {
   order: number
 }
 
+export interface ContactsSettings {
+  showContacts: boolean
+}
+
+export const DEFAULT_CONTACTS_SETTINGS: ContactsSettings = {
+  showContacts: true,
+}
+
 export interface ContactsData {
   contacts: ContactPerson[]
+  settings?: ContactsSettings
   updatedAt?: string
   updatedBy?: string
 }
@@ -166,31 +175,8 @@ export function validateContactsUpdate(
 }
 
 // Default contacts data (fallback when no data exists in DB)
+// Empty array so admins clearly see they need to add contacts
 export const DEFAULT_CONTACTS: ContactsData = {
-  contacts: [
-    {
-      id: '1',
-      name: 'Abang Ahmad',
-      role: {
-        ms: 'Abang Pengantin Lelaki',
-        en: "Groom's Brother",
-        zh: '新郎的哥哥',
-        ta: 'மணமகனின் சகோதரர்',
-      },
-      phoneNumber: '+60123456789',
-      order: 0,
-    },
-    {
-      id: '2',
-      name: 'Kakak Aisyah',
-      role: {
-        ms: 'Kakak Pengantin Perempuan',
-        en: "Bride's Sister",
-        zh: '新娘的姐姐',
-        ta: 'மணமகளின் சகோதரி',
-      },
-      phoneNumber: '+60198765432',
-      order: 1,
-    },
-  ],
+  contacts: [],
+  settings: DEFAULT_CONTACTS_SETTINGS,
 }

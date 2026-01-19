@@ -1,35 +1,23 @@
 import { ref } from 'vue'
-import type { ContactsData, ContactPerson, ContactsUpdateRequest } from '@/types/contacts'
-import { getContacts, getContactsAdmin, updateContacts as apiUpdateContacts } from '@/services/api'
+import type {
+  ContactsData,
+  ContactPerson,
+  ContactsUpdateRequest,
+  ContactsSettings,
+} from '@/types/contacts'
+import { DEFAULT_CONTACTS_SETTINGS } from '@/types/contacts'
+import {
+  getContacts,
+  getContactsAdmin,
+  updateContacts as apiUpdateContacts,
+  updateContactsSettings as apiUpdateContactsSettings,
+} from '@/services/api'
 
 // Default contacts data (matches backend defaults)
+// Empty array to show empty state - admins should add their own contacts
 const DEFAULT_CONTACTS: ContactsData = {
-  contacts: [
-    {
-      id: '1',
-      name: 'Abang Ahmad',
-      role: {
-        ms: 'Abang Pengantin Lelaki',
-        en: "Groom's Brother",
-        zh: '新郎的哥哥',
-        ta: 'மணமகனின் சகோதரர்',
-      },
-      phoneNumber: '+60123456789',
-      order: 0,
-    },
-    {
-      id: '2',
-      name: 'Kakak Aisyah',
-      role: {
-        ms: 'Kakak Pengantin Perempuan',
-        en: "Bride's Sister",
-        zh: '新娘的姐姐',
-        ta: 'மணமகளின் சகோதரி',
-      },
-      phoneNumber: '+60198765432',
-      order: 1,
-    },
-  ],
+  contacts: [],
+  settings: DEFAULT_CONTACTS_SETTINGS,
 }
 
 // Singleton state
@@ -106,6 +94,31 @@ export function useContacts() {
     }
   }
 
+  // Update contacts settings (showContacts toggle)
+  const updateContactsSettings = async (
+    settings: Partial<ContactsSettings>,
+    weddingId?: string
+  ): Promise<{ success: boolean; error?: string }> => {
+    isSaving.value = true
+    saveError.value = ''
+
+    try {
+      const response = await apiUpdateContactsSettings(settings, weddingId)
+      // Update local state with new settings
+      contacts.value = {
+        ...contacts.value,
+        settings: response.settings,
+      }
+      return { success: true }
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to update settings'
+      saveError.value = errorMessage
+      return { success: false, error: errorMessage }
+    } finally {
+      isSaving.value = false
+    }
+  }
+
   // Generate unique ID for new items
   const generateId = (): string => {
     return `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`
@@ -131,6 +144,7 @@ export function useContacts() {
     fetchContacts,
     fetchContactsAdmin,
     updateContacts,
+    updateContactsSettings,
     generateId,
     resetToDefaults,
   }

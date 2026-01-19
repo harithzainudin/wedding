@@ -14,8 +14,17 @@ export interface ScheduleItem {
   order: number
 }
 
+export interface ScheduleSettings {
+  showSchedule: boolean
+}
+
+export const DEFAULT_SCHEDULE_SETTINGS: ScheduleSettings = {
+  showSchedule: true,
+}
+
 export interface ScheduleData {
   items: ScheduleItem[]
+  settings?: ScheduleSettings
   updatedAt?: string
   updatedBy?: string
 }

@@ -13,7 +13,11 @@ import { Resource } from 'sst'
 import { createSuccessResponse, createErrorResponse } from '../shared/response'
 import { requireWeddingAccess } from '../shared/auth'
 import { logError } from '../shared/logger'
-import { DEFAULT_SCHEDULE, type ScheduleData } from '../shared/schedule-validation'
+import {
+  DEFAULT_SCHEDULE,
+  DEFAULT_SCHEDULE_SETTINGS,
+  type ScheduleData,
+} from '../shared/schedule-validation'
 import { Keys } from '../shared/keys'
 import {
   resolveWeddingSlug,
@@ -85,6 +89,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
 
     const scheduleData: ScheduleData = {
       items: result.Item.items,
+      settings: result.Item.settings || DEFAULT_SCHEDULE_SETTINGS,
       updatedAt: result.Item.updatedAt,
       updatedBy: result.Item.updatedBy,
     }

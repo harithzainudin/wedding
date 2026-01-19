@@ -15,8 +15,17 @@ export interface ContactPerson {
   order: number
 }
 
+export interface ContactsSettings {
+  showContacts: boolean
+}
+
+export const DEFAULT_CONTACTS_SETTINGS: ContactsSettings = {
+  showContacts: true,
+}
+
 export interface ContactsData {
   contacts: ContactPerson[]
+  settings?: ContactsSettings
   updatedAt?: string
   updatedBy?: string
 }

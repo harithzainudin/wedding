@@ -46,6 +46,13 @@ api.route('GET /{weddingSlug}/rsvps', {
   ...functionConfig,
 })
 
+// GET /{weddingSlug}/rsvp/settings - Get RSVP settings (public)
+api.route('GET /{weddingSlug}/rsvp/settings', {
+  handler: 'src/functions/rsvp/get-settings.handler',
+  link: [table],
+  ...functionConfig,
+})
+
 // Function to add admin routes with secrets
 export function addAdminRoutes(
   adminPassword: sst.Secret,
@@ -169,6 +176,13 @@ export function addRsvpAuthRoutes(tokenSecret: sst.Secret) {
   // DELETE /admin/w/{weddingId}/rsvp/{id} - Delete RSVP
   api.route('DELETE /admin/w/{weddingId}/rsvp/{id}', {
     handler: 'src/functions/rsvp/delete.handler',
+    link: [table, tokenSecret],
+    ...functionConfig,
+  })
+
+  // PUT /admin/w/{weddingId}/rsvp/settings - Update RSVP settings
+  api.route('PUT /admin/w/{weddingId}/rsvp/settings', {
+    handler: 'src/functions/rsvp/update-settings.handler',
     link: [table, tokenSecret],
     ...functionConfig,
   })
@@ -321,6 +335,13 @@ export function addScheduleRoutes(tokenSecret: sst.Secret) {
     link: [table, tokenSecret],
     ...functionConfig,
   })
+
+  // PUT /admin/w/{weddingId}/schedule/settings - Update schedule settings (auth required)
+  api.route('PUT /admin/w/{weddingId}/schedule/settings', {
+    handler: 'src/functions/schedule/update-settings.handler',
+    link: [table, tokenSecret],
+    ...functionConfig,
+  })
 }
 
 // Function to add contacts routes
@@ -350,6 +371,13 @@ export function addContactsRoutes(tokenSecret: sst.Secret) {
   // PUT /admin/w/{weddingId}/contacts - Update contacts (auth required)
   api.route('PUT /admin/w/{weddingId}/contacts', {
     handler: 'src/functions/contacts/update.handler',
+    link: [table, tokenSecret],
+    ...functionConfig,
+  })
+
+  // PUT /admin/w/{weddingId}/contacts/settings - Update contacts settings (auth required)
+  api.route('PUT /admin/w/{weddingId}/contacts/settings', {
+    handler: 'src/functions/contacts/update-settings.handler',
     link: [table, tokenSecret],
     ...functionConfig,
   })

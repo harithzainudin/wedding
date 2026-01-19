@@ -1,5 +1,24 @@
 import type { HonorificTitle } from './index'
 
+// RSVP Settings
+export interface RsvpSettings {
+  showRsvp: boolean // Show the RSVP section on the site
+  acceptingRsvps: boolean // Whether to accept new RSVPs (form is open)
+  rsvpDeadline?: string // Optional ISO date string for deadline (empty = no deadline, open until event)
+}
+
+export const DEFAULT_RSVP_SETTINGS: RsvpSettings = {
+  showRsvp: true,
+  acceptingRsvps: true,
+}
+
+// Response from public get-settings endpoint
+export interface RsvpSettingsResponse {
+  settings: RsvpSettings
+  eventDate?: string
+  isAcceptingRsvps: boolean // Computed: whether RSVPs can currently be submitted
+}
+
 export interface RsvpFormData {
   title: HonorificTitle
   fullName: string
@@ -34,6 +53,7 @@ export interface RsvpListResponse {
     notAttending: number
     totalGuests: number
   }
+  settings?: RsvpSettings
 }
 
 // Admin RSVP request (create/update)

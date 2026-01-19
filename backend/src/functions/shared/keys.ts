@@ -309,3 +309,4 @@ export type SettingsType =
   | 'GIFTS'
   | 'QRCODE_HUB'
   | 'PARKING'
+  | 'RSVP'

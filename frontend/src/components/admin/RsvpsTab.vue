@@ -1,18 +1,24 @@
 <script setup lang="ts">
-  import { ref, onMounted, watch, computed } from 'vue'
+  import { ref, onMounted, watch, computed, onUnmounted } from 'vue'
   import { useRsvps } from '@/composables/useRsvps'
   import { useAdminLanguage } from '@/composables/useAdminLanguage'
   import { useLoadingOverlay } from '@/composables/useLoadingOverlay'
+  import { useWeddingDetails } from '@/composables/useWeddingDetails'
   import { interpolate } from '@/i18n/translations'
-  import { getStoredPrimaryWeddingId } from '@/services/tokenManager'
+  import { getStoredPrimaryWeddingId, getStoredPrimaryWeddingSlug } from '@/services/tokenManager'
   import type { RsvpSubmission, AdminRsvpRequest } from '@/types/rsvp'
   import RsvpFormModal from './RsvpFormModal.vue'
   import ConfirmModal from './ConfirmModal.vue'
 
   const { adminT } = useAdminLanguage()
   const { withLoading } = useLoadingOverlay()
+  const { weddingDetails, fetchWeddingDetails } = useWeddingDetails()
 
   const weddingId = computed(() => getStoredPrimaryWeddingId())
+  const weddingSlug = computed(() => getStoredPrimaryWeddingSlug())
+
+  // Settings panel state
+  const showSettings = ref(false)
 
   const {
     filteredRsvps,
@@ -31,7 +37,80 @@
     updateRsvpEntry,
     deleteRsvpEntry,
     clearOperationError,
+    rsvpSettings,
+    updateSettings,
   } = useRsvps()
+
+  // Local state for settings (saved when clicking save button)
+  const localShowRsvp = ref(true)
+  const localAcceptingRsvps = ref(true)
+  const localRsvpDeadline = ref<string>('')
+
+  // Sync local settings state from rsvpSettings
+  const syncLocalSettings = () => {
+    localShowRsvp.value = rsvpSettings.value.showRsvp
+    localAcceptingRsvps.value = rsvpSettings.value.acceptingRsvps
+    localRsvpDeadline.value = rsvpSettings.value.rsvpDeadline
+      ? rsvpSettings.value.rsvpDeadline.slice(0, 16) // Format for datetime-local input
+      : ''
+  }
+
+  // When showRsvp is disabled, also disable acceptingRsvps
+  watch(localShowRsvp, (newValue) => {
+    if (!newValue) {
+      localAcceptingRsvps.value = false
+    }
+  })
+
+  // Check if settings have changed
+  const hasSettingsChanges = computed(() => {
+    const currentDeadline = rsvpSettings.value.rsvpDeadline
+      ? rsvpSettings.value.rsvpDeadline.slice(0, 16)
+      : ''
+    return (
+      localShowRsvp.value !== rsvpSettings.value.showRsvp ||
+      localAcceptingRsvps.value !== rsvpSettings.value.acceptingRsvps ||
+      localRsvpDeadline.value !== currentDeadline
+    )
+  })
+
+  // Get event date for deadline validation
+  const eventDate = computed(() => {
+    return weddingDetails.value?.eventDate
+  })
+
+  // Convert local deadline to datetime-local max value
+  const maxDeadlineDate = computed(() => {
+    if (!eventDate.value) return ''
+    return eventDate.value.slice(0, 16) // Format for datetime-local input
+  })
+
+  // Clear deadline
+  const clearDeadline = () => {
+    localRsvpDeadline.value = ''
+  }
+
+  // Save settings
+  const saveSettings = async () => {
+    await withLoading(
+      async () => {
+        await updateSettings(
+          {
+            showRsvp: localShowRsvp.value,
+            acceptingRsvps: localAcceptingRsvps.value,
+            rsvpDeadline: localRsvpDeadline.value
+              ? new Date(localRsvpDeadline.value).toISOString()
+              : null,
+          },
+          weddingId.value ?? undefined
+        )
+      },
+      {
+        message: adminT.value.loadingOverlay.saving,
+        showSuccess: true,
+      }
+    )
+  }
 
   // Modal state
   const showFormModal = ref(false)
@@ -101,20 +180,62 @@
     }
   })
 
-  onMounted(() => {
-    fetchRsvps(weddingId.value ?? undefined)
+  // Sync local settings when rsvpSettings changes
+  watch(rsvpSettings, () => {
+    syncLocalSettings()
+  })
+
+  // Handle Escape key to close settings
+  const handleEscapeKey = (e: KeyboardEvent): void => {
+    if (e.key === 'Escape' && showSettings.value) {
+      showSettings.value = false
+    }
+  }
+
+  // Reset body overflow after settings panel leave animation completes
+  const onSettingsClosed = (): void => {
+    document.body.style.overflow = ''
+  }
+
+  watch(showSettings, (isOpen) => {
+    if (isOpen) {
+      document.addEventListener('keydown', handleEscapeKey)
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.removeEventListener('keydown', handleEscapeKey)
+    }
+  })
+
+  onUnmounted(() => {
+    document.removeEventListener('keydown', handleEscapeKey)
+  })
+
+  onMounted(async () => {
+    await fetchRsvps(weddingId.value ?? undefined)
+    // fetchWeddingDetails expects a slug, not ID
+    if (weddingSlug.value) {
+      await fetchWeddingDetails(weddingSlug.value)
+    }
+    syncLocalSettings()
   })
 
   // Watch for wedding ID changes (user switching between weddings)
-  watch(weddingId, (newId, oldId) => {
+  watch(weddingId, async (newId, oldId) => {
     if (newId && newId !== oldId) {
-      fetchRsvps(newId)
+      await fetchRsvps(newId)
+      // fetchWeddingDetails expects a slug, not ID
+      const slug = getStoredPrimaryWeddingSlug()
+      if (slug) {
+        await fetchWeddingDetails(slug)
+      }
+      syncLocalSettings()
     }
   })
 </script>
 
 <template>
   <div>
+    <!-- Stats Cards -->
     <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
       <div class="p-4 bg-white dark:bg-dark-bg-secondary rounded-xl shadow-sm dark:shadow-lg">
         <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary">
@@ -191,6 +312,28 @@
       </div>
 
       <div class="flex gap-2">
+        <!-- Settings Button -->
+        <button
+          type="button"
+          class="flex items-center gap-2 px-4 py-2 font-body text-sm text-charcoal dark:text-dark-text border border-sand-dark dark:border-dark-border rounded-lg hover:bg-sand dark:hover:bg-dark-bg-secondary transition-colors cursor-pointer"
+          @click="showSettings = !showSettings"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
+            />
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+            />
+          </svg>
+          <span class="hidden sm:inline">{{ adminT.common.settings }}</span>
+        </button>
         <button
           type="button"
           class="flex items-center gap-2 px-4 py-2 font-body text-sm text-white bg-sage rounded-lg hover:bg-sage-dark transition-colors cursor-pointer"
@@ -445,5 +588,261 @@
         </div>
       </Transition>
     </Teleport>
+
+    <!-- Settings Panel (Bottom Sheet / Modal) -->
+    <Teleport to="body">
+      <Transition name="settings-panel" @after-leave="onSettingsClosed">
+        <div v-if="showSettings" class="settings-container" @click.self="showSettings = false">
+          <div
+            class="settings-panel bg-white dark:bg-dark-bg-secondary border-sand-dark dark:border-dark-border"
+          >
+            <!-- Mobile Header with Close -->
+            <div class="settings-mobile-header border-sand-dark dark:border-dark-border">
+              <h3 class="font-heading text-lg font-medium text-charcoal dark:text-dark-text">
+                {{ adminT.rsvps.title }} {{ adminT.common.settings }}
+              </h3>
+              <button
+                type="button"
+                class="p-2 -m-2 text-charcoal-light hover:text-charcoal dark:text-dark-text-secondary dark:hover:text-dark-text cursor-pointer"
+                @click="showSettings = false"
+              >
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </button>
+            </div>
+
+            <!-- Settings Content -->
+            <div class="p-4 space-y-4">
+              <!-- Show RSVP Section Toggle -->
+              <div
+                class="flex items-center justify-between py-3 px-4 bg-sand/50 dark:bg-dark-bg rounded-lg"
+              >
+                <div>
+                  <label class="font-body text-sm font-medium text-charcoal dark:text-dark-text">
+                    {{ adminT.rsvps.showRsvpSection }}
+                  </label>
+                  <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary">
+                    {{ adminT.rsvps.showRsvpDesc }}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  role="switch"
+                  :aria-checked="localShowRsvp"
+                  :disabled="isLoading"
+                  class="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-sage focus:ring-offset-2"
+                  :class="localShowRsvp ? 'bg-sage' : 'bg-gray-300 dark:bg-dark-border'"
+                  @click="localShowRsvp = !localShowRsvp"
+                >
+                  <span
+                    class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"
+                    :class="localShowRsvp ? 'translate-x-5' : 'translate-x-0'"
+                  />
+                </button>
+              </div>
+
+              <!-- Accept RSVPs Toggle -->
+              <div
+                class="flex items-center justify-between py-3 px-4 bg-sand/50 dark:bg-dark-bg rounded-lg transition-opacity"
+                :class="{ 'opacity-50': !localShowRsvp }"
+              >
+                <div>
+                  <label
+                    class="font-body text-sm font-medium text-charcoal dark:text-dark-text"
+                    :class="{ 'text-charcoal-light dark:text-dark-text-secondary': !localShowRsvp }"
+                  >
+                    {{ adminT.rsvps.acceptRsvps }}
+                  </label>
+                  <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary">
+                    {{
+                      !localShowRsvp
+                        ? adminT.rsvps.acceptRsvpsDisabledHint
+                        : adminT.rsvps.acceptRsvpsDesc
+                    }}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  role="switch"
+                  :aria-checked="localAcceptingRsvps"
+                  :disabled="isLoading || !localShowRsvp"
+                  class="relative inline-flex h-6 w-11 flex-shrink-0 rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-sage focus:ring-offset-2"
+                  :class="[
+                    localAcceptingRsvps && localShowRsvp
+                      ? 'bg-sage'
+                      : 'bg-gray-300 dark:bg-dark-border',
+                    !localShowRsvp ? 'cursor-not-allowed' : 'cursor-pointer',
+                  ]"
+                  @click="localShowRsvp && (localAcceptingRsvps = !localAcceptingRsvps)"
+                >
+                  <span
+                    class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"
+                    :class="localAcceptingRsvps ? 'translate-x-5' : 'translate-x-0'"
+                  />
+                </button>
+              </div>
+
+              <!-- RSVP Deadline -->
+              <div class="py-3 px-4 bg-sand/50 dark:bg-dark-bg rounded-lg">
+                <label class="font-body text-sm font-medium text-charcoal dark:text-dark-text">
+                  {{ adminT.rsvps.rsvpDeadline }}
+                </label>
+                <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary mb-2">
+                  {{ adminT.rsvps.rsvpDeadlineDesc }}
+                </p>
+                <div class="flex items-center gap-2">
+                  <input
+                    v-model="localRsvpDeadline"
+                    type="datetime-local"
+                    :max="maxDeadlineDate"
+                    :disabled="isLoading"
+                    class="flex-1 px-3 py-2 font-body text-sm border border-charcoal/20 dark:border-dark-border rounded-lg bg-white dark:bg-dark-bg-elevated text-charcoal dark:text-dark-text focus:ring-2 focus:ring-sage focus:border-sage"
+                  />
+                  <button
+                    v-if="localRsvpDeadline"
+                    type="button"
+                    class="px-3 py-2 font-body text-xs text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors cursor-pointer"
+                    @click="clearDeadline"
+                  >
+                    {{ adminT.rsvps.clearDeadline }}
+                  </button>
+                </div>
+                <p
+                  v-if="!localRsvpDeadline"
+                  class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary mt-1 italic"
+                >
+                  {{ adminT.rsvps.noDeadline }}
+                </p>
+              </div>
+
+              <!-- Save Button -->
+              <div class="flex justify-end pt-2">
+                <button
+                  type="button"
+                  :disabled="!hasSettingsChanges || isLoading"
+                  class="px-4 py-2 font-body text-sm text-white bg-sage rounded-lg hover:bg-sage-dark transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                  @click="saveSettings"
+                >
+                  {{ adminT.common.saveChanges }}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </Transition>
+    </Teleport>
   </div>
 </template>
+
+<style scoped>
+  /* Settings Container - Backdrop */
+  .settings-container {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    display: flex;
+    align-items: flex-end;
+    background: rgba(0, 0, 0, 0);
+    transition: background 0.3s ease-out;
+  }
+
+  /* Settings Panel - Mobile: Bottom Sheet */
+  .settings-panel {
+    width: 100%;
+    max-height: 85vh;
+    overflow-y: auto;
+    border-top-left-radius: 1rem;
+    border-top-right-radius: 1rem;
+    box-shadow: 0 -4px 6px -1px rgba(0, 0, 0, 0.1);
+    transform: translateY(0);
+    transition: transform 0.3s ease-out;
+    will-change: transform;
+  }
+
+  .settings-mobile-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem;
+    border-bottom-width: 1px;
+    position: sticky;
+    top: 0;
+    background: inherit;
+    z-index: 10;
+  }
+
+  /* Desktop styles */
+  @media (min-width: 640px) {
+    .settings-container {
+      align-items: center;
+      justify-content: center;
+      background: rgba(0, 0, 0, 0.5);
+    }
+
+    .settings-panel {
+      width: auto;
+      min-width: 400px;
+      max-width: 500px;
+      max-height: 80vh;
+      border-radius: 1rem;
+      box-shadow:
+        0 20px 25px -5px rgba(0, 0, 0, 0.1),
+        0 10px 10px -5px rgba(0, 0, 0, 0.04);
+      transform: scale(1);
+      transition: transform 0.3s ease-out, opacity 0.3s ease-out;
+      will-change: transform, opacity;
+    }
+  }
+
+  /* Transition - Enter */
+  .settings-panel-enter-active {
+    transition: opacity 0.3s ease-out;
+  }
+
+  .settings-panel-enter-active .settings-panel {
+    transition: transform 0.3s ease-out;
+  }
+
+  .settings-panel-enter-from {
+    opacity: 0;
+  }
+
+  .settings-panel-enter-from .settings-panel {
+    transform: translateY(100%);
+  }
+
+  @media (min-width: 640px) {
+    .settings-panel-enter-from .settings-panel {
+      transform: scale(0.95) translateY(10px);
+    }
+  }
+
+  /* Transition - Leave */
+  .settings-panel-leave-active {
+    transition: opacity 0.2s ease-in;
+  }
+
+  .settings-panel-leave-active .settings-panel {
+    transition: transform 0.2s ease-in;
+  }
+
+  .settings-panel-leave-to {
+    opacity: 0;
+  }
+
+  .settings-panel-leave-to .settings-panel {
+    transform: translateY(100%);
+  }
+
+  @media (min-width: 640px) {
+    .settings-panel-leave-to .settings-panel {
+      transform: scale(0.95) translateY(10px);
+    }
+  }
+</style>

@@ -89,16 +89,18 @@ export interface QRCodeHubSettings {
 export const DEFAULT_RESTU_TAGLINE = 'Restu anda, walau dalam apa bentuk, amat bermakna'
 
 // Default QR Code Hub settings
+// hubEnabled: true so admins see the section by default
+// All QR types disabled: admin must configure which ones to enable
 export const DEFAULT_QRCODE_HUB_SETTINGS: QRCodeHubSettings = {
-  hubEnabled: false,
-  website: { enabled: true },
+  hubEnabled: true,
+  website: { enabled: false },
   restuDigital: {
     enabled: false,
     useImage: true,
     tagline: DEFAULT_RESTU_TAGLINE,
   },
   location: {
-    enabled: true,
+    enabled: false,
     preferredApp: 'both',
   },
   wifi: {
@@ -108,9 +110,9 @@ export const DEFAULT_QRCODE_HUB_SETTINGS: QRCodeHubSettings = {
     encryption: 'WPA',
     hidden: false,
   },
-  rsvp: { enabled: true },
-  calendar: { enabled: true },
-  hashtag: { enabled: true },
+  rsvp: { enabled: false },
+  calendar: { enabled: false },
+  hashtag: { enabled: false },
   displayOrder: ['website', 'restuDigital', 'location', 'wifi', 'rsvp', 'calendar', 'hashtag'],
 }
 

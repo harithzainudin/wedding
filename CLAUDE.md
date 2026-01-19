@@ -78,11 +78,13 @@ Remove unused imports, variables, and parameters to avoid build failures.
 ### Common CI Failure Patterns
 
 1. **Missing i18n translations**: When adding new UI text, update THREE places:
+
    - The interface (e.g., `AdminTranslations` or `Translations`)
    - The `en` translation object
    - The `ms` translation object
 
 2. **Passing `undefined` to optional props in Vue templates**: Use `v-bind` with conditional object:
+
    ```vue
    <!-- BAD - weddingSlug can be undefined -->
    <Component :wedding-slug="weddingSlug" />
@@ -92,6 +94,7 @@ Remove unused imports, variables, and parameters to avoid build failures.
    ```
 
 3. **Using `.value` in Vue templates**: Refs are auto-unwrapped in templates:
+
    ```vue
    <!-- BAD - don't use .value in templates -->
    @click="fetchData(someRef.value)"
@@ -103,48 +106,56 @@ Remove unused imports, variables, and parameters to avoid build failures.
 4. **Unused imports after refactoring**: Remove imports that are no longer used
 
 5. **Type mismatches with readonly arrays**: Cast readonly arrays when passing to components:
+
    ```typescript
    :prop="(readonlyArray as MutableType[]) ?? []"
    ```
 
 6. **Optional properties with `| undefined` values**: Use conditional spread, not direct assignment:
+
    ```typescript
    // BAD - compressionInfo can be undefined
    uploadProgress.set(id, {
      progress: 10,
-     compression: compressionInfo,  // ❌ Type error
+     compression: compressionInfo, // ❌ Type error
    })
 
    // GOOD - conditionally spread
    uploadProgress.set(id, {
      progress: 10,
-     ...(compressionInfo && { compression: compressionInfo }),  // ✅
+     ...(compressionInfo && { compression: compressionInfo }), // ✅
    })
    ```
 
 7. **Missing type properties**: When using a property in code/template, ensure it exists in the type:
+
    ```typescript
    // If template uses `{{ wedding.plan }}`, the Wedding interface must have:
    interface Wedding {
-     plan?: string  // Add this!
+     plan?: string // Add this!
    }
    ```
 
 8. **TabType mismatches between components**: When emitting tab changes, ensure the `TabType` union matches between parent and child components
 
 9. **Closure type narrowing with async callbacks**: TypeScript can't track variable assignments inside Promise callbacks:
+
    ```typescript
    // BAD - TypeScript narrows criticalError to 'never' after Promise.all
    let criticalError: ErrorType | null = null
-   await Promise.all([promise.catch(err => { criticalError = err })])
+   await Promise.all([
+     promise.catch((err) => {
+       criticalError = err
+     }),
+   ])
    if (criticalError) {
-     console.log(criticalError.message)  // ❌ Property 'message' does not exist on type 'never'
+     console.log(criticalError.message) // ❌ Property 'message' does not exist on type 'never'
    }
 
    // GOOD - use type assertion
    if (criticalError !== null) {
      const error = criticalError as ErrorType
-     console.log(error.message)  // ✅
+     console.log(error.message) // ✅
    }
    ```
 
@@ -207,13 +218,24 @@ cd frontend && pnpm check && cd ../backend && pnpm check
 
 ## Frontend Views
 
-| View                 | Path                            | Purpose                          |
-| -------------------- | ------------------------------- | -------------------------------- |
-| `HomeView.vue`       | `/{slug}` or `/`                | Public wedding landing page      |
-| `RsvpView.vue`       | `/{slug}/rsvp` or `/rsvp`       | Public RSVP submission           |
-| `AdminView.vue`      | `/{slug}/admin/:tab?`           | Wedding admin CMS                |
-| `SuperAdminView.vue` | `/superadmin`                   | Platform super admin dashboard   |
-| `NotFoundView.vue`   | `*`                             | 404 page                         |
+| View                 | Path                      | Purpose                        |
+| -------------------- | ------------------------- | ------------------------------ |
+| `LoginView.vue`      | `/login`                  | Unified admin login page       |
+| `HomeView.vue`       | `/{slug}` or `/`          | Public wedding landing page    |
+| `RsvpView.vue`       | `/{slug}/rsvp` or `/rsvp` | Public RSVP submission         |
+| `AdminView.vue`      | `/{slug}/admin/:tab?`     | Wedding admin CMS              |
+| `SuperAdminView.vue` | `/superadmin/:tab?`       | Platform super admin dashboard |
+| `NotFoundView.vue`   | `*`                       | 404 page                       |
+
+### Navigation Guards
+
+The router includes authentication guards (`router/index.ts`):
+
+- **Unauthenticated users** accessing protected routes → Redirected to `/login`
+- **Authenticated users** accessing `/login` → Redirected based on user type:
+  - Super Admin / Staff → `/superadmin`
+  - Client → `/{primaryWeddingSlug}/admin`
+- **Client users** accessing `/superadmin` → Redirected to their wedding admin
 
 ## URL Structure & Base URL Configuration
 
@@ -234,25 +256,27 @@ This allows the wedding site to be served from a subpath (e.g., `yourdomain.com/
 
 When running `pnpm dev`, all URLs must include the `/wedding` prefix:
 
-| Page                  | URL                                              |
-| --------------------- | ------------------------------------------------ |
-| Public Wedding        | `http://localhost:5173/wedding/ahmad-sarah`      |
-| RSVP Page             | `http://localhost:5173/wedding/ahmad-sarah/rsvp` |
-| Wedding Admin         | `http://localhost:5173/wedding/admin`            |
-| Super Admin Dashboard | `http://localhost:5173/wedding/superadmin`       |
+| Page                  | URL                                               |
+| --------------------- | ------------------------------------------------- |
+| Login                 | `http://localhost:5173/wedding/login`             |
+| Public Wedding        | `http://localhost:5173/wedding/ahmad-sarah`       |
+| RSVP Page             | `http://localhost:5173/wedding/ahmad-sarah/rsvp`  |
+| Wedding Admin         | `http://localhost:5173/wedding/ahmad-sarah/admin` |
+| Super Admin Dashboard | `http://localhost:5173/wedding/superadmin`        |
 
 ### Multi-Tenant Route Structure
 
 The app supports multi-tenant weddings with path-based routing:
 
 ```
-/wedding/                           # Landing/home (if implemented)
+/wedding/login                      # Unified admin login page
+/wedding/                           # Landing/home (legacy)
 /wedding/{weddingSlug}              # Public wedding page (e.g., /wedding/ahmad-sarah)
 /wedding/{weddingSlug}/rsvp         # RSVP page for a wedding
 /wedding/{weddingSlug}/admin        # Admin panel dashboard
 /wedding/{weddingSlug}/admin/{tab}  # Admin panel specific tab (venue, gallery, etc.)
-/wedding/admin                      # Legacy admin route
-/wedding/superadmin                 # Super admin dashboard (platform management)
+/wedding/superadmin                 # Super admin dashboard
+/wedding/superadmin/{tab}           # Super admin specific tab (weddings, staff)
 ```
 
 ### Admin Tab URLs
@@ -272,6 +296,13 @@ Admin panel uses path-based tabs for proper browser navigation (back/forward but
 | Contacts        | `/wedding/ahmad-sarah/admin/contacts`  |
 | RSVPs           | `/wedding/ahmad-sarah/admin/rsvps`     |
 | QR Hub          | `/wedding/ahmad-sarah/admin/qrcodehub` |
+
+### Super Admin Tab URLs
+
+| Tab      | URL Example                 |
+| -------- | --------------------------- |
+| Weddings | `/wedding/superadmin`       |
+| Staff    | `/wedding/superadmin/staff` |
 
 ### User Types
 
@@ -331,6 +362,28 @@ DELETE /superadmin/staff/{username}                      # Delete staff (removes
 
 # Utilities
 POST   /superadmin/cleanup-orphan-data                   # Cleanup legacy orphan data
+```
+
+### Admin API Endpoints
+
+Admin endpoints support both legacy (single-tenant) and multi-tenant patterns:
+
+```
+# Authentication
+POST   /admin/login                                      # Login (returns userType, adminUserType, weddingIds)
+POST   /admin/refresh                                    # Refresh token
+GET    /admin/profile                                    # Get current user profile
+POST   /admin/set-new-password                           # Set password after forced reset
+
+# Wedding Context
+GET    /admin/my-weddings                                # List weddings assigned to current user
+GET    /admin/resolve-slug/{slug}                        # Resolve slug to weddingId
+
+# Multi-Tenant Feature Endpoints (use /admin/w/{weddingId}/...)
+GET    /admin/w/{weddingId}/rsvps                        # List RSVPs for wedding
+GET    /admin/w/{weddingId}/images                       # List images for wedding
+GET    /admin/w/{weddingId}/gifts                        # List gifts for wedding
+# ... all feature endpoints follow this pattern
 ```
 
 ### Common Mistake
@@ -414,59 +467,59 @@ The frontend uses Vue composables for state management and API interactions:
 
 ### Admin & Auth
 
-| Composable             | Purpose                                   | Location                            |
-| ---------------------- | ----------------------------------------- | ----------------------------------- |
-| `useSuperAdmin()`      | Super admin wedding/user management       | `composables/useSuperAdmin.ts`      |
-| `useStaff()`           | Staff member CRUD operations              | `composables/useStaff.ts`           |
-| `useAdminAuth()`       | Admin authentication state and login      | `composables/useAdminAuth.ts`       |
-| `useAdminUsers()`      | Admin user CRUD operations                | `composables/useAdminUsers.ts`      |
-| `useWeddingContext()`  | Multi-tenant wedding context/slug         | `composables/useWeddingContext.ts`  |
-| `useProfile()`         | Admin profile management                  | `composables/useProfile.ts`         |
-| `usePasswordChange()`  | Password change modal handling            | `composables/usePasswordChange.ts`  |
+| Composable            | Purpose                              | Location                           |
+| --------------------- | ------------------------------------ | ---------------------------------- |
+| `useSuperAdmin()`     | Super admin wedding/user management  | `composables/useSuperAdmin.ts`     |
+| `useStaff()`          | Staff member CRUD operations         | `composables/useStaff.ts`          |
+| `useAdminAuth()`      | Admin authentication state and login | `composables/useAdminAuth.ts`      |
+| `useAdminUsers()`     | Admin user CRUD operations           | `composables/useAdminUsers.ts`     |
+| `useWeddingContext()` | Multi-tenant wedding context/slug    | `composables/useWeddingContext.ts` |
+| `useProfile()`        | Admin profile management             | `composables/useProfile.ts`        |
+| `usePasswordChange()` | Password change modal handling       | `composables/usePasswordChange.ts` |
 
 ### Feature Management
 
-| Composable              | Purpose                                  | Location                             |
-| ----------------------- | ---------------------------------------- | ------------------------------------ |
-| `useWeddingDetails()`   | Wedding details (names, date, etc.)      | `composables/useWeddingDetails.ts`   |
-| `useVenue()`            | Venue/location settings                  | `composables/useVenue.ts`            |
-| `useVenueConfig()`      | Venue configuration                      | `composables/useVenueConfig.ts`      |
-| `useSchedule()`         | Schedule/timeline management             | `composables/useSchedule.ts`         |
-| `useGallery()`          | Image gallery management                 | `composables/useGallery.ts`          |
-| `useMusic()`            | Music player settings                    | `composables/useMusic.ts`            |
-| `useGifts()`            | Gift registry management                 | `composables/useGifts.ts`            |
-| `usePublicGifts()`      | Public gift viewing (guests)             | `composables/usePublicGifts.ts`      |
-| `useRsvps()`            | RSVP management                          | `composables/useRsvps.ts`            |
-| `useContacts()`         | Contacts management                      | `composables/useContacts.ts`         |
-| `useTheme()`            | Theme customization                      | `composables/useTheme.ts`            |
-| `useQRCodeHub()`        | QR code hub settings                     | `composables/useQRCodeHub.ts`        |
-| `useParkingImages()`    | Parking guide image management           | `composables/useParkingImages.ts`    |
-| `usePublicWeddingData()`| Public wedding data loading              | `composables/usePublicWeddingData.ts`|
+| Composable               | Purpose                             | Location                              |
+| ------------------------ | ----------------------------------- | ------------------------------------- |
+| `useWeddingDetails()`    | Wedding details (names, date, etc.) | `composables/useWeddingDetails.ts`    |
+| `useVenue()`             | Venue/location settings             | `composables/useVenue.ts`             |
+| `useVenueConfig()`       | Venue configuration                 | `composables/useVenueConfig.ts`       |
+| `useSchedule()`          | Schedule/timeline management        | `composables/useSchedule.ts`          |
+| `useGallery()`           | Image gallery management            | `composables/useGallery.ts`           |
+| `useMusic()`             | Music player settings               | `composables/useMusic.ts`             |
+| `useGifts()`             | Gift registry management            | `composables/useGifts.ts`             |
+| `usePublicGifts()`       | Public gift viewing (guests)        | `composables/usePublicGifts.ts`       |
+| `useRsvps()`             | RSVP management                     | `composables/useRsvps.ts`             |
+| `useContacts()`          | Contacts management                 | `composables/useContacts.ts`          |
+| `useTheme()`             | Theme customization                 | `composables/useTheme.ts`             |
+| `useQRCodeHub()`         | QR code hub settings                | `composables/useQRCodeHub.ts`         |
+| `useParkingImages()`     | Parking guide image management      | `composables/useParkingImages.ts`     |
+| `usePublicWeddingData()` | Public wedding data loading         | `composables/usePublicWeddingData.ts` |
 
 ### UI & Utilities
 
-| Composable           | Purpose                               | Location                          |
-| -------------------- | ------------------------------------- | --------------------------------- |
-| `useLanguage()`      | Public site i18n (4 languages)        | `composables/useLanguage.ts`      |
-| `useAdminLanguage()` | Admin CMS i18n (2 languages)          | `composables/useAdminLanguage.ts` |
-| `useDarkMode()`      | Dark mode toggle                      | `composables/useDarkMode.ts`      |
-| `useDocumentTitle()` | Page title management                 | `composables/useDocumentTitle.ts` |
-| `useScrollReveal()`  | Scroll-based animations               | `composables/useScrollReveal.ts`  |
-| `useThemePreview()`  | Theme preview in customizer           | `composables/useThemePreview.ts`  |
-| `useCalendar()`      | Calendar utilities                    | `composables/useCalendar.ts`      |
-| `useNameOrder()`     | Display name ordering                 | `composables/useNameOrder.ts`     |
-| `useCrudList()`      | Generic CRUD list operations          | `composables/useCrudList.ts`      |
+| Composable           | Purpose                        | Location                          |
+| -------------------- | ------------------------------ | --------------------------------- |
+| `useLanguage()`      | Public site i18n (4 languages) | `composables/useLanguage.ts`      |
+| `useAdminLanguage()` | Admin CMS i18n (2 languages)   | `composables/useAdminLanguage.ts` |
+| `useDarkMode()`      | Dark mode toggle               | `composables/useDarkMode.ts`      |
+| `useDocumentTitle()` | Page title management          | `composables/useDocumentTitle.ts` |
+| `useScrollReveal()`  | Scroll-based animations        | `composables/useScrollReveal.ts`  |
+| `useThemePreview()`  | Theme preview in customizer    | `composables/useThemePreview.ts`  |
+| `useCalendar()`      | Calendar utilities             | `composables/useCalendar.ts`      |
+| `useNameOrder()`     | Display name ordering          | `composables/useNameOrder.ts`     |
+| `useCrudList()`      | Generic CRUD list operations   | `composables/useCrudList.ts`      |
 
 ## Frontend Utilities
 
 Helper utilities in `/frontend/src/utils/`:
 
-| Utility              | Purpose                                              |
-| -------------------- | ---------------------------------------------------- |
-| `imageCompression.ts`| Client-side image compression before upload          |
-| `apiCache.ts`        | API response caching system                          |
-| `qrCodeFormats.ts`   | QR code format generators for various platforms      |
-| `themeInjector.ts`   | Dynamic theme CSS injection                          |
+| Utility               | Purpose                                         |
+| --------------------- | ----------------------------------------------- |
+| `imageCompression.ts` | Client-side image compression before upload     |
+| `apiCache.ts`         | API response caching system                     |
+| `qrCodeFormats.ts`    | QR code format generators for various platforms |
+| `themeInjector.ts`    | Dynamic theme CSS injection                     |
 
 ## Backend Architecture
 
@@ -527,6 +580,7 @@ backend/src/functions/
 │   ├── create.ts, delete.ts, list.ts
 │   ├── change-password.ts, set-new-password.ts
 │   ├── force-reset-password.ts, update-email.ts
+│   ├── my-weddings.ts, resolve-slug.ts
 ├── auth/                    # Public authentication
 │   └── login.ts, refresh.ts
 ├── wedding-details/         # Wedding details (names, date)

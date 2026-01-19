@@ -482,25 +482,26 @@ export function validateWeddingDetailsUpdate(
 }
 
 // Default wedding details data (fallback when no data exists in DB)
+// Uses bracket notation placeholders to clearly indicate data needs to be updated
 export const DEFAULT_WEDDING_DETAILS: WeddingDetailsData = {
   couple: {
     bride: {
-      fullName: 'Nama Penuh Pengantin Perempuan',
-      nickname: 'Aisyah',
+      fullName: "[Bride's Full Name]",
+      nickname: '[Bride]',
     },
     groom: {
-      fullName: 'Nama Penuh Pengantin Lelaki',
-      nickname: 'Ahmad',
+      fullName: "[Groom's Full Name]",
+      nickname: '[Groom]',
     },
   },
   parents: {
     bride: {
-      father: 'Encik Bapa Pengantin Perempuan',
-      mother: 'Puan Ibu Pengantin Perempuan',
+      father: "[Father's Name]",
+      mother: "[Mother's Name]",
     },
     groom: {
-      father: 'Encik Bapa Pengantin Lelaki',
-      mother: 'Puan Ibu Pengantin Lelaki',
+      father: "[Father's Name]",
+      mother: "[Mother's Name]",
     },
   },
   parentsVisibility: DEFAULT_PARENTS_VISIBILITY,
@@ -508,6 +509,6 @@ export const DEFAULT_WEDDING_DETAILS: WeddingDetailsData = {
   eventEndTime: '2026-12-12T16:00:00+08:00',
   eventDisplayFormat: DEFAULT_DISPLAY_FORMAT,
   bismillahCalligraphy: DEFAULT_BISMILLAH_SETTINGS,
-  dressCode: 'Pastel / Earthy Tones',
-  hashtag: '#AisyahAhmadWedding',
+  dressCode: '[Your Dress Code]',
+  hashtag: '[#YourHashtag]',
 }

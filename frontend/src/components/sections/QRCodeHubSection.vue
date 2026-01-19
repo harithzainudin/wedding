@@ -16,7 +16,7 @@
     generateHashtagUrl,
   } from '@/utils/qrCodeFormats'
 
-  const { currentLanguage } = useLanguage()
+  const { currentLanguage, t } = useLanguage()
   const { getQrCodeUrl, weddingDetails, currentWeddingSlug } = usePublicWeddingData()
 
   // State
@@ -350,9 +350,9 @@
 </script>
 
 <template>
-  <!-- Only show if hub is enabled and has enabled QR codes -->
+  <!-- Only show if hub is enabled -->
   <section
-    v-if="!isLoading && settings.hubEnabled && enabledQRTypes.length > 0"
+    v-if="settings.hubEnabled"
     id="qr-hub"
     class="bg-cream px-4 py-12 dark:bg-dark-surface sm:px-6 lg:px-8"
   >
@@ -369,86 +369,118 @@
         </p>
       </div>
 
-      <!-- Restu Digital Tagline (if enabled) -->
-      <p
-        v-if="settings.restuDigital.enabled"
-        class="mb-6 text-center font-body text-sm italic text-charcoal-light dark:text-dark-text-secondary"
-      >
-        "{{ settings.restuDigital.tagline || DEFAULT_RESTU_TAGLINE }}"
-      </p>
-
-      <!-- QR Codes Grid -->
-      <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+      <!-- Loading State -->
+      <div v-if="isLoading" class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
         <div
-          v-for="type in enabledQRTypes"
-          :key="type"
-          class="flex cursor-pointer flex-col items-center rounded-lg bg-white p-4 shadow-sm transition-shadow hover:shadow-md dark:bg-dark-card"
-          @click="openModal(type)"
+          v-for="i in 4"
+          :key="i"
+          class="flex flex-col items-center rounded-lg bg-white/50 dark:bg-dark-card/50 p-4"
         >
-          <!-- QR Code Image -->
-          <div class="mb-3 h-24 w-24 overflow-hidden rounded-lg bg-white">
-            <img
-              v-if="qrCodes.get(type)"
-              :src="qrCodes.get(type)"
-              :alt="`${qrTypeInfo[type].titleEn} QR Code`"
-              class="h-full w-full object-contain"
-            />
-            <div v-else class="flex h-full items-center justify-center">
-              <span class="text-3xl">{{ qrTypeInfo[type].icon }}</span>
-            </div>
-          </div>
-
-          <!-- Label -->
-          <span class="text-xl">{{ qrTypeInfo[type].icon }}</span>
-          <h3 class="mt-1 font-heading text-sm font-medium text-charcoal dark:text-dark-text">
-            {{ currentLanguage === 'ms' ? qrTypeInfo[type].titleMs : qrTypeInfo[type].titleEn }}
-          </h3>
-          <p
-            class="text-center font-body text-xs text-charcoal-light dark:text-dark-text-secondary"
-          >
-            {{
-              currentLanguage === 'ms' ? qrTypeInfo[type].subtitleMs : qrTypeInfo[type].subtitleEn
-            }}
-          </p>
-          <!-- Show hashtag hint - full value shown in modal -->
-          <p
-            v-if="type === 'hashtag' && weddingDetails?.hashtag"
-            class="mt-1 font-body text-xs italic text-charcoal-light dark:text-dark-text-secondary"
-          >
-            {{ currentLanguage === 'ms' ? 'Ketik untuk lihat' : 'Tap to view' }}
-          </p>
-          <!-- RSVP sharing note -->
-          <p
-            v-if="type === 'rsvp'"
-            class="mt-1 font-body text-xs italic text-charcoal-light dark:text-dark-text-secondary"
-          >
-            {{ currentLanguage === 'ms' ? 'Untuk dikongsi' : 'For sharing' }}
-          </p>
+          <div
+            class="mb-3 h-24 w-24 rounded-lg bg-charcoal/10 dark:bg-dark-text/10 animate-pulse"
+          ></div>
+          <div
+            class="h-4 w-12 rounded bg-charcoal/10 dark:bg-dark-text/10 animate-pulse mt-2"
+          ></div>
+          <div
+            class="h-3 w-20 rounded bg-charcoal/10 dark:bg-dark-text/10 animate-pulse mt-2"
+          ></div>
         </div>
       </div>
 
-      <!-- Location: Show both Google Maps and Waze if 'both' is selected -->
+      <!-- Empty State -->
       <div
-        v-if="settings.location.enabled && settings.location.preferredApp === 'both' && venueData"
-        class="mt-6 flex justify-center gap-4"
+        v-else-if="enabledQRTypes.length === 0"
+        class="py-6 px-4 rounded-lg bg-charcoal/5 dark:bg-dark-text/5 border border-dashed border-charcoal/20 dark:border-dark-text/20 text-center"
       >
-        <a
-          :href="generateGoogleMapsUrl(venueData.coordinates.lat, venueData.coordinates.lng)"
-          target="_blank"
-          rel="noopener noreferrer"
-          class="flex items-center gap-2 rounded-full bg-white px-4 py-2 font-body text-sm text-charcoal shadow-sm transition-shadow hover:shadow-md dark:bg-dark-card dark:text-dark-text"
-        >
-          📍 Google Maps
-        </a>
-        <a
-          :href="generateWazeUrl(venueData.coordinates.lat, venueData.coordinates.lng)"
-          target="_blank"
-          rel="noopener noreferrer"
-          class="flex items-center gap-2 rounded-full bg-white px-4 py-2 font-body text-sm text-charcoal shadow-sm transition-shadow hover:shadow-md dark:bg-dark-card dark:text-dark-text"
-        >
-          🚗 Waze
-        </a>
+        <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary italic">
+          {{ t.placeholder?.qrHubInfo ?? 'No QR codes available yet' }}
+        </p>
       </div>
+
+      <!-- Content (only show when not loading and has QR codes) -->
+      <template v-else>
+        <!-- Restu Digital Tagline (if enabled) -->
+        <p
+          v-if="settings.restuDigital.enabled"
+          class="mb-6 text-center font-body text-sm italic text-charcoal-light dark:text-dark-text-secondary"
+        >
+          "{{ settings.restuDigital.tagline || DEFAULT_RESTU_TAGLINE }}"
+        </p>
+
+        <!-- QR Codes Grid -->
+        <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+          <div
+            v-for="type in enabledQRTypes"
+            :key="type"
+            class="flex cursor-pointer flex-col items-center rounded-lg bg-white p-4 shadow-sm transition-shadow hover:shadow-md dark:bg-dark-card"
+            @click="openModal(type)"
+          >
+            <!-- QR Code Image -->
+            <div class="mb-3 h-24 w-24 overflow-hidden rounded-lg bg-white">
+              <img
+                v-if="qrCodes.get(type)"
+                :src="qrCodes.get(type)"
+                :alt="`${qrTypeInfo[type].titleEn} QR Code`"
+                class="h-full w-full object-contain"
+              />
+              <div v-else class="flex h-full items-center justify-center">
+                <span class="text-3xl">{{ qrTypeInfo[type].icon }}</span>
+              </div>
+            </div>
+
+            <!-- Label -->
+            <span class="text-xl">{{ qrTypeInfo[type].icon }}</span>
+            <h3 class="mt-1 font-heading text-sm font-medium text-charcoal dark:text-dark-text">
+              {{ currentLanguage === 'ms' ? qrTypeInfo[type].titleMs : qrTypeInfo[type].titleEn }}
+            </h3>
+            <p
+              class="text-center font-body text-xs text-charcoal-light dark:text-dark-text-secondary"
+            >
+              {{
+                currentLanguage === 'ms' ? qrTypeInfo[type].subtitleMs : qrTypeInfo[type].subtitleEn
+              }}
+            </p>
+            <!-- Show hashtag hint - full value shown in modal -->
+            <p
+              v-if="type === 'hashtag' && weddingDetails?.hashtag"
+              class="mt-1 font-body text-xs italic text-charcoal-light dark:text-dark-text-secondary"
+            >
+              {{ currentLanguage === 'ms' ? 'Ketik untuk lihat' : 'Tap to view' }}
+            </p>
+            <!-- RSVP sharing note -->
+            <p
+              v-if="type === 'rsvp'"
+              class="mt-1 font-body text-xs italic text-charcoal-light dark:text-dark-text-secondary"
+            >
+              {{ currentLanguage === 'ms' ? 'Untuk dikongsi' : 'For sharing' }}
+            </p>
+          </div>
+        </div>
+
+        <!-- Location: Show both Google Maps and Waze if 'both' is selected -->
+        <div
+          v-if="settings.location.enabled && settings.location.preferredApp === 'both' && venueData"
+          class="mt-6 flex justify-center gap-4"
+        >
+          <a
+            :href="generateGoogleMapsUrl(venueData.coordinates.lat, venueData.coordinates.lng)"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="flex items-center gap-2 rounded-full bg-white px-4 py-2 font-body text-sm text-charcoal shadow-sm transition-shadow hover:shadow-md dark:bg-dark-card dark:text-dark-text"
+          >
+            📍 Google Maps
+          </a>
+          <a
+            :href="generateWazeUrl(venueData.coordinates.lat, venueData.coordinates.lng)"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="flex items-center gap-2 rounded-full bg-white px-4 py-2 font-body text-sm text-charcoal shadow-sm transition-shadow hover:shadow-md dark:bg-dark-card dark:text-dark-text"
+          >
+            🚗 Waze
+          </a>
+        </div>
+      </template>
     </div>
 
     <!-- Modal -->

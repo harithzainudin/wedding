@@ -1,8 +1,8 @@
 /**
- * Update Contacts Endpoint (Admin)
+ * Update Schedule Settings Endpoint (Admin)
  *
- * Updates contacts for a specific wedding.
- * Route: PUT /admin/w/{weddingId}/contacts
+ * Updates schedule settings (showSchedule toggle) for a specific wedding.
+ * Route: PUT /admin/w/{weddingId}/schedule/settings
  *
  * SECURITY: Requires wedding access authorization
  */
@@ -14,11 +14,7 @@ import { Resource } from 'sst'
 import { createSuccessResponse, createErrorResponse } from '../shared/response'
 import { requireWeddingAccess } from '../shared/auth'
 import { logError } from '../shared/logger'
-import {
-  validateContactsUpdate,
-  DEFAULT_CONTACTS_SETTINGS,
-  type ContactsData,
-} from '../shared/contacts-validation'
+import { type ScheduleSettings, DEFAULT_SCHEDULE_SETTINGS } from '../shared/schedule-validation'
 import { Keys } from '../shared/keys'
 import { getWeddingById, requireAdminAccessibleWedding } from '../shared/wedding-middleware'
 import { isValidWeddingId } from '../shared/validation'
@@ -29,6 +25,37 @@ const docClient = DynamoDBDocumentClient.from(dynamoClient, {
     removeUndefinedValues: true,
   },
 })
+
+interface ScheduleSettingsUpdateRequest {
+  showSchedule?: boolean
+}
+
+function validateSettingsUpdate(
+  input: unknown
+): { valid: true; data: ScheduleSettingsUpdateRequest } | { valid: false; error: string } {
+  if (typeof input !== 'object' || input === null) {
+    return { valid: false, error: 'Invalid request body' }
+  }
+
+  const body = input as Record<string, unknown>
+
+  // At least one setting must be provided
+  if (body.showSchedule === undefined) {
+    return { valid: false, error: 'At least one setting (showSchedule) must be provided' }
+  }
+
+  // Validate showSchedule if provided
+  if (body.showSchedule !== undefined && typeof body.showSchedule !== 'boolean') {
+    return { valid: false, error: 'showSchedule must be a boolean' }
+  }
+
+  return {
+    valid: true,
+    data: {
+      showSchedule: body.showSchedule as boolean | undefined,
+    },
+  }
+}
 
 export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
   // ============================================
@@ -82,18 +109,18 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
     return createErrorResponse(400, 'Invalid JSON body', context, 'INVALID_JSON')
   }
 
-  const validation = validateContactsUpdate(body)
+  const validation = validateSettingsUpdate(body)
   if (!validation.valid) {
     return createErrorResponse(400, validation.error, context, 'VALIDATION_ERROR')
   }
 
   // ============================================
-  // 5. Update Contacts (preserve existing settings)
+  // 5. Get existing schedule data and merge settings
   // ============================================
   try {
-    const settingsKey = Keys.settings(weddingId, 'CONTACTS')
+    const settingsKey = Keys.settings(weddingId, 'SCHEDULE')
 
-    // Get existing data to preserve settings
+    // Get existing data
     const existingResult = await docClient.send(
       new GetCommand({
         TableName: Resource.AppDataTable.name,
@@ -101,13 +128,24 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
       })
     )
 
-    const existingSettings = existingResult.Item?.settings || DEFAULT_CONTACTS_SETTINGS
+    const existingData = existingResult.Item || {}
+    const existingSettings: ScheduleSettings = existingData.settings || DEFAULT_SCHEDULE_SETTINGS
+
+    // Merge new settings
+    const updatedSettings: ScheduleSettings = {
+      showSchedule:
+        validation.data.showSchedule !== undefined
+          ? validation.data.showSchedule
+          : existingSettings.showSchedule,
+    }
+
     const now = new Date().toISOString()
 
-    const contactsItem = {
+    // Update with merged settings
+    const scheduleItem = {
       ...settingsKey,
-      contacts: validation.data.contacts,
-      settings: existingSettings,
+      items: existingData.items || [],
+      settings: updatedSettings,
       updatedAt: now,
       updatedBy: authResult.user.username,
     }
@@ -115,28 +153,21 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
     await docClient.send(
       new PutCommand({
         TableName: Resource.AppDataTable.name,
-        Item: contactsItem,
+        Item: scheduleItem,
       })
     )
 
-    const responseData: ContactsData = {
-      contacts: contactsItem.contacts,
-      settings: contactsItem.settings,
-      updatedAt: contactsItem.updatedAt,
-      updatedBy: contactsItem.updatedBy,
-    }
-
-    return createSuccessResponse(200, responseData, context)
+    return createSuccessResponse(200, { settings: updatedSettings }, context)
   } catch (error) {
     logError(
       {
-        endpoint: 'PUT /admin/w/{weddingId}/contacts',
-        operation: 'updateContacts',
+        endpoint: 'PUT /admin/w/{weddingId}/schedule/settings',
+        operation: 'updateScheduleSettings',
         requestId: context.awsRequestId,
-        input: { weddingId, contactCount: validation.data.contacts?.length },
+        input: { weddingId },
       },
       error
     )
-    return createErrorResponse(500, 'Failed to update contacts', context, 'DB_ERROR')
+    return createErrorResponse(500, 'Failed to update schedule settings', context, 'DB_ERROR')
   }
 }

@@ -1,5 +1,10 @@
 import { ref } from 'vue'
-import { getWeddingDetailsCached, getScheduleCached, getContactsCached } from '@/services/api'
+import {
+  getWeddingDetailsCached,
+  getScheduleCached,
+  getContactsCached,
+  getRsvpSettings,
+} from '@/services/api'
 import { weddingConfig } from '@/config/wedding'
 import type {
   WeddingDetailsData,
@@ -15,6 +20,7 @@ import {
 } from '@/types/weddingDetails'
 import type { ScheduleData, ScheduleItem } from '@/types/schedule'
 import type { ContactsData, ContactPerson } from '@/types/contacts'
+import type { RsvpSettingsResponse } from '@/types/rsvp'
 
 // Error types for wedding status
 export type WeddingErrorType = 'archived' | 'draft' | 'not_found' | 'error' | null
@@ -23,6 +29,7 @@ export type WeddingErrorType = 'archived' | 'draft' | 'not_found' | 'error' | nu
 const weddingDetails = ref<WeddingDetailsData | null>(null)
 const scheduleData = ref<ScheduleData | null>(null)
 const contactsData = ref<ContactsData | null>(null)
+const rsvpSettingsData = ref<RsvpSettingsResponse | null>(null)
 const isLoading = ref(false)
 const hasLoaded = ref(false)
 const currentWeddingSlug = ref<string | null>(null)
@@ -35,6 +42,7 @@ const weddingErrorMessage = ref<string | null>(null)
 const isLoadingWeddingDetails = ref(false)
 const isLoadingSchedule = ref(false)
 const isLoadingContacts = ref(false)
+const isLoadingRsvpSettings = ref(false)
 
 // Convert API schedule to config format for backward compatibility
 interface LegacyScheduleItem {
@@ -92,6 +100,7 @@ export function usePublicWeddingData() {
       weddingDetails.value = null
       scheduleData.value = null
       contactsData.value = null
+      rsvpSettingsData.value = null
     }
 
     currentWeddingSlug.value = weddingSlug
@@ -99,6 +108,7 @@ export function usePublicWeddingData() {
     isLoadingWeddingDetails.value = true
     isLoadingSchedule.value = true
     isLoadingContacts.value = true
+    isLoadingRsvpSettings.value = true
     // Reset error state
     weddingError.value = null
     weddingErrorMessage.value = null
@@ -154,8 +164,19 @@ export function usePublicWeddingData() {
           isLoadingContacts.value = false
         })
 
+      const rsvpSettingsPromise = getRsvpSettings(weddingSlug)
+        .then((data) => {
+          rsvpSettingsData.value = data
+        })
+        .catch((err) => {
+          console.error('Failed to fetch RSVP settings:', err)
+        })
+        .finally(() => {
+          isLoadingRsvpSettings.value = false
+        })
+
       // Wait for all to complete
-      await Promise.all([weddingPromise, schedulePromise, contactsPromise])
+      await Promise.all([weddingPromise, schedulePromise, contactsPromise, rsvpSettingsPromise])
 
       // Set error state if we detected a critical error
       if (criticalError !== null) {
@@ -357,15 +378,34 @@ export function usePublicWeddingData() {
     return DEFAULT_PARENTS_VISIBILITY
   }
 
+  // RSVP settings - whether to show RSVP section and if accepting
+  const showRsvpSection = (): boolean => {
+    // Default to true if settings not loaded yet
+    if (!rsvpSettingsData.value) return true
+    return rsvpSettingsData.value.settings.showRsvp
+  }
+
+  const isAcceptingRsvps = (): boolean => {
+    // Default to true if settings not loaded yet
+    if (!rsvpSettingsData.value) return true
+    return rsvpSettingsData.value.isAcceptingRsvps
+  }
+
+  const getRsvpDeadline = (): string | undefined => {
+    return rsvpSettingsData.value?.settings.rsvpDeadline
+  }
+
   return {
     isLoading,
     hasLoaded,
     isLoadingWeddingDetails,
     isLoadingSchedule,
     isLoadingContacts,
+    isLoadingRsvpSettings,
     weddingDetails,
     scheduleData,
     contactsData,
+    rsvpSettingsData,
     currentWeddingSlug,
     // Error states
     weddingError,
@@ -389,5 +429,9 @@ export function usePublicWeddingData() {
     getContactsMultilingual,
     getBismillahSettings,
     getParentsVisibility,
+    // RSVP settings
+    showRsvpSection,
+    isAcceptingRsvps,
+    getRsvpDeadline,
   }
 }

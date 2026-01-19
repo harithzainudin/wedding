@@ -3,22 +3,22 @@ import type { VenueData, VenueUpdateRequest } from '@/types/venue'
 import { getVenue, updateVenue as apiUpdateVenue } from '@/services/api'
 
 // Default venue data (matches backend defaults)
+// Uses bracket notation for placeholders to clearly indicate unfilled data
 const DEFAULT_VENUE: VenueData = {
-  venueName: 'Dewan Seri Endon',
-  address: 'Persiaran Mahameru, Presint 10, 62502 Putrajaya, Wilayah Persekutuan Putrajaya',
+  venueName: '[Your Venue Name]',
+  address: '[Venue address]',
   coordinates: {
-    lat: 2.9264,
-    lng: 101.6964,
+    lat: 0,
+    lng: 0,
   },
-  parkingInfo:
-    'Parking percuma disediakan di kawasan hadapan dewan. Sila ikut papan tanda ke tempat letak kereta.',
+  parkingInfo: '',
   parkingSteps: [],
   parkingVideoUrl: null,
   showParkingImages: true,
   showParkingDirections: true,
   showParkingVideo: true,
-  googleMapsUrl: 'https://www.google.com/maps/search/?api=1&query=2.9264,101.6964',
-  wazeUrl: 'https://waze.com/ul?ll=2.9264,101.6964&navigate=yes',
+  googleMapsUrl: '',
+  wazeUrl: '',
 }
 
 // Singleton state

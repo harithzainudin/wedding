@@ -4,6 +4,7 @@
   import { useVenueConfig } from '@/composables/useVenueConfig'
   import { usePublicWeddingData } from '@/composables/usePublicWeddingData'
   import { useNameOrder } from '@/composables/useNameOrder'
+  import { isPlaceholder, isValidCoordinates } from '@/utils/placeholderDetection'
   import type { EventDisplayPreset, EventDisplayCustomOptions } from '@/types/weddingDetails'
   import type { ParkingStep, ParkingImage } from '@/types/venue'
   import ParkingGuide from './parking/ParkingGuide.vue'
@@ -34,6 +35,19 @@
   const displayFormat = computed(() => getEventDisplayFormat())
   const dressCode = computed(() => getDressCode())
   const hashtag = computed(() => getHashtag())
+
+  // Check if couple names are placeholder
+  const isCoupleInfoPlaceholder = computed(() => {
+    return isPlaceholder(couple.value.first.fullName) || isPlaceholder(couple.value.second.fullName)
+  })
+
+  // Check if venue is placeholder
+  const isVenuePlaceholder = computed(() => {
+    return (
+      isPlaceholder(venue.value.venueName) ||
+      !isValidCoordinates(venue.value.coordinates?.lat, venue.value.coordinates?.lng)
+    )
+  })
 
   // Get display options for a preset
   function getOptionsForPreset(preset: EventDisplayPreset): EventDisplayCustomOptions {
@@ -352,6 +366,16 @@
             <div class="h-8 sm:h-9 md:h-10 w-56 sm:w-64 md:w-72 bg-sage/20 rounded"></div>
           </div>
         </template>
+        <template v-else-if="isCoupleInfoPlaceholder">
+          <!-- Placeholder message when couple names not filled -->
+          <div
+            class="py-6 px-4 rounded-lg bg-charcoal/5 dark:bg-dark-text/5 border border-dashed border-charcoal/20 dark:border-dark-text/20"
+          >
+            <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary italic">
+              {{ t.placeholder?.coupleInfo ?? 'Couple information not provided yet' }}
+            </p>
+          </div>
+        </template>
         <template v-else>
           <h2
             class="font-heading text-2xl sm:text-3xl md:text-4xl text-sage-dark dark:text-sage-light mb-1 sm:mb-2 leading-tight"
@@ -432,14 +456,26 @@
           >
             {{ t.details.venue }}
           </p>
-          <p class="font-heading text-lg sm:text-xl text-charcoal dark:text-dark-text mb-1">
-            {{ venue.venueName }}
-          </p>
-          <p
-            class="font-body text-xs sm:text-sm text-charcoal-light dark:text-dark-text-secondary px-4"
-          >
-            {{ venue.address }}
-          </p>
+          <template v-if="isVenuePlaceholder">
+            <!-- Placeholder message when venue not filled -->
+            <div
+              class="py-4 px-4 rounded-lg bg-charcoal/5 dark:bg-dark-text/5 border border-dashed border-charcoal/20 dark:border-dark-text/20"
+            >
+              <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary italic">
+                {{ t.placeholder?.venueInfo ?? 'Venue details coming soon' }}
+              </p>
+            </div>
+          </template>
+          <template v-else>
+            <p class="font-heading text-lg sm:text-xl text-charcoal dark:text-dark-text mb-1">
+              {{ venue.venueName }}
+            </p>
+            <p
+              class="font-body text-xs sm:text-sm text-charcoal-light dark:text-dark-text-secondary px-4"
+            >
+              {{ venue.address }}
+            </p>
+          </template>
         </div>
 
         <!-- Parking Guide (expandable) -->

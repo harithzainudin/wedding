@@ -10,7 +10,7 @@
 
 import type { APIGatewayProxyHandlerV2 } from 'aws-lambda'
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb'
-import { DynamoDBDocumentClient, QueryCommand } from '@aws-sdk/lib-dynamodb'
+import { DynamoDBDocumentClient, QueryCommand, GetCommand } from '@aws-sdk/lib-dynamodb'
 import { Resource } from 'sst'
 import { createSuccessResponse, createErrorResponse } from '../shared/response'
 import { requireWeddingAccess } from '../shared/auth'
@@ -22,6 +22,8 @@ import {
   requireAdminAccessibleWedding,
 } from '../shared/wedding-middleware'
 import { isValidWeddingId } from '../shared/validation'
+import { Keys } from '../shared/keys'
+import { DEFAULT_RSVP_SETTINGS, type RsvpSettings } from '../shared/rsvp-validation'
 
 const client = new DynamoDBClient({})
 const docClient = DynamoDBDocumentClient.from(client)
@@ -161,9 +163,19 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
       return createSuccessResponse(200, { rsvps: wishes }, context)
     }
 
-    // Authenticated response - full data with summary statistics
+    // Authenticated response - full data with summary statistics and settings
     const attending = rsvps.filter((r) => r.isAttending)
     const totalGuests = attending.reduce((sum, r) => sum + r.numberOfGuests, 0)
+
+    // Fetch RSVP settings
+    const settingsResult = await docClient.send(
+      new GetCommand({
+        TableName: Resource.AppDataTable.name,
+        Key: Keys.settings(weddingId, 'RSVP'),
+      })
+    )
+
+    const settings: RsvpSettings = settingsResult.Item?.settings || DEFAULT_RSVP_SETTINGS
 
     return createSuccessResponse(
       200,
@@ -175,6 +187,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
           notAttending: rsvps.length - attending.length,
           totalGuests,
         },
+        settings,
       },
       context
     )

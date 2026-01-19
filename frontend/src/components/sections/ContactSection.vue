@@ -6,8 +6,11 @@
   import type { ContactPerson } from '@/types/contacts'
 
   const { t, currentLanguage } = useLanguage()
-  const { getContactsMultilingual, isLoadingContacts } = usePublicWeddingData()
+  const { getContactsMultilingual, isLoadingContacts, contactsData } = usePublicWeddingData()
   const { getOrderedNicknamesString } = useNameOrder()
+
+  // Check if contacts section should be shown (default to true)
+  const showContacts = computed(() => contactsData.value?.settings?.showContacts ?? true)
 
   const contacts = computed(() => getContactsMultilingual())
 
@@ -37,6 +40,7 @@
 
 <template>
   <section
+    v-if="showContacts"
     class="py-12 sm:py-16 px-4 sm:px-6 bg-sand dark:bg-dark-bg transition-colors duration-300"
   >
     <div class="max-w-xl mx-auto text-center">
@@ -67,6 +71,16 @@
             <div class="w-11 h-11 sm:w-12 sm:h-12 bg-[#25D366]/30 rounded-full"></div>
           </div>
         </div>
+      </div>
+
+      <!-- Empty State -->
+      <div
+        v-else-if="contacts.length === 0"
+        class="py-6 px-4 rounded-lg bg-charcoal/5 dark:bg-dark-text/5 border border-dashed border-charcoal/20 dark:border-dark-text/20"
+      >
+        <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary italic">
+          {{ t.placeholder?.contactInfo ?? 'No contacts added yet' }}
+        </p>
       </div>
 
       <!-- Actual Contacts -->

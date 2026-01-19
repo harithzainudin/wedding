@@ -14,10 +14,19 @@ export interface ScheduleItem {
   order: number
 }
 
+export interface ScheduleSettings {
+  showSchedule: boolean
+}
+
 export interface ScheduleData {
   items: ScheduleItem[]
+  settings?: ScheduleSettings
   updatedAt?: string
   updatedBy?: string
+}
+
+export const DEFAULT_SCHEDULE_SETTINGS: ScheduleSettings = {
+  showSchedule: true,
 }
 
 export interface ScheduleUpdateRequest {
@@ -147,51 +156,8 @@ export function validateScheduleUpdate(
 }
 
 // Default schedule data (fallback when no data exists in DB)
+// Empty array so admins clearly see they need to add schedule items
 export const DEFAULT_SCHEDULE: ScheduleData = {
-  items: [
-    {
-      id: '1',
-      time: '11:00 AM',
-      title: {
-        ms: 'Ketibaan Tetamu',
-        en: 'Guest Arrival',
-        zh: '宾客到达',
-        ta: 'விருந்தினர் வருகை',
-      },
-      order: 0,
-    },
-    {
-      id: '2',
-      time: '11:30 AM',
-      title: {
-        ms: 'Jamuan Makan Bermula',
-        en: 'Lunch Begins',
-        zh: '午餐开始',
-        ta: 'மதிய உணவு தொடங்குகிறது',
-      },
-      order: 1,
-    },
-    {
-      id: '3',
-      time: '12:30 PM',
-      title: {
-        ms: 'Ketibaan Pengantin',
-        en: 'Bride & Groom Arrival',
-        zh: '新人入场',
-        ta: 'மணமக்கள் வருகை',
-      },
-      order: 2,
-    },
-    {
-      id: '4',
-      time: '4:00 PM',
-      title: {
-        ms: 'Majlis Tamat',
-        en: 'Event Ends',
-        zh: '活动结束',
-        ta: 'நிகழ்ச்சி முடிவு',
-      },
-      order: 3,
-    },
-  ],
+  items: [],
+  settings: DEFAULT_SCHEDULE_SETTINGS,
 }

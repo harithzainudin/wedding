@@ -4,6 +4,7 @@
   import { useVenueConfig } from '@/composables/useVenueConfig'
   import { useTheme } from '@/composables/useTheme'
   import LoadingOverlay from '@/components/ui/LoadingOverlay.vue'
+  import ToastContainer from '@/components/ui/ToastContainer.vue'
 
   const route = useRoute()
   const { loadVenue } = useVenueConfig()
@@ -39,4 +40,5 @@
 <template>
   <RouterView />
   <LoadingOverlay />
+  <ToastContainer />
 </template>

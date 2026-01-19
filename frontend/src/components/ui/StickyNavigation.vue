@@ -5,6 +5,15 @@
   import { useVenueConfig } from '@/composables/useVenueConfig'
   import { usePublicWeddingData } from '@/composables/usePublicWeddingData'
 
+  withDefaults(
+    defineProps<{
+      showRsvpButton?: boolean
+    }>(),
+    {
+      showRsvpButton: true,
+    }
+  )
+
   const { t } = useLanguage()
   const { venue } = useVenueConfig()
   const { getDisplayNameOrder } = usePublicWeddingData()
@@ -85,6 +94,7 @@
 
       <!-- RSVP Button -->
       <button
+        v-if="showRsvpButton"
         type="button"
         class="flex items-center gap-1 px-4 py-2 bg-sage text-white rounded-full font-body text-xs font-medium uppercase tracking-wider transition-colors hover:bg-sage-dark cursor-pointer"
         @click="scrollToRsvp"

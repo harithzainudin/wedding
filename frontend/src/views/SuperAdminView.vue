@@ -4,7 +4,7 @@
   import { useSuperAdmin } from '@/composables/useSuperAdmin'
   import { useAdminAuth } from '@/composables/useAdminAuth'
   import { useStaff } from '@/composables/useStaff'
-  import { useLoadingOverlay } from '@/composables/useLoadingOverlay'
+  import { useToast } from '@/composables/useToast'
   import { useAdminLanguage } from '@/composables/useAdminLanguage'
   import { setStoredPrimaryWeddingId } from '@/services/tokenManager'
   import HardDeleteConfirmModal from '@/components/admin/HardDeleteConfirmModal.vue'
@@ -32,7 +32,7 @@
 
   // Staff for owner assignment
   const { staff: staffList, fetchStaff: fetchStaffList, isLoading: isLoadingStaff } = useStaff()
-  const { withLoading } = useLoadingOverlay()
+  const toast = useToast()
   const { adminT } = useAdminLanguage()
 
   import type {
@@ -55,8 +55,6 @@
     isLoadingPreview,
     deletionPreview,
     loadError,
-    actionError,
-    actionSuccess,
     activeWeddings,
     archivedWeddings,
     totalWeddings,
@@ -72,7 +70,6 @@
     getDeletionPreview,
     hardDeleteWedding,
     clearDeletionPreview,
-    clearMessages,
     clearSelectedWedding,
   } = useSuperAdmin()
 
@@ -114,7 +111,6 @@
     weddingDate: string
     status: WeddingStatus
   } | null>(null)
-  const settingsFormError = ref('')
   const isOpeningSettings = ref(false)
   const settingsCopyFeedback = ref<'public' | 'admin' | null>(null)
 
@@ -124,7 +120,6 @@
     password: '',
     email: '',
   })
-  const addOwnerFormError = ref('')
 
   // Edit owner form
   const showEditOwner = ref<string | null>(null)
@@ -132,7 +127,6 @@
     email: '',
     role: 'coowner',
   })
-  const editOwnerFormError = ref('')
 
   // Loading state for opening detail modal
   const isOpeningDetail = ref(false)
@@ -150,7 +144,6 @@
     displayName: '',
     weddingDate: '',
   })
-  const createFormError = ref('')
 
   // Client owner form (when creating new client)
   const createClientForm = ref({
@@ -186,31 +179,29 @@
 
   // Validate and submit create form
   const handleCreateSubmit = async () => {
-    createFormError.value = ''
-
     // Validate wedding details
     if (!createForm.value.slug || createForm.value.slug.length < 3) {
-      createFormError.value = 'Slug must be at least 3 characters'
+      toast.error('Slug must be at least 3 characters')
       return
     }
     if (!createForm.value.displayName) {
-      createFormError.value = 'Display name is required'
+      toast.error('Display name is required')
       return
     }
 
     // Validate owner based on mode (skip validation for 'none' mode)
     if (createOwnerMode.value === 'staff') {
       if (!createSelectedStaff.value) {
-        createFormError.value = 'Please select a staff member'
+        toast.error('Please select a staff member')
         return
       }
     } else if (createOwnerMode.value === 'client') {
       if (!createClientForm.value.username || createClientForm.value.username.length < 3) {
-        createFormError.value = 'Owner username must be at least 3 characters'
+        toast.error('Owner username must be at least 3 characters')
         return
       }
       if (!createClientForm.value.password || createClientForm.value.password.length < 8) {
-        createFormError.value = 'Owner password must be at least 8 characters'
+        toast.error('Owner password must be at least 8 characters')
         return
       }
     }
@@ -244,20 +235,14 @@
 
     showCreateModal.value = false
 
-    await withLoading(
-      async () => {
-        const result = await createWedding(request)
-        if (!result.success) {
-          showCreateModal.value = true
-        } else {
-          resetCreateForm()
-        }
-      },
-      {
-        message: adminT.value.loadingOverlay.saving,
-        showSuccess: true,
-      }
-    )
+    const result = await createWedding(request)
+    if (!result.success) {
+      showCreateModal.value = true
+      toast.error(result.error ?? adminT.value.toast.genericError)
+    } else {
+      resetCreateForm()
+      toast.success(adminT.value.toast.createSuccess)
+    }
   }
 
   const resetCreateForm = () => {
@@ -275,22 +260,18 @@
       roleLabel: '',
       customRole: '',
     }
-    createFormError.value = ''
     showCreateFormPassword.value = false
   }
 
   // Archive wedding
   const handleArchive = async (weddingId: string) => {
     showArchiveConfirm.value = null
-    await withLoading(
-      async () => {
-        await archiveWedding(weddingId)
-      },
-      {
-        message: adminT.value.loadingOverlay.processing,
-        showSuccess: true,
-      }
-    )
+    const result = await archiveWedding(weddingId)
+    if (result.success) {
+      toast.success(adminT.value.toast.archiveSuccess)
+    } else {
+      toast.error(result.error ?? adminT.value.toast.genericError)
+    }
   }
 
   // Open hard delete modal
@@ -311,15 +292,12 @@
     const weddingIdToDelete = showHardDeleteConfirm.value.weddingId
     showHardDeleteConfirm.value = null
 
-    await withLoading(
-      async () => {
-        await hardDeleteWedding(weddingIdToDelete)
-      },
-      {
-        message: adminT.value.loadingOverlay.deleting,
-        showSuccess: true,
-      }
-    )
+    const result = await hardDeleteWedding(weddingIdToDelete)
+    if (result.success) {
+      toast.success(adminT.value.toast.deleteSuccess)
+    } else {
+      toast.error(result.error ?? adminT.value.toast.genericError)
+    }
   }
 
   // Navigate to wedding admin
@@ -360,8 +338,6 @@
     showResetConfirm.value = null
     showEditOwner.value = null
     temporaryPassword.value = null
-    addOwnerFormError.value = ''
-    editOwnerFormError.value = ''
     copyFeedback.value = false
     resetAddOwnerForm()
     clearSelectedWedding()
@@ -424,43 +400,33 @@
       password: '',
       email: '',
     }
-    addOwnerFormError.value = ''
   }
 
   // Handle add owner submit
   const handleAddOwnerSubmit = async () => {
     if (!selectedWedding.value) return
 
-    addOwnerFormError.value = ''
-
     // Validate
     if (!addOwnerForm.value.username || addOwnerForm.value.username.length < 3) {
-      addOwnerFormError.value = 'Username must be at least 3 characters'
+      toast.error('Username must be at least 3 characters')
       return
     }
     if (!addOwnerForm.value.password || addOwnerForm.value.password.length < 8) {
-      addOwnerFormError.value = 'Password must be at least 8 characters'
+      toast.error('Password must be at least 8 characters')
       return
     }
 
     const weddingId = selectedWedding.value.weddingId
     showAddOwnerForm.value = false
 
-    await withLoading(
-      async () => {
-        const result = await addOwner(weddingId, addOwnerForm.value)
-        if (result.success) {
-          resetAddOwnerForm()
-        } else {
-          addOwnerFormError.value = result.error ?? 'Failed to add owner'
-          showAddOwnerForm.value = true
-        }
-      },
-      {
-        message: adminT.value.loadingOverlay.saving,
-        showSuccess: true,
-      }
-    )
+    const result = await addOwner(weddingId, addOwnerForm.value)
+    if (result.success) {
+      resetAddOwnerForm()
+      toast.success(adminT.value.toast.addOwnerSuccess)
+    } else {
+      showAddOwnerForm.value = true
+      toast.error(result.error ?? adminT.value.toast.genericError)
+    }
   }
 
   // Handle remove owner
@@ -470,15 +436,12 @@
     const weddingId = selectedWedding.value.weddingId
     showRemoveConfirm.value = null
 
-    await withLoading(
-      async () => {
-        await removeOwner(weddingId, username)
-      },
-      {
-        message: adminT.value.loadingOverlay.deleting,
-        showSuccess: true,
-      }
-    )
+    const result = await removeOwner(weddingId, username)
+    if (result.success) {
+      toast.success(adminT.value.toast.removeOwnerSuccess)
+    } else {
+      toast.error(result.error ?? adminT.value.toast.genericError)
+    }
   }
 
   // Handle reset password
@@ -488,18 +451,13 @@
     const weddingId = selectedWedding.value.weddingId
     showResetConfirm.value = null
 
-    await withLoading(
-      async () => {
-        const result = await resetPassword(weddingId, username)
-        if (result.success && result.temporaryPassword) {
-          temporaryPassword.value = result.temporaryPassword
-        }
-      },
-      {
-        message: adminT.value.loadingOverlay.processing,
-        showSuccess: true,
-      }
-    )
+    const result = await resetPassword(weddingId, username)
+    if (result.success && result.temporaryPassword) {
+      temporaryPassword.value = result.temporaryPassword
+      toast.success(adminT.value.toast.resetPasswordSuccess)
+    } else if (!result.success) {
+      toast.error(result.error ?? adminT.value.toast.genericError)
+    }
   }
 
   // Start editing an owner
@@ -511,7 +469,6 @@
         role: admin.role,
       }
       showEditOwner.value = username
-      editOwnerFormError.value = ''
     }
   }
 
@@ -519,20 +476,17 @@
   const cancelEditOwner = () => {
     showEditOwner.value = null
     editOwnerForm.value = { email: '', role: 'coowner' }
-    editOwnerFormError.value = ''
   }
 
   // Handle edit owner submit
   const handleEditOwnerSubmit = async () => {
     if (!selectedWedding.value || !showEditOwner.value) return
 
-    editOwnerFormError.value = ''
-
     // Validate email if provided
     if (editOwnerForm.value.email && editOwnerForm.value.email.trim()) {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
       if (!emailRegex.test(editOwnerForm.value.email)) {
-        editOwnerFormError.value = 'Invalid email format'
+        toast.error('Invalid email format')
         return
       }
     }
@@ -544,8 +498,9 @@
     )
     if (result.success) {
       cancelEditOwner()
+      toast.success(adminT.value.toast.updateSuccess)
     } else {
-      editOwnerFormError.value = result.error ?? 'Failed to update admin'
+      toast.error(result.error ?? adminT.value.toast.genericError)
     }
   }
 
@@ -585,7 +540,6 @@
         weddingDate: wedding.weddingDate ?? '',
         status: wedding.status,
       }
-      settingsFormError.value = ''
       settingsCopyFeedback.value = null
       // Simulate brief loading for smooth UX
       setTimeout(() => {
@@ -598,7 +552,6 @@
   const closeSettingsModal = () => {
     showSettingsModal.value = false
     settingsWedding.value = null
-    settingsFormError.value = ''
     settingsCopyFeedback.value = null
   }
 
@@ -606,11 +559,9 @@
   const handleSettingsSubmit = async () => {
     if (!settingsWedding.value) return
 
-    settingsFormError.value = ''
-
     // Validate
     if (!settingsWedding.value.displayName.trim()) {
-      settingsFormError.value = 'Display name is required'
+      toast.error('Display name is required')
       return
     }
 
@@ -627,8 +578,9 @@
     const result = await updateWedding(settingsWedding.value.weddingId, updateData)
     if (result.success) {
       closeSettingsModal()
+      toast.success(adminT.value.toast.updateSuccess)
     } else {
-      settingsFormError.value = result.error ?? 'Failed to update wedding'
+      toast.error(result.error ?? adminT.value.toast.genericError)
     }
   }
 
@@ -842,36 +794,6 @@
                   {{ archivedWeddings.length }}
                 </p>
               </div>
-            </div>
-
-            <!-- Messages -->
-            <div
-              v-if="actionSuccess"
-              class="mb-4 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg"
-            >
-              <p class="font-body text-sm text-green-700 dark:text-green-300">
-                {{ actionSuccess }}
-              </p>
-              <button
-                type="button"
-                class="text-green-600 underline text-sm mt-1 cursor-pointer"
-                @click="clearMessages"
-              >
-                Dismiss
-              </button>
-            </div>
-            <div
-              v-if="actionError"
-              class="mb-4 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg"
-            >
-              <p class="font-body text-sm text-red-700 dark:text-red-300">{{ actionError }}</p>
-              <button
-                type="button"
-                class="text-red-600 underline text-sm mt-1 cursor-pointer"
-                @click="clearMessages"
-              >
-                Dismiss
-              </button>
             </div>
 
             <!-- Loading State -->
@@ -1625,15 +1547,6 @@
                   </div>
                 </div>
 
-                <div
-                  v-if="createFormError"
-                  class="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg"
-                >
-                  <p class="font-body text-sm text-red-700 dark:text-red-300">
-                    {{ createFormError }}
-                  </p>
-                </div>
-
                 <div class="flex justify-end gap-3 pt-4">
                   <button
                     type="button"
@@ -2038,14 +1951,6 @@
                             class="w-full px-3 py-2 rounded-lg border border-sand-dark dark:border-dark-border bg-white dark:bg-dark-bg-secondary text-charcoal dark:text-dark-text font-body text-sm focus:outline-none focus:ring-2 focus:ring-sage/50"
                           />
                         </div>
-                        <div
-                          v-if="addOwnerFormError"
-                          class="p-2 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded"
-                        >
-                          <p class="font-body text-xs text-red-700 dark:text-red-300">
-                            {{ addOwnerFormError }}
-                          </p>
-                        </div>
                         <div class="flex justify-end gap-2">
                           <button
                             type="button"
@@ -2108,14 +2013,6 @@
                                   <option value="coowner">Co-owner</option>
                                 </select>
                               </div>
-                            </div>
-                            <div
-                              v-if="editOwnerFormError"
-                              class="p-2 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded"
-                            >
-                              <p class="font-body text-xs text-red-700 dark:text-red-300">
-                                {{ editOwnerFormError }}
-                              </p>
                             </div>
                             <div class="flex justify-end gap-2">
                               <button
@@ -2613,16 +2510,6 @@
                         </div>
                       </div>
                     </div>
-                  </div>
-
-                  <!-- Error Message -->
-                  <div
-                    v-if="settingsFormError"
-                    class="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg"
-                  >
-                    <p class="font-body text-sm text-red-700 dark:text-red-300">
-                      {{ settingsFormError }}
-                    </p>
                   </div>
 
                   <!-- Footer -->
