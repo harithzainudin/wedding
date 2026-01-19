@@ -104,8 +104,13 @@
   const handleSettingsUpdate = async (newSettings: {
     maxFileSize?: number | undefined
     maxImages?: number | undefined
+    showGallery?: boolean | undefined
   }): Promise<void> => {
-    const result = await updateSettings(newSettings, weddingId.value ?? undefined)
+    const result = await updateSettings(
+      newSettings,
+      weddingId.value ?? undefined,
+      weddingSlug.value ?? undefined
+    )
     if (!result.success) {
       console.error('Settings update failed:', result.error)
     }

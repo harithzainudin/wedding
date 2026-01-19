@@ -141,7 +141,9 @@
                 class="flex-1 px-4 py-2.5 font-body text-sm text-white bg-sage hover:bg-sage-dark rounded-lg transition-colors cursor-pointer disabled:opacity-50"
                 @click="emit('save-and-continue')"
               >
-                {{ isSaving ? adminT.unsavedChanges.saving : adminT.unsavedChanges.saveAndContinue }}
+                {{
+                  isSaving ? adminT.unsavedChanges.saving : adminT.unsavedChanges.saveAndContinue
+                }}
               </button>
             </div>
           </div>

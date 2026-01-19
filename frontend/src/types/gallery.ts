@@ -57,6 +57,7 @@ export interface ListImagesResponse {
   total: number
   settings?: GallerySettings | undefined
   remainingSlots?: number | undefined
+  showGallery?: boolean | undefined // Public endpoint returns this at root level
 }
 
 export interface ReorderImagesRequest {

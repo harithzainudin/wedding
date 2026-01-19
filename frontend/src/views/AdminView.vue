@@ -278,7 +278,10 @@
       showSuccessToast(adminT.value.unsavedChanges.changesSaved)
       if (result.proceedWithNavigation.type === 'tab' && result.proceedWithNavigation.destination) {
         performTabNavigation(result.proceedWithNavigation.destination as TabType)
-      } else if (result.proceedWithNavigation.type === 'route' && result.proceedWithNavigation.routeLocation) {
+      } else if (
+        result.proceedWithNavigation.type === 'route' &&
+        result.proceedWithNavigation.routeLocation
+      ) {
         router.push(result.proceedWithNavigation.routeLocation)
       }
     }
@@ -296,10 +299,7 @@
   }
 
   // Handle dirty state changes from tab components
-  const handleTabDirtyChange = (
-    tabKey: TabType,
-    payload: DirtyStateChangePayload
-  ): void => {
+  const handleTabDirtyChange = (tabKey: TabType, payload: DirtyStateChangePayload): void => {
     if (payload.isDirty) {
       const tabConfig = tabs.value.find((t) => t.key === tabKey)
       const info: DirtyTabInfo = {
@@ -622,10 +622,7 @@
             <GalleryTab v-else-if="activeTab === 'gallery'" />
             <MusicTab v-else-if="activeTab === 'music'" />
             <GiftsTab v-else-if="activeTab === 'gifts'" />
-            <ThemeTab
-              v-else-if="activeTab === 'theme'"
-              @dirty-state-change="onThemeDirtyChange"
-            />
+            <ThemeTab v-else-if="activeTab === 'theme'" @dirty-state-change="onThemeDirtyChange" />
             <ContactsTab
               v-else-if="activeTab === 'contacts'"
               @dirty-state-change="onContactsDirtyChange"

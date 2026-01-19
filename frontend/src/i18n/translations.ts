@@ -3483,7 +3483,8 @@ export const adminTranslations: Record<AdminLanguage, AdminTranslations> = {
 
     unsavedChanges: {
       title: 'Perubahan Belum Disimpan',
-      message: 'Anda mempunyai perubahan yang belum disimpan di {tab}. Apa yang ingin anda lakukan?',
+      message:
+        'Anda mempunyai perubahan yang belum disimpan di {tab}. Apa yang ingin anda lakukan?',
       saveAndContinue: 'Simpan & Teruskan',
       discard: 'Buang',
       stay: 'Kekal',

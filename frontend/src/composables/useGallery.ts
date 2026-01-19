@@ -11,6 +11,7 @@ import {
   updateGallerySettings,
 } from '@/services/api'
 import { compressImage, formatBytes } from '@/utils/imageCompression'
+import { clearCache, CACHE_KEYS } from '@/utils/apiCache'
 
 // Allowed MIME types
 const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
@@ -333,13 +334,20 @@ export function useGallery() {
     newSettings: {
       maxFileSize?: number | undefined
       maxImages?: number | undefined
+      showGallery?: boolean | undefined
     },
-    weddingId?: string
+    weddingId?: string,
+    weddingSlug?: string
   ): Promise<{ success: boolean; error?: string | undefined }> => {
     try {
       currentWeddingId.value = weddingId
       const response = await updateGallerySettings(newSettings, weddingId)
       settings.value = response
+      // Clear cache to ensure fresh data on next public page load
+      clearCache(CACHE_KEYS.GALLERY_IMAGES)
+      if (weddingSlug) {
+        clearCache(`${CACHE_KEYS.GALLERY_IMAGES}-${weddingSlug}`)
+      }
       return { success: true }
     } catch (err) {
       return {

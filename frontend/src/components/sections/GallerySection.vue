@@ -27,7 +27,8 @@
   const fetchPublicGallery = async (): Promise<void> => {
     try {
       const data = await listGalleryImagesCached(currentWeddingSlug.value ?? undefined)
-      showGallery.value = data.settings?.showGallery ?? true
+      // showGallery can be at data.showGallery (public) or data.settings?.showGallery (admin)
+      showGallery.value = data.showGallery ?? data.settings?.showGallery ?? true
       if (data.images?.length > 0) {
         photos.value = data.images.map((img) => ({
           src: img.url,
