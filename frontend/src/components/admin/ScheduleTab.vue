@@ -12,6 +12,16 @@
   import BaseFormModal from './BaseFormModal.vue'
   import type { ScheduleItem, MultilingualText } from '@/types/schedule'
 
+  const emit = defineEmits<{
+    'dirty-state-change': [
+      payload: {
+        isDirty: boolean
+        save: () => Promise<{ success: boolean; error?: string }>
+        discard: () => void
+      },
+    ]
+  }>()
+
   const { adminT } = useAdminLanguage()
   const { withLoading } = useLoadingOverlay()
 
@@ -152,6 +162,50 @@
     discardChanges()
     syncLocalShowSchedule()
   }
+
+  // Save function for external callers (returns result)
+  const saveForEmit = async (): Promise<{ success: boolean; error?: string }> => {
+    try {
+      // Save items if changed
+      if (hasChanges.value) {
+        const itemsResult = await updateSchedule(
+          localItems.value as ScheduleItem[],
+          weddingId.value ?? undefined
+        )
+        if (!itemsResult.success) {
+          return itemsResult
+        }
+        syncLocalItems()
+      }
+      // Save settings if changed
+      if (hasSettingsChanges.value) {
+        const settingsResult = await updateScheduleSettings(
+          { showSchedule: localShowSchedule.value },
+          weddingId.value ?? undefined
+        )
+        if (!settingsResult.success) {
+          return settingsResult
+        }
+        syncLocalShowSchedule()
+      }
+      return { success: true }
+    } catch (err) {
+      return { success: false, error: err instanceof Error ? err.message : 'Save failed' }
+    }
+  }
+
+  // Emit dirty state changes to parent
+  watch(
+    hasAnyChanges,
+    (isDirty) => {
+      emit('dirty-state-change', {
+        isDirty,
+        save: saveForEmit,
+        discard: discardAllChanges,
+      })
+    },
+    { immediate: true }
+  )
 
   // Clear all items
   const clearAllItems = async () => {

@@ -23,6 +23,16 @@
     weddingSlug?: string
   }>()
 
+  const emit = defineEmits<{
+    'dirty-state-change': [
+      payload: {
+        isDirty: boolean
+        save: () => Promise<{ success: boolean; error?: string }>
+        discard: () => void
+      },
+    ]
+  }>()
+
   const { adminT } = useAdminLanguage()
   const { withLoading } = useLoadingOverlay()
   const { fetchPublicData } = usePublicWeddingData()
@@ -444,6 +454,35 @@
   const discardChanges = () => {
     syncFormData()
   }
+
+  // Save function for external callers (returns result)
+  const saveForEmit = async (): Promise<{ success: boolean; error?: string }> => {
+    try {
+      const result = await updateWeddingDetails(formData.value, weddingId.value ?? undefined)
+      if (result.success) {
+        syncFormData()
+        if (props.weddingSlug) {
+          fetchPublicData(props.weddingSlug, true)
+        }
+      }
+      return result
+    } catch (err) {
+      return { success: false, error: err instanceof Error ? err.message : 'Save failed' }
+    }
+  }
+
+  // Emit dirty state changes to parent
+  watch(
+    hasChanges,
+    (isDirty) => {
+      emit('dirty-state-change', {
+        isDirty,
+        save: saveForEmit,
+        discard: discardChanges,
+      })
+    },
+    { immediate: true }
+  )
 
   // Watch for wedding details changes and sync form
   watch(

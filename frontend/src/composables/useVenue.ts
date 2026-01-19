@@ -1,6 +1,7 @@
 import { ref } from 'vue'
 import type { VenueData, VenueUpdateRequest } from '@/types/venue'
 import { getVenue, updateVenue as apiUpdateVenue } from '@/services/api'
+import { clearCache, CACHE_KEYS } from '@/utils/apiCache'
 
 // Default venue data (matches backend defaults)
 // Uses bracket notation for placeholders to clearly indicate unfilled data
@@ -66,6 +67,8 @@ export function useVenue() {
       const responseData = await apiUpdateVenue(updateData, weddingId)
       venue.value = responseData
       saveSuccess.value = true
+      // Clear cache to ensure fresh data on next fetch
+      clearCache(CACHE_KEYS.VENUE)
       // Clear success message after 3 seconds
       setTimeout(() => {
         saveSuccess.value = false

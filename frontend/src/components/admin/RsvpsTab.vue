@@ -795,7 +795,9 @@
         0 20px 25px -5px rgba(0, 0, 0, 0.1),
         0 10px 10px -5px rgba(0, 0, 0, 0.04);
       transform: scale(1);
-      transition: transform 0.3s ease-out, opacity 0.3s ease-out;
+      transition:
+        transform 0.3s ease-out,
+        opacity 0.3s ease-out;
       will-change: transform, opacity;
     }
   }

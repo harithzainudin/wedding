@@ -22,6 +22,7 @@ import {
   listGiftReservations,
 } from '@/services/api'
 import { compressImage, formatBytes } from '@/utils/imageCompression'
+import { clearCache, CACHE_KEYS } from '@/utils/apiCache'
 
 // Allowed MIME types for gift images
 const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp']
@@ -480,6 +481,8 @@ export function useGifts() {
     try {
       const response = await updateGiftSettings(data, weddingId)
       settings.value = response
+      // Clear cache to ensure fresh data on next fetch
+      clearCache(CACHE_KEYS.GIFTS)
       return { success: true }
     } catch (err) {
       return {

@@ -30,8 +30,15 @@
   })
 
   // Fetch all public wedding data once at the top level
-  const { fetchPublicData, weddingError, isLoading, hasLoaded, showRsvpSection, isAcceptingRsvps, getRsvpDeadline } =
-    usePublicWeddingData()
+  const {
+    fetchPublicData,
+    weddingError,
+    isLoading,
+    hasLoaded,
+    showRsvpSection,
+    isAcceptingRsvps,
+    getRsvpDeadline,
+  } = usePublicWeddingData()
 
   // Fetch data when wedding slug is available
   // Always force refresh to ensure we get the latest wedding status

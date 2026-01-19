@@ -1,6 +1,6 @@
 <script setup lang="ts">
   import { ref, computed, onMounted, watch } from 'vue'
-  import { useRoute, useRouter } from 'vue-router'
+  import { useRoute, useRouter, onBeforeRouteLeave } from 'vue-router'
   import { useAdminAuth } from '@/composables/useAdminAuth'
   import { usePasswordChange } from '@/composables/usePasswordChange'
   import { useProfile } from '@/composables/useProfile'
@@ -28,6 +28,10 @@
   import WeddingContextBar from '@/components/admin/WeddingContextBar.vue'
   import { useWeddingMetadata } from '@/composables/useWeddingMetadata'
   import { usePublicWeddingData } from '@/composables/usePublicWeddingData'
+  import { useUnsavedChanges, useBeforeUnloadWarning } from '@/composables/useUnsavedChanges'
+  import type { DirtyTabInfo, DirtyStateChangePayload } from '@/composables/useUnsavedChanges'
+  import UnsavedChangesModal from '@/components/admin/UnsavedChangesModal.vue'
+  import { useToast } from '@/composables/useToast'
 
   const { adminT } = useAdminLanguage()
   const route = useRoute()
@@ -92,6 +96,28 @@
     openProfileModal,
     closeProfileModal,
   } = useProfile(() => currentUser.value)
+
+  // Unsaved changes detection
+  const {
+    hasDirtyTabs,
+    currentDirtyTabLabel,
+    showModal: showUnsavedChangesModal,
+    isSaving: isUnsavedChangesSaving,
+    saveError: unsavedChangesSaveError,
+    registerTab,
+    unregisterTab,
+    clearAllDirtyTabs,
+    beforeNavigate,
+    handleSaveAndContinue,
+    handleDiscard,
+    handleStay,
+  } = useUnsavedChanges()
+
+  // Setup browser beforeunload warning
+  useBeforeUnloadWarning()
+
+  // Toast notifications
+  const { success: showSuccessToast } = useToast()
 
   // Mobile menu state
   const showMobileMenu = ref(false)
@@ -228,13 +254,90 @@
     { key: 'qrcodehub', label: adminT.value.nav.qrHub, icon: tabIcons.qrcodehub },
   ])
 
-  const switchTab = (tab: TabType): void => {
+  // Helper to perform actual tab navigation
+  const performTabNavigation = (tab: TabType): void => {
     activeTab.value = tab
     // Build the correct path based on whether we're in multi-tenant or legacy route
     const basePath = weddingSlug.value ? `/${weddingSlug.value}/admin` : '/admin'
     const newPath = tab === 'dashboard' ? basePath : `${basePath}/${tab}`
     router.push(newPath)
   }
+
+  const switchTab = (tab: TabType): void => {
+    // Check for unsaved changes before navigating
+    if (!beforeNavigate({ type: 'tab', destination: tab })) {
+      return // Navigation blocked, modal will show
+    }
+    performTabNavigation(tab)
+  }
+
+  // Handle unsaved changes modal actions
+  const onSaveAndContinue = async (): Promise<void> => {
+    const result = await handleSaveAndContinue()
+    if (result.success && result.proceedWithNavigation) {
+      showSuccessToast(adminT.value.unsavedChanges.changesSaved)
+      if (result.proceedWithNavigation.type === 'tab' && result.proceedWithNavigation.destination) {
+        performTabNavigation(result.proceedWithNavigation.destination as TabType)
+      } else if (result.proceedWithNavigation.type === 'route' && result.proceedWithNavigation.routeLocation) {
+        router.push(result.proceedWithNavigation.routeLocation)
+      }
+    }
+  }
+
+  const onDiscard = (): void => {
+    const nav = handleDiscard()
+    if (nav) {
+      if (nav.type === 'tab' && nav.destination) {
+        performTabNavigation(nav.destination as TabType)
+      } else if (nav.type === 'route' && nav.routeLocation) {
+        router.push(nav.routeLocation)
+      }
+    }
+  }
+
+  // Handle dirty state changes from tab components
+  const handleTabDirtyChange = (
+    tabKey: TabType,
+    payload: DirtyStateChangePayload
+  ): void => {
+    if (payload.isDirty) {
+      const tabConfig = tabs.value.find((t) => t.key === tabKey)
+      const info: DirtyTabInfo = {
+        tabKey,
+        tabLabel: tabConfig?.label ?? tabKey,
+        save: payload.save,
+        discard: payload.discard,
+      }
+      registerTab(info)
+    } else {
+      unregisterTab(tabKey)
+    }
+  }
+
+  // Individual handlers for each tab to avoid implicit any in template
+  const onWeddingDirtyChange = (payload: DirtyStateChangePayload): void =>
+    handleTabDirtyChange('wedding', payload)
+  const onVenueDirtyChange = (payload: DirtyStateChangePayload): void =>
+    handleTabDirtyChange('venue', payload)
+  const onScheduleDirtyChange = (payload: DirtyStateChangePayload): void =>
+    handleTabDirtyChange('schedule', payload)
+  const onThemeDirtyChange = (payload: DirtyStateChangePayload): void =>
+    handleTabDirtyChange('theme', payload)
+  const onContactsDirtyChange = (payload: DirtyStateChangePayload): void =>
+    handleTabDirtyChange('contacts', payload)
+  const onQRCodeHubDirtyChange = (payload: DirtyStateChangePayload): void =>
+    handleTabDirtyChange('qrcodehub', payload)
+
+  // Navigation guard for browser back/forward
+  onBeforeRouteLeave((to, _from, next) => {
+    if (hasDirtyTabs.value) {
+      // Block navigation and show modal
+      beforeNavigate({ type: 'route', routeLocation: to })
+      next(false)
+    } else {
+      next()
+    }
+  })
 
   const onLogout = (): void => {
     handleLogout()
@@ -311,6 +414,9 @@
 
       // Clear all cached data from previous wedding
       clearCache()
+
+      // Clear any unsaved changes from previous wedding
+      clearAllDirtyTabs()
 
       // Reset the flag to allow resolution for the new slug
       hasResolvedSlug.value = true
@@ -425,6 +531,16 @@
         @submit="handleSetNewPassword"
       />
 
+      <UnsavedChangesModal
+        :show="showUnsavedChangesModal"
+        :tab-label="currentDirtyTabLabel"
+        :is-saving="isUnsavedChangesSaving"
+        :save-error="unsavedChangesSaveError"
+        @save-and-continue="onSaveAndContinue"
+        @discard="onDiscard"
+        @stay="handleStay"
+      />
+
       <!-- Mobile Menu -->
       <MobileAdminMenu
         :is-open="showMobileMenu"
@@ -493,16 +609,32 @@
             <WeddingDetailsTab
               v-else-if="activeTab === 'wedding'"
               v-bind="weddingSlug ? { weddingSlug } : {}"
+              @dirty-state-change="onWeddingDirtyChange"
             />
-            <LocationTab v-else-if="activeTab === 'venue'" />
-            <ScheduleTab v-else-if="activeTab === 'schedule'" />
+            <LocationTab
+              v-else-if="activeTab === 'venue'"
+              @dirty-state-change="onVenueDirtyChange"
+            />
+            <ScheduleTab
+              v-else-if="activeTab === 'schedule'"
+              @dirty-state-change="onScheduleDirtyChange"
+            />
             <GalleryTab v-else-if="activeTab === 'gallery'" />
             <MusicTab v-else-if="activeTab === 'music'" />
             <GiftsTab v-else-if="activeTab === 'gifts'" />
-            <ThemeTab v-else-if="activeTab === 'theme'" />
-            <ContactsTab v-else-if="activeTab === 'contacts'" />
+            <ThemeTab
+              v-else-if="activeTab === 'theme'"
+              @dirty-state-change="onThemeDirtyChange"
+            />
+            <ContactsTab
+              v-else-if="activeTab === 'contacts'"
+              @dirty-state-change="onContactsDirtyChange"
+            />
             <RsvpsTab v-else-if="activeTab === 'rsvps'" />
-            <QRCodeHubTab v-else-if="activeTab === 'qrcodehub'" />
+            <QRCodeHubTab
+              v-else-if="activeTab === 'qrcodehub'"
+              @dirty-state-change="onQRCodeHubDirtyChange"
+            />
           </div>
         </Transition>
       </div>

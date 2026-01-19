@@ -78,6 +78,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
       new GetCommand({
         TableName: Resource.AppDataTable.name,
         Key: settingsKey,
+        ConsistentRead: true,
       })
     )
 

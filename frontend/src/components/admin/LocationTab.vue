@@ -11,6 +11,16 @@
   import LocationPreview from './LocationPreview.vue'
   import ParkingForm from './ParkingForm.vue'
 
+  const emit = defineEmits<{
+    'dirty-state-change': [
+      payload: {
+        isDirty: boolean
+        save: () => Promise<{ success: boolean; error?: string }>
+        discard: () => void
+      },
+    ]
+  }>()
+
   const { adminT } = useAdminLanguage()
   const { withLoading } = useLoadingOverlay()
 
@@ -145,6 +155,65 @@
       }
     )
   }
+
+  // Discard changes
+  const discardChanges = () => {
+    syncFormData()
+  }
+
+  // Save function for external callers (returns result)
+  const saveForEmit = async (): Promise<{ success: boolean; error?: string }> => {
+    const data: {
+      venueName: string
+      address: string
+      coordinates: { lat: number; lng: number }
+      parkingInfo?: string
+      parkingSteps?: ParkingStep[]
+      parkingVideoUrl?: string
+      showParkingImages?: boolean
+      showParkingDirections?: boolean
+      showParkingVideo?: boolean
+    } = {
+      venueName: formData.value.venueName,
+      address: formData.value.address,
+      coordinates: formData.value.coordinates,
+      showParkingImages: formData.value.showParkingImages,
+      showParkingDirections: formData.value.showParkingDirections,
+      showParkingVideo: formData.value.showParkingVideo,
+    }
+    if (formData.value.parkingInfo) {
+      data.parkingInfo = formData.value.parkingInfo
+    }
+    if (formData.value.parkingSteps.length > 0) {
+      data.parkingSteps = formData.value.parkingSteps
+    }
+    if (formData.value.parkingVideoUrl) {
+      data.parkingVideoUrl = formData.value.parkingVideoUrl
+    }
+
+    try {
+      const result = await updateVenue(data, weddingId.value ?? undefined)
+      if (result.success) {
+        syncFormData()
+      }
+      return result
+    } catch (err) {
+      return { success: false, error: err instanceof Error ? err.message : 'Save failed' }
+    }
+  }
+
+  // Emit dirty state changes to parent
+  watch(
+    hasChanges,
+    (isDirty) => {
+      emit('dirty-state-change', {
+        isDirty,
+        save: saveForEmit,
+        discard: discardChanges,
+      })
+    },
+    { immediate: true }
+  )
 
   // Watch for venue changes and sync form
   watch(

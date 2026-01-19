@@ -18,6 +18,16 @@
   import { useLoadingOverlay } from '@/composables/useLoadingOverlay'
   import { getStoredPrimaryWeddingId } from '@/services/tokenManager'
 
+  const emit = defineEmits<{
+    'dirty-state-change': [
+      payload: {
+        isDirty: boolean
+        save: () => Promise<{ success: boolean; error?: string }>
+        discard: () => void
+      },
+    ]
+  }>()
+
   const { adminT } = useAdminLanguage()
   const { withLoading } = useLoadingOverlay()
 
@@ -110,6 +120,11 @@
     return JSON.stringify(formData.value) !== JSON.stringify(settings.value)
   })
 
+  // Helper to check if a QR type is enabled
+  const isTypeEnabled = (type: QRCodeType): boolean => {
+    return formData.value[type].enabled
+  }
+
   // Validation warnings for Digital Blessing
   const restuDigitalWarning = computed(() => {
     if (!formData.value.restuDigital.enabled) return null
@@ -167,6 +182,16 @@
       }
     },
     { deep: true }
+  )
+
+  // Auto-close expanded sections when hub is disabled
+  watch(
+    () => formData.value.hubEnabled,
+    (enabled) => {
+      if (!enabled) {
+        expandedSection.value = null
+      }
+    }
   )
 
   // Toggle section expansion
@@ -241,7 +266,16 @@
 
     await withLoading(
       async () => {
-        await saveSettings(updateData, weddingId.value ?? undefined)
+        const success = await saveSettings(updateData, weddingId.value ?? undefined)
+        if (success) {
+          // Re-sync form data with saved settings - this makes hasChanges return false
+          initializeForm()
+          // Show success message
+          saveSuccess.value = true
+          setTimeout(() => {
+            saveSuccess.value = false
+          }, 3000)
+        }
       },
       {
         message: adminT.value.loadingOverlay.saving,
@@ -249,6 +283,50 @@
       }
     )
   }
+
+  // Discard changes wrapper
+  const discardChanges = (): void => {
+    cancelChanges()
+  }
+
+  // Save function for external callers (returns result)
+  const saveForEmit = async (): Promise<{ success: boolean; error?: string }> => {
+    const updateData: QRCodeHubUpdateRequest = {
+      hubEnabled: formData.value.hubEnabled,
+      website: formData.value.website,
+      restuDigital: formData.value.restuDigital,
+      location: formData.value.location,
+      wifi: formData.value.wifi,
+      rsvp: formData.value.rsvp,
+      calendar: formData.value.calendar,
+      hashtag: formData.value.hashtag,
+      displayOrder: formData.value.displayOrder,
+    }
+
+    try {
+      const success = await saveSettings(updateData, weddingId.value ?? undefined)
+      if (success) {
+        initializeForm()
+        return { success: true }
+      }
+      return { success: false, error: 'Failed to save QR Hub settings' }
+    } catch (err) {
+      return { success: false, error: err instanceof Error ? err.message : 'Save failed' }
+    }
+  }
+
+  // Emit dirty state changes to parent
+  watch(
+    hasChanges,
+    (isDirty) => {
+      emit('dirty-state-change', {
+        isDirty,
+        save: saveForEmit,
+        discard: discardChanges,
+      })
+    },
+    { immediate: true }
+  )
 </script>
 
 <template>
@@ -265,7 +343,7 @@
       <!-- Master Toggle -->
       <label class="flex cursor-pointer items-center gap-3">
         <span class="font-body text-sm text-gray-600">
-          {{ formData.hubEnabled ? adminT.common.enabled : adminT.common.disabled }}
+          {{ formData.hubEnabled ? adminT.qrHub.qrHubVisible : adminT.qrHub.qrHubHidden }}
         </span>
         <div class="relative">
           <input
@@ -284,6 +362,14 @@
           ></div>
         </div>
       </label>
+    </div>
+
+    <!-- Hub Disabled Info Banner -->
+    <div
+      v-if="!formData.hubEnabled && !isLoading && !loadError"
+      class="rounded-lg border border-amber-200 bg-amber-50 p-3"
+    >
+      <p class="font-body text-sm text-amber-700">ℹ️ {{ adminT.qrHub.hubDisabledInfo }}</p>
     </div>
 
     <!-- Loading State -->
@@ -309,24 +395,12 @@
         <div
           v-for="type in formData.displayOrder"
           :key="type"
-          class="rounded-lg border bg-white p-4 shadow-sm transition-shadow hover:shadow-md"
+          class="rounded-lg border bg-white p-4 shadow-sm transition-all"
           :class="{
-            'border-green-300 bg-green-50':
-              (type === 'website' && formData.website.enabled) ||
-              (type === 'restuDigital' && formData.restuDigital.enabled) ||
-              (type === 'location' && formData.location.enabled) ||
-              (type === 'wifi' && formData.wifi.enabled) ||
-              (type === 'rsvp' && formData.rsvp.enabled) ||
-              (type === 'calendar' && formData.calendar.enabled) ||
-              (type === 'hashtag' && formData.hashtag.enabled),
-            'border-gray-200':
-              (type === 'website' && !formData.website.enabled) ||
-              (type === 'restuDigital' && !formData.restuDigital.enabled) ||
-              (type === 'location' && !formData.location.enabled) ||
-              (type === 'wifi' && !formData.wifi.enabled) ||
-              (type === 'rsvp' && !formData.rsvp.enabled) ||
-              (type === 'calendar' && !formData.calendar.enabled) ||
-              (type === 'hashtag' && !formData.hashtag.enabled),
+            'border-green-300 bg-green-50': formData.hubEnabled && isTypeEnabled(type),
+            'border-gray-200': !formData.hubEnabled || !isTypeEnabled(type),
+            'opacity-50': !formData.hubEnabled,
+            'hover:shadow-md': formData.hubEnabled,
           }"
         >
           <div class="flex items-start justify-between">
@@ -343,48 +417,26 @@
             </div>
 
             <!-- Toggle -->
-            <label class="flex cursor-pointer items-center">
+            <label
+              class="flex items-center"
+              :class="
+                formData.hubEnabled ? 'cursor-pointer' : 'cursor-not-allowed pointer-events-none'
+              "
+            >
               <input
                 type="checkbox"
                 class="sr-only"
-                :checked="
-                  (type === 'website' && formData.website.enabled) ||
-                  (type === 'restuDigital' && formData.restuDigital.enabled) ||
-                  (type === 'location' && formData.location.enabled) ||
-                  (type === 'wifi' && formData.wifi.enabled) ||
-                  (type === 'rsvp' && formData.rsvp.enabled) ||
-                  (type === 'calendar' && formData.calendar.enabled) ||
-                  (type === 'hashtag' && formData.hashtag.enabled)
-                "
-                @change="toggleQRCode(type)"
+                :checked="isTypeEnabled(type)"
+                :disabled="!formData.hubEnabled"
+                @change="formData.hubEnabled && toggleQRCode(type)"
               />
               <div
                 class="relative h-5 w-9 rounded-full transition-colors"
-                :class="
-                  (type === 'website' && formData.website.enabled) ||
-                  (type === 'restuDigital' && formData.restuDigital.enabled) ||
-                  (type === 'location' && formData.location.enabled) ||
-                  (type === 'wifi' && formData.wifi.enabled) ||
-                  (type === 'rsvp' && formData.rsvp.enabled) ||
-                  (type === 'calendar' && formData.calendar.enabled) ||
-                  (type === 'hashtag' && formData.hashtag.enabled)
-                    ? 'bg-green-500'
-                    : 'bg-gray-300'
-                "
+                :class="isTypeEnabled(type) ? 'bg-green-500' : 'bg-gray-300'"
               >
                 <div
                   class="absolute left-0.5 top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform"
-                  :class="
-                    (type === 'website' && formData.website.enabled) ||
-                    (type === 'restuDigital' && formData.restuDigital.enabled) ||
-                    (type === 'location' && formData.location.enabled) ||
-                    (type === 'wifi' && formData.wifi.enabled) ||
-                    (type === 'rsvp' && formData.rsvp.enabled) ||
-                    (type === 'calendar' && formData.calendar.enabled) ||
-                    (type === 'hashtag' && formData.hashtag.enabled)
-                      ? 'translate-x-4'
-                      : ''
-                  "
+                  :class="isTypeEnabled(type) ? 'translate-x-4' : ''"
                 ></div>
               </div>
             </label>
@@ -412,8 +464,14 @@
           <!-- Configure button for complex types -->
           <button
             v-if="type === 'restuDigital' || type === 'wifi' || type === 'location'"
-            class="mt-3 w-full rounded bg-gray-100 px-3 py-1.5 font-body text-xs text-gray-600 transition-colors hover:bg-gray-200"
-            @click="toggleSection(type)"
+            class="mt-3 w-full rounded px-3 py-1.5 font-body text-xs transition-colors"
+            :class="
+              formData.hubEnabled
+                ? 'bg-gray-100 text-gray-600 hover:bg-gray-200 cursor-pointer'
+                : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+            "
+            :disabled="!formData.hubEnabled"
+            @click="formData.hubEnabled && toggleSection(type)"
           >
             {{ expandedSection === type ? adminT.qrHub.close : adminT.qrHub.configure }}
           </button>
@@ -664,11 +722,9 @@
       </Transition>
 
       <!-- Save/Cancel Buttons -->
-      <div
-        v-if="hasChanges"
-        class="flex items-center justify-end gap-3 border-t border-gray-200 pt-4"
-      >
+      <div class="flex items-center justify-end gap-3 border-t border-gray-200 pt-4">
         <button
+          v-if="hasChanges"
           class="rounded-md border border-gray-300 bg-white px-4 py-2 font-body text-sm text-gray-700 transition-colors hover:bg-gray-50"
           :disabled="isSaving"
           @click="cancelChanges"
@@ -676,8 +732,8 @@
           {{ adminT.common.cancel }}
         </button>
         <button
-          class="rounded-md bg-blue-500 px-4 py-2 font-body text-sm text-white transition-colors hover:bg-blue-600 disabled:opacity-50"
-          :disabled="isSaving"
+          class="rounded-md bg-blue-500 px-4 py-2 font-body text-sm text-white transition-colors hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
+          :disabled="!hasChanges || isSaving"
           @click="handleSave"
         >
           {{ isSaving ? adminT.common.saving : adminT.qrHub.saveSettings }}

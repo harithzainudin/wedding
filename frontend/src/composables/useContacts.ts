@@ -12,6 +12,7 @@ import {
   updateContacts as apiUpdateContacts,
   updateContactsSettings as apiUpdateContactsSettings,
 } from '@/services/api'
+import { clearCache, CACHE_KEYS } from '@/utils/apiCache'
 
 // Default contacts data (matches backend defaults)
 // Empty array to show empty state - admins should add their own contacts
@@ -109,6 +110,8 @@ export function useContacts() {
         ...contacts.value,
         settings: response.settings,
       }
+      // Clear cache to ensure fresh data on next fetch
+      clearCache(CACHE_KEYS.CONTACTS)
       return { success: true }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to update settings'

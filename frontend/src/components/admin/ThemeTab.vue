@@ -11,6 +11,16 @@
   import ThemeCard from './ThemeCard.vue'
   import ThemeCustomizer from './ThemeCustomizer.vue'
 
+  const emit = defineEmits<{
+    'dirty-state-change': [
+      payload: {
+        isDirty: boolean
+        save: () => Promise<{ success: boolean; error?: string }>
+        discard: () => void
+      },
+    ]
+  }>()
+
   const { adminT } = useAdminLanguage()
   const { withLoading } = useLoadingOverlay()
   const route = useRoute()
@@ -208,6 +218,44 @@
       selectTheme('custom')
     }
   }
+
+  // Discard changes wrapper (same as cancelChanges)
+  const discardChanges = (): void => {
+    cancelChanges()
+  }
+
+  // Save function for external callers (returns result)
+  const saveForEmit = async (): Promise<{ success: boolean; error?: string }> => {
+    const id = weddingId.value ?? undefined
+    try {
+      const result = await saveTheme(
+        {
+          activeThemeId: selectedThemeId.value,
+          customTheme: selectedThemeId.value === 'custom' ? customThemeData.value : undefined,
+        },
+        id
+      )
+      if (result.success) {
+        endPreview()
+      }
+      return result
+    } catch (err) {
+      return { success: false, error: err instanceof Error ? err.message : 'Save failed' }
+    }
+  }
+
+  // Emit dirty state changes to parent
+  watch(
+    hasChanges,
+    (isDirty) => {
+      emit('dirty-state-change', {
+        isDirty,
+        save: saveForEmit,
+        discard: discardChanges,
+      })
+    },
+    { immediate: true }
+  )
 </script>
 
 <template>

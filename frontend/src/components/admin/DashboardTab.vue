@@ -7,12 +7,12 @@
     getGiftSettings,
     listGiftsAdmin,
     getQRCodeHubAdmin,
+    getScheduleAdmin,
+    getContactsAdmin,
   } from '@/services/api'
   import { useAdminLanguage } from '@/composables/useAdminLanguage'
   import { useWeddingDetails } from '@/composables/useWeddingDetails'
   import { useVenue } from '@/composables/useVenue'
-  import { useContacts } from '@/composables/useContacts'
-  import { useSchedule } from '@/composables/useSchedule'
   import { useTheme } from '@/composables/useTheme'
   import { getStoredPrimaryWeddingId, getStoredPrimaryWeddingSlug } from '@/services/tokenManager'
   import { isPlaceholder, isValidCoordinates } from '@/utils/placeholderDetection'
@@ -23,12 +23,12 @@
   import type { QRCodeHubSettings } from '@/types/qrCodeHub'
   import type { GallerySettings } from '@/types/gallery'
   import type { RsvpSettings } from '@/types/rsvp'
+  import type { ScheduleSettings } from '@/types/schedule'
+  import type { ContactsSettings } from '@/types/contacts'
 
   const { adminT } = useAdminLanguage()
   const { weddingDetails, fetchWeddingDetails } = useWeddingDetails()
   const { venue, fetchVenue } = useVenue()
-  const { contacts, fetchContactsAdmin } = useContacts()
-  const { schedule, fetchScheduleAdmin } = useSchedule()
   const { themeSettings, loadTheme } = useTheme()
 
   // Get the wedding ID and slug for API calls (reactive)
@@ -72,6 +72,11 @@
   const giftCount = ref(0)
   const qrHubSettings = ref<QRCodeHubSettings | null>(null)
   const rsvpSettings = ref<RsvpSettings | null>(null)
+  // Local refs for schedule and contacts to avoid async composable state issues
+  const scheduleSettings = ref<ScheduleSettings | null>(null)
+  const scheduleItemCount = ref(0)
+  const contactsSettings = ref<ContactsSettings | null>(null)
+  const contactsCount = ref(0)
   const isLoading = ref(true)
 
   const loadStats = async (forceRefresh = false) => {
@@ -81,18 +86,14 @@
       const slug = weddingSlug.value
 
       // Phase 1: Fetch all critical data in parallel for faster loading
-      const [rsvpData, galleryData] = await Promise.all([
+      const [rsvpData, galleryData, scheduleData, contactsData] = await Promise.all([
         listRsvpsAdminCached(id, forceRefresh),
         listGalleryImagesAdminCached(id, forceRefresh),
+        getScheduleAdmin(id),
+        getContactsAdmin(id),
         // Also fetch setup progress data if slug exists (these don't return values we need)
         ...(slug
-          ? [
-              fetchWeddingDetails(slug),
-              fetchVenue(slug),
-              fetchContactsAdmin(id),
-              fetchScheduleAdmin(id),
-              loadTheme(slug, forceRefresh),
-            ]
+          ? [fetchWeddingDetails(slug), fetchVenue(slug), loadTheme(slug, forceRefresh)]
           : []),
       ])
 
@@ -107,6 +108,14 @@
       if (galleryData.settings) {
         gallerySettings.value = galleryData.settings
       }
+
+      // Process schedule data
+      scheduleSettings.value = scheduleData.settings ?? null
+      scheduleItemCount.value = scheduleData.items?.length ?? 0
+
+      // Process contacts data
+      contactsSettings.value = contactsData.settings ?? null
+      contactsCount.value = contactsData.contacts?.length ?? 0
 
       // Phase 2: Fetch non-critical data in parallel (won't block dashboard on failure)
       const nonCriticalResults = await Promise.allSettled([
@@ -250,7 +259,7 @@
     // 3. Schedule - check enabled state and item count
     // If disabled: mark as complete with "disabled" message
     // If enabled: check if at least 1 schedule item is added
-    const scheduleEnabled = schedule.value.settings?.showSchedule ?? true
+    const scheduleEnabled = scheduleSettings.value?.showSchedule ?? true
     if (!scheduleEnabled) {
       items.push({
         id: 'schedule',
@@ -260,14 +269,13 @@
         tab: 'schedule',
       })
     } else {
-      const scheduleCount = schedule.value.items.length
-      const scheduleComplete = scheduleCount >= 1
+      const scheduleComplete = scheduleItemCount.value >= 1
       items.push({
         id: 'schedule',
         label: t.schedule,
         isComplete: scheduleComplete,
         statusText: scheduleComplete
-          ? interpolate(t.scheduleComplete, { count: String(scheduleCount) })
+          ? interpolate(t.scheduleComplete, { count: String(scheduleItemCount.value) })
           : t.scheduleIncomplete,
         tab: 'schedule',
       })
@@ -323,8 +331,19 @@
       })
     }
 
-    // 6. Gifts - only show if enabled, check if at least 1 gift added
-    if (giftSettings.value?.enabled) {
+    // 6. Gifts - check enabled state and gift count
+    // If disabled: mark as complete with "disabled" message
+    // If enabled: check if at least 1 gift added
+    const giftsEnabled = giftSettings.value?.enabled ?? false
+    if (!giftsEnabled) {
+      items.push({
+        id: 'gifts',
+        label: t.gifts,
+        isComplete: true,
+        statusText: t.giftsDisabled,
+        tab: 'gifts',
+      })
+    } else {
       const giftsComplete = giftCount.value >= 1
       items.push({
         id: 'gifts',
@@ -350,7 +369,7 @@
     // 8. Contacts - check enabled state and contact count
     // If disabled: mark as complete with "disabled" message
     // If enabled: check if at least 1 contact is added
-    const contactsEnabled = contacts.value.settings?.showContacts ?? true
+    const contactsEnabled = contactsSettings.value?.showContacts ?? true
     if (!contactsEnabled) {
       items.push({
         id: 'contacts',
@@ -360,14 +379,13 @@
         tab: 'contacts',
       })
     } else {
-      const contactCount = contacts.value.contacts.length
-      const contactsComplete = contactCount >= 1
+      const contactsComplete = contactsCount.value >= 1
       items.push({
         id: 'contacts',
         label: t.contacts,
         isComplete: contactsComplete,
         statusText: contactsComplete
-          ? interpolate(t.contactsComplete, { count: String(contactCount) })
+          ? interpolate(t.contactsComplete, { count: String(contactsCount.value) })
           : t.contactsIncomplete,
         tab: 'contacts',
       })

@@ -1589,6 +1589,11 @@ export interface AdminTranslations {
     locationConfiguration: string
     navigationApp: string
     locationFromVenue: string
+    // Hub Status
+    qrHubStatus: string
+    qrHubVisible: string
+    qrHubHidden: string
+    hubDisabledInfo: string
   }
 
   // Admin Settings (Master user)
@@ -1753,6 +1758,18 @@ export interface AdminTranslations {
     errorLoading: string
     noWeddingSelected: string
   }
+
+  // Unsaved changes detection
+  unsavedChanges: {
+    title: string
+    message: string
+    saveAndContinue: string
+    discard: string
+    stay: string
+    saving: string
+    saveError: string
+    changesSaved: string
+  }
 }
 
 // String interpolation helper
@@ -1891,7 +1908,7 @@ export const adminTranslations: Record<AdminLanguage, AdminTranslations> = {
         gallery: 'Photo Gallery',
         galleryComplete: '{count} photo(s) uploaded',
         galleryIncomplete: 'Upload at least 1 photo',
-        galleryDisabled: 'Gallery disabled',
+        galleryDisabled: 'Gallery hidden from guests',
         theme: 'Theme Selection',
         themeComplete: 'Theme customized',
         themeDefault: 'Using default theme',
@@ -1903,15 +1920,15 @@ export const adminTranslations: Record<AdminLanguage, AdminTranslations> = {
         gifts: 'Gift Registry',
         giftsComplete: '{count} gift(s) added',
         giftsIncomplete: 'Add at least 1 gift item',
-        giftsDisabled: 'Gift registry disabled',
+        giftsDisabled: 'Gift registry hidden from guests',
         qrHub: 'QR Code Hub',
         qrHubComplete: '{count} QR code(s) enabled',
         qrHubIncomplete: 'Enable at least 1 QR code type',
-        qrHubDisabled: 'QR Hub disabled',
+        qrHubDisabled: 'QR Hub hidden from guests',
         rsvps: 'RSVPs',
         rsvpsComplete: '{count} RSVP(s) received',
         rsvpsIncomplete: 'Waiting for RSVPs',
-        rsvpsDisabled: 'RSVP section hidden',
+        rsvpsDisabled: 'RSVP section hidden from guests',
         rsvpsClosed: '{count} RSVP(s) - Closed',
       },
     },
@@ -1962,7 +1979,8 @@ export const adminTranslations: Record<AdminLanguage, AdminTranslations> = {
       acceptRsvpsDesc: 'Allow guests to submit new RSVPs',
       acceptRsvpsDisabledHint: 'Enable RSVP section first to accept RSVPs',
       rsvpDeadline: 'RSVP Deadline',
-      rsvpDeadlineDesc: 'Optional deadline for RSVP submissions. Leave empty for no deadline (open until event day).',
+      rsvpDeadlineDesc:
+        'Optional deadline for RSVP submissions. Leave empty for no deadline (open until event day).',
       noDeadline: 'No deadline set',
       clearDeadline: 'Clear deadline',
       deadlineAfterEventError: 'Deadline cannot be after the event date',
@@ -2077,8 +2095,8 @@ export const adminTranslations: Record<AdminLanguage, AdminTranslations> = {
       trackTitlePlaceholder: 'Track title',
       artistPlaceholder: 'Artist name',
       uploadTracks: 'Upload {count} track(s)',
-      enableMusic: 'Enable Music',
-      enableMusicDesc: 'Show music player on the public site',
+      enableMusic: 'Show Music Section',
+      enableMusicDesc: 'Display the music player on the public website',
       autoplay: 'Autoplay',
       autoplayDesc: 'Try to play music automatically when page loads',
       playMode: 'Play Mode',
@@ -2442,6 +2460,11 @@ export const adminTranslations: Record<AdminLanguage, AdminTranslations> = {
       locationConfiguration: 'Location Configuration',
       navigationApp: 'Navigation App',
       locationFromVenue: 'Location coordinates are taken from Venue settings',
+      // Hub Status
+      qrHubStatus: 'QR Hub Status',
+      qrHubVisible: 'QR Hub is available',
+      qrHubHidden: 'QR Hub is hidden',
+      hubDisabledInfo: 'Enable the QR Code Hub above to configure individual QR codes.',
     },
 
     adminUsers: {
@@ -2595,6 +2618,17 @@ export const adminTranslations: Record<AdminLanguage, AdminTranslations> = {
       errorLoading: 'Failed to load weddings',
       noWeddingSelected: 'No wedding selected',
     },
+
+    unsavedChanges: {
+      title: 'Unsaved Changes',
+      message: 'You have unsaved changes in {tab}. What would you like to do?',
+      saveAndContinue: 'Save & Continue',
+      discard: 'Discard',
+      stay: 'Stay',
+      saving: 'Saving...',
+      saveError: 'Failed to save changes. Please try again.',
+      changesSaved: 'Changes saved!',
+    },
   },
 
   ms: {
@@ -2729,7 +2763,7 @@ export const adminTranslations: Record<AdminLanguage, AdminTranslations> = {
         gallery: 'Galeri Foto',
         galleryComplete: '{count} foto dimuat naik',
         galleryIncomplete: 'Muat naik sekurang-kurangnya 1 foto',
-        galleryDisabled: 'Galeri dinyahaktifkan',
+        galleryDisabled: 'Galeri disembunyikan daripada tetamu',
         theme: 'Pilihan Tema',
         themeComplete: 'Tema telah disesuaikan',
         themeDefault: 'Menggunakan tema lalai',
@@ -2741,15 +2775,15 @@ export const adminTranslations: Record<AdminLanguage, AdminTranslations> = {
         gifts: 'Senarai Hadiah',
         giftsComplete: '{count} hadiah ditambah',
         giftsIncomplete: 'Tambah sekurang-kurangnya 1 hadiah',
-        giftsDisabled: 'Senarai hadiah dinyahaktifkan',
+        giftsDisabled: 'Senarai hadiah disembunyikan daripada tetamu',
         qrHub: 'Hub Kod QR',
         qrHubComplete: '{count} kod QR diaktifkan',
         qrHubIncomplete: 'Aktifkan sekurang-kurangnya 1 jenis kod QR',
-        qrHubDisabled: 'Hub QR dinyahaktifkan',
+        qrHubDisabled: 'Hub QR disembunyikan daripada tetamu',
         rsvps: 'RSVP',
         rsvpsComplete: '{count} RSVP diterima',
         rsvpsIncomplete: 'Menunggu RSVP',
-        rsvpsDisabled: 'Bahagian RSVP disembunyikan',
+        rsvpsDisabled: 'Bahagian RSVP disembunyikan daripada tetamu',
         rsvpsClosed: '{count} RSVP - Ditutup',
       },
     },
@@ -2800,7 +2834,8 @@ export const adminTranslations: Record<AdminLanguage, AdminTranslations> = {
       acceptRsvpsDesc: 'Benarkan tetamu menghantar RSVP baharu',
       acceptRsvpsDisabledHint: 'Aktifkan bahagian RSVP dahulu untuk menerima RSVP',
       rsvpDeadline: 'Tarikh Akhir RSVP',
-      rsvpDeadlineDesc: 'Tarikh akhir pilihan untuk penghantaran RSVP. Biarkan kosong untuk tiada tarikh akhir (terbuka sehingga hari majlis).',
+      rsvpDeadlineDesc:
+        'Tarikh akhir pilihan untuk penghantaran RSVP. Biarkan kosong untuk tiada tarikh akhir (terbuka sehingga hari majlis).',
       noDeadline: 'Tiada tarikh akhir ditetapkan',
       clearDeadline: 'Kosongkan tarikh akhir',
       deadlineAfterEventError: 'Tarikh akhir tidak boleh selepas tarikh majlis',
@@ -2917,8 +2952,8 @@ export const adminTranslations: Record<AdminLanguage, AdminTranslations> = {
       trackTitlePlaceholder: 'Tajuk trek',
       artistPlaceholder: 'Nama artis',
       uploadTracks: 'Muat naik {count} trek',
-      enableMusic: 'Aktifkan Muzik',
-      enableMusicDesc: 'Papar pemain muzik di laman awam',
+      enableMusic: 'Papar Bahagian Muzik',
+      enableMusicDesc: 'Paparkan pemain muzik di laman web awam',
       autoplay: 'Main Automatik',
       autoplayDesc: 'Cuba mainkan muzik secara automatik apabila halaman dimuatkan',
       playMode: 'Mod Main',
@@ -3286,6 +3321,11 @@ export const adminTranslations: Record<AdminLanguage, AdminTranslations> = {
       locationConfiguration: 'Konfigurasi Lokasi',
       navigationApp: 'Aplikasi Navigasi',
       locationFromVenue: 'Koordinat lokasi diambil dari tetapan Lokasi Majlis',
+      // Hub Status
+      qrHubStatus: 'Status Hub QR',
+      qrHubVisible: 'Hub QR tersedia',
+      qrHubHidden: 'Hub QR disembunyikan',
+      hubDisabledInfo: 'Aktifkan QR Code Hub di atas untuk mengkonfigurasi kod QR individu.',
     },
 
     adminUsers: {
@@ -3439,6 +3479,17 @@ export const adminTranslations: Record<AdminLanguage, AdminTranslations> = {
       loading: 'Memuatkan...',
       errorLoading: 'Gagal memuatkan senarai majlis',
       noWeddingSelected: 'Tiada majlis dipilih',
+    },
+
+    unsavedChanges: {
+      title: 'Perubahan Belum Disimpan',
+      message: 'Anda mempunyai perubahan yang belum disimpan di {tab}. Apa yang ingin anda lakukan?',
+      saveAndContinue: 'Simpan & Teruskan',
+      discard: 'Buang',
+      stay: 'Kekal',
+      saving: 'Menyimpan...',
+      saveError: 'Gagal menyimpan perubahan. Sila cuba lagi.',
+      changesSaved: 'Perubahan disimpan!',
     },
   },
 }

@@ -12,6 +12,16 @@
   import BaseFormModal from './BaseFormModal.vue'
   import type { ContactPerson, MultilingualText } from '@/types/contacts'
 
+  const emit = defineEmits<{
+    'dirty-state-change': [
+      payload: {
+        isDirty: boolean
+        save: () => Promise<{ success: boolean; error?: string }>
+        discard: () => void
+      },
+    ]
+  }>()
+
   const { adminT } = useAdminLanguage()
   const { withLoading } = useLoadingOverlay()
 
@@ -158,6 +168,50 @@
     discardChanges()
     syncLocalShowContacts()
   }
+
+  // Save function for external callers (returns result)
+  const saveForEmit = async (): Promise<{ success: boolean; error?: string }> => {
+    try {
+      // Save items if changed
+      if (hasChanges.value) {
+        const itemsResult = await updateContacts(
+          localContacts.value as ContactPerson[],
+          weddingId.value ?? undefined
+        )
+        if (!itemsResult.success) {
+          return itemsResult
+        }
+        syncLocalContacts()
+      }
+      // Save settings if changed
+      if (hasSettingsChanges.value) {
+        const settingsResult = await updateContactsSettings(
+          { showContacts: localShowContacts.value },
+          weddingId.value ?? undefined
+        )
+        if (!settingsResult.success) {
+          return settingsResult
+        }
+        syncLocalShowContacts()
+      }
+      return { success: true }
+    } catch (err) {
+      return { success: false, error: err instanceof Error ? err.message : 'Save failed' }
+    }
+  }
+
+  // Emit dirty state changes to parent
+  watch(
+    hasAnyChanges,
+    (isDirty) => {
+      emit('dirty-state-change', {
+        isDirty,
+        save: saveForEmit,
+        discard: discardAllChanges,
+      })
+    },
+    { immediate: true }
+  )
 
   onMounted(async () => {
     await fetchContactsAdmin(weddingId.value ?? undefined)
