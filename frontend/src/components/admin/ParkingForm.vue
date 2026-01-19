@@ -196,7 +196,7 @@
               {{ parkingImages.length }}/{{ maxImages }}
             </span>
             <svg
-              class="w-5 h-5 text-charcoal-light dark:text-dark-text-secondary transition-transform flex-shrink-0"
+              class="w-5 h-5 text-charcoal-light dark:text-dark-text-secondary transition-transform duration-200 flex-shrink-0"
               :class="{ 'rotate-180': isImagesExpanded }"
               viewBox="0 0 24 24"
               fill="none"
@@ -233,90 +233,92 @@
         </div>
       </div>
 
-      <div v-if="isImagesExpanded" class="p-4 space-y-4">
-        <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary">
-          {{ adminT.venue.uploadParkingPhotosDesc }}
-        </p>
+      <Transition name="section-expand">
+        <div v-if="isImagesExpanded" class="p-4 space-y-4">
+          <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary">
+            {{ adminT.venue.uploadParkingPhotosDesc }}
+          </p>
 
-        <!-- Loading State -->
-        <div v-if="isLoadingImages" class="text-center py-4">
-          <div
-            class="inline-block w-6 h-6 border-2 border-sage border-t-transparent rounded-full animate-spin"
-          />
-        </div>
-
-        <!-- Error State -->
-        <div v-else-if="imagesLoadError" class="text-center py-4 text-red-500 font-body text-sm">
-          {{ imagesLoadError }}
-        </div>
-
-        <!-- Images Grid -->
-        <div v-else>
-          <div v-if="parkingImages.length > 0" class="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-4">
+          <!-- Loading State -->
+          <div v-if="isLoadingImages" class="text-center py-4">
             <div
-              v-for="image in parkingImages"
-              :key="image.id"
-              class="relative group aspect-video rounded-lg overflow-hidden border border-sand-dark dark:border-dark-border"
-            >
-              <img
-                :src="image.url"
-                :alt="image.caption || image.filename"
-                class="w-full h-full object-cover"
-              />
-              <div
-                class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
-              >
-                <button
-                  type="button"
-                  class="p-2 rounded-full bg-red-500 text-white hover:bg-red-600 transition-colors cursor-pointer"
-                  :disabled="isSaving"
-                  @click="handleRemoveImage(image.id)"
-                >
-                  <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                    />
-                  </svg>
-                </button>
-              </div>
-              <div
-                v-if="image.caption"
-                class="absolute bottom-0 left-0 right-0 bg-black/60 px-2 py-1"
-              >
-                <p class="text-white text-xs truncate">{{ image.caption }}</p>
-              </div>
-            </div>
+              class="inline-block w-6 h-6 border-2 border-sage border-t-transparent rounded-full animate-spin"
+            />
           </div>
 
-          <!-- Upload Progress -->
-          <UploadProgressBar
-            v-if="activeUploads.length > 0"
-            :uploads="activeUploads"
-            class="mb-4"
-            @cancel="cancelUpload"
-            @dismiss="dismissUpload"
-          />
+          <!-- Error State -->
+          <div v-else-if="imagesLoadError" class="text-center py-4 text-red-500 font-body text-sm">
+            {{ imagesLoadError }}
+          </div>
 
-          <!-- Image Uploader -->
-          <ImageUploader
-            v-if="canUploadMore"
-            :disabled="isSaving"
-            :max-file-size="maxFileSize"
-            :allowed-formats="allowedMimeTypes"
-            :format-file-size="formatFileSize"
-            @files-selected="handleFilesSelected"
-          />
-          <p
-            v-else
-            class="text-center py-4 font-body text-sm text-charcoal-light dark:text-dark-text-secondary"
-          >
-            {{ adminT.venue.maxImagesReached.replace('{max}', String(maxImages)) }}
-          </p>
+          <!-- Images Grid -->
+          <div v-else>
+            <div v-if="parkingImages.length > 0" class="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-4">
+              <div
+                v-for="image in parkingImages"
+                :key="image.id"
+                class="relative group aspect-video rounded-lg overflow-hidden border border-sand-dark dark:border-dark-border"
+              >
+                <img
+                  :src="image.url"
+                  :alt="image.caption || image.filename"
+                  class="w-full h-full object-cover"
+                />
+                <div
+                  class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
+                >
+                  <button
+                    type="button"
+                    class="p-2 rounded-full bg-red-500 text-white hover:bg-red-600 transition-colors cursor-pointer"
+                    :disabled="isSaving"
+                    @click="handleRemoveImage(image.id)"
+                  >
+                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                      />
+                    </svg>
+                  </button>
+                </div>
+                <div
+                  v-if="image.caption"
+                  class="absolute bottom-0 left-0 right-0 bg-black/60 px-2 py-1"
+                >
+                  <p class="text-white text-xs truncate">{{ image.caption }}</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Upload Progress -->
+            <UploadProgressBar
+              v-if="activeUploads.length > 0"
+              :uploads="activeUploads"
+              class="mb-4"
+              @cancel="cancelUpload"
+              @dismiss="dismissUpload"
+            />
+
+            <!-- Image Uploader -->
+            <ImageUploader
+              v-if="canUploadMore"
+              :disabled="isSaving"
+              :max-file-size="maxFileSize"
+              :allowed-formats="allowedMimeTypes"
+              :format-file-size="formatFileSize"
+              @files-selected="handleFilesSelected"
+            />
+            <p
+              v-else
+              class="text-center py-4 font-body text-sm text-charcoal-light dark:text-dark-text-secondary"
+            >
+              {{ adminT.venue.maxImagesReached.replace('{max}', String(maxImages)) }}
+            </p>
+          </div>
         </div>
-      </div>
+      </Transition>
     </div>
 
     <!-- Step-by-Step Directions Section -->
@@ -348,7 +350,7 @@
               {{ parkingSteps.length > 1 ? adminT.venue.steps : adminT.venue.step }}
             </span>
             <svg
-              class="w-5 h-5 text-charcoal-light dark:text-dark-text-secondary transition-transform flex-shrink-0"
+              class="w-5 h-5 text-charcoal-light dark:text-dark-text-secondary transition-transform duration-200 flex-shrink-0"
               :class="{ 'rotate-180': isStepsExpanded }"
               viewBox="0 0 24 24"
               fill="none"
@@ -385,138 +387,141 @@
         </div>
       </div>
 
-      <div v-if="isStepsExpanded" class="p-4 space-y-3">
-        <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary">
-          {{ adminT.venue.addDirectionsDesc }}
-        </p>
+      <Transition name="section-expand">
+        <div v-if="isStepsExpanded" class="p-4 space-y-3">
+          <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary">
+            {{ adminT.venue.addDirectionsDesc }}
+          </p>
 
-        <!-- Steps List -->
-        <div v-if="parkingSteps.length > 0" class="space-y-2">
-          <div
-            v-for="(step, index) in parkingSteps"
-            :key="step.id"
-            class="flex gap-2 items-start p-3 bg-sand/30 dark:bg-dark-bg-elevated rounded-lg"
-          >
-            <!-- Step Number -->
+          <!-- Steps List -->
+          <div v-if="parkingSteps.length > 0" class="space-y-2">
             <div
-              class="flex-shrink-0 w-6 h-6 rounded-full bg-sage text-white flex items-center justify-center font-body text-xs font-medium"
+              v-for="(step, index) in parkingSteps"
+              :key="step.id"
+              class="flex gap-2 items-start p-3 bg-sand/30 dark:bg-dark-bg-elevated rounded-lg"
             >
-              {{ index + 1 }}
-            </div>
+              <!-- Step Number -->
+              <div
+                class="flex-shrink-0 w-6 h-6 rounded-full bg-sage text-white flex items-center justify-center font-body text-xs font-medium"
+              >
+                {{ index + 1 }}
+              </div>
 
-            <!-- Step Content -->
-            <div class="flex-1 space-y-2">
-              <input
-                :value="step.text"
-                type="text"
-                maxlength="200"
-                :placeholder="adminT.venue.enterDirectionPlaceholder"
-                :disabled="isSaving"
-                class="w-full px-3 py-2 rounded-lg border border-sand-dark dark:border-dark-border bg-white dark:bg-dark-bg-secondary text-charcoal dark:text-dark-text font-body text-sm focus:outline-none focus:ring-2 focus:ring-sage/50 disabled:opacity-50"
-                @input="
-                  updateStep(index, {
-                    text: ($event.target as HTMLInputElement).value,
-                  })
-                "
-              />
-              <select
-                :value="step.icon || ''"
-                :disabled="isSaving"
-                class="w-full px-3 py-2 rounded-lg border border-sand-dark dark:border-dark-border bg-white dark:bg-dark-bg-secondary text-charcoal dark:text-dark-text font-body text-sm focus:outline-none focus:ring-2 focus:ring-sage/50 disabled:opacity-50"
-                @change="
-                  updateStep(index, {
-                    icon: (($event.target as HTMLSelectElement).value as ParkingIcon) || undefined,
-                  })
-                "
-              >
-                <option v-for="opt in iconOptions" :key="opt.value" :value="opt.value">
-                  {{ opt.label }}
-                </option>
-              </select>
-            </div>
+              <!-- Step Content -->
+              <div class="flex-1 space-y-2">
+                <input
+                  :value="step.text"
+                  type="text"
+                  maxlength="200"
+                  :placeholder="adminT.venue.enterDirectionPlaceholder"
+                  :disabled="isSaving"
+                  class="w-full px-3 py-2 rounded-lg border border-sand-dark dark:border-dark-border bg-white dark:bg-dark-bg-secondary text-charcoal dark:text-dark-text font-body text-sm focus:outline-none focus:ring-2 focus:ring-sage/50 disabled:opacity-50"
+                  @input="
+                    updateStep(index, {
+                      text: ($event.target as HTMLInputElement).value,
+                    })
+                  "
+                />
+                <select
+                  :value="step.icon || ''"
+                  :disabled="isSaving"
+                  class="w-full px-3 py-2 rounded-lg border border-sand-dark dark:border-dark-border bg-white dark:bg-dark-bg-secondary text-charcoal dark:text-dark-text font-body text-sm focus:outline-none focus:ring-2 focus:ring-sage/50 disabled:opacity-50"
+                  @change="
+                    updateStep(index, {
+                      icon:
+                        (($event.target as HTMLSelectElement).value as ParkingIcon) || undefined,
+                    })
+                  "
+                >
+                  <option v-for="opt in iconOptions" :key="opt.value" :value="opt.value">
+                    {{ opt.label }}
+                  </option>
+                </select>
+              </div>
 
-            <!-- Action Buttons -->
-            <div class="flex flex-col gap-1">
-              <button
-                type="button"
-                :disabled="index === 0 || isSaving"
-                class="p-1 rounded hover:bg-sand dark:hover:bg-dark-border transition-colors disabled:opacity-30 cursor-pointer disabled:cursor-not-allowed"
-                @click="moveStep(index, 'up')"
-              >
-                <svg
-                  class="w-4 h-4 text-charcoal-light dark:text-dark-text-secondary"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
+              <!-- Action Buttons -->
+              <div class="flex flex-col gap-1">
+                <button
+                  type="button"
+                  :disabled="index === 0 || isSaving"
+                  class="p-1 rounded hover:bg-sand dark:hover:bg-dark-border transition-colors disabled:opacity-30 cursor-pointer disabled:cursor-not-allowed"
+                  @click="moveStep(index, 'up')"
                 >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M5 15l7-7 7 7"
-                  />
-                </svg>
-              </button>
-              <button
-                type="button"
-                :disabled="index === parkingSteps.length - 1 || isSaving"
-                class="p-1 rounded hover:bg-sand dark:hover:bg-dark-border transition-colors disabled:opacity-30 cursor-pointer disabled:cursor-not-allowed"
-                @click="moveStep(index, 'down')"
-              >
-                <svg
-                  class="w-4 h-4 text-charcoal-light dark:text-dark-text-secondary"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
+                  <svg
+                    class="w-4 h-4 text-charcoal-light dark:text-dark-text-secondary"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M5 15l7-7 7 7"
+                    />
+                  </svg>
+                </button>
+                <button
+                  type="button"
+                  :disabled="index === parkingSteps.length - 1 || isSaving"
+                  class="p-1 rounded hover:bg-sand dark:hover:bg-dark-border transition-colors disabled:opacity-30 cursor-pointer disabled:cursor-not-allowed"
+                  @click="moveStep(index, 'down')"
                 >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M19 9l-7 7-7-7"
-                  />
-                </svg>
-              </button>
-              <button
-                type="button"
-                :disabled="isSaving"
-                class="p-1 rounded hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors cursor-pointer"
-                @click="removeStep(index)"
-              >
-                <svg
-                  class="w-4 h-4 text-red-500"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
+                  <svg
+                    class="w-4 h-4 text-charcoal-light dark:text-dark-text-secondary"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M19 9l-7 7-7-7"
+                    />
+                  </svg>
+                </button>
+                <button
+                  type="button"
+                  :disabled="isSaving"
+                  class="p-1 rounded hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors cursor-pointer"
+                  @click="removeStep(index)"
                 >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                </svg>
-              </button>
+                  <svg
+                    class="w-4 h-4 text-red-500"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  </svg>
+                </button>
+              </div>
             </div>
           </div>
-        </div>
 
-        <!-- Add Step Button -->
-        <button
-          type="button"
-          :disabled="isSaving || parkingSteps.length >= 10"
-          class="w-full py-2 border-2 border-dashed border-sand-dark dark:border-dark-border rounded-lg font-body text-sm text-charcoal-light dark:text-dark-text-secondary hover:border-sage hover:text-sage transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-          @click="addStep"
-        >
-          {{ adminT.venue.addStep }}
-        </button>
-        <p
-          v-if="parkingSteps.length >= 10"
-          class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary text-center"
-        >
-          {{ adminT.venue.maxStepsAllowed }}
-        </p>
-      </div>
+          <!-- Add Step Button -->
+          <button
+            type="button"
+            :disabled="isSaving || parkingSteps.length >= 10"
+            class="w-full py-2 border-2 border-dashed border-sand-dark dark:border-dark-border rounded-lg font-body text-sm text-charcoal-light dark:text-dark-text-secondary hover:border-sage hover:text-sage transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            @click="addStep"
+          >
+            {{ adminT.venue.addStep }}
+          </button>
+          <p
+            v-if="parkingSteps.length >= 10"
+            class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary text-center"
+          >
+            {{ adminT.venue.maxStepsAllowed }}
+          </p>
+        </div>
+      </Transition>
     </div>
 
     <!-- Video URL Section -->
@@ -547,7 +552,7 @@
               {{ adminT.venue.added }}
             </span>
             <svg
-              class="w-5 h-5 text-charcoal-light dark:text-dark-text-secondary transition-transform flex-shrink-0"
+              class="w-5 h-5 text-charcoal-light dark:text-dark-text-secondary transition-transform duration-200 flex-shrink-0"
               :class="{ 'rotate-180': isVideoExpanded }"
               viewBox="0 0 24 24"
               fill="none"
@@ -584,53 +589,80 @@
         </div>
       </div>
 
-      <div v-if="isVideoExpanded" class="p-4 space-y-3">
-        <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary">
-          {{ adminT.venue.addVideoDesc }}
-        </p>
-
-        <div>
-          <input
-            :value="parkingVideoUrl"
-            type="text"
-            placeholder="https://youtube.com/watch?v=..."
-            :disabled="isSaving"
-            class="w-full px-4 py-2.5 rounded-lg border border-sand-dark dark:border-dark-border bg-white dark:bg-dark-bg-secondary text-charcoal dark:text-dark-text font-body text-sm focus:outline-none focus:ring-2 focus:ring-sage/50 disabled:opacity-50"
-            :class="{ 'border-red-500': videoUrlError }"
-            @input="
-              (e: Event) => {
-                const value = (e.target as HTMLInputElement).value
-                validateVideoUrl(value)
-                emit('update:parkingVideoUrl', value)
-              }
-            "
-          />
-          <p v-if="videoUrlError" class="mt-1 font-body text-xs text-red-500">
-            {{ videoUrlError }}
+      <Transition name="section-expand">
+        <div v-if="isVideoExpanded" class="p-4 space-y-3">
+          <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary">
+            {{ adminT.venue.addVideoDesc }}
           </p>
-        </div>
 
-        <!-- Video Preview -->
-        <div
-          v-if="youtubeEmbedUrl && !videoUrlError"
-          class="aspect-video rounded-lg overflow-hidden border border-sand-dark dark:border-dark-border"
-        >
-          <iframe
-            :src="youtubeEmbedUrl"
-            class="w-full h-full"
-            frameborder="0"
-            allow="
-              accelerometer;
-              autoplay;
-              clipboard-write;
-              encrypted-media;
-              gyroscope;
-              picture-in-picture;
-            "
-            allowfullscreen
-          />
+          <div>
+            <input
+              :value="parkingVideoUrl"
+              type="text"
+              placeholder="https://youtube.com/watch?v=..."
+              :disabled="isSaving"
+              class="w-full px-4 py-2.5 rounded-lg border border-sand-dark dark:border-dark-border bg-white dark:bg-dark-bg-secondary text-charcoal dark:text-dark-text font-body text-sm focus:outline-none focus:ring-2 focus:ring-sage/50 disabled:opacity-50"
+              :class="{ 'border-red-500': videoUrlError }"
+              @input="
+                (e: Event) => {
+                  const value = (e.target as HTMLInputElement).value
+                  validateVideoUrl(value)
+                  emit('update:parkingVideoUrl', value)
+                }
+              "
+            />
+            <p v-if="videoUrlError" class="mt-1 font-body text-xs text-red-500">
+              {{ videoUrlError }}
+            </p>
+          </div>
+
+          <!-- Video Preview -->
+          <div
+            v-if="youtubeEmbedUrl && !videoUrlError"
+            class="aspect-video rounded-lg overflow-hidden border border-sand-dark dark:border-dark-border"
+          >
+            <iframe
+              :src="youtubeEmbedUrl"
+              class="w-full h-full"
+              frameborder="0"
+              allow="
+                accelerometer;
+                autoplay;
+                clipboard-write;
+                encrypted-media;
+                gyroscope;
+                picture-in-picture;
+              "
+              allowfullscreen
+            />
+          </div>
         </div>
-      </div>
+      </Transition>
     </div>
   </div>
 </template>
+
+<style scoped>
+  /* Section expand/collapse transition */
+  .section-expand-enter-active,
+  .section-expand-leave-active {
+    transition: all 0.3s ease;
+    overflow: hidden;
+  }
+
+  .section-expand-enter-from,
+  .section-expand-leave-to {
+    opacity: 0;
+    transform: translateY(-10px);
+    max-height: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+  }
+
+  .section-expand-enter-to,
+  .section-expand-leave-from {
+    opacity: 1;
+    transform: translateY(0);
+    max-height: 1000px;
+  }
+</style>
