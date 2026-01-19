@@ -71,6 +71,8 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
       bismillahCalligraphy: result.Item.bismillahCalligraphy,
       dressCode: result.Item.dressCode,
       hashtag: result.Item.hashtag,
+      showDressCode: result.Item.showDressCode,
+      showHashtag: result.Item.showHashtag,
       updatedAt: result.Item.updatedAt,
       updatedBy: result.Item.updatedBy,
     }

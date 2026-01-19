@@ -126,6 +126,8 @@ export interface WeddingDetailsData {
   bismillahCalligraphy?: BismillahCalligraphySettings
   dressCode: string
   hashtag: string
+  showDressCode?: boolean
+  showHashtag?: boolean
   updatedAt?: string
   updatedBy?: string
 }
@@ -147,6 +149,8 @@ export interface WeddingDetailsUpdateRequest {
   bismillahCalligraphy?: BismillahCalligraphySettings
   dressCode: string
   hashtag: string
+  showDressCode?: boolean
+  showHashtag?: boolean
 }
 
 function validateCoupleInfo(
@@ -458,6 +462,24 @@ export function validateWeddingDetailsUpdate(
     return { valid: false, error: 'Hashtag must be 50 characters or less' }
   }
 
+  // Validate showDressCode (optional boolean, defaults to true)
+  let validatedShowDressCode: boolean | undefined
+  if (body.showDressCode !== undefined && body.showDressCode !== null) {
+    if (typeof body.showDressCode !== 'boolean') {
+      return { valid: false, error: 'showDressCode must be a boolean' }
+    }
+    validatedShowDressCode = body.showDressCode
+  }
+
+  // Validate showHashtag (optional boolean, defaults to true)
+  let validatedShowHashtag: boolean | undefined
+  if (body.showHashtag !== undefined && body.showHashtag !== null) {
+    if (typeof body.showHashtag !== 'boolean') {
+      return { valid: false, error: 'showHashtag must be a boolean' }
+    }
+    validatedShowHashtag = body.showHashtag
+  }
+
   return {
     valid: true,
     data: {
@@ -477,6 +499,8 @@ export function validateWeddingDetailsUpdate(
       bismillahCalligraphy: validatedBismillahCalligraphy,
       dressCode: body.dressCode.trim(),
       hashtag: body.hashtag.trim(),
+      showDressCode: validatedShowDressCode,
+      showHashtag: validatedShowHashtag,
     },
   }
 }
@@ -511,4 +535,6 @@ export const DEFAULT_WEDDING_DETAILS: WeddingDetailsData = {
   bismillahCalligraphy: DEFAULT_BISMILLAH_SETTINGS,
   dressCode: '[Your Dress Code]',
   hashtag: '[#YourHashtag]',
+  showDressCode: true,
+  showHashtag: true,
 }

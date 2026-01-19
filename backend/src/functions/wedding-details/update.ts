@@ -117,6 +117,12 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
     if (validation.data.parentsVisibility) {
       weddingItem.parentsVisibility = validation.data.parentsVisibility
     }
+    if (validation.data.showDressCode !== undefined) {
+      weddingItem.showDressCode = validation.data.showDressCode
+    }
+    if (validation.data.showHashtag !== undefined) {
+      weddingItem.showHashtag = validation.data.showHashtag
+    }
 
     await docClient.send(
       new PutCommand({
@@ -138,6 +144,8 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
         weddingItem.bismillahCalligraphy as WeddingDetailsData['bismillahCalligraphy'],
       dressCode: weddingItem.dressCode as string,
       hashtag: weddingItem.hashtag as string,
+      showDressCode: weddingItem.showDressCode as boolean | undefined,
+      showHashtag: weddingItem.showHashtag as boolean | undefined,
       updatedAt: weddingItem.updatedAt as string,
       updatedBy: weddingItem.updatedBy as string,
     }

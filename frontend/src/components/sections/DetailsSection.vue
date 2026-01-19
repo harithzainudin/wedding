@@ -17,6 +17,8 @@
     getEventDisplayFormat,
     getDressCode,
     getHashtag,
+    getShowDressCode,
+    getShowHashtag,
     isLoadingWeddingDetails,
   } = usePublicWeddingData()
   const { orderedCouple, orderedParentsWithVisibility } = useNameOrder()
@@ -35,6 +37,8 @@
   const displayFormat = computed(() => getEventDisplayFormat())
   const dressCode = computed(() => getDressCode())
   const hashtag = computed(() => getHashtag())
+  const showDressCode = computed(() => getShowDressCode())
+  const showHashtag = computed(() => getShowHashtag())
 
   // Check if couple names are placeholder
   const isCoupleInfoPlaceholder = computed(() => {
@@ -497,8 +501,14 @@
       </div>
 
       <!-- Dress Code & Hashtag -->
-      <div class="mt-6 sm:mt-8 flex flex-col sm:flex-row gap-3 sm:gap-4">
-        <div class="flex-1 p-3 sm:p-4 bg-white dark:bg-dark-bg-elevated rounded-lg">
+      <div
+        v-if="showDressCode || showHashtag"
+        class="mt-6 sm:mt-8 flex flex-col sm:flex-row gap-3 sm:gap-4"
+      >
+        <div
+          v-if="showDressCode"
+          class="flex-1 p-3 sm:p-4 bg-white dark:bg-dark-bg-elevated rounded-lg"
+        >
           <p
             class="font-body text-xs sm:text-sm uppercase tracking-wider text-charcoal-light dark:text-dark-text-secondary mb-1"
           >
@@ -516,7 +526,10 @@
           </template>
         </div>
 
-        <div class="flex-1 p-3 sm:p-4 bg-white dark:bg-dark-bg-elevated rounded-lg">
+        <div
+          v-if="showHashtag"
+          class="flex-1 p-3 sm:p-4 bg-white dark:bg-dark-bg-elevated rounded-lg"
+        >
           <p
             class="font-body text-xs sm:text-sm uppercase tracking-wider text-charcoal-light dark:text-dark-text-secondary mb-1"
           >

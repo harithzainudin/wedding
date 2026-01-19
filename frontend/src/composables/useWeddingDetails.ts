@@ -41,6 +41,8 @@ const DEFAULT_WEDDING_DETAILS: WeddingDetailsData = {
   bismillahCalligraphy: DEFAULT_BISMILLAH_SETTINGS,
   dressCode: '[Your Dress Code]',
   hashtag: '[#YourHashtag]',
+  showDressCode: true,
+  showHashtag: true,
 }
 
 // Singleton state

@@ -57,6 +57,9 @@
   const showErrorPage = computed(() => {
     return hasLoaded.value && weddingError.value !== null
   })
+
+  // Computed property to capture rsvp deadline value once
+  const rsvpDeadline = computed(() => getRsvpDeadline())
 </script>
 
 <template>
@@ -88,7 +91,7 @@
       v-if="showRsvpSection()"
       :show-rsvp="true"
       :is-accepting-rsvps="isAcceptingRsvps()"
-      v-bind="getRsvpDeadline() ? { rsvpDeadline: getRsvpDeadline() } : {}"
+      v-bind="rsvpDeadline ? { rsvpDeadline } : {}"
     />
     <StickyNavigation :show-rsvp-button="showRsvpSection()" />
   </main>

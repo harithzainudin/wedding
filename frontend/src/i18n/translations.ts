@@ -1293,6 +1293,8 @@ export interface AdminTranslations {
     eventEndTime: string
     dressCode: string
     dressCodePlaceholder: string
+    showDressCode: string
+    showDressCodeDesc: string
     displayFormat: string
     displayFormatSettings: string
     displayFormatDesc: string
@@ -1323,6 +1325,8 @@ export interface AdminTranslations {
     websiteDetailsDesc: string
     hashtag: string
     hashtagPlaceholder: string
+    showHashtag: string
+    showHashtagDesc: string
     savedSuccess: string
     unsavedChanges: string
     lastUpdated: string
@@ -2166,6 +2170,8 @@ export const adminTranslations: Record<AdminLanguage, AdminTranslations> = {
       eventEndTime: 'Event End Time',
       dressCode: 'Dress Code',
       dressCodePlaceholder: 'e.g., Pastel / Earthy Tones',
+      showDressCode: 'Show Dress Code',
+      showDressCodeDesc: 'Display the dress code section on the public wedding page',
       displayFormat: 'Display Format',
       displayFormatSettings: 'Display Format Settings',
       displayFormatDesc: 'Choose how the event date and time should appear on the public website',
@@ -2196,6 +2202,8 @@ export const adminTranslations: Record<AdminLanguage, AdminTranslations> = {
       websiteDetailsDesc: 'Set a hashtag for guests to use when sharing photos on social media',
       hashtag: 'Wedding Hashtag',
       hashtagPlaceholder: '#YourWeddingHashtag',
+      showHashtag: 'Show Hashtag',
+      showHashtagDesc: 'Display the wedding hashtag on the public wedding page',
       savedSuccess: 'Wedding details saved successfully!',
       unsavedChanges: 'You have unsaved changes',
       lastUpdated: 'Last updated: {date} by {user}',
@@ -3023,6 +3031,8 @@ export const adminTranslations: Record<AdminLanguage, AdminTranslations> = {
       eventEndTime: 'Masa Tamat Acara',
       dressCode: 'Kod Pakaian',
       dressCodePlaceholder: 'cth., Pastel / Warna Earthy',
+      showDressCode: 'Papar Kod Pakaian',
+      showDressCodeDesc: 'Paparkan bahagian kod pakaian di laman perkahwinan awam',
       displayFormat: 'Format Paparan',
       displayFormatSettings: 'Tetapan Format Paparan',
       displayFormatDesc: 'Pilih bagaimana tarikh dan masa acara akan dipaparkan di laman web awam',
@@ -3056,6 +3066,8 @@ export const adminTranslations: Record<AdminLanguage, AdminTranslations> = {
         'Tetapkan hashtag untuk tetamu gunakan semasa berkongsi foto di media sosial',
       hashtag: 'Hashtag Perkahwinan',
       hashtagPlaceholder: '#HashtagPerkahwinanAnda',
+      showHashtag: 'Papar Hashtag',
+      showHashtagDesc: 'Paparkan hashtag perkahwinan di laman perkahwinan awam',
       savedSuccess: 'Butiran perkahwinan berjaya disimpan!',
       unsavedChanges: 'Anda mempunyai perubahan yang belum disimpan',
       lastUpdated: 'Terakhir dikemaskini: {date} oleh {user}',

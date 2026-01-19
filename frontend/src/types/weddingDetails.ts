@@ -101,6 +101,8 @@ export interface WeddingDetailsData {
   bismillahCalligraphy?: BismillahCalligraphySettings
   dressCode: string
   hashtag: string
+  showDressCode?: boolean
+  showHashtag?: boolean
   updatedAt?: string
   updatedBy?: string
 }
@@ -122,6 +124,8 @@ export interface WeddingDetailsUpdateRequest {
   bismillahCalligraphy?: BismillahCalligraphySettings
   dressCode: string
   hashtag: string
+  showDressCode?: boolean
+  showHashtag?: boolean
 }
 
 export interface WeddingDetailsResponse {

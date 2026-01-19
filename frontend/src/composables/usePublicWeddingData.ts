@@ -282,6 +282,15 @@ export function usePublicWeddingData() {
     return weddingConfig.hashtag
   }
 
+  // Visibility settings for dress code and hashtag (default to true)
+  const getShowDressCode = (): boolean => {
+    return weddingDetails.value?.showDressCode ?? true
+  }
+
+  const getShowHashtag = (): boolean => {
+    return weddingDetails.value?.showHashtag ?? true
+  }
+
   // QR Code URL - auto-generated from current domain and wedding slug
   const getQrCodeUrl = (): string => {
     const baseUrl = window.location.origin
@@ -422,6 +431,8 @@ export function usePublicWeddingData() {
     getDisplayNameOrder,
     getDressCode,
     getHashtag,
+    getShowDressCode,
+    getShowHashtag,
     getQrCodeUrl,
     getSchedule,
     getScheduleMultilingual,

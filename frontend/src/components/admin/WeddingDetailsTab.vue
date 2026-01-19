@@ -100,6 +100,8 @@
     } as BismillahCalligraphySettings,
     dressCode: '',
     hashtag: '',
+    showDressCode: true,
+    showHashtag: true,
   })
 
   // Track if form has unsaved changes
@@ -118,6 +120,8 @@
           weddingDetails.value.bismillahCalligraphy ?? DEFAULT_BISMILLAH_SETTINGS,
         dressCode: weddingDetails.value.dressCode,
         hashtag: weddingDetails.value.hashtag,
+        showDressCode: weddingDetails.value.showDressCode ?? true,
+        showHashtag: weddingDetails.value.showHashtag ?? true,
       })
     )
   })
@@ -155,6 +159,8 @@
         : { ...DEFAULT_BISMILLAH_SETTINGS },
       dressCode: weddingDetails.value.dressCode,
       hashtag: weddingDetails.value.hashtag,
+      showDressCode: weddingDetails.value.showDressCode ?? true,
+      showHashtag: weddingDetails.value.showHashtag ?? true,
     }
     // Set custom options toggle based on preset
     showCustomOptions.value = formData.value.eventDisplayFormat.preset === 'custom'
@@ -1209,7 +1215,44 @@
                   />
                 </div>
               </div>
-              <div>
+              <!-- Show Dress Code Toggle -->
+              <div
+                class="flex items-center justify-between py-3 px-4 bg-sand/50 dark:bg-dark-bg rounded-lg"
+              >
+                <div>
+                  <label class="font-body text-sm font-medium text-charcoal dark:text-dark-text">
+                    {{ adminT.wedding.showDressCode }}
+                  </label>
+                  <p
+                    class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary mt-0.5"
+                  >
+                    {{ adminT.wedding.showDressCodeDesc }}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  role="switch"
+                  :aria-checked="formData.showDressCode"
+                  class="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-sage focus:ring-offset-2"
+                  :class="
+                    formData.showDressCode ? 'bg-sage' : 'bg-gray-300 dark:bg-dark-border'
+                  "
+                  :disabled="isSaving"
+                  @click="formData.showDressCode = !formData.showDressCode"
+                >
+                  <span
+                    class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"
+                    :class="formData.showDressCode ? 'translate-x-5' : 'translate-x-0'"
+                  />
+                </button>
+              </div>
+
+              <div
+                class="transition-opacity"
+                :class="{
+                  'opacity-50': !formData.showDressCode,
+                }"
+              >
                 <label
                   class="block font-body text-xs text-charcoal-light dark:text-dark-text-secondary mb-1"
                 >
@@ -1218,9 +1261,9 @@
                 <input
                   v-model="formData.dressCode"
                   type="text"
-                  class="w-full px-3 py-2.5 font-body text-base border border-sand-dark dark:border-dark-border rounded-lg bg-sand dark:bg-dark-bg-elevated text-charcoal dark:text-dark-text focus:outline-none focus:border-sage"
+                  class="w-full px-3 py-2.5 font-body text-base border border-sand-dark dark:border-dark-border rounded-lg bg-sand dark:bg-dark-bg-elevated text-charcoal dark:text-dark-text focus:outline-none focus:border-sage disabled:cursor-not-allowed disabled:bg-gray-100 dark:disabled:bg-dark-bg"
                   :placeholder="adminT.wedding.dressCodePlaceholder"
-                  :disabled="isSaving"
+                  :disabled="isSaving || !formData.showDressCode"
                 />
               </div>
             </div>
@@ -1542,8 +1585,45 @@
           :class="expandedSections.website ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'"
         >
           <div class="overflow-hidden min-h-0">
-            <div class="px-4 sm:px-6 pt-2 pb-4 sm:pb-6">
-              <div>
+            <div class="px-4 sm:px-6 pt-2 pb-4 sm:pb-6 space-y-4">
+              <!-- Show Hashtag Toggle -->
+              <div
+                class="flex items-center justify-between py-3 px-4 bg-sand/50 dark:bg-dark-bg rounded-lg"
+              >
+                <div>
+                  <label class="font-body text-sm font-medium text-charcoal dark:text-dark-text">
+                    {{ adminT.wedding.showHashtag }}
+                  </label>
+                  <p
+                    class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary mt-0.5"
+                  >
+                    {{ adminT.wedding.showHashtagDesc }}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  role="switch"
+                  :aria-checked="formData.showHashtag"
+                  class="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-sage focus:ring-offset-2"
+                  :class="
+                    formData.showHashtag ? 'bg-sage' : 'bg-gray-300 dark:bg-dark-border'
+                  "
+                  :disabled="isSaving"
+                  @click="formData.showHashtag = !formData.showHashtag"
+                >
+                  <span
+                    class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"
+                    :class="formData.showHashtag ? 'translate-x-5' : 'translate-x-0'"
+                  />
+                </button>
+              </div>
+
+              <div
+                class="transition-opacity"
+                :class="{
+                  'opacity-50': !formData.showHashtag,
+                }"
+              >
                 <label
                   class="block font-body text-xs text-charcoal-light dark:text-dark-text-secondary mb-1"
                 >
@@ -1558,9 +1638,9 @@
                   <input
                     v-model="hashtagWithoutPrefix"
                     type="text"
-                    class="flex-1 px-3 py-2.5 font-body text-base border border-sand-dark dark:border-dark-border rounded-r-lg bg-sand dark:bg-dark-bg-elevated text-charcoal dark:text-dark-text focus:outline-none focus:border-sage"
+                    class="flex-1 px-3 py-2.5 font-body text-base border border-sand-dark dark:border-dark-border rounded-r-lg bg-sand dark:bg-dark-bg-elevated text-charcoal dark:text-dark-text focus:outline-none focus:border-sage disabled:cursor-not-allowed disabled:bg-gray-100 dark:disabled:bg-dark-bg"
                     placeholder="YourWeddingHashtag"
-                    :disabled="isSaving"
+                    :disabled="isSaving || !formData.showHashtag"
                   />
                 </div>
               </div>
