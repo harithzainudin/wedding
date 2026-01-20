@@ -160,6 +160,19 @@ export const Keys = {
   }),
 
   // ============================================
+  // GLOBAL MUSIC LIBRARY (Super Admin managed)
+  // ============================================
+
+  /**
+   * Global music track record (shared across all weddings)
+   * pk: GLOBALMUSIC#{musicId}, sk: META
+   */
+  globalMusic: (musicId: string): DynamoKey => ({
+    pk: `GLOBALMUSIC#${musicId}`,
+    sk: 'META',
+  }),
+
+  // ============================================
   // GSI KEYS
   // ============================================
   gsi: {
@@ -258,6 +271,15 @@ export const Keys = {
     }),
 
     /**
+     * List all global music tracks by category (for super admin)
+     * gsi1pk: GLOBALMUSIC, gsi1sk: {category}#{order}#{musicId}
+     */
+    allGlobalMusic: (category: string, order: number, musicId: string): GsiKey => ({
+      gsi1pk: 'GLOBALMUSIC',
+      gsi1sk: `${category}#${String(order).padStart(5, '0')}#${musicId}`,
+    }),
+
+    /**
      * List user's weddings
      * gsi1pk: USER#{username}#WEDDINGS, gsi1sk: {weddingId}
      */
@@ -292,6 +314,7 @@ export const Keys = {
     weddingGifts: (weddingId: string) => `WEDDING#${weddingId}#GIFT#`,
     weddingParking: (weddingId: string) => `WEDDING#${weddingId}#PARKING#`,
     giftReservations: (weddingId: string, giftId: string) => `WEDDING#${weddingId}#GIFT#${giftId}`,
+    globalMusic: () => 'GLOBALMUSIC#',
   },
 }
 

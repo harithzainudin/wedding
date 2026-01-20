@@ -45,6 +45,13 @@ export const S3Keys = {
    */
   qrCode: (weddingId: string, filename: string): string =>
     `weddings/${weddingId}/qrcode/${filename}`,
+
+  /**
+   * Global music track (shared across all weddings)
+   * Path: global/music/{trackId}{ext}
+   */
+  globalMusic: (trackId: string, extension: string): string =>
+    `global/music/${trackId}${extension}`,
 }
 
 /**
@@ -63,6 +70,22 @@ export function extractWeddingIdFromS3Key(s3Key: string): string | null {
 export function validateS3KeyOwnership(s3Key: string, expectedWeddingId: string): boolean {
   const extractedId = extractWeddingIdFromS3Key(s3Key)
   return extractedId === expectedWeddingId
+}
+
+/**
+ * Check if an S3 key is a global music track
+ */
+export function isGlobalMusicS3Key(s3Key: string): boolean {
+  return s3Key.startsWith('global/music/')
+}
+
+/**
+ * Extract track ID from global music S3 key
+ * Returns null if key doesn't match expected pattern
+ */
+export function extractGlobalMusicTrackId(s3Key: string): string | null {
+  const match = s3Key.match(/^global\/music\/([^.]+)/)
+  return match?.[1] ?? null
 }
 
 /**

@@ -738,14 +738,14 @@
       <div class="flex items-center justify-end gap-3 border-t border-gray-200 pt-4">
         <button
           v-if="hasChanges"
-          class="rounded-md border border-gray-300 bg-white px-4 py-2 font-body text-sm text-gray-700 transition-colors hover:bg-gray-50"
+          class="rounded-md border border-gray-300 bg-white px-4 py-2 font-body text-sm text-gray-700 transition-colors hover:bg-gray-50 cursor-pointer"
           :disabled="isSaving"
           @click="cancelChanges"
         >
           {{ adminT.common.cancel }}
         </button>
         <button
-          class="rounded-md bg-blue-500 px-4 py-2 font-body text-sm text-white transition-colors hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
+          class="rounded-md bg-blue-500 px-4 py-2 font-body text-sm text-white transition-colors hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
           :disabled="!hasChanges || isSaving"
           @click="handleSave"
         >

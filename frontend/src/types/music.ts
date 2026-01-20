@@ -1,5 +1,61 @@
-export type MusicSource = 'upload'
+export type MusicSource = 'upload' | 'library'
 export type PlayMode = 'single' | 'playlist'
+
+// ============================================
+// GLOBAL MUSIC LIBRARY TYPES
+// ============================================
+
+export const MUSIC_CATEGORIES = [
+  'romantic',
+  'celebration',
+  'classical',
+  'traditional',
+  'modern',
+  'instrumental',
+  'other',
+] as const
+
+export type MusicCategory = (typeof MUSIC_CATEGORIES)[number]
+
+// License types
+export const LICENSE_TYPES = [
+  'free',
+  'cc0',
+  'cc-by',
+  'cc-by-sa',
+  'cc-by-nc',
+  'royalty-free',
+  'purchased',
+  'custom',
+] as const
+
+export type LicenseType = (typeof LICENSE_TYPES)[number]
+
+// Attribution required for these license types
+export const ATTRIBUTION_REQUIRED_LICENSES: LicenseType[] = ['cc-by', 'cc-by-sa', 'cc-by-nc']
+
+export interface LicenseInfo {
+  type: LicenseType
+  sourceUrl?: string | undefined
+  attribution?: string | undefined
+}
+
+export interface GlobalMusicTrack {
+  id: string
+  title: string
+  artist?: string | undefined
+  duration: number
+  filename: string
+  url: string
+  mimeType: string
+  fileSize: number
+  category: MusicCategory
+  order: number
+  license?: LicenseInfo | undefined
+  attribution?: string | null | undefined // Pre-computed attribution text
+  uploadedAt: string
+  uploadedBy: string
+}
 
 export interface MusicTrack {
   id: string
@@ -12,6 +68,9 @@ export interface MusicTrack {
   fileSize: number
   order: number
   source: MusicSource
+  globalMusicId?: string | undefined // Present when source is 'library'
+  license?: LicenseInfo | undefined // Copied from global track
+  attribution?: string | null | undefined // Pre-computed attribution text
   externalId?: string | undefined
   externalUrl?: string | undefined
   uploadedAt: string
@@ -108,4 +167,121 @@ export interface MusicReorderRequest {
 // Response data from music reorder endpoint (unwrapped)
 export interface MusicReorderResponse {
   message: string
+}
+
+// ============================================
+// GLOBAL MUSIC LIBRARY API TYPES
+// ============================================
+
+export interface GlobalMusicListResponse {
+  tracks: GlobalMusicTrack[]
+  total: number
+  hasMore: boolean
+  nextKey?: string | null | undefined
+}
+
+export interface GlobalMusicPresignedUrlRequest {
+  filename: string
+  mimeType: string
+  fileSize: number
+  title: string
+  artist?: string | undefined
+  duration?: number | undefined
+  category: MusicCategory
+  licenseType?: LicenseType | undefined
+  sourceUrl?: string | undefined
+  customAttribution?: string | undefined // For custom license type
+}
+
+export interface GlobalMusicPresignedUrlResponse {
+  uploadUrl: string
+  trackId: string
+  s3Key: string
+  expiresIn: number
+}
+
+export interface GlobalMusicConfirmRequest {
+  trackId: string
+  s3Key: string
+  filename: string
+  mimeType: string
+  fileSize: number
+  title: string
+  artist?: string | undefined
+  duration: number
+  category: MusicCategory
+  licenseType?: LicenseType | undefined
+  sourceUrl?: string | undefined
+  customAttribution?: string | undefined // For custom license type
+}
+
+export interface GlobalMusicConfirmResponse extends GlobalMusicTrack {}
+
+export interface GlobalMusicUpdateRequest {
+  title?: string | undefined
+  artist?: string | undefined
+  category?: MusicCategory | undefined
+  licenseType?: LicenseType | undefined
+  sourceUrl?: string | undefined
+  attribution?: string | undefined
+}
+
+export interface GlobalMusicUpdateResponse extends GlobalMusicTrack {
+  updatedAt: string
+  updatedBy: string
+}
+
+export interface GlobalMusicDeleteRequest {
+  replacementTrackId?: string | undefined
+}
+
+export interface GlobalMusicDeleteResponse {
+  success: boolean
+  deletedTrackId: string
+  replacedCount?: number | undefined
+  replacementTrackId?: string | undefined
+  affectedWeddings?: string[] | undefined
+}
+
+export interface GlobalMusicDeletePreviewResponse {
+  trackId: string
+  title: string
+  usageCount: number
+  affectedWeddings: string[]
+  requiresReplacement: boolean
+}
+
+export interface GlobalMusicReorderRequest {
+  category: MusicCategory
+  trackIds: string[]
+}
+
+export interface GlobalMusicReorderResponse {
+  success: boolean
+  category: MusicCategory
+  trackIds: string[]
+  reorderedCount: number
+}
+
+// Add from library API types
+export interface AddFromLibraryRequest {
+  globalMusicId: string
+}
+
+export interface AddFromLibraryResponse {
+  id: string
+  title: string
+  artist?: string | undefined
+  duration: number
+  filename: string
+  url: string
+  mimeType: string
+  fileSize: number
+  order: number
+  source: 'library'
+  globalMusicId: string
+  license?: LicenseInfo | undefined
+  attribution?: string | null | undefined
+  uploadedAt: string
+  uploadedBy: string
 }

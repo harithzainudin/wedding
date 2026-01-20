@@ -338,3 +338,37 @@ export interface HardDeleteResponse {
     s3Objects: number
   }
 }
+
+// ============================================
+// Super Admin Settings Types
+// ============================================
+
+export interface SuperAdminProfile {
+  username: string
+  email?: string
+  createdAt: string
+  createdBy?: string
+}
+
+export interface ListSuperAdminsResponse {
+  superAdmins: SuperAdminProfile[]
+  total: number
+}
+
+export interface ChangeSuperAdminPasswordRequest {
+  currentPassword: string
+  newPassword: string
+}
+
+export interface ChangeSuperAdminPasswordResponse {
+  message: string
+}
+
+export interface ResetSuperAdminPasswordResponse {
+  message: string
+  username: string
+  temporaryPassword: string
+  mustChangePassword: boolean
+  resetAt: string
+  resetBy: string
+}

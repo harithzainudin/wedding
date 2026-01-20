@@ -1205,7 +1205,7 @@
                   <label
                     class="block font-body text-xs text-charcoal-light dark:text-dark-text-secondary mb-1"
                   >
-                    {{ adminT.wedding.eventEndTime }}
+                    {{ adminT.wedding.eventEndDateTime }}
                   </label>
                   <input
                     v-model="formattedEventEndTime"

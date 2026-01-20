@@ -561,6 +561,20 @@ export function addMusicRoutes(tokenSecret: sst.Secret, imageBucket: sst.aws.Buc
     link: [table, tokenSecret],
     ...functionConfig,
   })
+
+  // POST /admin/w/{weddingId}/music/add-from-library - Add track from global library (auth required)
+  api.route('POST /admin/w/{weddingId}/music/add-from-library', {
+    handler: 'src/functions/music/add-from-library.handler',
+    link: [table, tokenSecret, imageBucket],
+    ...functionConfig,
+  })
+
+  // GET /admin/music-library - List global music library for wedding admin (read-only)
+  api.route('GET /admin/music-library', {
+    handler: 'src/functions/admin/music-library/list.handler',
+    link: [table, tokenSecret, imageBucket],
+    ...functionConfig,
+  })
 }
 
 // Function to add parking image routes
@@ -797,6 +811,77 @@ export function addSuperAdminRoutes(
   // DELETE /superadmin/staff/{username} - Delete staff member
   api.route('DELETE /superadmin/staff/{username}', {
     handler: 'src/functions/superadmin/staff/delete.handler',
+    link: [table, tokenSecret],
+    ...functionConfig,
+  })
+
+  // ============================================
+  // SUPER ADMIN SETTINGS
+  // ============================================
+
+  // PUT /superadmin/password - Change own password
+  api.route('PUT /superadmin/password', {
+    handler: 'src/functions/superadmin/change-password.handler',
+    link: [table, tokenSecret],
+    ...functionConfig,
+  })
+
+  // GET /superadmin/admins - List all super admins (master only)
+  api.route('GET /superadmin/admins', {
+    handler: 'src/functions/superadmin/admins/list.handler',
+    link: [table, tokenSecret],
+    ...functionConfig,
+  })
+
+  // POST /superadmin/admins/{username}/reset-password - Reset super admin password (master only)
+  api.route('POST /superadmin/admins/{username}/reset-password', {
+    handler: 'src/functions/superadmin/admins/reset-password.handler',
+    link: [table, tokenSecret],
+    ...functionConfig,
+  })
+
+  // ============================================
+  // GLOBAL MUSIC LIBRARY
+  // ============================================
+
+  // GET /superadmin/music-library - List all global music tracks
+  api.route('GET /superadmin/music-library', {
+    handler: 'src/functions/superadmin/music-library/list.handler',
+    link: [table, tokenSecret, imageBucket],
+    ...functionConfig,
+  })
+
+  // POST /superadmin/music-library/upload-url - Request presigned URL for upload
+  api.route('POST /superadmin/music-library/upload-url', {
+    handler: 'src/functions/superadmin/music-library/request-upload.handler',
+    link: [table, tokenSecret, imageBucket],
+    ...functionConfig,
+  })
+
+  // POST /superadmin/music-library/confirm - Confirm upload
+  api.route('POST /superadmin/music-library/confirm', {
+    handler: 'src/functions/superadmin/music-library/confirm-upload.handler',
+    link: [table, tokenSecret, imageBucket],
+    ...functionConfig,
+  })
+
+  // PUT /superadmin/music-library/{id} - Update track metadata
+  api.route('PUT /superadmin/music-library/{id}', {
+    handler: 'src/functions/superadmin/music-library/update.handler',
+    link: [table, tokenSecret],
+    ...functionConfig,
+  })
+
+  // DELETE /superadmin/music-library/{id} - Delete track (with replacement if in use)
+  api.route('DELETE /superadmin/music-library/{id}', {
+    handler: 'src/functions/superadmin/music-library/delete.handler',
+    link: [table, tokenSecret, imageBucket],
+    ...functionConfig,
+  })
+
+  // PUT /superadmin/music-library/reorder - Reorder tracks within category
+  api.route('PUT /superadmin/music-library/reorder', {
+    handler: 'src/functions/superadmin/music-library/reorder.handler',
     link: [table, tokenSecret],
     ...functionConfig,
   })

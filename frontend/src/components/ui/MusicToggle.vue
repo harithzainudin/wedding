@@ -442,6 +442,19 @@
             {{ currentTrack.artist || 'Unknown' }} ·
             {{ formatDuration(currentTrack.duration) }}
           </p>
+          <!-- Attribution (for CC-licensed tracks from library) -->
+          <p v-if="currentTrack.attribution" class="text-white/50 text-[10px] mt-1 truncate">
+            <a
+              v-if="currentTrack.license?.sourceUrl"
+              :href="currentTrack.license.sourceUrl"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="hover:text-white/70 underline"
+            >
+              {{ currentTrack.attribution }}
+            </a>
+            <span v-else>{{ currentTrack.attribution }}</span>
+          </p>
         </div>
 
         <!-- Skip Button (playlist mode) -->

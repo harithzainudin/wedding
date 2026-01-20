@@ -227,7 +227,7 @@ export const translations: Record<Language, Translations> = {
     },
     contact: {
       title: 'Hubungi Kami',
-      subtitle: 'Ada pertanyaan? Hubungi kami melalui WhatsApp',
+      subtitle: 'Ada pertanyaan? Hubungi kami melalui panggilan atau WhatsApp',
       whatsappMessage: 'Assalamualaikum, saya ingin bertanya mengenai majlis perkahwinan {couple}.',
     },
     qrCode: {
@@ -398,7 +398,7 @@ export const translations: Record<Language, Translations> = {
     },
     contact: {
       title: 'Contact Us',
-      subtitle: 'Have questions? Reach us via WhatsApp',
+      subtitle: 'Have questions? Get in touch via call or WhatsApp',
       whatsappMessage: "Hello, I would like to inquire about {couple}'s wedding.",
     },
     qrCode: {
@@ -568,7 +568,7 @@ export const translations: Record<Language, Translations> = {
     },
     contact: {
       title: '联系我们',
-      subtitle: '有疑问？请通过WhatsApp联系我们',
+      subtitle: '有疑问？请致电或通过WhatsApp联系我们',
       whatsappMessage: "Hello, I would like to inquire about {couple}'s wedding.",
     },
     qrCode: {
@@ -736,7 +736,7 @@ export const translations: Record<Language, Translations> = {
     },
     contact: {
       title: 'எங்களை தொடர்பு கொள்ள',
-      subtitle: 'கேள்விகள் உள்ளதா? WhatsApp மூலம் தொடர்பு கொள்ளவும்',
+      subtitle: 'கேள்விகள் உள்ளதா? அழைப்பு அல்லது WhatsApp மூலம் தொடர்பு கொள்ளவும்',
       whatsappMessage: "Hello, I would like to inquire about {couple}'s wedding.",
     },
     qrCode: {
@@ -1247,6 +1247,60 @@ export interface AdminTranslations {
     playlistDragToReorder: string
     stopPreview: string
     unknownArtist: string
+    // Music Library
+    browseLibrary: string
+    libraryEmpty: string
+    addFromLibrary: string
+    alreadyAdded: string
+    addedFromLibrary: string
+    trackFromLibrary: string
+  }
+
+  // Music Library (Super Admin)
+  musicLibrary: {
+    title: string
+    description: string
+    addTrack: string
+    editTrack: string
+    deleteTrack: string
+    trackTitle: string
+    artist: string
+    category: string
+    categories: {
+      romantic: string
+      celebration: string
+      classical: string
+      traditional: string
+      modern: string
+      instrumental: string
+      other: string
+    }
+    uploadTrack: string
+    noTracksYet: string
+    uploadFirst: string
+    deleteConfirm: string
+    deleteWarning: string
+    deleteWarningInUse: string
+    selectReplacement: string
+    replacementRequired: string
+    usedByWeddings: string
+    tracksCount: string
+    duration: string
+    license: string
+    licenseType: string
+    licenseTypes: {
+      free: string
+      cc0: string
+      ccBy: string
+      ccBySa: string
+      ccByNc: string
+      royaltyFree: string
+      purchased: string
+      custom: string
+    }
+    sourceUrl: string
+    sourceUrlHint: string
+    attributionPreview: string
   }
 
   // Wedding Details
@@ -1292,7 +1346,7 @@ export interface AdminTranslations {
     eventDetails: string
     eventDetailsDesc: string
     eventStartDateTime: string
-    eventEndTime: string
+    eventEndDateTime: string
     dressCode: string
     dressCodePlaceholder: string
     showDressCode: string
@@ -1755,6 +1809,34 @@ export interface AdminTranslations {
     other: string
   }
 
+  // Super Admin Settings
+  superAdminSettings: {
+    title: string
+    description: string
+    // Change Password Section
+    changePassword: string
+    changePasswordDesc: string
+    currentPassword: string
+    newPassword: string
+    confirmPassword: string
+    passwordMinLength: string
+    passwordsDoNotMatch: string
+    passwordSameAsCurrent: string
+    passwordChanged: string
+    changingPassword: string
+    // Manage Super Admins Section (master only)
+    manageSuperAdmins: string
+    manageSuperAdminsDesc: string
+    noOtherAdmins: string
+    resetPassword: string
+    resetPasswordConfirm: string
+    resetPasswordWarning: string
+    noEmail: string
+    createdAt: string
+    // Tab label
+    settingsTab: string
+  }
+
   // Wedding context bar
   weddingContext: {
     switchWedding: string
@@ -2128,6 +2210,59 @@ export const adminTranslations: Record<AdminLanguage, AdminTranslations> = {
       playlistDragToReorder: 'Playlist (drag to reorder)',
       stopPreview: 'Stop preview',
       unknownArtist: 'Unknown artist',
+      // Music Library
+      browseLibrary: 'Browse Library',
+      libraryEmpty: 'No tracks available in the library yet',
+      addFromLibrary: 'Add',
+      alreadyAdded: 'Added',
+      addedFromLibrary: 'Added from library',
+      trackFromLibrary: 'From library',
+    },
+
+    musicLibrary: {
+      title: 'Music Library',
+      description: 'Manage global music tracks for all weddings',
+      addTrack: 'Add Track',
+      editTrack: 'Edit Track',
+      deleteTrack: 'Delete Track',
+      trackTitle: 'Title',
+      artist: 'Artist',
+      category: 'Category',
+      categories: {
+        romantic: 'Romantic',
+        celebration: 'Celebration',
+        classical: 'Classical',
+        traditional: 'Traditional',
+        modern: 'Modern',
+        instrumental: 'Instrumental',
+        other: 'Other',
+      },
+      uploadTrack: 'Upload Track',
+      noTracksYet: 'No tracks in the library yet',
+      uploadFirst: 'Upload your first track to get started',
+      deleteConfirm: 'Are you sure you want to delete this track?',
+      deleteWarning: 'This track will be permanently deleted.',
+      deleteWarningInUse: 'This track is currently used by weddings.',
+      selectReplacement: 'Select a replacement track:',
+      replacementRequired: 'Select a replacement track...',
+      usedByWeddings: 'This track is used by {count} wedding(s)',
+      tracksCount: '{count} tracks total',
+      duration: 'Duration',
+      license: 'License',
+      licenseType: 'License Type',
+      licenseTypes: {
+        free: 'Free',
+        cc0: 'CC0 (Public Domain)',
+        ccBy: 'CC-BY (Attribution)',
+        ccBySa: 'CC-BY-SA',
+        ccByNc: 'CC-BY-NC',
+        royaltyFree: 'Royalty Free',
+        purchased: 'Purchased',
+        custom: 'Custom',
+      },
+      sourceUrl: 'Source URL',
+      sourceUrlHint: 'Where did you get this track? (optional)',
+      attributionPreview: 'Attribution Preview',
     },
 
     wedding: {
@@ -2173,7 +2308,7 @@ export const adminTranslations: Record<AdminLanguage, AdminTranslations> = {
       eventDetails: 'Event Details',
       eventDetailsDesc: 'Set the wedding date, time, and dress code for your guests',
       eventStartDateTime: 'Event Start Date & Time',
-      eventEndTime: 'Event End Time',
+      eventEndDateTime: 'Event End Date & Time',
       dressCode: 'Dress Code',
       dressCodePlaceholder: 'e.g., Pastel / Earthy Tones',
       showDressCode: 'Show Dress Code',
@@ -2624,6 +2759,31 @@ export const adminTranslations: Record<AdminLanguage, AdminTranslations> = {
       other: 'Other',
     },
 
+    superAdminSettings: {
+      title: 'Settings',
+      description: 'Manage your account settings',
+      changePassword: 'Change Password',
+      changePasswordDesc: 'Update your login credentials',
+      currentPassword: 'Current Password',
+      newPassword: 'New Password',
+      confirmPassword: 'Confirm New Password',
+      passwordMinLength: 'Password must be at least 6 characters',
+      passwordsDoNotMatch: 'Passwords do not match',
+      passwordSameAsCurrent: 'New password must be different from current password',
+      passwordChanged: 'Password changed successfully',
+      changingPassword: 'Changing password...',
+      manageSuperAdmins: 'Manage Super Admins',
+      manageSuperAdminsDesc: 'Reset passwords for other super admin accounts',
+      noOtherAdmins: 'No other super admin accounts',
+      resetPassword: 'Reset Password',
+      resetPasswordConfirm: 'Reset password for "{username}"?',
+      resetPasswordWarning:
+        'They will receive a temporary password and must change it on next login.',
+      noEmail: 'No email configured',
+      createdAt: 'Created',
+      settingsTab: 'Settings',
+    },
+
     weddingContext: {
       switchWedding: 'Switch Wedding',
       selectWedding: 'Select Wedding',
@@ -2993,6 +3153,59 @@ export const adminTranslations: Record<AdminLanguage, AdminTranslations> = {
       playlistDragToReorder: 'Senarai main (seret untuk susun semula)',
       stopPreview: 'Henti pratonton',
       unknownArtist: 'Artis tidak diketahui',
+      // Music Library
+      browseLibrary: 'Layari Perpustakaan',
+      libraryEmpty: 'Belum ada trek dalam perpustakaan',
+      addFromLibrary: 'Tambah',
+      alreadyAdded: 'Ditambah',
+      addedFromLibrary: 'Ditambah dari perpustakaan',
+      trackFromLibrary: 'Dari perpustakaan',
+    },
+
+    musicLibrary: {
+      title: 'Perpustakaan Muzik',
+      description: 'Urus trek muzik global untuk semua majlis perkahwinan',
+      addTrack: 'Tambah Trek',
+      editTrack: 'Edit Trek',
+      deleteTrack: 'Padam Trek',
+      trackTitle: 'Tajuk',
+      artist: 'Artis',
+      category: 'Kategori',
+      categories: {
+        romantic: 'Romantik',
+        celebration: 'Perayaan',
+        classical: 'Klasik',
+        traditional: 'Tradisional',
+        modern: 'Moden',
+        instrumental: 'Instrumental',
+        other: 'Lain-lain',
+      },
+      uploadTrack: 'Muat Naik Trek',
+      noTracksYet: 'Belum ada trek dalam perpustakaan',
+      uploadFirst: 'Muat naik trek pertama anda untuk bermula',
+      deleteConfirm: 'Adakah anda pasti mahu memadam trek ini?',
+      deleteWarning: 'Trek ini akan dipadam secara kekal.',
+      deleteWarningInUse: 'Trek ini sedang digunakan oleh majlis perkahwinan.',
+      selectReplacement: 'Pilih trek pengganti:',
+      replacementRequired: 'Pilih trek pengganti...',
+      usedByWeddings: 'Trek ini digunakan oleh {count} majlis perkahwinan',
+      tracksCount: '{count} trek jumlah',
+      duration: 'Tempoh',
+      license: 'Lesen',
+      licenseType: 'Jenis Lesen',
+      licenseTypes: {
+        free: 'Percuma',
+        cc0: 'CC0 (Domain Awam)',
+        ccBy: 'CC-BY (Atribusi)',
+        ccBySa: 'CC-BY-SA',
+        ccByNc: 'CC-BY-NC',
+        royaltyFree: 'Bebas Royalti',
+        purchased: 'Dibeli',
+        custom: 'Tersuai',
+      },
+      sourceUrl: 'URL Sumber',
+      sourceUrlHint: 'Dari mana anda dapat trek ini? (pilihan)',
+      attributionPreview: 'Pratonton Atribusi',
     },
 
     wedding: {
@@ -3038,7 +3251,7 @@ export const adminTranslations: Record<AdminLanguage, AdminTranslations> = {
       eventDetails: 'Butiran Acara',
       eventDetailsDesc: 'Tetapkan tarikh, masa, dan kod pakaian untuk tetamu anda',
       eventStartDateTime: 'Tarikh & Masa Mula Acara',
-      eventEndTime: 'Masa Tamat Acara',
+      eventEndDateTime: 'Tarikh & Masa Tamat Acara',
       dressCode: 'Kod Pakaian',
       dressCodePlaceholder: 'cth., Pastel / Warna Earthy',
       showDressCode: 'Papar Kod Pakaian',
@@ -3492,6 +3705,31 @@ export const adminTranslations: Record<AdminLanguage, AdminTranslations> = {
       groom: 'Pengantin Lelaki',
       parent: 'Ibu Bapa',
       other: 'Lain-lain',
+    },
+
+    superAdminSettings: {
+      title: 'Tetapan',
+      description: 'Urus tetapan akaun anda',
+      changePassword: 'Tukar Kata Laluan',
+      changePasswordDesc: 'Kemaskini kelayakan log masuk anda',
+      currentPassword: 'Kata Laluan Semasa',
+      newPassword: 'Kata Laluan Baharu',
+      confirmPassword: 'Sahkan Kata Laluan Baharu',
+      passwordMinLength: 'Kata laluan mestilah sekurang-kurangnya 6 aksara',
+      passwordsDoNotMatch: 'Kata laluan tidak sepadan',
+      passwordSameAsCurrent: 'Kata laluan baharu mestilah berbeza daripada kata laluan semasa',
+      passwordChanged: 'Kata laluan berjaya ditukar',
+      changingPassword: 'Menukar kata laluan...',
+      manageSuperAdmins: 'Urus Super Admin',
+      manageSuperAdminsDesc: 'Tetapkan semula kata laluan untuk akaun super admin lain',
+      noOtherAdmins: 'Tiada akaun super admin lain',
+      resetPassword: 'Tetapkan Semula Kata Laluan',
+      resetPasswordConfirm: 'Tetapkan semula kata laluan untuk "{username}"?',
+      resetPasswordWarning:
+        'Mereka akan menerima kata laluan sementara dan mesti menukarnya semasa log masuk seterusnya.',
+      noEmail: 'Tiada emel dikonfigurasi',
+      createdAt: 'Dicipta',
+      settingsTab: 'Tetapan',
     },
 
     weddingContext: {

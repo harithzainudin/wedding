@@ -45,6 +45,11 @@ import type {
   UpdateStaffRequest,
   UpdateStaffResponse,
   DeleteStaffResponse,
+  // Super Admin Settings
+  ListSuperAdminsResponse,
+  ChangeSuperAdminPasswordRequest,
+  ChangeSuperAdminPasswordResponse,
+  ResetSuperAdminPasswordResponse,
 } from '@/types/admin'
 import type {
   PresignedUrlRequest,
@@ -80,6 +85,20 @@ import type {
   MusicDeleteResponse,
   MusicReorderRequest,
   MusicReorderResponse,
+  MusicCategory,
+  GlobalMusicListResponse,
+  GlobalMusicPresignedUrlRequest,
+  GlobalMusicPresignedUrlResponse,
+  GlobalMusicConfirmRequest,
+  GlobalMusicConfirmResponse,
+  GlobalMusicUpdateRequest,
+  GlobalMusicUpdateResponse,
+  GlobalMusicDeleteRequest,
+  GlobalMusicDeleteResponse,
+  GlobalMusicDeletePreviewResponse,
+  GlobalMusicReorderRequest,
+  GlobalMusicReorderResponse,
+  AddFromLibraryResponse,
 } from '@/types/music'
 import type { ThemeSettings, ThemeUpdateRequest } from '@/types/theme'
 import type {
@@ -765,6 +784,26 @@ export async function reorderMusicTracks(
   })
 }
 
+// Add music from global library (wedding admin)
+export async function addMusicFromLibrary(
+  globalMusicId: string,
+  weddingId?: string
+): Promise<AddFromLibraryResponse> {
+  return authenticatedFetch<AddFromLibraryResponse>(
+    buildAdminUrl('/music/add-from-library', weddingId),
+    {
+      method: 'POST',
+      body: JSON.stringify({ globalMusicId }),
+    }
+  )
+}
+
+// List global music library (wedding admin - read only)
+export async function listMusicLibrary(category?: MusicCategory): Promise<GlobalMusicListResponse> {
+  const params = category ? `?category=${category}` : ''
+  return authenticatedFetch<GlobalMusicListResponse>(`${API_URL}/admin/music-library${params}`)
+}
+
 // Theme API functions
 
 export async function getTheme(weddingSlug?: string): Promise<ThemeSettings> {
@@ -1292,4 +1331,104 @@ export async function deleteStaff(username: string): Promise<DeleteStaffResponse
     `${SUPERADMIN_URL}/staff/${encodeURIComponent(username)}`,
     { method: 'DELETE' }
   )
+}
+
+// ============================================
+// SUPER ADMIN SETTINGS
+// ============================================
+
+export async function changeSuperAdminPassword(
+  data: ChangeSuperAdminPasswordRequest
+): Promise<ChangeSuperAdminPasswordResponse> {
+  return authenticatedFetch<ChangeSuperAdminPasswordResponse>(`${SUPERADMIN_URL}/password`, {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  })
+}
+
+export async function listSuperAdmins(): Promise<ListSuperAdminsResponse> {
+  return authenticatedFetch<ListSuperAdminsResponse>(`${SUPERADMIN_URL}/admins`)
+}
+
+export async function resetSuperAdminPassword(
+  username: string
+): Promise<ResetSuperAdminPasswordResponse> {
+  return authenticatedFetch<ResetSuperAdminPasswordResponse>(
+    `${SUPERADMIN_URL}/admins/${encodeURIComponent(username)}/reset-password`,
+    { method: 'POST' }
+  )
+}
+
+// ============================================
+// GLOBAL MUSIC LIBRARY (Super Admin)
+// ============================================
+
+export async function listGlobalMusic(category?: MusicCategory): Promise<GlobalMusicListResponse> {
+  const params = category ? `?category=${category}` : ''
+  return authenticatedFetch<GlobalMusicListResponse>(`${SUPERADMIN_URL}/music-library${params}`)
+}
+
+export async function getGlobalMusicPresignedUrl(
+  data: GlobalMusicPresignedUrlRequest
+): Promise<GlobalMusicPresignedUrlResponse> {
+  return authenticatedFetch<GlobalMusicPresignedUrlResponse>(
+    `${SUPERADMIN_URL}/music-library/upload-url`,
+    {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }
+  )
+}
+
+export async function confirmGlobalMusicUpload(
+  data: GlobalMusicConfirmRequest
+): Promise<GlobalMusicConfirmResponse> {
+  return authenticatedFetch<GlobalMusicConfirmResponse>(`${SUPERADMIN_URL}/music-library/confirm`, {
+    method: 'POST',
+    body: JSON.stringify(data),
+  })
+}
+
+export async function updateGlobalMusic(
+  trackId: string,
+  data: GlobalMusicUpdateRequest
+): Promise<GlobalMusicUpdateResponse> {
+  return authenticatedFetch<GlobalMusicUpdateResponse>(
+    `${SUPERADMIN_URL}/music-library/${encodeURIComponent(trackId)}`,
+    {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }
+  )
+}
+
+export async function getGlobalMusicDeletePreview(
+  trackId: string
+): Promise<GlobalMusicDeletePreviewResponse> {
+  return authenticatedFetch<GlobalMusicDeletePreviewResponse>(
+    `${SUPERADMIN_URL}/music-library/${encodeURIComponent(trackId)}?preview=true`,
+    { method: 'DELETE' }
+  )
+}
+
+export async function deleteGlobalMusic(
+  trackId: string,
+  data?: GlobalMusicDeleteRequest
+): Promise<GlobalMusicDeleteResponse> {
+  return authenticatedFetch<GlobalMusicDeleteResponse>(
+    `${SUPERADMIN_URL}/music-library/${encodeURIComponent(trackId)}`,
+    {
+      method: 'DELETE',
+      ...(data && { body: JSON.stringify(data) }),
+    }
+  )
+}
+
+export async function reorderGlobalMusic(
+  data: GlobalMusicReorderRequest
+): Promise<GlobalMusicReorderResponse> {
+  return authenticatedFetch<GlobalMusicReorderResponse>(`${SUPERADMIN_URL}/music-library/reorder`, {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  })
 }

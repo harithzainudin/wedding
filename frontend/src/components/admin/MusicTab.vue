@@ -12,6 +12,7 @@
   import DeleteConfirmModal from './DeleteConfirmModal.vue'
   import UploadProgressBar from './UploadProgressBar.vue'
   import SectionVisibilityToggle from './SectionVisibilityToggle.vue'
+  import MusicLibraryBrowser from './MusicLibraryBrowser.vue'
 
   const { adminT } = useAdminLanguage()
   const { withLoading } = useLoadingOverlay()
@@ -38,10 +39,19 @@
   } = useMusic()
 
   const showSettings = ref(false)
+  const showLibraryBrowser = ref(false)
   const deleteConfirmId = ref<string | null>(null)
   const isDeleting = ref(false)
   const uploadErrors = ref<{ file: string; error: string }[]>([])
   const isTogglingVisibility = ref(false)
+
+  // Handle track added from library
+  const handleTrackAddedFromLibrary = (_track: MusicTrack) => {
+    // Track is already added to the server, just need to update local state
+    // The useMusic composable should have a method to add track to local state
+    // For now, we'll just refetch the tracks to ensure consistency
+    fetchTracksAdmin(weddingId.value ?? undefined)
+  }
 
   // Handle visibility toggle with auto-save
   const handleToggleVisibility = async (value: boolean) => {
@@ -205,6 +215,23 @@
       </div>
 
       <div class="flex items-center gap-2">
+        <!-- Browse Library Button -->
+        <button
+          type="button"
+          class="flex items-center gap-2 px-4 py-2 font-body text-sm text-white bg-sage border border-sage rounded-lg hover:bg-sage-dark transition-colors cursor-pointer"
+          @click="showLibraryBrowser = true"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"
+            />
+          </svg>
+          <span>{{ adminT.music?.browseLibrary ?? 'Browse Library' }}</span>
+        </button>
+
         <!-- Settings Button -->
         <button
           type="button"
@@ -406,6 +433,17 @@
       :is-deleting="isDeleting"
       @confirm="handleDeleteConfirm"
       @cancel="handleDeleteCancel"
+    />
+
+    <!-- Music Library Browser Modal -->
+    <MusicLibraryBrowser
+      v-model="showLibraryBrowser"
+      :existing-tracks="tracks"
+      v-bind="weddingId ? { weddingId } : {}"
+      :can-add-more="canUploadMore"
+      :max-tracks="settings.maxTracks"
+      :current-count="tracks.length"
+      @track-added="handleTrackAddedFromLibrary"
     />
   </div>
 </template>
