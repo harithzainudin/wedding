@@ -534,6 +534,83 @@ The frontend uses Vue composables for state management and API interactions:
 | `useNameOrder()`     | Display name ordering          | `composables/useNameOrder.ts`     |
 | `useCrudList()`      | Generic CRUD list operations   | `composables/useCrudList.ts`      |
 
+## Wedding Slug Handling (Important!)
+
+The project has two different sources for wedding slug that serve different purposes. Using the wrong one causes API 404 errors.
+
+### Slug Sources
+
+| Source | Use Case | Scope |
+|--------|----------|-------|
+| `route.params.weddingSlug` | **Public pages** - Use this in views like `GiftsView`, `RsvpView` | Page-level |
+| `usePublicWeddingData().currentWeddingSlug` | Section components on `HomeView` | Singleton state |
+| `useWeddingContext().weddingSlug` | **Admin pages only** - For admin panel operations | Singleton state |
+
+### ⚠️ Common Mistake
+
+**DO NOT** use `useWeddingContext()` in public-facing views (GiftsView, RsvpView, etc.). It's designed for admin pages and is **never set** for public page navigation.
+
+```typescript
+// ❌ BAD - useWeddingContext is for admin pages, not public views
+import { useWeddingContext } from '@/composables/useWeddingContext'
+const { weddingSlug } = useWeddingContext()  // Will be null!
+
+// ✅ GOOD - Get slug from route params for public views
+import { useRoute } from 'vue-router'
+const route = useRoute()
+const weddingSlug = computed(() => {
+  const slug = route.params.weddingSlug
+  return typeof slug === 'string' ? slug : null
+})
+```
+
+### Correct Patterns by View Type
+
+**Public dedicated pages** (GiftsView, RsvpView):
+```typescript
+// Get slug from route params
+const route = useRoute()
+const weddingSlug = computed(() => {
+  const slug = route.params.weddingSlug
+  return typeof slug === 'string' ? slug : null
+})
+
+// Use for back links
+const backPath = computed(() => weddingSlug.value ? `/${weddingSlug.value}` : '/')
+
+// Use for API calls
+onMounted(() => {
+  fetchData(weddingSlug.value ?? undefined)
+})
+```
+
+**Section components in HomeView** (GallerySection, QRCodeHubSection, etc.):
+```typescript
+// Use the singleton from usePublicWeddingData (set by HomeView)
+const { currentWeddingSlug } = usePublicWeddingData()
+
+// Use for API calls
+const data = await listGalleryImagesCached(currentWeddingSlug.value ?? undefined)
+```
+
+**Admin views**:
+```typescript
+// Use useWeddingContext for admin operations
+const { weddingId, weddingSlug } = useWeddingContext()
+
+// Use weddingId for admin API calls
+const data = await listGalleryImages(weddingId.value ?? undefined)
+```
+
+### API URL Patterns
+
+| Context | API URL Helper | URL Pattern |
+|---------|----------------|-------------|
+| Public endpoints | `buildPublicUrl(endpoint, slug)` | `/{slug}/endpoint` |
+| Admin endpoints | `buildAdminUrl(endpoint, weddingId)` | `/admin/w/{weddingId}/endpoint` |
+
+When slug/weddingId is `undefined`, the API falls back to legacy single-tenant routes.
+
 ## Frontend Utilities
 
 Helper utilities in `/frontend/src/utils/`:

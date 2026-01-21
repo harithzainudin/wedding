@@ -34,6 +34,12 @@ const routes: RouteRecordRaw[] = [
     component: () => import('@/views/RsvpView.vue'),
     meta: { isLegacy: true },
   },
+  {
+    path: '/gifts',
+    name: 'gifts',
+    component: () => import('@/views/GiftsView.vue'),
+    meta: { isLegacy: true },
+  },
 
   // ============================================
   // Super Admin routes
@@ -60,6 +66,12 @@ const routes: RouteRecordRaw[] = [
     path: '/:weddingSlug/rsvp',
     name: 'wedding-rsvp',
     component: () => import('@/views/RsvpView.vue'),
+    meta: { isMultiTenant: true },
+  },
+  {
+    path: '/:weddingSlug/gifts',
+    name: 'wedding-gifts',
+    component: () => import('@/views/GiftsView.vue'),
     meta: { isMultiTenant: true },
   },
   {

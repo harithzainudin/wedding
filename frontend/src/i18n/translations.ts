@@ -118,6 +118,21 @@ export interface Translations {
     close: string
     cancel: string
     tryAgain: string
+    // Preview section (home page)
+    seeMore: string
+    viewAllGifts: string
+    more: string
+    // Dedicated page
+    pageTitle: string
+    searchPlaceholder: string
+    sortBy: string
+    sortDefault: string
+    sortPriority: string
+    sortAvailability: string
+    sortNewest: string
+    itemsFound: string
+    noResults: string
+    clearFilters: string
     categories: {
       all: string
       home: string
@@ -134,10 +149,19 @@ export interface Translations {
     calendar: string
     weddingInvitation: string
     backToInvitation: string
+    // New navigation keys
+    navigate: string
+    gifts: string
+    getDirections: string
+    googleMaps: string
+    appleMaps: string
+    openInApp: string
+    bestForIphone: string
   }
   // Common
   common: {
     and: string
+    cancel: string
   }
   // Parking
   parking?: {
@@ -310,6 +334,21 @@ export const translations: Record<Language, Translations> = {
       close: 'Tutup',
       cancel: 'Batal',
       tryAgain: 'Cuba Lagi',
+      // Preview section (home page)
+      seeMore: 'Lihat Lagi',
+      viewAllGifts: 'Lihat Semua Hadiah',
+      more: 'lagi',
+      // Dedicated page
+      pageTitle: 'Senarai Hadiah',
+      searchPlaceholder: 'Cari hadiah...',
+      sortBy: 'Susun',
+      sortDefault: 'Lalai',
+      sortPriority: 'Keutamaan',
+      sortAvailability: 'Ketersediaan',
+      sortNewest: 'Terbaru',
+      itemsFound: 'hadiah',
+      noResults: 'Tiada hadiah dijumpai.',
+      clearFilters: 'Padam penapis',
       categories: {
         all: 'Semua',
         home: 'Rumah',
@@ -325,9 +364,17 @@ export const translations: Record<Language, Translations> = {
       calendar: 'Kalendar',
       weddingInvitation: 'Jemputan Perkahwinan',
       backToInvitation: 'Kembali ke Jemputan',
+      navigate: 'Navigasi',
+      gifts: 'Hadiah',
+      getDirections: 'Dapatkan Arah',
+      googleMaps: 'Google Maps',
+      appleMaps: 'Apple Maps',
+      openInApp: 'Buka dalam aplikasi atau pelayar',
+      bestForIphone: 'Terbaik untuk pengguna iPhone',
     },
     common: {
       and: '&',
+      cancel: 'Batal',
     },
     parking: {
       guide: 'Panduan Parkir',
@@ -480,6 +527,21 @@ export const translations: Record<Language, Translations> = {
       close: 'Close',
       cancel: 'Cancel',
       tryAgain: 'Try Again',
+      // Preview section (home page)
+      seeMore: 'See More',
+      viewAllGifts: 'View All Gifts',
+      more: 'more',
+      // Dedicated page
+      pageTitle: 'Gift Registry',
+      searchPlaceholder: 'Search gifts...',
+      sortBy: 'Sort by',
+      sortDefault: 'Default',
+      sortPriority: 'Priority',
+      sortAvailability: 'Availability',
+      sortNewest: 'Newest',
+      itemsFound: 'items',
+      noResults: 'No gifts found matching your criteria.',
+      clearFilters: 'Clear filters',
       categories: {
         all: 'All',
         home: 'Home',
@@ -495,9 +557,17 @@ export const translations: Record<Language, Translations> = {
       calendar: 'Calendar',
       weddingInvitation: 'Wedding Invitation',
       backToInvitation: 'Back to Invitation',
+      navigate: 'Navigate',
+      gifts: 'Gifts',
+      getDirections: 'Get Directions',
+      googleMaps: 'Google Maps',
+      appleMaps: 'Apple Maps',
+      openInApp: 'Open in app or browser',
+      bestForIphone: 'Best for iPhone users',
     },
     common: {
       and: '&',
+      cancel: 'Cancel',
     },
     parking: {
       guide: 'Parking Guide',
@@ -648,6 +718,21 @@ export const translations: Record<Language, Translations> = {
       close: '关闭',
       cancel: '取消',
       tryAgain: '重试',
+      // Preview section (home page)
+      seeMore: '查看更多',
+      viewAllGifts: '查看所有礼物',
+      more: '更多',
+      // Dedicated page
+      pageTitle: '礼物清单',
+      searchPlaceholder: '搜索礼物...',
+      sortBy: '排序',
+      sortDefault: '默认',
+      sortPriority: '优先级',
+      sortAvailability: '可用性',
+      sortNewest: '最新',
+      itemsFound: '件礼物',
+      noResults: '未找到符合条件的礼物。',
+      clearFilters: '清除筛选',
       categories: {
         all: '全部',
         home: '家居',
@@ -663,9 +748,17 @@ export const translations: Record<Language, Translations> = {
       calendar: '日历',
       weddingInvitation: '婚礼邀请',
       backToInvitation: '返回邀请函',
+      navigate: '导航',
+      gifts: '礼物',
+      getDirections: '获取路线',
+      googleMaps: '谷歌地图',
+      appleMaps: '苹果地图',
+      openInApp: '在应用或浏览器中打开',
+      bestForIphone: '最适合iPhone用户',
     },
     common: {
       and: '&',
+      cancel: '取消',
     },
     parking: {
       guide: '停车指南',
@@ -819,6 +912,21 @@ export const translations: Record<Language, Translations> = {
       close: 'மூடு',
       cancel: 'ரத்து',
       tryAgain: 'மீண்டும் முயற்சிக்கவும்',
+      // Preview section (home page)
+      seeMore: 'மேலும் பார்',
+      viewAllGifts: 'அனைத்து பரிசுகளையும் பார்',
+      more: 'மேலும்',
+      // Dedicated page
+      pageTitle: 'பரிசு பட்டியல்',
+      searchPlaceholder: 'பரிசுகளை தேடு...',
+      sortBy: 'வரிசைப்படுத்து',
+      sortDefault: 'இயல்புநிலை',
+      sortPriority: 'முன்னுரிமை',
+      sortAvailability: 'கிடைக்கும்',
+      sortNewest: 'புதியது',
+      itemsFound: 'பொருட்கள்',
+      noResults: 'உங்கள் தேடலுக்கு பொருந்தும் பரிசுகள் இல்லை.',
+      clearFilters: 'வடிப்பான்களை அழி',
       categories: {
         all: 'அனைத்தும்',
         home: 'வீடு',
@@ -834,9 +942,17 @@ export const translations: Record<Language, Translations> = {
       calendar: 'நாட்காட்டி',
       weddingInvitation: 'திருமண அழைப்பிதழ்',
       backToInvitation: 'அழைப்பிதழுக்குத் திரும்பு',
+      navigate: 'வழிசெலுத்து',
+      gifts: 'பரிசுகள்',
+      getDirections: 'வழிகளைப் பெறுங்கள்',
+      googleMaps: 'கூகுள் மேப்ஸ்',
+      appleMaps: 'ஆப்பிள் மேப்ஸ்',
+      openInApp: 'ஆப் அல்லது உலாவியில் திறக்கவும்',
+      bestForIphone: 'ஐபோன் பயனர்களுக்கு சிறந்தது',
     },
     common: {
       and: '&',
+      cancel: 'ரத்துசெய்',
     },
     parking: {
       guide: 'பார்க்கிங் வழிகாட்டி',

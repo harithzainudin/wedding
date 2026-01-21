@@ -1,7 +1,7 @@
 <script setup lang="ts">
   import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
   import type { MusicTrack, MusicSettings, PlayMode } from '@/types/music'
-  import { getMusic } from '@/services/api'
+  import { getMusicCached } from '@/services/api'
   import { usePublicWeddingData } from '@/composables/usePublicWeddingData'
 
   const { currentWeddingSlug } = usePublicWeddingData()
@@ -241,11 +241,12 @@
     saveState()
   }
 
-  // Fetch music data
+  // Fetch music data - always force refresh to get latest settings
   const fetchMusicData = async (): Promise<void> => {
     isLoading.value = true
     try {
-      const response = await getMusic(currentWeddingSlug.value ?? undefined)
+      // Force refresh to ensure we get the latest music settings (e.g., if disabled in CMS)
+      const response = await getMusicCached(currentWeddingSlug.value ?? undefined, true)
       settings.value = response.settings
       tracks.value = response.tracks
 
@@ -279,15 +280,20 @@
     }
   }
 
-  // Watch for track changes
+  // Watch for track changes (only if music is enabled)
   watch(currentTrack, (newTrack) => {
-    if (newTrack && audioElement.value && !isPlaying.value) {
+    if (isEnabled.value && newTrack && audioElement.value && !isPlaying.value) {
       audioElement.value.src = newTrack.url
     }
   })
 
   onMounted(async () => {
     await fetchMusicData()
+
+    // Don't initialize audio if music is disabled
+    if (!isEnabled.value) {
+      return
+    }
 
     // Initialize audio element
     audioElement.value = new Audio()
@@ -315,8 +321,8 @@
       el.addEventListener('blur', handleFormBlur)
     })
 
-    // Attempt autoplay if enabled
-    if (shouldAutoplay.value && currentTrack.value && audioElement.value) {
+    // Attempt autoplay if music section is enabled and autoplay is on
+    if (isEnabled.value && shouldAutoplay.value && currentTrack.value && audioElement.value) {
       try {
         await audioElement.value.play()
         isPlaying.value = true

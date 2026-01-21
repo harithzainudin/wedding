@@ -8,7 +8,7 @@
   import ContactSection from '@/components/sections/ContactSection.vue'
   import QRCodeHubSection from '@/components/sections/QRCodeHubSection.vue'
   import GuestbookSection from '@/components/sections/GuestbookSection.vue'
-  import WishlistSection from '@/components/sections/WishlistSection.vue'
+  import WishlistPreview from '@/components/sections/WishlistPreview.vue'
   import RsvpSection from '@/components/sections/RsvpSection.vue'
   import StickyNavigation from '@/components/ui/StickyNavigation.vue'
   import WeddingUnavailable from '@/components/ui/WeddingUnavailable.vue'
@@ -86,7 +86,7 @@
     <ContactSection />
     <QRCodeHubSection />
     <GuestbookSection v-if="showRsvpSection()" />
-    <WishlistSection />
+    <WishlistPreview />
     <RsvpSection
       v-if="showRsvpSection()"
       :show-rsvp="true"
