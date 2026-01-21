@@ -224,6 +224,78 @@ export interface Translations {
     galleryInfo: string
     qrHubInfo: string
   }
+  // Landing Page
+  landing?: {
+    // Header
+    brandName: string
+    features: string
+    story: string
+    demo: string
+    login: string
+    // Hero
+    heroTitle: string
+    heroSubtitle: string
+    heroTagline: string
+    viewDemo: string
+    adminLogin: string
+    scrollToExplore: string
+    // Story Section
+    storyTitle: string
+    storySubtitle: string
+    storyParagraph1: string
+    storyParagraph2: string
+    storyParagraph3: string
+    storySignature: string
+    // Features Section
+    featuresTitle: string
+    featuresSubtitle: string
+    seeAllFeatures: string
+    showLess: string
+    featureRsvp: string
+    featureRsvpDesc: string
+    featureGallery: string
+    featureGalleryDesc: string
+    featureGifts: string
+    featureGiftsDesc: string
+    featureMusic: string
+    featureMusicDesc: string
+    featureQrHub: string
+    featureQrHubDesc: string
+    featureThemes: string
+    featureThemesDesc: string
+    featureLanguages: string
+    featureLanguagesDesc: string
+    featureMobile: string
+    featureMobileDesc: string
+    featureCountdown: string
+    featureCountdownDesc: string
+    featureParking: string
+    featureParkingDesc: string
+    featureAdminCms: string
+    featureAdminCmsDesc: string
+    featureDarkMode: string
+    featureDarkModeDesc: string
+    // Stats
+    statsFeatures: string
+    statsLanguages: string
+    statsLove: string
+    // Demo Section
+    demoTitle: string
+    demoSubtitle: string
+    tryDemo: string
+    // Creator Section
+    creatorTitle: string
+    creatorSubtitle: string
+    creatorName: string
+    creatorRole: string
+    creatorUniversity: string
+    creatorQuote: string
+    // Footer
+    copyright: string
+    madeWith: string
+    builtBy: string
+    forLove: string
+  }
 }
 
 export const translations: Record<Language, Translations> = {
@@ -419,6 +491,88 @@ export const translations: Record<Language, Translations> = {
       galleryInfo: 'Tiada gambar dalam galeri buat masa ini',
       qrHubInfo: 'Tiada QR code diaktifkan buat masa ini',
     },
+    landing: {
+      // Header
+      brandName: 'WeddingApp',
+      features: 'Ciri-ciri',
+      story: 'Kisah',
+      demo: 'Demo',
+      login: 'Log Masuk',
+      // Hero
+      heroTitle: 'Dibina dengan Cinta, Dikodkan dengan Hati',
+      heroSubtitle:
+        'Laman web jemputan perkahwinan yang lengkap, dibina oleh seorang pembangun yang tidak dapat mencari kad jemputan yang sempurna untuk cintanya.',
+      heroTagline: 'Kerana cinta layak mendapat yang terbaik',
+      viewDemo: 'Lihat Demo',
+      adminLogin: 'Log Masuk Admin',
+      scrollToExplore: 'Tatal untuk meneroka',
+      // Story Section
+      storyTitle: 'Kisah Di Sebalik Kod',
+      storySubtitle: 'Mengapa saya membina ini',
+      storyParagraph1:
+        'Semuanya bermula apabila saya mencari kad jemputan perkahwinan digital yang sempurna untuk hari istimewa kami. Saya mahukan sesuatu yang cantik, boleh disesuaikan sepenuhnya, dan mempunyai semua ciri yang kami perlukan. Tetapi saya tidak menemuinya.',
+      storyParagraph2:
+        'Jadi, sebagai pembangun, saya melakukan apa yang terbaik — saya membinanya sendiri. Apa yang bermula sebagai projek mudah bertukar menjadi sesuatu yang lebih besar. Setiap ciri, setiap piksel, setiap baris kod ditulis dengan satu orang dalam fikiran: bakal isteri saya.',
+      storyParagraph3:
+        'Ini bukan sekadar laman web. Ini adalah surat cinta dalam bentuk kod. Bukti bahawa apabila anda membina sesuatu dengan cinta, ia menjadi luar biasa.',
+      storySignature: '— Dibina dengan ❤️ oleh Harith Zainudin',
+      // Features Section
+      featuresTitle: 'Semua Yang Anda Perlukan',
+      featuresSubtitle: 'Dimuatkan dengan ciri-ciri yang saya harap wujud dalam perkhidmatan lain',
+      seeAllFeatures: 'Lihat semua ciri',
+      showLess: 'Tunjuk kurang',
+      featureRsvp: 'Pengurusan RSVP',
+      featureRsvpDesc: 'Kumpul maklum balas tetamu dengan penjejakan masa nyata dan eksport data',
+      featureGallery: 'Galeri Foto',
+      featureGalleryDesc:
+        'Galeri foto yang cantik dengan susun semula seret-dan-lepas dan paparan skrin penuh',
+      featureGifts: 'Pendaftaran Hadiah',
+      featureGiftsDesc:
+        'Senarai keinginan pintar dengan sistem tempahan untuk mengelakkan hadiah berganda',
+      featureMusic: 'Pemain Muzik',
+      featureMusicDesc:
+        'Muzik latar dengan main automatik, kawalan kelantangan dan sokongan berbilang trek',
+      featureQrHub: 'Hab Kod QR',
+      featureQrHubDesc: 'Jana kod QR untuk lokasi, WiFi, kalendar, restu digital dan banyak lagi',
+      featureThemes: 'Penyesuaian Tema',
+      featureThemesDesc: 'Pratetap tema cantik atau cipta sendiri dengan warna dan fon tersuai',
+      featureLanguages: '4 Bahasa',
+      featureLanguagesDesc:
+        'Sokongan untuk Melayu, Inggeris, Mandarin dan Tamil untuk semua tetamu',
+      featureMobile: 'Reka Bentuk Responsif',
+      featureMobileDesc: 'Pengalaman sempurna di telefon, tablet dan desktop',
+      featureCountdown: 'Pemasa Undur',
+      featureCountdownDesc:
+        'Pemasa undur yang cantik untuk membina keterujaan menjelang hari besar',
+      featureParking: 'Panduan Parkir',
+      featureParkingDesc:
+        'Arahan langkah demi langkah dan panduan video untuk membantu tetamu mencari tempat parkir',
+      featureAdminCms: 'CMS Admin',
+      featureAdminCmsDesc: 'Panel admin berkuasa untuk mengurus segala-galanya tanpa menyentuh kod',
+      featureDarkMode: 'Mod Gelap',
+      featureDarkModeDesc: 'Sokong mod gelap sistem untuk tontonan yang selesa pada bila-bila masa',
+      // Stats
+      statsFeatures: 'Ciri-ciri',
+      statsLanguages: 'Bahasa',
+      statsLove: 'Cinta',
+      // Demo Section
+      demoTitle: 'Lihat Sendiri',
+      demoSubtitle: 'Alami demo langsung untuk melihat semua ciri dalam aksi',
+      tryDemo: 'Cuba Demo Langsung',
+      // Creator Section
+      creatorTitle: 'Bertemu Pembangunnya',
+      creatorSubtitle: 'Orang di sebalik kod',
+      creatorName: 'Harith Zainudin',
+      creatorRole: 'Pembangun Cloud & Pencipta',
+      creatorUniversity: 'Alumni Sains Komputer & Teknologi Maklumat, Universiti Putra Malaysia',
+      creatorQuote:
+        '"Saya membina ini untuk cinta saya, yang akan menjadi isteri saya. Setiap baris kod adalah surat cinta, setiap ciri adalah janji. Ini adalah cara saya menunjukkan betapa saya menyayanginya."',
+      // Footer
+      copyright: 'Hak cipta terpelihara',
+      madeWith: 'Dibuat dengan',
+      builtBy: 'Dibina oleh',
+      forLove: 'untuk cinta',
+    },
   },
 
   // English
@@ -612,6 +766,84 @@ export const translations: Record<Language, Translations> = {
       galleryInfo: 'No photos in the gallery yet',
       qrHubInfo: 'No QR codes enabled yet',
     },
+    landing: {
+      // Header
+      brandName: 'WeddingApp',
+      features: 'Features',
+      story: 'Story',
+      demo: 'Demo',
+      login: 'Login',
+      // Hero
+      heroTitle: 'Built with Love, Coded with Heart',
+      heroSubtitle:
+        "A full-fledged wedding invitation website, crafted by a developer who couldn't find the perfect invitation for his love.",
+      heroTagline: 'Because love deserves the best',
+      viewDemo: 'View Demo',
+      adminLogin: 'Admin Login',
+      scrollToExplore: 'Scroll to explore',
+      // Story Section
+      storyTitle: 'The Story Behind the Code',
+      storySubtitle: 'Why I built this',
+      storyParagraph1:
+        "It all started when I was searching for the perfect digital wedding invitation for our special day. I wanted something beautiful, fully customizable, and with all the features we needed. But I couldn't find it.",
+      storyParagraph2:
+        'So, as a developer, I did what I do best — I built it myself. What started as a simple project turned into something much bigger. Every feature, every pixel, every line of code was written with one person in mind: my future wife.',
+      storyParagraph3:
+        "This isn't just a website. It's a love letter in code. A testament that when you build something with love, it becomes extraordinary.",
+      storySignature: '— Built with ❤️ by Harith Zainudin',
+      // Features Section
+      featuresTitle: 'Everything You Need',
+      featuresSubtitle: 'Packed with features I wished existed in other services',
+      seeAllFeatures: 'See all features',
+      showLess: 'Show less',
+      featureRsvp: 'RSVP Management',
+      featureRsvpDesc: 'Collect guest responses with real-time tracking and data export',
+      featureGallery: 'Photo Gallery',
+      featureGalleryDesc:
+        'Beautiful photo gallery with drag-and-drop reordering and fullscreen view',
+      featureGifts: 'Gift Registry',
+      featureGiftsDesc: 'Smart wishlist with reservation system to avoid duplicate gifts',
+      featureMusic: 'Music Player',
+      featureMusicDesc: 'Background music with autoplay, volume control, and multi-track support',
+      featureQrHub: 'QR Code Hub',
+      featureQrHubDesc: 'Generate QR codes for location, WiFi, calendar, digital blessings & more',
+      featureThemes: 'Theme Customization',
+      featureThemesDesc: 'Beautiful theme presets or create your own with custom colors and fonts',
+      featureLanguages: '4 Languages',
+      featureLanguagesDesc: 'Support for Malay, English, Mandarin, and Tamil for all your guests',
+      featureMobile: 'Responsive Design',
+      featureMobileDesc: 'Perfect experience on phones, tablets, and desktops',
+      featureCountdown: 'Countdown Timer',
+      featureCountdownDesc: 'Beautiful countdown timer to build excitement for the big day',
+      featureParking: 'Parking Guide',
+      featureParkingDesc: 'Step-by-step directions and video guides to help guests find parking',
+      featureAdminCms: 'Admin CMS',
+      featureAdminCmsDesc: 'Powerful admin panel to manage everything without touching code',
+      featureDarkMode: 'Dark Mode',
+      featureDarkModeDesc: 'System dark mode support for comfortable viewing anytime',
+      // Stats
+      statsFeatures: 'Features',
+      statsLanguages: 'Languages',
+      statsLove: 'Love',
+      // Demo Section
+      demoTitle: 'See It In Action',
+      demoSubtitle: 'Experience a live demo to see all features in action',
+      tryDemo: 'Try Live Demo',
+      // Creator Section
+      creatorTitle: 'Meet the Creator',
+      creatorSubtitle: 'The person behind the code',
+      creatorName: 'Harith Zainudin',
+      creatorRole: 'Cloud Developer & Creator',
+      creatorUniversity:
+        'Computer Science & Information Technology Alumni, Universiti Putra Malaysia',
+      creatorQuote:
+        '"I built this for my love, who will become my wife. Every line of code is a love letter, every feature is a promise. This is my way of showing how much I love her."',
+      // Footer
+      copyright: 'All rights reserved',
+      madeWith: 'Made with',
+      builtBy: 'Built by',
+      forLove: 'for love',
+    },
   },
 
   // Mandarin (Chinese)
@@ -802,6 +1034,81 @@ export const translations: Record<Language, Translations> = {
       giftInfo: '礼物清单暂无内容',
       galleryInfo: '相册暂无照片',
       qrHubInfo: '暂无启用的二维码',
+    },
+    landing: {
+      // Header
+      brandName: 'WeddingApp',
+      features: '功能特点',
+      story: '故事',
+      demo: '演示',
+      login: '登录',
+      // Hero
+      heroTitle: '用爱构建，用心编码',
+      heroSubtitle: '一个完整的婚礼请柬网站，由一位找不到完美请柬的开发者为他的爱人打造。',
+      heroTagline: '因为爱值得最好的',
+      viewDemo: '查看演示',
+      adminLogin: '管理员登录',
+      scrollToExplore: '滚动探索',
+      // Story Section
+      storyTitle: '代码背后的故事',
+      storySubtitle: '为什么我要建造这个',
+      storyParagraph1:
+        '一切始于我为我们的特别日子寻找完美的数字婚礼请柬。我想要美丽、完全可定制、并具有我们需要的所有功能。但我找不到。',
+      storyParagraph2:
+        '所以，作为一名开发者，我做了我最擅长的事——自己建造它。一个简单的项目变成了更大的东西。每一个功能，每一个像素，每一行代码都是为一个人写的：我未来的妻子。',
+      storyParagraph3:
+        '这不仅仅是一个网站。这是用代码写的情书。证明当你用爱建造某物时，它会变得非凡。',
+      storySignature: '— 由 Harith Zainudin 用 ❤️ 构建',
+      // Features Section
+      featuresTitle: '您所需的一切',
+      featuresSubtitle: '包含我希望其他服务有的功能',
+      seeAllFeatures: '查看所有功能',
+      showLess: '显示更少',
+      featureRsvp: '宾客回复管理',
+      featureRsvpDesc: '实时追踪收集宾客回复，支持数据导出',
+      featureGallery: '照片画廊',
+      featureGalleryDesc: '精美照片画廊，支持拖拽排序和全屏查看',
+      featureGifts: '礼物登记',
+      featureGiftsDesc: '智能心愿单，带预订系统避免重复礼物',
+      featureMusic: '音乐播放器',
+      featureMusicDesc: '背景音乐自动播放，音量控制，多曲目支持',
+      featureQrHub: '二维码中心',
+      featureQrHubDesc: '生成位置、WiFi、日历、数字祝福等二维码',
+      featureThemes: '主题定制',
+      featureThemesDesc: '精美主题预设或自定义颜色和字体',
+      featureLanguages: '4种语言',
+      featureLanguagesDesc: '支持马来语、英语、中文和泰米尔语',
+      featureMobile: '响应式设计',
+      featureMobileDesc: '在手机、平板和电脑上都有完美体验',
+      featureCountdown: '倒计时器',
+      featureCountdownDesc: '精美倒计时器，为大日子营造期待感',
+      featureParking: '停车指南',
+      featureParkingDesc: '逐步指引和视频指南帮助宾客找到停车位',
+      featureAdminCms: '管理后台',
+      featureAdminCmsDesc: '强大的管理面板，无需代码即可管理一切',
+      featureDarkMode: '深色模式',
+      featureDarkModeDesc: '支持系统深色模式，随时舒适浏览',
+      // Stats
+      statsFeatures: '功能',
+      statsLanguages: '语言',
+      statsLove: '爱',
+      // Demo Section
+      demoTitle: '亲身体验',
+      demoSubtitle: '体验现场演示，查看所有功能',
+      tryDemo: '试用演示',
+      // Creator Section
+      creatorTitle: '认识创作者',
+      creatorSubtitle: '代码背后的人',
+      creatorName: 'Harith Zainudin',
+      creatorRole: '云开发工程师 & 创作者',
+      creatorUniversity: '计算机科学与信息技术校友，马来西亚博特拉大学',
+      creatorQuote:
+        '"我为我的爱人建造了这个，她将成为我的妻子。每一行代码都是情书，每一个功能都是承诺。这是我表达对她爱意的方式。"',
+      // Footer
+      copyright: '版权所有',
+      madeWith: '用',
+      builtBy: '由',
+      forLove: '为爱而建',
     },
   },
 
@@ -996,6 +1303,88 @@ export const translations: Record<Language, Translations> = {
       giftInfo: 'பரிசுப் பட்டியல் இன்னும் காலியாக உள்ளது',
       galleryInfo: 'கேலரியில் புகைப்படங்கள் இன்னும் இல்லை',
       qrHubInfo: 'QR குறியீடுகள் இன்னும் இயக்கப்படவில்லை',
+    },
+    landing: {
+      // Header
+      brandName: 'WeddingApp',
+      features: 'அம்சங்கள்',
+      story: 'கதை',
+      demo: 'டெமோ',
+      login: 'உள்நுழை',
+      // Hero
+      heroTitle: 'அன்புடன் கட்டமைக்கப்பட்டது, இதயத்துடன் குறியிடப்பட்டது',
+      heroSubtitle:
+        'தனது காதலிக்கு சரியான அழைப்பிதழ் கண்டுபிடிக்க முடியாத ஒரு டெவலப்பரால் உருவாக்கப்பட்ட முழுமையான திருமண அழைப்பிதழ் வலைத்தளம்.',
+      heroTagline: 'ஏனெனில் அன்பு சிறந்ததற்கு தகுதியானது',
+      viewDemo: 'டெமோ பார்',
+      adminLogin: 'நிர்வாக உள்நுழைவு',
+      scrollToExplore: 'ஆராய உருட்டவும்',
+      // Story Section
+      storyTitle: 'குறியீட்டின் பின்னணி கதை',
+      storySubtitle: 'நான் இதை ஏன் உருவாக்கினேன்',
+      storyParagraph1:
+        'எங்கள் சிறப்பு நாளுக்கு சரியான டிஜிட்டல் திருமண அழைப்பிதழைத் தேடியபோது எல்லாம் தொடங்கியது. அழகான, முழுமையாக தனிப்பயனாக்கக்கூடிய, எங்களுக்குத் தேவையான அனைத்து அம்சங்களும் கொண்ட ஒன்றை நான் விரும்பினேன். ஆனால் என்னால் கண்டுபிடிக்க முடியவில்லை.',
+      storyParagraph2:
+        'எனவே, ஒரு டெவலப்பராக, நான் சிறந்ததைச் செய்தேன் — நானே உருவாக்கினேன். ஒரு எளிய திட்டம் பெரிய ஒன்றாக மாறியது. ஒவ்வொரு அம்சமும், ஒவ்வொரு பிக்சலும், ஒவ்வொரு குறியீடும் ஒரு நபரை மனதில் கொண்டு எழுதப்பட்டது: என் எதிர்கால மனைவி.',
+      storyParagraph3:
+        'இது வெறும் வலைத்தளம் அல்ல. இது குறியீட்டில் எழுதப்பட்ட காதல் கடிதம். நீங்கள் அன்புடன் எதையாவது உருவாக்கும்போது, அது அசாதாரணமாகிறது என்பதற்கான சான்று.',
+      storySignature: '— Harith Zainudin ❤️ உடன் உருவாக்கியது',
+      // Features Section
+      featuresTitle: 'உங்களுக்கு தேவையான அனைத்தும்',
+      featuresSubtitle: 'மற்ற சேவைகளில் இருக்க வேண்டும் என்று நான் விரும்பிய அம்சங்கள்',
+      seeAllFeatures: 'அனைத்து அம்சங்களையும் பார்க்க',
+      showLess: 'குறைவாக காட்டு',
+      featureRsvp: 'RSVP நிர்வாகம்',
+      featureRsvpDesc:
+        'நிகழ்நேர கண்காணிப்பு மற்றும் தரவு ஏற்றுமதியுடன் விருந்தினர் பதில்களை சேகரிக்கவும்',
+      featureGallery: 'புகைப்பட தொகுப்பு',
+      featureGalleryDesc:
+        'இழுத்து-விடு மறுவரிசைப்படுத்தல் மற்றும் முழுத்திரை காட்சியுடன் அழகான புகைப்பட தொகுப்பு',
+      featureGifts: 'பரிசு பதிவு',
+      featureGiftsDesc: 'நகல் பரிசுகளைத் தவிர்க்க முன்பதிவு அமைப்புடன் ஸ்மார்ட் விஷ்லிஸ்ட்',
+      featureMusic: 'இசை பிளேயர்',
+      featureMusicDesc: 'தானியங்கி இயக்கம், ஒலி கட்டுப்பாடு மற்றும் பல டிராக் ஆதரவுடன் பின்னணி இசை',
+      featureQrHub: 'QR குறியீடு மையம்',
+      featureQrHubDesc:
+        'இடம், WiFi, காலண்டர், டிஜிட்டல் ஆசீர்வாதம் மற்றும் பலவற்றிற்கு QR குறியீடுகள்',
+      featureThemes: 'தீம் தனிப்பயனாக்கம்',
+      featureThemesDesc:
+        'அழகான தீம் முன்னமைவுகள் அல்லது தனிப்பயன் வண்ணங்கள் மற்றும் எழுத்துருக்களுடன் உங்கள் சொந்தத்தை உருவாக்குங்கள்',
+      featureLanguages: '4 மொழிகள்',
+      featureLanguagesDesc: 'மலாய், ஆங்கிலம், மாண்டரின் மற்றும் தமிழ் ஆதரவு',
+      featureMobile: 'பதிலளிக்கக்கூடிய வடிவமைப்பு',
+      featureMobileDesc: 'தொலைபேசிகள், டேப்லெட்டுகள் மற்றும் டெஸ்க்டாப்களில் சரியான அனுபவம்',
+      featureCountdown: 'கவுண்ட்டவுன் டைமர்',
+      featureCountdownDesc: 'பெரிய நாளுக்கான எதிர்பார்ப்பை உருவாக்க அழகான கவுண்ட்டவுன் டைமர்',
+      featureParking: 'பார்க்கிங் வழிகாட்டி',
+      featureParkingDesc:
+        'விருந்தினர்கள் பார்க்கிங் கண்டுபிடிக்க படிப்படியான வழிமுறைகள் மற்றும் வீடியோ வழிகாட்டிகள்',
+      featureAdminCms: 'நிர்வாக CMS',
+      featureAdminCmsDesc: 'குறியீடு தொடாமல் எல்லாவற்றையும் நிர்வகிக்க சக்திவாய்ந்த நிர்வாக பேனல்',
+      featureDarkMode: 'இருண்ட பயன்முறை',
+      featureDarkModeDesc: 'எந்த நேரத்திலும் வசதியான பார்வைக்கு கணினி இருண்ட பயன்முறை ஆதரவு',
+      // Stats
+      statsFeatures: 'அம்சங்கள்',
+      statsLanguages: 'மொழிகள்',
+      statsLove: 'அன்பு',
+      // Demo Section
+      demoTitle: 'செயலில் பாருங்கள்',
+      demoSubtitle: 'அனைத்து அம்சங்களையும் செயலில் பார்க்க நேரடி டெமோவை அனுபவியுங்கள்',
+      tryDemo: 'நேரடி டெமோ முயற்சிக்கவும்',
+      // Creator Section
+      creatorTitle: 'படைப்பாளரை சந்தியுங்கள்',
+      creatorSubtitle: 'குறியீட்டின் பின்னால் உள்ள நபர்',
+      creatorName: 'Harith Zainudin',
+      creatorRole: 'கிளவுட் டெவலப்பர் & படைப்பாளர்',
+      creatorUniversity:
+        'கணினி அறிவியல் & தகவல் தொழில்நுட்பம் முன்னாள் மாணவர், உனிவர்சிட்டி புத்ரா மலேசியா',
+      creatorQuote:
+        '"என் காதலிக்காக இதை உருவாக்கினேன், அவள் என் மனைவியாவாள். ஒவ்வொரு குறியீடும் ஒரு காதல் கடிதம், ஒவ்வொரு அம்சமும் ஒரு வாக்குறுதி. அவளை எவ்வளவு நேசிக்கிறேன் என்பதை காட்ட இது என் வழி."',
+      // Footer
+      copyright: 'அனைத்து உரிமைகளும் பாதுகாக்கப்பட்டவை',
+      madeWith: 'உருவாக்கப்பட்டது',
+      builtBy: 'உருவாக்கியவர்',
+      forLove: 'அன்புக்காக',
     },
   },
 }

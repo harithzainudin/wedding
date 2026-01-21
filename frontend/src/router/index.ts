@@ -19,15 +19,18 @@ const routes: RouteRecordRaw[] = [
   },
 
   // ============================================
-  // Legacy routes (backward compatibility)
-  // These will continue to work for existing single-wedding setup
+  // Landing page (platform marketing page)
   // ============================================
   {
     path: '/',
-    name: 'home',
-    component: () => import('@/views/HomeView.vue'),
-    meta: { isLegacy: true },
+    name: 'landing',
+    component: () => import('@/views/LandingView.vue'),
   },
+
+  // ============================================
+  // Legacy routes (backward compatibility)
+  // These will continue to work for existing single-wedding setup
+  // ============================================
   {
     path: '/rsvp',
     name: 'rsvp',
@@ -95,12 +98,8 @@ const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes,
   scrollBehavior(to, _from, savedPosition) {
-    // Always scroll to top for home page (wedding landing page)
-    // This prevents the page from jumping to previous scroll position on refresh
-    if (to.name === 'home') {
-      if (to.hash) {
-        return { el: to.hash, behavior: 'smooth' }
-      }
+    // Always scroll to top for landing page
+    if (to.name === 'landing') {
       return { top: 0, behavior: 'smooth' }
     }
 
