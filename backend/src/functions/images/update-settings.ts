@@ -110,11 +110,17 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
     // 6. Update Settings
     // ============================================
     const now = new Date().toISOString()
+
+    // Non-super admins can only update showGallery (visibility toggle)
+    // Limit settings (maxFileSize, maxImages) are managed by super admin
     const newSettings = {
       ...settingsKey,
-      maxFileSize:
-        validation.data.maxFileSize ?? currentResult.Item?.maxFileSize ?? DEFAULT_MAX_FILE_SIZE,
-      maxImages: validation.data.maxImages ?? currentResult.Item?.maxImages ?? DEFAULT_MAX_IMAGES,
+      maxFileSize: isSuperAdmin
+        ? (validation.data.maxFileSize ?? currentResult.Item?.maxFileSize ?? DEFAULT_MAX_FILE_SIZE)
+        : ((currentResult.Item?.maxFileSize as number | undefined) ?? DEFAULT_MAX_FILE_SIZE),
+      maxImages: isSuperAdmin
+        ? (validation.data.maxImages ?? currentResult.Item?.maxImages ?? DEFAULT_MAX_IMAGES)
+        : ((currentResult.Item?.maxImages as number | undefined) ?? DEFAULT_MAX_IMAGES),
       allowedFormats: currentResult.Item?.allowedFormats ?? [...ALLOWED_MIME_TYPES],
       showGallery:
         validation.data.showGallery ?? currentResult.Item?.showGallery ?? DEFAULT_SHOW_GALLERY,

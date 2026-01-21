@@ -45,7 +45,9 @@
     UpdateWeddingOwnerRequest,
     UpdateWeddingRequest,
     WeddingStatus,
+    WeddingLimits,
   } from '@/types/admin'
+  import { getWeddingLimits, updateWeddingLimits } from '@/services/api'
 
   const router = useRouter()
   const {
@@ -117,6 +119,11 @@
   } | null>(null)
   const isOpeningSettings = ref(false)
   const settingsCopyFeedback = ref<'public' | 'admin' | null>(null)
+
+  // Wedding limits (super admin managed)
+  const weddingLimits = ref<WeddingLimits | null>(null)
+  const isLoadingLimits = ref(false)
+  const isSavingLimits = ref(false)
 
   // Add owner form
   const addOwnerForm = ref<AddWeddingOwnerRequest>({
@@ -532,7 +539,7 @@
   }
 
   // Open settings modal
-  const openSettingsModal = (weddingId: string) => {
+  const openSettingsModal = async (weddingId: string) => {
     const wedding = weddings.value.find((w) => w.weddingId === weddingId)
     if (wedding) {
       isOpeningSettings.value = true
@@ -545,10 +552,23 @@
         status: wedding.status,
       }
       settingsCopyFeedback.value = null
-      // Simulate brief loading for smooth UX
-      setTimeout(() => {
+      weddingLimits.value = null
+
+      // Fetch wedding limits
+      isLoadingLimits.value = true
+      try {
+        weddingLimits.value = await getWeddingLimits(weddingId)
+      } catch (err) {
+        console.error('Failed to fetch wedding limits:', err)
+        // Set defaults if fetch fails
+        weddingLimits.value = {
+          gallery: { maxFileSize: 10 * 1024 * 1024, maxImages: 50, allowedFormats: [] },
+          gifts: { maxItems: 50, maxFileSize: 5 * 1024 * 1024, allowedFormats: [] },
+        }
+      } finally {
+        isLoadingLimits.value = false
         isOpeningSettings.value = false
-      }, 200)
+      }
     }
   }
 
@@ -557,6 +577,7 @@
     showSettingsModal.value = false
     settingsWedding.value = null
     settingsCopyFeedback.value = null
+    weddingLimits.value = null
   }
 
   // Handle settings form submit
@@ -579,13 +600,38 @@
       updateData.weddingDate = settingsWedding.value.weddingDate
     }
 
+    // Update wedding details
     const result = await updateWedding(settingsWedding.value.weddingId, updateData)
-    if (result.success) {
-      closeSettingsModal()
-      toast.success(adminT.value.toast.updateSuccess)
-    } else {
+    if (!result.success) {
       toast.error(result.error ?? adminT.value.toast.genericError)
+      return
     }
+
+    // Update limits if they exist
+    if (weddingLimits.value) {
+      isSavingLimits.value = true
+      try {
+        await updateWeddingLimits(settingsWedding.value.weddingId, {
+          gallery: {
+            maxFileSize: weddingLimits.value.gallery.maxFileSize,
+            maxImages: weddingLimits.value.gallery.maxImages,
+          },
+          gifts: {
+            maxItems: weddingLimits.value.gifts.maxItems,
+            maxFileSize: weddingLimits.value.gifts.maxFileSize,
+          },
+        })
+      } catch (err) {
+        console.error('Failed to update limits:', err)
+        toast.error(adminT.value.toast.genericError)
+        isSavingLimits.value = false
+        return
+      }
+      isSavingLimits.value = false
+    }
+
+    closeSettingsModal()
+    toast.success(adminT.value.toast.updateSuccess)
   }
 
   // Copy URL with specific feedback
@@ -2560,6 +2606,149 @@
                     </div>
                   </div>
 
+                  <!-- Upload Limits Section -->
+                  <div class="space-y-3">
+                    <h4
+                      class="font-heading text-sm font-semibold text-charcoal dark:text-dark-text flex items-center gap-2"
+                    >
+                      <svg
+                        class="w-4 h-4 text-sage"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"
+                        />
+                      </svg>
+                      {{ adminT.superAdmin?.uploadLimits ?? 'Upload Limits' }}
+                    </h4>
+
+                    <!-- Loading state -->
+                    <div
+                      v-if="isLoadingLimits"
+                      class="flex items-center justify-center py-4 text-charcoal-light dark:text-dark-text-secondary"
+                    >
+                      <svg class="animate-spin h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24">
+                        <circle
+                          class="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          stroke-width="4"
+                        ></circle>
+                        <path
+                          class="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                        ></path>
+                      </svg>
+                      Loading...
+                    </div>
+
+                    <!-- Limits form -->
+                    <div v-else-if="weddingLimits" class="space-y-4">
+                      <!-- Gallery Limits -->
+                      <div
+                        class="p-3 bg-sand/30 dark:bg-dark-bg rounded-lg border border-sand-dark/50 dark:border-dark-border/50"
+                      >
+                        <p
+                          class="font-body text-xs font-medium text-charcoal-light dark:text-dark-text-secondary mb-2"
+                        >
+                          {{ adminT.superAdmin?.galleryLimits ?? 'Gallery Limits' }}
+                        </p>
+                        <div class="grid grid-cols-2 gap-3">
+                          <div>
+                            <label
+                              class="block font-body text-xs text-charcoal-light dark:text-dark-text-secondary mb-1"
+                            >
+                              {{ adminT.gallery?.maxFileSize ?? 'Max File Size' }}
+                            </label>
+                            <select
+                              v-model="weddingLimits.gallery.maxFileSize"
+                              class="w-full px-2 py-1.5 text-sm rounded-lg border border-sand-dark dark:border-dark-border bg-white dark:bg-dark-bg text-charcoal dark:text-dark-text"
+                            >
+                              <option :value="1 * 1024 * 1024">1 MB</option>
+                              <option :value="2 * 1024 * 1024">2 MB</option>
+                              <option :value="5 * 1024 * 1024">5 MB</option>
+                              <option :value="10 * 1024 * 1024">10 MB</option>
+                              <option :value="20 * 1024 * 1024">20 MB</option>
+                              <option :value="50 * 1024 * 1024">50 MB</option>
+                            </select>
+                          </div>
+                          <div>
+                            <label
+                              class="block font-body text-xs text-charcoal-light dark:text-dark-text-secondary mb-1"
+                            >
+                              {{ adminT.gallery?.maxImages ?? 'Max Images' }}
+                            </label>
+                            <select
+                              v-model="weddingLimits.gallery.maxImages"
+                              class="w-full px-2 py-1.5 text-sm rounded-lg border border-sand-dark dark:border-dark-border bg-white dark:bg-dark-bg text-charcoal dark:text-dark-text"
+                            >
+                              <option :value="10">10</option>
+                              <option :value="20">20</option>
+                              <option :value="30">30</option>
+                              <option :value="50">50</option>
+                              <option :value="100">100</option>
+                              <option :value="200">200</option>
+                            </select>
+                          </div>
+                        </div>
+                      </div>
+
+                      <!-- Gift Limits -->
+                      <div
+                        class="p-3 bg-sand/30 dark:bg-dark-bg rounded-lg border border-sand-dark/50 dark:border-dark-border/50"
+                      >
+                        <p
+                          class="font-body text-xs font-medium text-charcoal-light dark:text-dark-text-secondary mb-2"
+                        >
+                          {{ adminT.superAdmin?.giftLimits ?? 'Gift Limits' }}
+                        </p>
+                        <div class="grid grid-cols-2 gap-3">
+                          <div>
+                            <label
+                              class="block font-body text-xs text-charcoal-light dark:text-dark-text-secondary mb-1"
+                            >
+                              {{ adminT.gifts?.maxItems ?? 'Max Items' }}
+                            </label>
+                            <select
+                              v-model="weddingLimits.gifts.maxItems"
+                              class="w-full px-2 py-1.5 text-sm rounded-lg border border-sand-dark dark:border-dark-border bg-white dark:bg-dark-bg text-charcoal dark:text-dark-text"
+                            >
+                              <option :value="10">10</option>
+                              <option :value="20">20</option>
+                              <option :value="30">30</option>
+                              <option :value="50">50</option>
+                              <option :value="100">100</option>
+                            </select>
+                          </div>
+                          <div>
+                            <label
+                              class="block font-body text-xs text-charcoal-light dark:text-dark-text-secondary mb-1"
+                            >
+                              {{ adminT.gallery?.maxFileSize ?? 'Max File Size' }}
+                            </label>
+                            <select
+                              v-model="weddingLimits.gifts.maxFileSize"
+                              class="w-full px-2 py-1.5 text-sm rounded-lg border border-sand-dark dark:border-dark-border bg-white dark:bg-dark-bg text-charcoal dark:text-dark-text"
+                            >
+                              <option :value="1 * 1024 * 1024">1 MB</option>
+                              <option :value="2 * 1024 * 1024">2 MB</option>
+                              <option :value="5 * 1024 * 1024">5 MB</option>
+                              <option :value="10 * 1024 * 1024">10 MB</option>
+                            </select>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
                   <!-- Footer -->
                   <div
                     class="flex items-center justify-between pt-4 border-t border-sand-dark dark:border-dark-border"
@@ -2582,10 +2771,10 @@
                       </button>
                       <button
                         type="submit"
-                        :disabled="isUpdating"
+                        :disabled="isUpdating || isSavingLimits"
                         class="px-4 py-2 font-body text-sm font-medium bg-sage text-white rounded-lg hover:bg-sage-dark transition-colors disabled:opacity-50 cursor-pointer"
                       >
-                        {{ isUpdating ? 'Saving...' : 'Save Changes' }}
+                        {{ isUpdating || isSavingLimits ? 'Saving...' : 'Save Changes' }}
                       </button>
                     </div>
                   </div>

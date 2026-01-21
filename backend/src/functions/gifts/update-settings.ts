@@ -107,14 +107,20 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
       : DEFAULT_SETTINGS
 
     // Merge with updated values
+    // Non-super admins can only update enabled (visibility toggle)
+    // Limit settings (maxItems, maxFileSize, allowedFormats) are managed by super admin
     const timestamp = new Date().toISOString()
     const updatedSettings = {
       ...settingsKey,
       weddingId,
       enabled: data.enabled ?? currentSettings.enabled,
-      maxItems: data.maxItems ?? currentSettings.maxItems,
-      maxFileSize: data.maxFileSize ?? currentSettings.maxFileSize,
-      allowedFormats: data.allowedFormats ?? currentSettings.allowedFormats,
+      maxItems: isSuperAdmin ? (data.maxItems ?? currentSettings.maxItems) : currentSettings.maxItems,
+      maxFileSize: isSuperAdmin
+        ? (data.maxFileSize ?? currentSettings.maxFileSize)
+        : currentSettings.maxFileSize,
+      allowedFormats: isSuperAdmin
+        ? (data.allowedFormats ?? currentSettings.allowedFormats)
+        : currentSettings.allowedFormats,
       updatedAt: timestamp,
       updatedBy: authResult.user.username,
     }

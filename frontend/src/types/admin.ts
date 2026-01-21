@@ -372,3 +372,48 @@ export interface ResetSuperAdminPasswordResponse {
   resetAt: string
   resetBy: string
 }
+
+// ============================================
+// Wedding Limits Types (Super Admin managed)
+// ============================================
+
+export interface WeddingLimits {
+  gallery: {
+    maxFileSize: number
+    maxImages: number
+    allowedFormats: string[]
+  }
+  gifts: {
+    maxItems: number
+    maxFileSize: number
+    allowedFormats: string[]
+  }
+  updatedAt?: string
+  updatedBy?: string
+}
+
+export interface UpdateWeddingLimitsRequest {
+  gallery?: {
+    maxFileSize?: number
+    maxImages?: number
+  }
+  gifts?: {
+    maxItems?: number
+    maxFileSize?: number
+  }
+}
+
+export interface UpdateWeddingLimitsResponse {
+  gallery?: {
+    maxFileSize: number
+    maxImages: number
+    allowedFormats: string[]
+  }
+  gifts?: {
+    maxItems: number
+    maxFileSize: number
+    allowedFormats: string[]
+  }
+  updatedAt: string
+  updatedBy: string
+}

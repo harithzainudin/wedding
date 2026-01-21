@@ -4,10 +4,10 @@
 
 export type Language = 'ms' | 'en' | 'zh' | 'ta'
 export type MultilingualText = Record<Language, string>
-export type GiftPriority = 'high' | 'medium' | 'low'
+export type GiftPriority = 'high' | 'medium' | 'low' | 'none'
 export type GiftCategory = 'home' | 'kitchen' | 'electronics' | 'experiences' | 'other'
 
-export const VALID_PRIORITIES: GiftPriority[] = ['high', 'medium', 'low']
+export const VALID_PRIORITIES: GiftPriority[] = ['none', 'high', 'medium', 'low']
 export const VALID_CATEGORIES: GiftCategory[] = [
   'home',
   'kitchen',
@@ -33,7 +33,7 @@ export interface CreateGiftInput {
   name: MultilingualText
   description: MultilingualText
   externalLink: string
-  priceRange: string
+  priceRange?: string
   category: GiftCategory
   priority: GiftPriority
   notes?: string
@@ -169,15 +169,19 @@ export function validateCreateGiftInput(input: unknown):
     externalLink = body.externalLink.trim()
   }
 
-  // Validate price range
-  if (typeof body.priceRange !== 'string' || !body.priceRange.trim()) {
-    return { valid: false, error: 'Price range is required' }
-  }
-  if (body.priceRange.length > GIFT_LIMITS.maxPriceRangeLength) {
-    return {
-      valid: false,
-      error: `Price range must be less than ${GIFT_LIMITS.maxPriceRangeLength} characters`,
+  // Validate price range (optional)
+  let priceRange: string | undefined
+  if (body.priceRange !== undefined && body.priceRange !== null && body.priceRange !== '') {
+    if (typeof body.priceRange !== 'string') {
+      return { valid: false, error: 'Price range must be a string' }
     }
+    if (body.priceRange.length > GIFT_LIMITS.maxPriceRangeLength) {
+      return {
+        valid: false,
+        error: `Price range must be less than ${GIFT_LIMITS.maxPriceRangeLength} characters`,
+      }
+    }
+    priceRange = body.priceRange.trim()
   }
 
   // Validate category
@@ -224,11 +228,11 @@ export function validateCreateGiftInput(input: unknown):
       name,
       description,
       externalLink,
-      priceRange: body.priceRange.trim(),
       category: body.category as GiftCategory,
       priority: body.priority as GiftPriority,
       notes: typeof body.notes === 'string' ? body.notes.trim() : undefined,
       quantityTotal: qty,
+      ...(priceRange && { priceRange }),
     },
   }
 }
@@ -302,18 +306,19 @@ export function validateUpdateGiftInput(input: unknown):
     data.externalLink = body.externalLink.trim()
   }
 
-  // Validate price range if provided
+  // Validate price range if provided (can be empty to clear it)
   if (body.priceRange !== undefined) {
-    if (typeof body.priceRange !== 'string' || !body.priceRange.trim()) {
-      return { valid: false, error: 'Price range cannot be empty' }
+    if (body.priceRange !== null && body.priceRange !== '' && typeof body.priceRange !== 'string') {
+      return { valid: false, error: 'Price range must be a string' }
     }
-    if (body.priceRange.length > GIFT_LIMITS.maxPriceRangeLength) {
+    if (typeof body.priceRange === 'string' && body.priceRange.length > GIFT_LIMITS.maxPriceRangeLength) {
       return {
         valid: false,
         error: `Price range must be less than ${GIFT_LIMITS.maxPriceRangeLength} characters`,
       }
     }
-    data.priceRange = body.priceRange.trim()
+    // Allow empty string to clear the price range
+    data.priceRange = typeof body.priceRange === 'string' ? body.priceRange.trim() || undefined : undefined
   }
 
   // Validate category if provided

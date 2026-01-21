@@ -1,10 +1,10 @@
 import type { Language } from '@/i18n/translations'
 
 export type MultilingualText = Record<Language, string>
-export type GiftPriority = 'high' | 'medium' | 'low'
+export type GiftPriority = 'high' | 'medium' | 'low' | 'none'
 export type GiftCategory = 'home' | 'kitchen' | 'electronics' | 'experiences' | 'other'
 
-export const GIFT_PRIORITIES: GiftPriority[] = ['high', 'medium', 'low']
+export const GIFT_PRIORITIES: GiftPriority[] = ['none', 'high', 'medium', 'low']
 export const GIFT_CATEGORIES: GiftCategory[] = [
   'home',
   'kitchen',
@@ -19,7 +19,7 @@ export interface GiftItem {
   description: MultilingualText
   imageUrl?: string
   externalLink: string
-  priceRange: string
+  priceRange?: string
   category: GiftCategory
   priority: GiftPriority
   notes?: string
@@ -57,7 +57,7 @@ export interface CreateGiftRequest {
   name: MultilingualText
   description: MultilingualText
   externalLink: string
-  priceRange: string
+  priceRange?: string
   category: GiftCategory
   priority: GiftPriority
   notes?: string
@@ -96,7 +96,7 @@ export interface CreateGiftResponse {
   name: MultilingualText
   description: MultilingualText
   externalLink: string
-  priceRange: string
+  priceRange?: string
   category: GiftCategory
   priority: GiftPriority
   notes?: string

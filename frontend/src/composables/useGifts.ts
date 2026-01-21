@@ -222,16 +222,14 @@ export function useGifts() {
         name: response.name,
         description: response.description,
         externalLink: response.externalLink,
-        priceRange: response.priceRange,
         category: response.category,
         priority: response.priority,
         quantityTotal: response.quantityTotal,
         quantityReserved: response.quantityReserved,
         order: response.order,
         createdAt: response.createdAt,
-      }
-      if (response.notes) {
-        newGift.notes = response.notes
+        ...(response.priceRange && { priceRange: response.priceRange }),
+        ...(response.notes && { notes: response.notes }),
       }
       gifts.value.push(newGift)
       return { success: true, giftId: response.id }

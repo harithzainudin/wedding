@@ -117,21 +117,6 @@
     deleteConfirmId.value = null
   }
 
-  const handleSettingsUpdate = async (newSettings: {
-    maxFileSize?: number | undefined
-    maxImages?: number | undefined
-    showGallery?: boolean | undefined
-  }): Promise<void> => {
-    const result = await updateSettings(
-      newSettings,
-      weddingId.value ?? undefined,
-      weddingSlug.value ?? undefined
-    )
-    if (!result.success) {
-      console.error('Settings update failed:', result.error)
-    }
-  }
-
   const dismissError = (index: number): void => {
     uploadErrors.value.splice(index, 1)
   }
@@ -274,7 +259,6 @@
                   :format-file-size="formatFileSize"
                   :hide-title="true"
                   :embedded="true"
-                  @update="handleSettingsUpdate"
                 />
               </div>
             </div>

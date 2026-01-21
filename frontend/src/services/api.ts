@@ -50,6 +50,10 @@ import type {
   ChangeSuperAdminPasswordRequest,
   ChangeSuperAdminPasswordResponse,
   ResetSuperAdminPasswordResponse,
+  // Wedding Limits
+  WeddingLimits,
+  UpdateWeddingLimitsRequest,
+  UpdateWeddingLimitsResponse,
 } from '@/types/admin'
 import type {
   PresignedUrlRequest,
@@ -1295,6 +1299,25 @@ export async function hardDeleteWedding(weddingId: string): Promise<HardDeleteRe
   return authenticatedFetch<HardDeleteResponse>(
     `${SUPERADMIN_URL}/weddings/${encodeURIComponent(weddingId)}/hard-delete`,
     { method: 'DELETE' }
+  )
+}
+
+export async function getWeddingLimits(weddingId: string): Promise<WeddingLimits> {
+  return authenticatedFetch<WeddingLimits>(
+    `${SUPERADMIN_URL}/weddings/${encodeURIComponent(weddingId)}/limits`
+  )
+}
+
+export async function updateWeddingLimits(
+  weddingId: string,
+  data: UpdateWeddingLimitsRequest
+): Promise<UpdateWeddingLimitsResponse> {
+  return authenticatedFetch<UpdateWeddingLimitsResponse>(
+    `${SUPERADMIN_URL}/weddings/${encodeURIComponent(weddingId)}/limits`,
+    {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }
   )
 }
 

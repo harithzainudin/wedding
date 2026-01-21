@@ -254,7 +254,7 @@
       // For custom license, pass the attribution text directly
       attribution:
         editForm.value.licenseType === 'custom'
-          ? (editForm.value.customAttribution.trim() || undefined)
+          ? editForm.value.customAttribution.trim() || undefined
           : undefined,
     })
 

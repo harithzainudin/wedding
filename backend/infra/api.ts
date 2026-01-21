@@ -775,6 +775,20 @@ export function addSuperAdminRoutes(
     ...functionConfig,
   })
 
+  // GET /superadmin/weddings/{weddingId}/limits - Get wedding limits (gallery & gift settings)
+  api.route('GET /superadmin/weddings/{weddingId}/limits', {
+    handler: 'src/functions/superadmin/weddings/get-limits.handler',
+    link: [table, tokenSecret],
+    ...functionConfig,
+  })
+
+  // PUT /superadmin/weddings/{weddingId}/limits - Update wedding limits
+  api.route('PUT /superadmin/weddings/{weddingId}/limits', {
+    handler: 'src/functions/superadmin/weddings/update-limits.handler',
+    link: [table, tokenSecret],
+    ...functionConfig,
+  })
+
   // POST /superadmin/cleanup-orphan-data - One-time cleanup of legacy/orphan data
   api.route('POST /superadmin/cleanup-orphan-data', {
     handler: 'src/functions/superadmin/cleanup-orphan-data.handler',

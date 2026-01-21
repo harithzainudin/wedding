@@ -1137,6 +1137,7 @@ export interface AdminTranslations {
     lastUpdatedBy: string
     dragToReorder: string
     tapToMoveOrView: string
+    limitsReadOnly: string
   }
 
   // Gifts
@@ -1163,6 +1164,7 @@ export interface AdminTranslations {
     categoryExperiences: string
     categoryOther: string
     // Priority
+    priorityNone: string
     priorityHigh: string
     priorityMedium: string
     priorityLow: string
@@ -1184,6 +1186,7 @@ export interface AdminTranslations {
     descriptionMalay: string
     externalLink: string
     priceRange: string
+    priceRangePlaceholder: string
     category: string
     priority: string
     quantity: string
@@ -1200,6 +1203,27 @@ export interface AdminTranslations {
     // Delete
     deleteGift: string
     deleteGiftConfirm: string
+    // Default gifts
+    browseDefaults: string
+    defaultGifts: string
+    selectDefaults: string
+    defaultGiftsHint: string
+    addSelectedGifts: string
+    selectedCount: string
+    alreadyInRegistry: string
+    addingGifts: string
+    addingProgress: string
+    giftsAddedSuccess: string
+    noDuplicatesFound: string
+    selectAtLeastOne: string
+    limitReached: string
+    // Search
+    searchGifts: string
+    giftsFound: string
+    noSearchResults: string
+    tryDifferentSearch: string
+    // Limits (read-only for wedding admin)
+    limitsReadOnly: string
   }
 
   // Music
@@ -1809,6 +1833,13 @@ export interface AdminTranslations {
     other: string
   }
 
+  // Super Admin (upload limits in settings modal)
+  superAdmin: {
+    uploadLimits: string
+    galleryLimits: string
+    giftLimits: string
+  }
+
   // Super Admin Settings
   superAdminSettings: {
     title: string
@@ -2105,6 +2136,7 @@ export const adminTranslations: Record<AdminLanguage, AdminTranslations> = {
       lastUpdatedBy: 'Last updated: {date} by {user}',
       dragToReorder: 'Drag images to reorder them.',
       tapToMoveOrView: 'Tap an image to move or view it.',
+      limitsReadOnly: 'Limits are managed by Super Admin',
     },
 
     gifts: {
@@ -2128,6 +2160,7 @@ export const adminTranslations: Record<AdminLanguage, AdminTranslations> = {
       categoryElectronics: 'Electronics',
       categoryExperiences: 'Experiences',
       categoryOther: 'Other',
+      priorityNone: 'No Priority',
       priorityHigh: 'High (Needed)',
       priorityMedium: 'Medium',
       priorityLow: 'Low',
@@ -2147,6 +2180,7 @@ export const adminTranslations: Record<AdminLanguage, AdminTranslations> = {
       descriptionMalay: 'Description (Malay)',
       externalLink: 'External Link (Shopee, etc.)',
       priceRange: 'Price Range',
+      priceRangePlaceholder: 'Optional - e.g., RM150 - RM200',
       category: 'Category',
       priority: 'Priority',
       quantity: 'Quantity',
@@ -2163,6 +2197,26 @@ export const adminTranslations: Record<AdminLanguage, AdminTranslations> = {
       deleteGift: 'Delete Gift',
       deleteGiftConfirm:
         "Are you sure you want to delete '{name}'? This will also delete all reservations for this gift.",
+      browseDefaults: 'Browse Defaults',
+      defaultGifts: 'Default Gift Ideas',
+      selectDefaults: 'Select gifts to add to your registry',
+      defaultGiftsHint:
+        'These are suggestions to help you get started. After adding, you can edit the name, price, description, and add images to personalize each gift.',
+      addSelectedGifts: 'Add {count} Selected',
+      selectedCount: '{count} selected',
+      alreadyInRegistry: 'Already Added',
+      addingGifts: 'Adding gifts...',
+      addingProgress: 'Adding {current} of {total}...',
+      giftsAddedSuccess: '{count} gift(s) added successfully!',
+      noDuplicatesFound: 'All items already in your registry',
+      selectAtLeastOne: 'Select at least one gift to add',
+      limitReached: 'Registry limit reached',
+      // Search
+      searchGifts: 'Search gifts...',
+      giftsFound: '{count} gifts found',
+      noSearchResults: 'No gifts match your search',
+      tryDifferentSearch: 'Try a different search term or category',
+      limitsReadOnly: 'Limits are managed by Super Admin',
     },
 
     music: {
@@ -2759,6 +2813,12 @@ export const adminTranslations: Record<AdminLanguage, AdminTranslations> = {
       other: 'Other',
     },
 
+    superAdmin: {
+      uploadLimits: 'Upload Limits',
+      galleryLimits: 'Gallery Limits',
+      giftLimits: 'Gift Limits',
+    },
+
     superAdminSettings: {
       title: 'Settings',
       description: 'Manage your account settings',
@@ -3047,6 +3107,7 @@ export const adminTranslations: Record<AdminLanguage, AdminTranslations> = {
       lastUpdatedBy: 'Terakhir dikemaskini: {date} oleh {user}',
       dragToReorder: 'Seret imej untuk menyusun semula.',
       tapToMoveOrView: 'Ketik imej untuk alih atau lihat.',
+      limitsReadOnly: 'Had diuruskan oleh Super Admin',
     },
 
     gifts: {
@@ -3070,6 +3131,7 @@ export const adminTranslations: Record<AdminLanguage, AdminTranslations> = {
       categoryElectronics: 'Elektronik',
       categoryExperiences: 'Pengalaman',
       categoryOther: 'Lain-lain',
+      priorityNone: 'Tiada Keutamaan',
       priorityHigh: 'Tinggi (Diperlukan)',
       priorityMedium: 'Sederhana',
       priorityLow: 'Rendah',
@@ -3089,6 +3151,7 @@ export const adminTranslations: Record<AdminLanguage, AdminTranslations> = {
       descriptionMalay: 'Penerangan (Bahasa Melayu)',
       externalLink: 'Pautan Luaran (Shopee, dll.)',
       priceRange: 'Julat Harga',
+      priceRangePlaceholder: 'Pilihan - cth., RM150 - RM200',
       category: 'Kategori',
       priority: 'Keutamaan',
       quantity: 'Kuantiti',
@@ -3105,6 +3168,26 @@ export const adminTranslations: Record<AdminLanguage, AdminTranslations> = {
       deleteGift: 'Padam Hadiah',
       deleteGiftConfirm:
         "Adakah anda pasti mahu memadam '{name}'? Ini juga akan memadam semua tempahan untuk hadiah ini.",
+      browseDefaults: 'Lihat Senarai Lalai',
+      defaultGifts: 'Idea Hadiah Lalai',
+      selectDefaults: 'Pilih hadiah untuk ditambah ke senarai anda',
+      defaultGiftsHint:
+        'Ini adalah cadangan untuk membantu anda bermula. Selepas ditambah, anda boleh mengedit nama, harga, penerangan, dan menambah imej untuk menyesuaikan setiap hadiah.',
+      addSelectedGifts: 'Tambah {count} Dipilih',
+      selectedCount: '{count} dipilih',
+      alreadyInRegistry: 'Sudah Ditambah',
+      addingGifts: 'Menambah hadiah...',
+      addingProgress: 'Menambah {current} daripada {total}...',
+      giftsAddedSuccess: '{count} hadiah berjaya ditambah!',
+      noDuplicatesFound: 'Semua item sudah dalam senarai anda',
+      selectAtLeastOne: 'Pilih sekurang-kurangnya satu hadiah',
+      limitReached: 'Had senarai telah dicapai',
+      // Search
+      searchGifts: 'Cari hadiah...',
+      giftsFound: '{count} hadiah dijumpai',
+      noSearchResults: 'Tiada hadiah sepadan dengan carian anda',
+      tryDifferentSearch: 'Cuba istilah carian atau kategori lain',
+      limitsReadOnly: 'Had diuruskan oleh Super Admin',
     },
 
     music: {
@@ -3705,6 +3788,12 @@ export const adminTranslations: Record<AdminLanguage, AdminTranslations> = {
       groom: 'Pengantin Lelaki',
       parent: 'Ibu Bapa',
       other: 'Lain-lain',
+    },
+
+    superAdmin: {
+      uploadLimits: 'Had Muat Naik',
+      galleryLimits: 'Had Galeri',
+      giftLimits: 'Had Hadiah',
     },
 
     superAdminSettings: {

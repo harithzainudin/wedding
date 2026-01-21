@@ -281,7 +281,10 @@
               </p>
 
               <!-- Price Range -->
-              <p class="font-body text-sm text-charcoal dark:text-dark-text mb-3">
+              <p
+                v-if="gift.priceRange"
+                class="font-body text-sm text-charcoal dark:text-dark-text mb-3"
+              >
                 {{ gift.priceRange }}
               </p>
 

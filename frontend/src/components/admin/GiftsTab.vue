@@ -9,6 +9,7 @@
   import DeleteConfirmModal from './DeleteConfirmModal.vue'
   import UploadProgressBar from './UploadProgressBar.vue'
   import SectionVisibilityToggle from './SectionVisibilityToggle.vue'
+  import DefaultGiftBrowser from './DefaultGiftBrowser.vue'
 
   const { adminT } = useAdminLanguage()
   const { withLoading } = useLoadingOverlay()
@@ -39,7 +40,6 @@
     reorderGiftItems,
     uploadGiftImage,
     cancelUpload,
-    updateSettings,
     toggleEnabled,
   } = useGifts()
 
@@ -51,6 +51,7 @@
   const showGiftForm = ref(false)
   const editingGift = ref<GiftItem | null>(null)
   const deleteConfirmId = ref<string | null>(null)
+  const showDefaultBrowser = ref(false)
 
   // Form data
   const formData = ref({
@@ -61,7 +62,7 @@
     externalLink: '',
     priceRange: '',
     category: 'other' as GiftCategory,
-    priority: 'medium' as GiftPriority,
+    priority: 'none' as GiftPriority,
     notes: '',
     quantityTotal: 1,
   })
@@ -80,8 +81,7 @@
       formData.value.nameEn.trim() &&
       formData.value.nameMs.trim() &&
       formData.value.descriptionEn.trim() &&
-      formData.value.descriptionMs.trim() &&
-      formData.value.priceRange.trim()
+      formData.value.descriptionMs.trim()
     )
   })
 
@@ -108,7 +108,7 @@
       externalLink: '',
       priceRange: '',
       category: 'other',
-      priority: 'medium',
+      priority: 'none',
       notes: '',
       quantityTotal: 1,
     }
@@ -175,10 +175,10 @@
         ta: '',
       },
       externalLink: formData.value.externalLink || '',
-      priceRange: formData.value.priceRange,
       category: formData.value.category,
       priority: formData.value.priority,
       quantityTotal: formData.value.quantityTotal,
+      ...(formData.value.priceRange.trim() ? { priceRange: formData.value.priceRange } : {}),
       ...(formData.value.notes ? { notes: formData.value.notes } : {}),
     }
 
@@ -240,6 +240,12 @@
     deleteConfirmId.value = null
   }
 
+  // Default gifts handler
+  const handleDefaultGiftsAdded = (_count: number) => {
+    // Gifts are already added via createGiftItem which updates the reactive gifts array
+    // The UI updates automatically, nothing else needed here
+  }
+
   // Drag and drop handlers
   const handleDragStart = (giftId: string) => {
     draggedId.value = giftId
@@ -269,18 +275,6 @@
   // Settings handlers
   const handleToggleEnabled = async (_value: boolean) => {
     await toggleEnabled(weddingId.value ?? undefined)
-  }
-
-  const handleSettingsUpdate = async (newSettings: Partial<typeof settings.value>) => {
-    await withLoading(
-      async () => {
-        await updateSettings(newSettings, weddingId.value ?? undefined)
-      },
-      {
-        message: adminT.value.loadingOverlay.saving,
-        showSuccess: true,
-      }
-    )
   }
 
   // View reservations
@@ -439,6 +433,30 @@
               />
             </svg>
             <span>{{ adminT.common.settings }}</span>
+          </button>
+
+          <!-- Browse Defaults Button -->
+          <button
+            v-show="canAddMore"
+            type="button"
+            :disabled="viewMode !== 'gifts'"
+            :class="[
+              'flex items-center gap-2 px-4 py-2 font-body text-sm rounded-lg transition-colors',
+              viewMode === 'gifts'
+                ? 'border border-sage text-sage hover:bg-sage/10 cursor-pointer'
+                : 'border border-sage/50 text-sage/50 cursor-not-allowed',
+            ]"
+            @click="showDefaultBrowser = true"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+              />
+            </svg>
+            <span>{{ adminT.gifts.browseDefaults }}</span>
           </button>
 
           <!-- Add Gift Button -->
@@ -932,14 +950,13 @@
                 <label
                   class="block font-body text-sm font-medium text-charcoal dark:text-dark-text mb-1"
                 >
-                  {{ adminT.gifts.priceRange }} *
+                  {{ adminT.gifts.priceRange }}
                 </label>
                 <input
                   v-model="formData.priceRange"
                   type="text"
-                  required
                   class="w-full px-3 py-2 font-body text-sm border border-sand-dark dark:border-gray-600 rounded-lg bg-sand dark:bg-dark-bg focus:outline-none focus:border-sage dark:focus:border-sage text-charcoal dark:text-dark-text"
-                  placeholder="e.g., RM150 - RM200"
+                  :placeholder="adminT.gifts.priceRangePlaceholder"
                 />
               </div>
 
@@ -972,6 +989,7 @@
                     v-model="formData.priority"
                     class="w-full px-3 py-2 font-body text-sm border border-sand-dark dark:border-gray-600 rounded-lg bg-sand dark:bg-dark-bg focus:outline-none focus:border-sage dark:focus:border-sage text-charcoal dark:text-dark-text"
                   >
+                    <option value="none">{{ adminT.gifts.priorityNone }}</option>
                     <option value="high">{{ adminT.gifts.priorityHigh }}</option>
                     <option value="medium">{{ adminT.gifts.priorityMedium }}</option>
                     <option value="low">{{ adminT.gifts.priorityLow }}</option>
@@ -1068,52 +1086,43 @@
             </div>
 
             <div class="space-y-4">
-              <!-- Max Items -->
-              <div>
-                <label
-                  class="block font-body text-sm font-medium text-charcoal dark:text-dark-text mb-1"
-                >
-                  {{ adminT.gifts.maxItems }}
-                </label>
-                <input
-                  :value="settings.maxItems"
-                  type="number"
-                  min="1"
-                  max="100"
-                  class="w-full px-3 py-2 font-body text-sm border border-sand-dark dark:border-gray-600 rounded-lg bg-sand dark:bg-dark-bg focus:outline-none focus:border-sage dark:focus:border-sage text-charcoal dark:text-dark-text"
-                  @change="
-                    handleSettingsUpdate({
-                      maxItems: parseInt(($event.target as HTMLInputElement).value),
-                    })
-                  "
-                />
-              </div>
+              <!-- Current Limits (read-only) -->
+              <div
+                class="p-3 bg-sand/50 dark:bg-dark-bg rounded-lg border border-sand-dark/50 dark:border-dark-border/50"
+              >
+                <div class="grid grid-cols-2 gap-4">
+                  <!-- Max Items -->
+                  <div>
+                    <p class="font-body text-sm font-medium text-charcoal dark:text-dark-text mb-1">
+                      {{ adminT.gifts.maxItems }}
+                    </p>
+                    <p
+                      class="font-body text-base text-charcoal-light dark:text-dark-text-secondary"
+                    >
+                      {{ settings.maxItems }}
+                    </p>
+                  </div>
 
-              <!-- Max File Size -->
-              <div>
-                <label
-                  class="block font-body text-sm font-medium text-charcoal dark:text-dark-text mb-1"
-                >
-                  {{ adminT.gifts.maxImageSize }}
-                </label>
-                <input
-                  :value="Math.round(settings.maxFileSize / (1024 * 1024))"
-                  type="number"
-                  min="1"
-                  max="10"
-                  class="w-full px-3 py-2 font-body text-sm border border-sand-dark dark:border-gray-600 rounded-lg bg-sand dark:bg-dark-bg focus:outline-none focus:border-sage dark:focus:border-sage text-charcoal dark:text-dark-text"
-                  @change="
-                    handleSettingsUpdate({
-                      maxFileSize:
-                        parseInt(($event.target as HTMLInputElement).value) * 1024 * 1024,
-                    })
-                  "
-                />
-              </div>
+                  <!-- Max File Size -->
+                  <div>
+                    <p class="font-body text-sm font-medium text-charcoal dark:text-dark-text mb-1">
+                      {{ adminT.gifts.maxImageSize }}
+                    </p>
+                    <p
+                      class="font-body text-base text-charcoal-light dark:text-dark-text-secondary"
+                    >
+                      {{ Math.round(settings.maxFileSize / (1024 * 1024)) }} MB
+                    </p>
+                  </div>
+                </div>
 
-              <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary">
-                {{ adminT.gifts.settingsAutoSave }}
-              </p>
+                <!-- Super Admin Note -->
+                <p
+                  class="mt-3 font-body text-xs text-charcoal-light/70 dark:text-dark-text-secondary/70 italic"
+                >
+                  {{ adminT.gifts.limitsReadOnly ?? 'Limits are managed by Super Admin' }}
+                </p>
+              </div>
             </div>
           </div>
         </div>
@@ -1130,6 +1139,16 @@
       :is-deleting="isDeleting"
       @confirm="handleDeleteConfirm"
       @cancel="handleDeleteCancel"
+    />
+
+    <!-- Default Gift Browser Modal -->
+    <DefaultGiftBrowser
+      v-model="showDefaultBrowser"
+      v-bind="weddingId ? { weddingId } : {}"
+      :can-add-more="canAddMore"
+      :max-items="settings.maxItems"
+      :current-count="gifts.length"
+      @gifts-added="handleDefaultGiftsAdded"
     />
   </div>
 </template>
