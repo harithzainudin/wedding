@@ -27,6 +27,27 @@ wedding/
 └── .claude/           # Claude Code configuration
 ```
 
+## CRITICAL: Always Run Fresh Build After Any Code Change
+
+**MANDATORY**: After making ANY code changes (edits, additions, deletions), you MUST run a fresh build check before considering the task complete. This prevents GitHub Actions CI failures.
+
+```bash
+cd frontend && rm -rf node_modules/.tmp node_modules/.vite && pnpm check
+```
+
+**Always clear the cache first** (`rm -rf node_modules/.tmp node_modules/.vite`) to match CI's fresh environment. Never run just `pnpm check` without clearing the cache - this causes false positives where local builds pass but CI fails.
+
+This runs TypeScript type checking, Prettier formatting check, and production build. If any step fails, fix the issues before proceeding.
+
+**Why fresh builds are critical:**
+- CI always runs with fresh cache - local cached builds hide errors
+- Local dev server may not catch all TypeScript errors
+- Vue template errors are only caught during `vue-tsc` type checking
+- Unused variables/imports cause build failures in CI
+- Type narrowing issues may be cached incorrectly
+
+---
+
 ## Code Quality Standards
 
 **Before pushing to git, run checks to prevent CI failures:**
@@ -730,7 +751,9 @@ backend/src/functions/
 - Use `pnpm` for package management (not npm)
 - Frontend uses Vue 3 Composition API with `<script setup>`
 - Backend uses SST v3 with AWS CDK
-- **Always run `pnpm build` locally before pushing** to catch TypeScript errors early
+- **CRITICAL: Run `cd frontend && rm -rf node_modules/.tmp node_modules/.vite && pnpm check` after EVERY code change** - always with fresh cache
+- **Never consider a task complete without running a fresh build** - even small changes can break the build
+- If removing UI elements, also remove any related unused variables, functions, computed properties, and imports
 - Theme types: `PresetThemeId` for actual themes with definitions, `LegacyThemeId` for old theme IDs used in translations, `ThemeId` for all possible IDs
 - When adding new types to interfaces (e.g., `VenueData`), ensure all usages handle the new property correctly
 - Backend type-check (`pnpm type-check`) may show errors from SST platform files - these are internal to SST and don't affect deployment

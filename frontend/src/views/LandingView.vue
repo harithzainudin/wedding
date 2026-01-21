@@ -1,5 +1,5 @@
 <script setup lang="ts">
-  import { ref, computed, onMounted, onUnmounted } from 'vue'
+  import { ref, onMounted, onUnmounted } from 'vue'
   import { RouterLink } from 'vue-router'
   import { useLanguage } from '@/composables/useLanguage'
   import { useDocumentTitle } from '@/composables/useDocumentTitle'
@@ -55,10 +55,6 @@
   let dragStartX = 0
   let scrollStartX = 0
 
-  // Progress calculation
-  const scrollProgress = ref(0)
-  const progressPercent = computed(() => `${scrollProgress.value}%`)
-
   // Wrap scroll position for seamless loop (works for both directions)
   const wrapScrollPosition = (): void => {
     if (!scrollContainerRef.value) return
@@ -75,14 +71,6 @@
     }
   }
 
-  const updateProgress = (): void => {
-    if (!scrollContainerRef.value) return
-    const el = scrollContainerRef.value
-    const maxScroll = el.scrollWidth / 2 // Only count first half (before loop reset)
-    const currentScroll = el.scrollLeft % maxScroll
-    scrollProgress.value = (currentScroll / maxScroll) * 100
-  }
-
   const autoScroll = (): void => {
     if (!scrollContainerRef.value || isPaused.value || isDragging.value) {
       animationFrameId = requestAnimationFrame(autoScroll)
@@ -91,7 +79,6 @@
 
     scrollContainerRef.value.scrollLeft += autoScrollSpeed
     wrapScrollPosition()
-    updateProgress()
     animationFrameId = requestAnimationFrame(autoScroll)
   }
 
@@ -123,7 +110,6 @@
     const diff = dragStartX - clientX
     scrollContainerRef.value.scrollLeft = scrollStartX + diff
     wrapScrollPosition()
-    updateProgress()
   }
 
   const handleDragEnd = (): void => {
@@ -138,14 +124,12 @@
     if (e.deltaX !== 0) {
       // Trackpad horizontal scroll
       wrapScrollPosition()
-      updateProgress()
       return
     }
     // Convert vertical scroll to horizontal when hovering
     e.preventDefault()
     scrollContainerRef.value.scrollLeft += e.deltaY
     wrapScrollPosition()
-    updateProgress()
   }
 
   const pauseMarquee = (): void => {
