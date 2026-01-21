@@ -173,6 +173,12 @@
     searchQuery.value = ''
   }
 
+  // Clear all filters
+  const clearFilters = () => {
+    searchQuery.value = ''
+    selectedCategory.value = 'all'
+  }
+
   watch(
     weddingSlug,
     (slug) => {
@@ -310,7 +316,9 @@
                 >
                   <option value="default">{{ t.wishlist?.sortDefault || 'Default' }}</option>
                   <option value="priority">{{ t.wishlist?.sortPriority || 'Priority' }}</option>
-                  <option value="availability">{{ t.wishlist?.sortAvailability || 'Availability' }}</option>
+                  <option value="availability">
+                    {{ t.wishlist?.sortAvailability || 'Availability' }}
+                  </option>
                   <option value="newest">{{ t.wishlist?.sortNewest || 'Newest' }}</option>
                 </select>
                 <svg
@@ -319,7 +327,12 @@
                   stroke="currentColor"
                   viewBox="0 0 24 24"
                 >
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M19 9l-7 7-7-7"
+                  />
                 </svg>
               </div>
             </div>
@@ -337,7 +350,7 @@
             {{ t.wishlist?.noResults || 'No gifts found matching your criteria.' }}
           </p>
           <button
-            @click="searchQuery = ''; selectedCategory = 'all'"
+            @click="clearFilters"
             class="mt-3 font-body text-sm text-sage hover:text-sage-dark dark:hover:text-sage-light cursor-pointer"
           >
             {{ t.wishlist?.clearFilters || 'Clear filters' }}
@@ -345,10 +358,7 @@
         </div>
 
         <!-- Gift Grid -->
-        <div
-          v-else
-          class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6"
-        >
+        <div v-else class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
           <div
             v-for="gift in filteredAndSortedGifts"
             :key="gift.id"

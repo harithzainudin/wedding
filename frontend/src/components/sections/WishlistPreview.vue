@@ -276,8 +276,18 @@
             @click="scrollCardsLeft"
             class="hidden lg:flex absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 z-10 w-10 h-10 items-center justify-center bg-white dark:bg-dark-bg-secondary rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity hover:bg-sand dark:hover:bg-dark-bg cursor-pointer"
           >
-            <svg class="w-5 h-5 text-charcoal dark:text-dark-text" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+            <svg
+              class="w-5 h-5 text-charcoal dark:text-dark-text"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M15 19l-7-7 7-7"
+              />
             </svg>
           </button>
 
@@ -341,7 +351,9 @@
 
               <!-- Content -->
               <div class="p-3 flex-1 flex flex-col">
-                <h4 class="font-heading text-sm sm:text-base text-charcoal dark:text-dark-text mb-1 line-clamp-1">
+                <h4
+                  class="font-heading text-sm sm:text-base text-charcoal dark:text-dark-text mb-1 line-clamp-1"
+                >
                   {{ getLocalizedText(gift.name) }}
                 </h4>
                 <p
@@ -403,9 +415,21 @@
               @click="goToGiftsPageWithCategory()"
               class="flex-shrink-0 w-32 sm:w-40 bg-white/50 dark:bg-dark-bg-secondary/50 rounded-xl border-2 border-dashed border-sage/30 dark:border-sage/20 flex flex-col items-center justify-center gap-2 hover:bg-sage/5 dark:hover:bg-sage/10 transition-colors cursor-pointer"
             >
-              <div class="w-10 h-10 rounded-full bg-sage/10 dark:bg-sage/20 flex items-center justify-center">
-                <svg class="w-5 h-5 text-sage" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+              <div
+                class="w-10 h-10 rounded-full bg-sage/10 dark:bg-sage/20 flex items-center justify-center"
+              >
+                <svg
+                  class="w-5 h-5 text-sage"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M9 5l7 7-7 7"
+                  />
                 </svg>
               </div>
               <span class="font-body text-xs text-sage">
@@ -420,8 +444,18 @@
             @click="scrollCardsRight"
             class="hidden lg:flex absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 z-10 w-10 h-10 items-center justify-center bg-white dark:bg-dark-bg-secondary rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity hover:bg-sand dark:hover:bg-dark-bg cursor-pointer"
           >
-            <svg class="w-5 h-5 text-charcoal dark:text-dark-text" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+            <svg
+              class="w-5 h-5 text-charcoal dark:text-dark-text"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M9 5l7 7-7 7"
+              />
             </svg>
           </button>
         </div>
@@ -434,7 +468,12 @@
           >
             {{ t.wishlist?.viewAllGifts || 'View All Gifts' }}
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M14 5l7 7m0 0l-7 7m7-7H3"
+              />
             </svg>
           </button>
         </div>

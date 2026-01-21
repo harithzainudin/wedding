@@ -195,11 +195,7 @@
     <!-- Navigation Popup (Bottom Sheet) -->
     <Teleport to="body">
       <Transition name="fade">
-        <div
-          v-if="showNavPopup"
-          class="fixed inset-0 bg-black/50 z-[60]"
-          @click="closeNavPopup"
-        />
+        <div v-if="showNavPopup" class="fixed inset-0 bg-black/50 z-[60]" @click="closeNavPopup" />
       </Transition>
 
       <Transition name="slide-up">
@@ -330,7 +326,11 @@
               <div
                 class="w-12 h-12 rounded-full bg-white dark:bg-dark-bg-secondary flex items-center justify-center shadow-sm"
               >
-                <svg class="w-7 h-7 text-[#000000] dark:text-white" viewBox="0 0 24 24" fill="currentColor">
+                <svg
+                  class="w-7 h-7 text-[#000000] dark:text-white"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                >
                   <path
                     d="M12 2C8.13 2 5 5.13 5 9c0 3.17 1.86 5.91 4.55 7.2L12 22l2.45-5.8C17.14 14.91 19 12.17 19 9c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"
                   />
