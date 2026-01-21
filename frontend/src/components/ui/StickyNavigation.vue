@@ -27,7 +27,6 @@
   const showNavPopup = ref(false)
 
   // Drag gesture state
-  const sheetRef = ref<HTMLElement | null>(null)
   const isDragging = ref(false)
   const dragStartY = ref(0)
   const dragCurrentY = ref(0)
@@ -201,7 +200,6 @@
       <Transition name="slide-up">
         <div
           v-if="showNavPopup"
-          ref="sheetRef"
           class="fixed bottom-0 left-0 right-0 bg-white dark:bg-dark-bg-secondary rounded-t-2xl z-[61] shadow-xl"
           :class="{ 'transition-transform duration-200': !isDragging }"
           :style="{ transform: dragTransform }"

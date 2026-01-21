@@ -175,6 +175,25 @@ Remove unused imports, variables, and parameters to avoid build failures.
     rm -rf node_modules/.tmp node_modules/.vite && pnpm type-check
     ```
 
+11. **Template-only refs trigger `noUnusedLocals`**: If you declare a ref in `<script setup>` but only use it in the template (e.g., `ref="myRef"`), TypeScript will error because the variable's value is never read in the script:
+
+    ```typescript
+    // ❌ BAD - sheetRef is declared but never read in script
+    const sheetRef = ref<HTMLElement | null>(null)
+    // Template: <div ref="sheetRef">...</div>
+    // Error: TS6133: 'sheetRef' is declared but its value is never read.
+
+    // ✅ GOOD - Either use the ref in script OR remove it entirely
+    // Option 1: Use it in script
+    const sheetRef = ref<HTMLElement | null>(null)
+    onMounted(() => {
+      console.log(sheetRef.value?.offsetHeight)  // Now it's "read"
+    })
+
+    // Option 2: Remove if not needed in script (just remove both declaration and template ref)
+    // If you only need ref for Vue internals (like Transition), you don't need the variable
+    ```
+
 ## Commands
 
 ### Frontend
