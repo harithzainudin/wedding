@@ -518,7 +518,7 @@
               </p>
               <button
                 @click="closeModal"
-                class="px-6 py-2 font-body text-sm bg-sage text-white rounded-lg hover:bg-sage-dark transition-colors"
+                class="px-6 py-2 font-body text-sm bg-sage text-white rounded-lg hover:bg-sage-dark transition-colors cursor-pointer"
               >
                 {{ t.wishlist?.close || 'Close' }}
               </button>
@@ -598,7 +598,7 @@
                   <button
                     type="button"
                     @click="closeModal"
-                    class="flex-1 py-2.5 px-4 font-body text-sm text-charcoal dark:text-dark-text border border-sand-dark dark:border-gray-600 rounded-lg hover:bg-sand dark:hover:bg-dark-bg transition-colors"
+                    class="flex-1 py-2.5 px-4 font-body text-sm text-charcoal dark:text-dark-text border border-sand-dark dark:border-gray-600 rounded-lg hover:bg-sand dark:hover:bg-dark-bg transition-colors cursor-pointer"
                   >
                     {{ t.wishlist?.cancel || 'Cancel' }}
                   </button>
@@ -607,7 +607,7 @@
                     :disabled="
                       isReserving || !formData.guestName.trim() || !formData.guestPhone.trim()
                     "
-                    class="flex-1 py-2.5 px-4 font-body text-sm bg-sage text-white rounded-lg hover:bg-sage-dark disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    class="flex-1 py-2.5 px-4 font-body text-sm bg-sage text-white rounded-lg hover:bg-sage-dark disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer"
                   >
                     {{
                       isReserving
