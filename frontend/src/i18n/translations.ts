@@ -1722,6 +1722,7 @@ export interface AdminTranslations {
     addingProgress: string
     giftsAddedSuccess: string
     noDuplicatesFound: string
+    addError: string
     selectAtLeastOne: string
     limitReached: string
     limitReachedTooltip: string
@@ -2757,6 +2758,7 @@ export const adminTranslations: Record<AdminLanguage, AdminTranslations> = {
       addingProgress: 'Adding {current} of {total}...',
       giftsAddedSuccess: '{count} gift(s) added successfully!',
       noDuplicatesFound: 'All items already in your registry',
+      addError: 'Failed to add gifts. Please try again.',
       selectAtLeastOne: 'Select at least one gift to add',
       limitReached: 'Registry limit reached',
       limitReachedTooltip: 'Registry limit reached. Delete existing gifts to add more.',
@@ -3771,6 +3773,7 @@ export const adminTranslations: Record<AdminLanguage, AdminTranslations> = {
       addingProgress: 'Menambah {current} daripada {total}...',
       giftsAddedSuccess: '{count} hadiah berjaya ditambah!',
       noDuplicatesFound: 'Semua item sudah dalam senarai anda',
+      addError: 'Gagal menambah hadiah. Sila cuba lagi.',
       selectAtLeastOne: 'Pilih sekurang-kurangnya satu hadiah',
       limitReached: 'Had senarai telah dicapai',
       limitReachedTooltip: 'Had senarai telah dicapai. Padam hadiah sedia ada untuk menambah lagi.',

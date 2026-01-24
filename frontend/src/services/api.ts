@@ -114,6 +114,8 @@ import type {
   DeleteGiftResponse,
   BulkDeleteGiftsRequest,
   BulkDeleteGiftsResponse,
+  BulkCreateGiftsRequest,
+  BulkCreateGiftsResponse,
   ReorderGiftsRequest,
   ReorderGiftsResponse,
   GiftPresignedUrlRequest,
@@ -861,6 +863,16 @@ export async function createGift(
   return authenticatedFetch<CreateGiftResponse>(buildAdminUrl('/gifts', weddingId), {
     method: 'POST',
     body: JSON.stringify(data),
+  })
+}
+
+export async function bulkCreateGifts(
+  request: BulkCreateGiftsRequest,
+  weddingId?: string
+): Promise<BulkCreateGiftsResponse> {
+  return authenticatedFetch<BulkCreateGiftsResponse>(buildAdminUrl('/gifts/bulk', weddingId), {
+    method: 'POST',
+    body: JSON.stringify(request),
   })
 }
 

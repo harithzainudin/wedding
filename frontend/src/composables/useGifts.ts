@@ -11,6 +11,7 @@ import {
   listGifts,
   listGiftsAdmin,
   createGift,
+  bulkCreateGifts,
   updateGift,
   deleteGift,
   bulkDeleteGifts,
@@ -51,6 +52,7 @@ const isLoadingReservations = ref(false)
 const loadError = ref('')
 const operationError = ref('')
 const isCreating = ref(false)
+const isBulkCreating = ref(false)
 const isUpdating = ref(false)
 const isDeleting = ref(false)
 const isBulkDeleting = ref(false)
@@ -281,6 +283,40 @@ export function useGifts() {
       return { success: false, error: errorMessage }
     } finally {
       isCreating.value = false
+    }
+  }
+
+  // Bulk create gifts
+  const bulkCreateGiftItems = async (
+    giftsData: CreateGiftRequest[],
+    weddingId?: string
+  ): Promise<{
+    success: boolean
+    created?: { count: number; giftIds: string[] }
+    error?: string
+  }> => {
+    isBulkCreating.value = true
+    operationError.value = ''
+
+    try {
+      const response = await bulkCreateGifts({ gifts: giftsData }, weddingId)
+
+      // Refresh the gift list to get the new items with proper data
+      await fetchGiftsAdmin(weddingId)
+
+      // Clear cache to ensure fresh data
+      clearCache(CACHE_KEYS.GIFTS)
+
+      return {
+        success: true,
+        created: response.created,
+      }
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to create gifts'
+      operationError.value = errorMessage
+      return { success: false, error: errorMessage }
+    } finally {
+      isBulkCreating.value = false
     }
   }
 
@@ -600,6 +636,7 @@ export function useGifts() {
     loadError,
     operationError,
     isCreating,
+    isBulkCreating,
     isUpdating,
     isDeleting,
     isBulkDeleting,
@@ -628,6 +665,7 @@ export function useGifts() {
     fetchSettings,
     fetchReservations,
     createGiftItem,
+    bulkCreateGiftItems,
     updateGiftItem,
     deleteGiftItem,
     bulkDeleteGiftItems,

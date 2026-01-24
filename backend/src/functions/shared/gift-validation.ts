@@ -237,6 +237,59 @@ export function validateCreateGiftInput(input: unknown):
   }
 }
 
+export const BULK_CREATE_LIMITS = {
+  maxGiftsPerRequest: 50, // Maximum gifts per bulk create request
+}
+
+export function validateBulkCreateGiftInput(input: unknown):
+  | {
+      valid: true
+      data: CreateGiftInput[]
+    }
+  | { valid: false; error: string; index?: number } {
+  if (typeof input !== 'object' || input === null) {
+    return { valid: false, error: 'Invalid request body' }
+  }
+
+  const body = input as Record<string, unknown>
+
+  // Validate gifts array exists
+  if (!Array.isArray(body.gifts)) {
+    return { valid: false, error: 'gifts must be an array' }
+  }
+
+  const gifts = body.gifts
+
+  // Validate array is not empty
+  if (gifts.length === 0) {
+    return { valid: false, error: 'gifts array must not be empty' }
+  }
+
+  // Validate array length
+  if (gifts.length > BULK_CREATE_LIMITS.maxGiftsPerRequest) {
+    return {
+      valid: false,
+      error: `Cannot create more than ${BULK_CREATE_LIMITS.maxGiftsPerRequest} gifts at once`,
+    }
+  }
+
+  // Validate each gift
+  const validatedGifts: CreateGiftInput[] = []
+  for (let i = 0; i < gifts.length; i++) {
+    const result = validateCreateGiftInput(gifts[i])
+    if (!result.valid) {
+      return {
+        valid: false,
+        error: `Gift at index ${i}: ${result.error}`,
+        index: i,
+      }
+    }
+    validatedGifts.push(result.data)
+  }
+
+  return { valid: true, data: validatedGifts }
+}
+
 export function validateUpdateGiftInput(input: unknown):
   | {
       valid: true

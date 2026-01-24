@@ -132,6 +132,18 @@ export interface BulkDeleteGiftsResponse {
   }
 }
 
+export interface BulkCreateGiftsRequest {
+  gifts: CreateGiftRequest[]
+}
+
+export interface BulkCreateGiftsResponse {
+  message: string
+  created: {
+    count: number
+    giftIds: string[]
+  }
+}
+
 export interface ReorderGiftsRequest {
   giftIds: string[]
 }

@@ -467,6 +467,13 @@ export function addGiftRoutes(tokenSecret: sst.Secret, imageBucket: sst.aws.Buck
     ...functionConfig,
   })
 
+  // POST /admin/w/{weddingId}/gifts/bulk - Admin: bulk create gifts
+  api.route('POST /admin/w/{weddingId}/gifts/bulk', {
+    handler: 'src/functions/gifts/create-bulk.handler',
+    link: [table, tokenSecret],
+    ...functionConfig,
+  })
+
   // PUT /admin/w/{weddingId}/gifts/reorder - Admin: reorder gifts
   api.route('PUT /admin/w/{weddingId}/gifts/reorder', {
     handler: 'src/functions/gifts/reorder.handler',

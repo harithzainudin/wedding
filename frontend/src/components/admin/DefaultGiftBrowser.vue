@@ -25,7 +25,7 @@
   }>()
 
   const { adminT } = useAdminLanguage()
-  const { gifts, createGiftItem } = useGifts()
+  const { gifts, bulkCreateGiftItems } = useGifts()
 
   // State
   const selectedGifts = ref<Set<string>>(new Set())
@@ -270,7 +270,7 @@
     selectedGifts.value = new Set()
   }
 
-  // Add selected gifts
+  // Add selected gifts using bulk endpoint
   const handleAddSelected = async () => {
     if (!canAddSelected.value) return
 
@@ -283,48 +283,44 @@
       .map((id) => DEFAULT_GIFT_TEMPLATES.find((t) => t.id === id))
       .filter((t): t is DefaultGiftTemplate => t !== undefined && !isAlreadyAdded(t))
 
+    if (templates.length === 0) {
+      addError.value = adminT.value.gifts.noDuplicatesFound
+      isAdding.value = false
+      return
+    }
+
     addProgress.value = { current: 0, total: templates.length }
 
-    let successCount = 0
+    // Convert templates to CreateGiftRequest format
+    const giftsToCreate: CreateGiftRequest[] = templates.map((template) => ({
+      name: template.name,
+      description: template.description,
+      category: template.category,
+      priority: template.priority,
+      priceRange: template.priceRange,
+      externalLink: '',
+      quantityTotal: template.quantityTotal,
+    }))
 
-    for (const template of templates) {
-      const giftData: CreateGiftRequest = {
-        name: template.name,
-        description: template.description,
-        category: template.category,
-        priority: template.priority,
-        priceRange: template.priceRange,
-        externalLink: '',
-        quantityTotal: template.quantityTotal,
-      }
-
-      try {
-        const result = await createGiftItem(giftData, props.weddingId)
-        if (result.success) {
-          successCount++
-        }
-      } catch (err) {
-        console.error('Failed to add gift:', template.name.en, err)
-      }
-
-      addProgress.value.current++
-    }
+    // Use bulk create endpoint for faster processing
+    const result = await bulkCreateGiftItems(giftsToCreate, props.weddingId)
 
     isAdding.value = false
     selectedGifts.value = new Set()
 
-    if (successCount > 0) {
+    if (result.success && result.created) {
+      addProgress.value.current = result.created.count
       addSuccess.value = interpolate(adminT.value.gifts.giftsAddedSuccess, {
-        count: String(successCount),
+        count: String(result.created.count),
       })
-      emit('giftsAdded', successCount)
+      emit('giftsAdded', result.created.count)
 
       // Clear success after delay
       setTimeout(() => {
         addSuccess.value = null
       }, 3000)
-    } else if (templates.length === 0) {
-      addError.value = adminT.value.gifts.noDuplicatesFound
+    } else {
+      addError.value = result.error ?? adminT.value.gifts.addError
     }
   }
 
