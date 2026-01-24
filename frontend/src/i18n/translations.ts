@@ -1742,8 +1742,6 @@ export interface AdminTranslations {
     // Limits (read-only for wedding admin)
     limitsReadOnly: string
     // View modes
-    cardView: string
-    listView: string
     expandAll: string
     collapseAll: string
     // Mobile filter toggle
@@ -2798,8 +2796,6 @@ export const adminTranslations: Record<AdminLanguage, AdminTranslations> = {
       tryDifferentSearch: 'Try a different search term or category',
       limitsReadOnly: 'Limits are managed by Super Admin',
       // View modes
-      cardView: 'Card view',
-      listView: 'List view',
       expandAll: 'Expand all',
       collapseAll: 'Collapse all',
       filters: 'Filters',
@@ -3828,8 +3824,6 @@ export const adminTranslations: Record<AdminLanguage, AdminTranslations> = {
       tryDifferentSearch: 'Cuba istilah carian atau kategori lain',
       limitsReadOnly: 'Had diuruskan oleh Super Admin',
       // View modes
-      cardView: 'Paparan kad',
-      listView: 'Paparan senarai',
       expandAll: 'Kembangkan semua',
       collapseAll: 'Kuncupkan semua',
       filters: 'Tapis',
