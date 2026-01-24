@@ -408,6 +408,31 @@ export function addThemeRoutes(tokenSecret: sst.Secret) {
   })
 }
 
+// Function to add design/layout routes
+export function addDesignRoutes(tokenSecret: sst.Secret) {
+  // ============================================
+  // PUBLIC ROUTES (wedding slug in path)
+  // ============================================
+
+  // GET /{weddingSlug}/design - Public endpoint to fetch design settings
+  api.route('GET /{weddingSlug}/design', {
+    handler: 'src/functions/design/get.handler',
+    link: [table],
+    ...functionConfig,
+  })
+
+  // ============================================
+  // ADMIN ROUTES (wedding ID in path)
+  // ============================================
+
+  // PUT /admin/w/{weddingId}/design - Update design settings (auth required)
+  api.route('PUT /admin/w/{weddingId}/design', {
+    handler: 'src/functions/design/update.handler',
+    link: [table, tokenSecret],
+    ...functionConfig,
+  })
+}
+
 // Function to add gift registry routes
 export function addGiftRoutes(tokenSecret: sst.Secret, imageBucket: sst.aws.Bucket) {
   // ============================================

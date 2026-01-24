@@ -673,9 +673,10 @@
     return `${baseUrl}/wedding/${slug}/admin`
   }
 
-  // Add keyboard listener for ESC key
-  onMounted(() => {
+  // Add keyboard listener for ESC key and fetch weddings
+  onMounted(async () => {
     document.addEventListener('keydown', handleKeyDown)
+    await fetchWeddings()
   })
 
   // Cleanup keyboard listener

@@ -1,19 +1,11 @@
 <script setup lang="ts">
   import { watch, computed } from 'vue'
   import { useRoute } from 'vue-router'
-  import HeroSection from '@/components/sections/HeroSection.vue'
-  import DetailsSection from '@/components/sections/DetailsSection.vue'
-  import GallerySection from '@/components/sections/GallerySection.vue'
-  import ScheduleSection from '@/components/sections/ScheduleSection.vue'
-  import ContactSection from '@/components/sections/ContactSection.vue'
-  import QRCodeHubSection from '@/components/sections/QRCodeHubSection.vue'
-  import GuestbookSection from '@/components/sections/GuestbookSection.vue'
-  import WishlistPreview from '@/components/sections/WishlistPreview.vue'
-  import RsvpSection from '@/components/sections/RsvpSection.vue'
-  import StickyNavigation from '@/components/ui/StickyNavigation.vue'
+  import LayoutWrapper from '@/components/layouts/LayoutWrapper.vue'
   import WeddingUnavailable from '@/components/ui/WeddingUnavailable.vue'
   import { useDocumentTitle } from '@/composables/useDocumentTitle'
   import { usePublicWeddingData } from '@/composables/usePublicWeddingData'
+  import { useDesign } from '@/composables/useDesign'
 
   useDocumentTitle({ text: 'Wedding Ceremony', position: 'suffix' })
 
@@ -40,14 +32,21 @@
     getRsvpDeadline,
   } = usePublicWeddingData()
 
+  // Design/layout settings
+  const { designSettings, loadDesign } = useDesign()
+
   // Fetch data when wedding slug is available
   // Always force refresh to ensure we get the latest wedding status
   // This handles cases where status changed (draft/archived) since last visit
   watch(
     weddingSlug,
-    (slug) => {
+    async (slug) => {
       if (slug) {
-        fetchPublicData(slug, true) // Force refresh to get latest status
+        // Load both wedding data and design settings
+        await Promise.all([
+          fetchPublicData(slug, true), // Force refresh to get latest status
+          loadDesign(slug, true),
+        ])
       }
     },
     { immediate: true }
@@ -77,22 +76,12 @@
   <!-- Error page for archived/draft/not found weddings -->
   <WeddingUnavailable v-else-if="showErrorPage" :error-type="weddingError" />
 
-  <!-- Normal wedding page -->
-  <main v-else class="min-h-screen pb-20">
-    <HeroSection />
-    <DetailsSection />
-    <GallerySection />
-    <ScheduleSection />
-    <ContactSection />
-    <QRCodeHubSection />
-    <GuestbookSection v-if="showRsvpSection()" />
-    <WishlistPreview />
-    <RsvpSection
-      v-if="showRsvpSection()"
-      :show-rsvp="true"
-      :is-accepting-rsvps="isAcceptingRsvps()"
-      v-bind="rsvpDeadline ? { rsvpDeadline } : {}"
-    />
-    <StickyNavigation :show-rsvp-button="showRsvpSection()" />
-  </main>
+  <!-- Layout-driven wedding page -->
+  <LayoutWrapper
+    v-else
+    :design-settings="designSettings"
+    :show-rsvp-section="showRsvpSection()"
+    :is-accepting-rsvps="isAcceptingRsvps()"
+    v-bind="rsvpDeadline ? { rsvpDeadline } : {}"
+  />
 </template>

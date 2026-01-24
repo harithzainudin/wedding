@@ -325,6 +325,7 @@ export type SettingsType =
   | 'VENUE'
   | 'WEDDING_DETAILS'
   | 'THEME'
+  | 'DESIGN'
   | 'SCHEDULE'
   | 'CONTACTS'
   | 'MUSIC'

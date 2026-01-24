@@ -23,6 +23,7 @@
   import RsvpsTab from '@/components/admin/RsvpsTab.vue'
   import MusicTab from '@/components/admin/MusicTab.vue'
   import ThemeTab from '@/components/admin/ThemeTab.vue'
+  import DesignTab from '@/components/admin/DesignTab.vue'
   import GiftsTab from '@/components/admin/GiftsTab.vue'
   import QRCodeHubTab from '@/components/admin/QRCodeHubTab.vue'
   import WeddingContextBar from '@/components/admin/WeddingContextBar.vue'
@@ -145,6 +146,7 @@
     | 'music'
     | 'gifts'
     | 'theme'
+    | 'design'
     | 'contacts'
     | 'rsvps'
     | 'qrcodehub'
@@ -157,6 +159,7 @@
     'music',
     'gifts',
     'theme',
+    'design',
     'contacts',
     'rsvps',
     'qrcodehub',
@@ -231,6 +234,8 @@
       'M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7',
     theme:
       'M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9c.83 0 1.5-.67 1.5-1.5 0-.39-.15-.74-.39-1.01-.23-.26-.38-.61-.38-.99 0-.83.67-1.5 1.5-1.5H16c2.76 0 5-2.24 5-5 0-4.42-4.03-8-9-8zm-5.5 9c-.83 0-1.5-.67-1.5-1.5S5.67 9 6.5 9 8 9.67 8 10.5 7.33 12 6.5 12zm3-4C8.67 8 8 7.33 8 6.5S8.67 5 9.5 5s1.5.67 1.5 1.5S10.33 8 9.5 8zm5 0c-.83 0-1.5-.67-1.5-1.5S13.67 5 14.5 5s1.5.67 1.5 1.5S15.33 8 14.5 8zm3 4c-.83 0-1.5-.67-1.5-1.5S16.67 9 17.5 9s1.5.67 1.5 1.5-.67 1.5-1.5 1.5z',
+    design:
+      'M4 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1V5zm10 0a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1V5zM4 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1v-4zm10 0a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z',
     contacts:
       'M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z',
     rsvps:
@@ -249,6 +254,7 @@
     { key: 'music', label: adminT.value.nav.music, icon: tabIcons.music },
     { key: 'gifts', label: adminT.value.nav.gifts, icon: tabIcons.gifts },
     { key: 'theme', label: adminT.value.nav.theme, icon: tabIcons.theme },
+    { key: 'design', label: adminT.value.nav.design ?? 'Design', icon: tabIcons.design },
     { key: 'contacts', label: adminT.value.nav.contacts, icon: tabIcons.contacts },
     { key: 'rsvps', label: adminT.value.nav.rsvps, icon: tabIcons.rsvps },
     { key: 'qrcodehub', label: adminT.value.nav.qrHub, icon: tabIcons.qrcodehub },
@@ -323,6 +329,8 @@
     handleTabDirtyChange('schedule', payload)
   const onThemeDirtyChange = (payload: DirtyStateChangePayload): void =>
     handleTabDirtyChange('theme', payload)
+  const onDesignDirtyChange = (payload: DirtyStateChangePayload): void =>
+    handleTabDirtyChange('design', payload)
   const onContactsDirtyChange = (payload: DirtyStateChangePayload): void =>
     handleTabDirtyChange('contacts', payload)
   const onQRCodeHubDirtyChange = (payload: DirtyStateChangePayload): void =>
@@ -623,6 +631,10 @@
             <MusicTab v-else-if="activeTab === 'music'" />
             <GiftsTab v-else-if="activeTab === 'gifts'" />
             <ThemeTab v-else-if="activeTab === 'theme'" @dirty-state-change="onThemeDirtyChange" />
+            <DesignTab
+              v-else-if="activeTab === 'design'"
+              @dirty-state-change="onDesignDirtyChange"
+            />
             <ContactsTab
               v-else-if="activeTab === 'contacts'"
               @dirty-state-change="onContactsDirtyChange"

@@ -1474,6 +1474,7 @@ export interface AdminTranslations {
     music: string
     gifts: string
     theme: string
+    design: string
     contacts: string
     rsvps: string
     qrHub: string
@@ -2163,6 +2164,33 @@ export interface AdminTranslations {
     sunsetGlowDesc: string
   }
 
+  // Design/Layout
+  design: {
+    title: string
+    subtitle: string
+    layoutSelection: string
+    sectionOrder: string
+    sectionOrderHint: string
+    resetOrder: string
+    animationSpeed: string
+    preview: string
+    saveDesign: string
+    savedSuccess: string
+    alwaysFirst: string
+    // Layout-specific settings
+    invitationCardSettings: string
+    showCoupleNames: string
+    showWeddingDate: string
+    autoOpenDelay: string
+    slideshowSettings: string
+    showDots: string
+    showArrows: string
+    autoPlay: string
+    autoPlayInterval: string
+    storybookSettings: string
+    showPageNumbers: string
+  }
+
   // QR Hub
   qrHub: {
     title: string
@@ -2533,6 +2561,7 @@ export const adminTranslations: Record<AdminLanguage, AdminTranslations> = {
       music: 'Music',
       gifts: 'Gifts',
       theme: 'Theme',
+      design: 'Design',
       contacts: 'Contacts',
       rsvps: 'RSVPs',
       qrHub: 'QR Hub',
@@ -3213,6 +3242,32 @@ export const adminTranslations: Record<AdminLanguage, AdminTranslations> = {
       sunsetGlowDesc: 'Warm amber and coral sunset vibes',
     },
 
+    design: {
+      title: 'Design & Layout',
+      subtitle: 'Choose how your wedding website looks and feels',
+      layoutSelection: 'Website Layout',
+      sectionOrder: 'Section Order & Visibility',
+      sectionOrderHint: 'Drag to reorder. Click eye to toggle visibility.',
+      resetOrder: 'Reset to default',
+      animationSpeed: 'Animation Speed',
+      preview: 'Preview',
+      saveDesign: 'Save Design',
+      savedSuccess: 'Design settings saved successfully!',
+      alwaysFirst: 'always first',
+      // Layout-specific settings
+      invitationCardSettings: 'Invitation Card Settings',
+      showCoupleNames: 'Show couple names on cover',
+      showWeddingDate: 'Show wedding date on cover',
+      autoOpenDelay: 'Auto-open delay (seconds, 0 = manual only)',
+      slideshowSettings: 'Slideshow Settings',
+      showDots: 'Show navigation dots',
+      showArrows: 'Show navigation arrows (desktop)',
+      autoPlay: 'Auto-play slides',
+      autoPlayInterval: 'Seconds between slides',
+      storybookSettings: 'Storybook Settings',
+      showPageNumbers: 'Show page numbers',
+    },
+
     qrHub: {
       title: 'QR Code Hub',
       subtitle: 'Manage QR codes for your wedding',
@@ -3560,6 +3615,7 @@ export const adminTranslations: Record<AdminLanguage, AdminTranslations> = {
       music: 'Muzik',
       gifts: 'Hadiah',
       theme: 'Tema',
+      design: 'Reka Bentuk',
       contacts: 'Hubungan',
       rsvps: 'RSVP',
       qrHub: 'Hub QR',
@@ -4243,6 +4299,32 @@ export const adminTranslations: Record<AdminLanguage, AdminTranslations> = {
       midnightLuxeDesc: 'Keanggunan biru tua dengan aksen emas',
       sunsetGlow: 'Sinar Matahari Terbenam',
       sunsetGlowDesc: 'Ambar hangat dan coral dengan suasana matahari terbenam',
+    },
+
+    design: {
+      title: 'Reka Bentuk & Susun Atur',
+      subtitle: 'Pilih bagaimana laman web perkahwinan anda kelihatan',
+      layoutSelection: 'Susun Atur Laman Web',
+      sectionOrder: 'Susunan & Keterlihatan Bahagian',
+      sectionOrderHint: 'Seret untuk susun semula. Klik ikon mata untuk togol keterlihatan.',
+      resetOrder: 'Set semula ke asal',
+      animationSpeed: 'Kelajuan Animasi',
+      preview: 'Pratonton',
+      saveDesign: 'Simpan Reka Bentuk',
+      savedSuccess: 'Tetapan reka bentuk berjaya disimpan!',
+      alwaysFirst: 'sentiasa pertama',
+      // Layout-specific settings
+      invitationCardSettings: 'Tetapan Kad Jemputan',
+      showCoupleNames: 'Papar nama pasangan pada muka',
+      showWeddingDate: 'Papar tarikh perkahwinan pada muka',
+      autoOpenDelay: 'Kelewatan buka auto (saat, 0 = manual sahaja)',
+      slideshowSettings: 'Tetapan Tayangan Slaid',
+      showDots: 'Papar titik navigasi',
+      showArrows: 'Papar anak panah navigasi (desktop)',
+      autoPlay: 'Main slaid automatik',
+      autoPlayInterval: 'Saat antara slaid',
+      storybookSettings: 'Tetapan Buku Cerita',
+      showPageNumbers: 'Papar nombor halaman',
     },
 
     qrHub: {

@@ -105,6 +105,7 @@ import type {
   AddFromLibraryResponse,
 } from '@/types/music'
 import type { ThemeSettings, ThemeUpdateRequest } from '@/types/theme'
+import type { DesignSettings, DesignUpdateRequest } from '@/types/design'
 import type {
   GiftListResponse,
   CreateGiftRequest,
@@ -834,6 +835,38 @@ export async function updateTheme(
     method: 'PUT',
     body: JSON.stringify(data),
   })
+}
+
+// Design/Layout API functions
+
+export async function getDesign(weddingSlug?: string): Promise<DesignSettings> {
+  const response = await fetch(buildPublicUrl('/design', weddingSlug), {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  })
+
+  const json = (await response.json()) as ApiResponse<DesignSettings>
+  return unwrapResponse(json)
+}
+
+export async function updateDesign(
+  data: DesignUpdateRequest,
+  weddingId?: string
+): Promise<DesignSettings> {
+  return authenticatedFetch<DesignSettings>(buildAdminUrl('/design', weddingId), {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  })
+}
+
+export function getDesignCached(
+  weddingSlug?: string,
+  forceRefresh = false
+): Promise<DesignSettings> {
+  const cacheKey = weddingSlug ? `${CACHE_KEYS.DESIGN}-${weddingSlug}` : CACHE_KEYS.DESIGN
+  return cachedFetch(cacheKey, () => getDesign(weddingSlug), forceRefresh)
 }
 
 // Gift Registry API functions
