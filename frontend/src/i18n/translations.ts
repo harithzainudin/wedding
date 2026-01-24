@@ -1434,6 +1434,7 @@ export interface AdminTranslations {
     disabled: string
     compressing: string
     backToSuperAdmin: string
+    clearFilters: string
   }
 
   // Authentication
@@ -1872,6 +1873,10 @@ export interface AdminTranslations {
     sourceUrl: string
     sourceUrlHint: string
     attributionPreview: string
+    // Search and filter
+    searchPlaceholder: string
+    filterAll: string
+    noResults: string
   }
 
   // Wedding Details
@@ -2378,6 +2383,12 @@ export interface AdminTranslations {
     groom: string
     parent: string
     other: string
+    // Search and filter
+    searchPlaceholder: string
+    filterAll: string
+    filterWithWeddings: string
+    filterNoWeddings: string
+    noResults: string
   }
 
   // Super Admin (upload limits in settings modal)
@@ -2385,6 +2396,13 @@ export interface AdminTranslations {
     uploadLimits: string
     galleryLimits: string
     giftLimits: string
+    // Search and filter for weddings
+    searchPlaceholder: string
+    filterAll: string
+    filterActive: string
+    filterArchived: string
+    filterDraft: string
+    noResults: string
   }
 
   // Super Admin Settings
@@ -2479,6 +2497,7 @@ export const adminTranslations: Record<AdminLanguage, AdminTranslations> = {
       disabled: 'Disabled',
       compressing: 'Compressing...',
       backToSuperAdmin: 'Back to Super Admin',
+      clearFilters: 'Clear filters',
     },
 
     auth: {
@@ -2908,6 +2927,9 @@ export const adminTranslations: Record<AdminLanguage, AdminTranslations> = {
       sourceUrl: 'Source URL',
       sourceUrlHint: 'Where did you get this track? (optional)',
       attributionPreview: 'Attribution Preview',
+      searchPlaceholder: 'Search by title or artist...',
+      filterAll: 'All Categories',
+      noResults: 'No tracks found matching your search',
     },
 
     wedding: {
@@ -3402,12 +3424,23 @@ export const adminTranslations: Record<AdminLanguage, AdminTranslations> = {
       groom: 'Groom',
       parent: 'Parent',
       other: 'Other',
+      searchPlaceholder: 'Search by username or email...',
+      filterAll: 'All',
+      filterWithWeddings: 'With Weddings',
+      filterNoWeddings: 'No Weddings',
+      noResults: 'No staff found matching your search',
     },
 
     superAdmin: {
       uploadLimits: 'Upload Limits',
       galleryLimits: 'Gallery Limits',
       giftLimits: 'Gift Limits',
+      searchPlaceholder: 'Search by name, slug, or owner...',
+      filterAll: 'All',
+      filterActive: 'Active',
+      filterArchived: 'Archived',
+      filterDraft: 'Draft',
+      noResults: 'No weddings found matching your search',
     },
 
     superAdminSettings: {
@@ -3491,6 +3524,7 @@ export const adminTranslations: Record<AdminLanguage, AdminTranslations> = {
       disabled: 'Dinyahaktifkan',
       compressing: 'Memampatkan...',
       backToSuperAdmin: 'Kembali ke Super Admin',
+      clearFilters: 'Padam penapis',
     },
 
     auth: {
@@ -3924,6 +3958,9 @@ export const adminTranslations: Record<AdminLanguage, AdminTranslations> = {
       sourceUrl: 'URL Sumber',
       sourceUrlHint: 'Dari mana anda dapat trek ini? (pilihan)',
       attributionPreview: 'Pratonton Atribusi',
+      searchPlaceholder: 'Cari mengikut tajuk atau artis...',
+      filterAll: 'Semua Kategori',
+      noResults: 'Tiada trek ditemui',
     },
 
     wedding: {
@@ -4423,12 +4460,23 @@ export const adminTranslations: Record<AdminLanguage, AdminTranslations> = {
       groom: 'Pengantin Lelaki',
       parent: 'Ibu Bapa',
       other: 'Lain-lain',
+      searchPlaceholder: 'Cari mengikut nama pengguna atau emel...',
+      filterAll: 'Semua',
+      filterWithWeddings: 'Dengan Majlis',
+      filterNoWeddings: 'Tiada Majlis',
+      noResults: 'Tiada staf ditemui',
     },
 
     superAdmin: {
       uploadLimits: 'Had Muat Naik',
       galleryLimits: 'Had Galeri',
       giftLimits: 'Had Hadiah',
+      searchPlaceholder: 'Cari mengikut nama, slug, atau pemilik...',
+      filterAll: 'Semua',
+      filterActive: 'Aktif',
+      filterArchived: 'Diarkib',
+      filterDraft: 'Draf',
+      noResults: 'Tiada majlis ditemui',
     },
 
     superAdminSettings: {

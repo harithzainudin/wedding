@@ -94,6 +94,53 @@
     () => userType.value === 'super' || adminUserType.value === 'staff'
   )
 
+  // Weddings search and filter state
+  const weddingSearchQuery = ref('')
+  const weddingFilter = ref<'all' | 'active' | 'archived' | 'draft'>('all')
+
+  // Computed filtered weddings list
+  const filteredWeddings = computed(() => {
+    let result = weddings.value
+
+    // Apply search filter
+    if (weddingSearchQuery.value.trim()) {
+      const query = weddingSearchQuery.value.toLowerCase().trim()
+      result = result.filter(
+        (wedding) =>
+          wedding.displayName.toLowerCase().includes(query) ||
+          wedding.slug.toLowerCase().includes(query) ||
+          (wedding.ownerUsername?.toLowerCase().includes(query) ?? false) ||
+          (wedding.ownerEmail?.toLowerCase().includes(query) ?? false)
+      )
+    }
+
+    // Apply status filter
+    if (weddingFilter.value !== 'all') {
+      result = result.filter((wedding) => wedding.status === weddingFilter.value)
+    }
+
+    return result
+  })
+
+  // Filter counts for UI
+  const weddingFilterCounts = computed(() => ({
+    all: weddings.value.length,
+    active: weddings.value.filter((w) => w.status === 'active').length,
+    archived: weddings.value.filter((w) => w.status === 'archived').length,
+    draft: weddings.value.filter((w) => w.status === 'draft').length,
+  }))
+
+  // Clear wedding search
+  const clearWeddingSearch = () => {
+    weddingSearchQuery.value = ''
+  }
+
+  // Clear all wedding filters (search and filter)
+  const clearAllWeddingFilters = () => {
+    weddingSearchQuery.value = ''
+    weddingFilter.value = 'all'
+  }
+
   // Modal state
   const showCreateModal = ref(false)
   const showArchiveConfirm = ref<string | null>(null)
@@ -884,6 +931,102 @@
               </div>
             </div>
 
+            <!-- Search and Filter -->
+            <div class="mb-6 space-y-4">
+              <!-- Search Input -->
+              <div class="relative">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <svg
+                    class="w-5 h-5 text-charcoal-light dark:text-dark-text-secondary"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                    />
+                  </svg>
+                </div>
+                <input
+                  v-model="weddingSearchQuery"
+                  type="text"
+                  class="w-full pl-10 pr-10 py-2.5 border border-sand-dark dark:border-dark-border rounded-lg font-body text-sm text-charcoal dark:text-dark-text bg-white dark:bg-dark-bg-secondary focus:ring-2 focus:ring-sage focus:border-sage"
+                  :placeholder="adminT.superAdmin.searchPlaceholder"
+                />
+                <button
+                  v-if="weddingSearchQuery"
+                  type="button"
+                  class="absolute inset-y-0 right-0 pr-3 flex items-center cursor-pointer text-charcoal-light hover:text-charcoal dark:text-dark-text-secondary dark:hover:text-dark-text"
+                  @click="clearWeddingSearch"
+                >
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  </svg>
+                </button>
+              </div>
+
+              <!-- Filter Buttons -->
+              <div class="flex gap-2 flex-wrap">
+                <button
+                  type="button"
+                  class="px-3 py-1.5 font-body text-sm rounded-full transition-colors cursor-pointer"
+                  :class="
+                    weddingFilter === 'all'
+                      ? 'bg-sage text-white'
+                      : 'bg-white dark:bg-dark-bg-elevated text-charcoal dark:text-dark-text hover:bg-sand-dark dark:hover:bg-dark-border'
+                  "
+                  @click="weddingFilter = 'all'"
+                >
+                  {{ adminT.superAdmin.filterAll }} ({{ weddingFilterCounts.all }})
+                </button>
+                <button
+                  type="button"
+                  class="px-3 py-1.5 font-body text-sm rounded-full transition-colors cursor-pointer"
+                  :class="
+                    weddingFilter === 'active'
+                      ? 'bg-green-600 text-white'
+                      : 'bg-white dark:bg-dark-bg-elevated text-charcoal dark:text-dark-text hover:bg-sand-dark dark:hover:bg-dark-border'
+                  "
+                  @click="weddingFilter = 'active'"
+                >
+                  {{ adminT.superAdmin.filterActive }} ({{ weddingFilterCounts.active }})
+                </button>
+                <button
+                  type="button"
+                  class="px-3 py-1.5 font-body text-sm rounded-full transition-colors cursor-pointer"
+                  :class="
+                    weddingFilter === 'archived'
+                      ? 'bg-charcoal-light text-white'
+                      : 'bg-white dark:bg-dark-bg-elevated text-charcoal dark:text-dark-text hover:bg-sand-dark dark:hover:bg-dark-border'
+                  "
+                  @click="weddingFilter = 'archived'"
+                >
+                  {{ adminT.superAdmin.filterArchived }} ({{ weddingFilterCounts.archived }})
+                </button>
+                <button
+                  v-if="weddingFilterCounts.draft > 0"
+                  type="button"
+                  class="px-3 py-1.5 font-body text-sm rounded-full transition-colors cursor-pointer"
+                  :class="
+                    weddingFilter === 'draft'
+                      ? 'bg-amber-600 text-white'
+                      : 'bg-white dark:bg-dark-bg-elevated text-charcoal dark:text-dark-text hover:bg-sand-dark dark:hover:bg-dark-border'
+                  "
+                  @click="weddingFilter = 'draft'"
+                >
+                  {{ adminT.superAdmin.filterDraft }} ({{ weddingFilterCounts.draft }})
+                </button>
+              </div>
+            </div>
+
             <!-- Loading State -->
             <div v-if="isLoading" class="flex items-center justify-center py-12">
               <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-sage"></div>
@@ -912,6 +1055,7 @@
                 </h2>
               </div>
 
+              <!-- Empty State - No weddings at all -->
               <div v-if="weddings.length === 0" class="p-8 text-center">
                 <p class="font-body text-charcoal-light dark:text-dark-text-secondary mb-4">
                   No weddings created yet
@@ -925,12 +1069,28 @@
                 </button>
               </div>
 
+              <!-- No Results State - Weddings exist but filtered results are empty -->
+              <div v-else-if="filteredWeddings.length === 0" class="p-8 text-center">
+                <div class="text-4xl mb-4">🔍</div>
+                <p class="font-body text-charcoal-light dark:text-dark-text-secondary">
+                  {{ adminT.superAdmin.noResults }}
+                </p>
+                <button
+                  v-if="weddingSearchQuery || weddingFilter !== 'all'"
+                  type="button"
+                  class="mt-4 px-4 py-2 text-sage hover:text-sage-dark font-body text-sm cursor-pointer"
+                  @click="clearAllWeddingFilters"
+                >
+                  {{ adminT.common.clearFilters }}
+                </button>
+              </div>
+
               <!-- Wedding List (Mobile + Desktop) -->
               <div v-else>
                 <!-- Mobile Card View -->
                 <div class="sm:hidden divide-y divide-sand-dark dark:divide-dark-border">
                   <div
-                    v-for="wedding in weddings"
+                    v-for="wedding in filteredWeddings"
                     :key="wedding.weddingId"
                     class="p-4 hover:bg-sand/30 dark:hover:bg-dark-bg-elevated"
                   >
@@ -1122,7 +1282,7 @@
                     </thead>
                     <tbody class="divide-y divide-sand-dark dark:divide-dark-border">
                       <tr
-                        v-for="wedding in weddings"
+                        v-for="wedding in filteredWeddings"
                         :key="wedding.weddingId"
                         class="hover:bg-sand/30 dark:hover:bg-dark-bg-elevated"
                       >

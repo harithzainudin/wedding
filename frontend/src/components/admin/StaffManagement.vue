@@ -1,5 +1,5 @@
 <script setup lang="ts">
-  import { ref, onMounted, onUnmounted, nextTick } from 'vue'
+  import { ref, onMounted, onUnmounted, nextTick, computed } from 'vue'
   import { useStaff } from '@/composables/useStaff'
   import { useAdminLanguage } from '@/composables/useAdminLanguage'
   import { interpolate } from '@/i18n/translations'
@@ -21,6 +21,52 @@
     deleteStaff,
     clearMessages,
   } = useStaff()
+
+  // Search and filter state
+  const searchQuery = ref('')
+  const filter = ref<'all' | 'with_weddings' | 'no_weddings'>('all')
+
+  // Computed filtered staff list
+  const filteredStaff = computed(() => {
+    let result = staff.value
+
+    // Apply search filter
+    if (searchQuery.value.trim()) {
+      const query = searchQuery.value.toLowerCase().trim()
+      result = result.filter(
+        (member) =>
+          member.username.toLowerCase().includes(query) ||
+          (member.email?.toLowerCase().includes(query) ?? false)
+      )
+    }
+
+    // Apply wedding assignment filter
+    if (filter.value === 'with_weddings') {
+      result = result.filter((member) => (member.weddingIds?.length ?? 0) > 0)
+    } else if (filter.value === 'no_weddings') {
+      result = result.filter((member) => (member.weddingIds?.length ?? 0) === 0)
+    }
+
+    return result
+  })
+
+  // Filter counts for UI
+  const filterCounts = computed(() => ({
+    all: staff.value.length,
+    withWeddings: staff.value.filter((m) => (m.weddingIds?.length ?? 0) > 0).length,
+    noWeddings: staff.value.filter((m) => (m.weddingIds?.length ?? 0) === 0).length,
+  }))
+
+  // Clear search
+  const clearSearch = () => {
+    searchQuery.value = ''
+  }
+
+  // Clear all filters (search and filter)
+  const clearAllFilters = () => {
+    searchQuery.value = ''
+    filter.value = 'all'
+  }
 
   // Modal states
   const showCreateModal = ref(false)
@@ -237,6 +283,89 @@
       </button>
     </div>
 
+    <!-- Search and Filter -->
+    <div class="mb-6 space-y-4">
+      <!-- Search Input -->
+      <div class="relative">
+        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+          <svg
+            class="w-5 h-5 text-charcoal-light dark:text-dark-text-secondary"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+            />
+          </svg>
+        </div>
+        <input
+          v-model="searchQuery"
+          type="text"
+          class="w-full pl-10 pr-10 py-2.5 border border-sand-dark dark:border-dark-border rounded-lg font-body text-sm text-charcoal dark:text-dark-text bg-white dark:bg-dark-bg-secondary focus:ring-2 focus:ring-sage focus:border-sage"
+          :placeholder="adminT.staff.searchPlaceholder"
+        />
+        <button
+          v-if="searchQuery"
+          type="button"
+          class="absolute inset-y-0 right-0 pr-3 flex items-center cursor-pointer text-charcoal-light hover:text-charcoal dark:text-dark-text-secondary dark:hover:text-dark-text"
+          @click="clearSearch"
+        >
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M6 18L18 6M6 6l12 12"
+            />
+          </svg>
+        </button>
+      </div>
+
+      <!-- Filter Buttons -->
+      <div class="flex gap-2 flex-wrap">
+        <button
+          type="button"
+          class="px-3 py-1.5 font-body text-sm rounded-full transition-colors cursor-pointer"
+          :class="
+            filter === 'all'
+              ? 'bg-sage text-white'
+              : 'bg-white dark:bg-dark-bg-elevated text-charcoal dark:text-dark-text hover:bg-sand-dark dark:hover:bg-dark-border'
+          "
+          @click="filter = 'all'"
+        >
+          {{ adminT.staff.filterAll }} ({{ filterCounts.all }})
+        </button>
+        <button
+          type="button"
+          class="px-3 py-1.5 font-body text-sm rounded-full transition-colors cursor-pointer"
+          :class="
+            filter === 'with_weddings'
+              ? 'bg-green-600 text-white'
+              : 'bg-white dark:bg-dark-bg-elevated text-charcoal dark:text-dark-text hover:bg-sand-dark dark:hover:bg-dark-border'
+          "
+          @click="filter = 'with_weddings'"
+        >
+          {{ adminT.staff.filterWithWeddings }} ({{ filterCounts.withWeddings }})
+        </button>
+        <button
+          type="button"
+          class="px-3 py-1.5 font-body text-sm rounded-full transition-colors cursor-pointer"
+          :class="
+            filter === 'no_weddings'
+              ? 'bg-amber-600 text-white'
+              : 'bg-white dark:bg-dark-bg-elevated text-charcoal dark:text-dark-text hover:bg-sand-dark dark:hover:bg-dark-border'
+          "
+          @click="filter = 'no_weddings'"
+        >
+          {{ adminT.staff.filterNoWeddings }} ({{ filterCounts.noWeddings }})
+        </button>
+      </div>
+    </div>
+
     <!-- Loading State -->
     <div v-if="isLoading" class="flex items-center justify-center py-12">
       <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-sage"></div>
@@ -259,7 +388,7 @@
       v-else
       class="bg-white dark:bg-dark-bg-secondary rounded-xl shadow-sm border border-sand-dark dark:border-dark-border overflow-hidden"
     >
-      <!-- Empty State -->
+      <!-- Empty State - No staff at all -->
       <div v-if="staff.length === 0" class="p-8 text-center">
         <div class="text-4xl mb-4">👥</div>
         <p class="font-body text-charcoal-light dark:text-dark-text-secondary mb-2">
@@ -277,10 +406,26 @@
         </button>
       </div>
 
+      <!-- No Results State - Staff exists but filtered results are empty -->
+      <div v-else-if="filteredStaff.length === 0" class="p-8 text-center">
+        <div class="text-4xl mb-4">🔍</div>
+        <p class="font-body text-charcoal-light dark:text-dark-text-secondary">
+          {{ adminT.staff.noResults }}
+        </p>
+        <button
+          v-if="searchQuery || filter !== 'all'"
+          type="button"
+          class="mt-4 px-4 py-2 text-sage hover:text-sage-dark font-body text-sm cursor-pointer"
+          @click="clearAllFilters"
+        >
+          {{ adminT.common.clearFilters }}
+        </button>
+      </div>
+
       <!-- Staff Cards -->
       <div v-else class="divide-y divide-sand-dark dark:divide-dark-border">
         <div
-          v-for="member in staff"
+          v-for="member in filteredStaff"
           :key="member.username"
           class="p-4 hover:bg-sand/50 dark:hover:bg-dark-bg/50 transition-colors"
         >

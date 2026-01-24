@@ -32,6 +32,61 @@
     clearMessages,
   } = useGlobalMusic()
 
+  // Search and filter state
+  const searchQuery = ref('')
+  const categoryFilter = ref<MusicCategory | 'all'>('all')
+
+  // Computed filtered tracks list
+  const filteredTracks = computed(() => {
+    let result = tracks.value
+
+    // Apply search filter
+    if (searchQuery.value.trim()) {
+      const query = searchQuery.value.toLowerCase().trim()
+      result = result.filter(
+        (track) =>
+          track.title.toLowerCase().includes(query) ||
+          (track.artist?.toLowerCase().includes(query) ?? false)
+      )
+    }
+
+    // Apply category filter
+    if (categoryFilter.value !== 'all') {
+      result = result.filter((track) => track.category === categoryFilter.value)
+    }
+
+    return result
+  })
+
+  // Filter counts for UI
+  const categoryFilterCounts = computed(() => {
+    const counts: Record<MusicCategory | 'all', number> = {
+      all: tracks.value.length,
+      romantic: 0,
+      celebration: 0,
+      classical: 0,
+      traditional: 0,
+      modern: 0,
+      instrumental: 0,
+      other: 0,
+    }
+    for (const track of tracks.value) {
+      counts[track.category]++
+    }
+    return counts
+  })
+
+  // Clear search
+  const clearSearch = () => {
+    searchQuery.value = ''
+  }
+
+  // Clear all filters (search and category)
+  const clearAllFilters = () => {
+    searchQuery.value = ''
+    categoryFilter.value = 'all'
+  }
+
   // Modal states
   const showUploadModal = ref(false)
   const showEditModal = ref<GlobalMusicTrack | null>(null)
@@ -435,6 +490,79 @@
       </button>
     </div>
 
+    <!-- Search and Filter -->
+    <div class="mb-6 space-y-4">
+      <!-- Search Input -->
+      <div class="relative">
+        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+          <svg
+            class="w-5 h-5 text-charcoal-light dark:text-dark-text-secondary"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+            />
+          </svg>
+        </div>
+        <input
+          v-model="searchQuery"
+          type="text"
+          class="w-full pl-10 pr-10 py-2.5 border border-sand-dark dark:border-dark-border rounded-lg font-body text-sm text-charcoal dark:text-dark-text bg-white dark:bg-dark-bg-secondary focus:ring-2 focus:ring-sage focus:border-sage"
+          :placeholder="adminT.musicLibrary?.searchPlaceholder ?? 'Search by title or artist...'"
+        />
+        <button
+          v-if="searchQuery"
+          type="button"
+          class="absolute inset-y-0 right-0 pr-3 flex items-center cursor-pointer text-charcoal-light hover:text-charcoal dark:text-dark-text-secondary dark:hover:text-dark-text"
+          @click="clearSearch"
+        >
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M6 18L18 6M6 6l12 12"
+            />
+          </svg>
+        </button>
+      </div>
+
+      <!-- Filter Buttons -->
+      <div class="flex gap-2 flex-wrap">
+        <button
+          type="button"
+          class="px-3 py-1.5 font-body text-sm rounded-full transition-colors cursor-pointer"
+          :class="
+            categoryFilter === 'all'
+              ? 'bg-sage text-white'
+              : 'bg-white dark:bg-dark-bg-elevated text-charcoal dark:text-dark-text hover:bg-sand-dark dark:hover:bg-dark-border'
+          "
+          @click="categoryFilter = 'all'"
+        >
+          {{ adminT.musicLibrary?.filterAll ?? 'All Categories' }} ({{ categoryFilterCounts.all }})
+        </button>
+        <button
+          v-for="cat in MUSIC_CATEGORIES"
+          :key="cat"
+          type="button"
+          class="px-3 py-1.5 font-body text-sm rounded-full transition-colors cursor-pointer"
+          :class="
+            categoryFilter === cat
+              ? 'bg-sage text-white'
+              : 'bg-white dark:bg-dark-bg-elevated text-charcoal dark:text-dark-text hover:bg-sand-dark dark:hover:bg-dark-border'
+          "
+          @click="categoryFilter = cat"
+        >
+          {{ categoryLabels[cat] }} ({{ categoryFilterCounts[cat] }})
+        </button>
+      </div>
+    </div>
+
     <!-- Loading State -->
     <div v-if="isLoading" class="flex items-center justify-center py-12">
       <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-sage"></div>
@@ -454,7 +582,7 @@
 
     <!-- Track List -->
     <div v-else>
-      <!-- Empty State -->
+      <!-- Empty State - No tracks at all -->
       <div
         v-if="totalTracks === 0"
         class="bg-white dark:bg-dark-bg-secondary rounded-xl shadow-sm border border-sand-dark dark:border-dark-border p-8 text-center"
@@ -475,7 +603,117 @@
         </button>
       </div>
 
-      <!-- Tracks by Category -->
+      <!-- No Results State - Tracks exist but filtered results are empty -->
+      <div
+        v-else-if="filteredTracks.length === 0"
+        class="bg-white dark:bg-dark-bg-secondary rounded-xl shadow-sm border border-sand-dark dark:border-dark-border p-8 text-center"
+      >
+        <div class="text-4xl mb-4">🔍</div>
+        <p class="font-body text-charcoal-light dark:text-dark-text-secondary">
+          {{ adminT.musicLibrary?.noResults ?? 'No tracks found matching your search' }}
+        </p>
+        <button
+          v-if="searchQuery || categoryFilter !== 'all'"
+          type="button"
+          class="mt-4 px-4 py-2 text-sage hover:text-sage-dark font-body text-sm cursor-pointer"
+          @click="clearAllFilters"
+        >
+          {{ adminT.common.clearFilters }}
+        </button>
+      </div>
+
+      <!-- Filtered Track List (when search or category filter is active) -->
+      <div
+        v-else-if="searchQuery || categoryFilter !== 'all'"
+        class="bg-white dark:bg-dark-bg-secondary rounded-xl shadow-sm border border-sand-dark dark:border-dark-border overflow-hidden"
+      >
+        <div
+          class="px-4 py-3 bg-sand/50 dark:bg-dark-bg border-b border-sand-dark dark:border-dark-border"
+        >
+          <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary">
+            {{
+              interpolate(adminT.musicLibrary?.tracksCount ?? '{count} tracks', {
+                count: filteredTracks.length.toString(),
+              })
+            }}
+          </p>
+        </div>
+        <div class="divide-y divide-sand-dark dark:divide-dark-border">
+          <div
+            v-for="track in filteredTracks"
+            :key="track.id"
+            class="p-4 hover:bg-sand/30 dark:hover:bg-dark-bg/50 transition-colors"
+          >
+            <div class="flex items-start justify-between gap-4">
+              <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-2 flex-wrap">
+                  <span class="text-lg">🎵</span>
+                  <h4 class="font-heading font-medium text-charcoal dark:text-dark-text truncate">
+                    {{ track.title }}
+                  </h4>
+                  <!-- Category Badge -->
+                  <span
+                    class="px-2 py-0.5 text-xs font-medium rounded-full bg-sage/10 text-sage dark:bg-sage/20"
+                  >
+                    {{ categoryLabels[track.category] }}
+                  </span>
+                  <!-- License Badge -->
+                  <span
+                    v-if="track.license?.type"
+                    class="px-2 py-0.5 text-xs font-medium rounded-full"
+                    :class="licenseBadgeClass(track.license.type)"
+                  >
+                    {{ licenseLabels[track.license.type] }}
+                  </span>
+                </div>
+                <p
+                  v-if="track.artist"
+                  class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary mt-0.5"
+                >
+                  {{ track.artist }}
+                </p>
+                <div
+                  class="flex items-center gap-3 mt-1 text-xs text-charcoal-light/70 dark:text-dark-text-secondary/70 font-body"
+                >
+                  <span>{{ formatDuration(track.duration) }}</span>
+                  <span>•</span>
+                  <span>{{ formatFileSize(track.fileSize) }}</span>
+                  <span v-if="track.license?.sourceUrl">•</span>
+                  <a
+                    v-if="track.license?.sourceUrl"
+                    :href="track.license.sourceUrl"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="text-sage hover:underline"
+                  >
+                    Source
+                  </a>
+                </div>
+              </div>
+              <div class="flex items-center gap-2 flex-shrink-0">
+                <!-- Audio Preview -->
+                <audio :src="track.url" controls class="h-8 w-32 hidden sm:block"></audio>
+                <button
+                  type="button"
+                  class="px-3 py-1.5 text-sm font-body text-sage hover:bg-sage/10 rounded-lg transition-colors cursor-pointer"
+                  @click="openEditModal(track)"
+                >
+                  {{ adminT.common.edit }}
+                </button>
+                <button
+                  type="button"
+                  class="px-3 py-1.5 text-sm font-body text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors cursor-pointer"
+                  @click="openDeleteModal(track)"
+                >
+                  {{ adminT.common.delete }}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tracks by Category (default view when no search/filter) -->
       <div v-else class="space-y-6">
         <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary">
           {{
