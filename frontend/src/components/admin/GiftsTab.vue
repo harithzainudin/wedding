@@ -11,7 +11,7 @@
   import SectionVisibilityToggle from './SectionVisibilityToggle.vue'
   import DefaultGiftBrowser from './DefaultGiftBrowser.vue'
 
-  const { adminT } = useAdminLanguage()
+  const { adminT, currentAdminLanguage } = useAdminLanguage()
   const { withLoading } = useLoadingOverlay()
 
   const weddingId = computed(() => getStoredPrimaryWeddingId())
@@ -45,6 +45,125 @@
 
   // View mode
   const viewMode = ref<'gifts' | 'reservations'>('gifts')
+
+  // Gift display view mode (card or list)
+  type GiftViewMode = 'card' | 'list'
+  const GIFT_VIEW_KEY = 'wedding-admin-gift-view'
+  const getInitialGiftViewMode = (): GiftViewMode => {
+    if (typeof window === 'undefined') return 'card'
+    const stored = localStorage.getItem(GIFT_VIEW_KEY)
+    return stored === 'list' ? 'list' : 'card'
+  }
+  const giftViewMode = ref<GiftViewMode>(getInitialGiftViewMode())
+  const setGiftViewMode = (mode: GiftViewMode) => {
+    giftViewMode.value = mode
+    localStorage.setItem(GIFT_VIEW_KEY, mode)
+  }
+
+  // Gift sorting
+  type AdminGiftSortOption =
+    | 'custom'
+    | 'priority'
+    | 'name-asc'
+    | 'name-desc'
+    | 'category'
+    | 'availability'
+    | 'most-reserved'
+    | 'newest'
+    | 'oldest'
+
+  const GIFT_SORT_KEY = 'wedding-admin-gift-sort'
+  const validSortOptions: AdminGiftSortOption[] = [
+    'custom',
+    'priority',
+    'name-asc',
+    'name-desc',
+    'category',
+    'availability',
+    'most-reserved',
+    'newest',
+    'oldest',
+  ]
+
+  const getInitialSortOption = (): AdminGiftSortOption => {
+    if (typeof window === 'undefined') return 'custom'
+    const stored = localStorage.getItem(GIFT_SORT_KEY)
+    return validSortOptions.includes(stored as AdminGiftSortOption)
+      ? (stored as AdminGiftSortOption)
+      : 'custom'
+  }
+
+  const sortOption = ref<AdminGiftSortOption>(getInitialSortOption())
+
+  const setSortOption = (option: AdminGiftSortOption) => {
+    sortOption.value = option
+    localStorage.setItem(GIFT_SORT_KEY, option)
+  }
+
+  // Check if drag-and-drop should be enabled (only for custom order)
+  const isDragEnabled = computed(() => sortOption.value === 'custom')
+
+  // Sorted gifts based on current sort option
+  const sortedGifts = computed(() => {
+    const giftList = [...gifts.value]
+
+    switch (sortOption.value) {
+      case 'priority': {
+        const priorityOrder: Record<GiftPriority, number> = { high: 0, medium: 1, low: 2, none: 3 }
+        return giftList.sort((a, b) => priorityOrder[a.priority] - priorityOrder[b.priority])
+      }
+      case 'name-asc': {
+        const lang = currentAdminLanguage.value
+        return giftList.sort((a, b) => {
+          const nameA = a.name[lang] || a.name.en || ''
+          const nameB = b.name[lang] || b.name.en || ''
+          return nameA.localeCompare(nameB, lang)
+        })
+      }
+      case 'name-desc': {
+        const lang = currentAdminLanguage.value
+        return giftList.sort((a, b) => {
+          const nameA = a.name[lang] || a.name.en || ''
+          const nameB = b.name[lang] || b.name.en || ''
+          return nameB.localeCompare(nameA, lang)
+        })
+      }
+      case 'category': {
+        const categoryOrder: Record<GiftCategory, number> = {
+          home: 0,
+          kitchen: 1,
+          electronics: 2,
+          experiences: 3,
+          other: 4,
+        }
+        return giftList.sort((a, b) => categoryOrder[a.category] - categoryOrder[b.category])
+      }
+      case 'availability': {
+        return giftList.sort((a, b) => {
+          const aAvailable = a.quantityTotal - a.quantityReserved
+          const bAvailable = b.quantityTotal - b.quantityReserved
+          return bAvailable - aAvailable // Higher availability first
+        })
+      }
+      case 'most-reserved': {
+        return giftList.sort((a, b) => b.quantityReserved - a.quantityReserved)
+      }
+      case 'newest': {
+        return giftList.sort(
+          (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        )
+      }
+      case 'oldest': {
+        return giftList.sort(
+          (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+        )
+      }
+      case 'custom':
+      default:
+        // Use original order from composable (already sorted by order field)
+        return giftList
+    }
+  })
 
   // Modal states
   const showSettings = ref(false)
@@ -379,10 +498,11 @@
         </p>
       </div>
 
-      <div class="flex flex-col sm:flex-row sm:items-center gap-2">
-        <!-- Toggle View -->
+      <!-- Desktop: single row with all controls | Mobile: stacked rows -->
+      <div class="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-2">
+        <!-- Toggle View (Gifts/Reservations) -->
         <div
-          class="flex rounded-lg overflow-hidden border border-sand-dark dark:border-dark-border"
+          class="flex self-start sm:self-auto rounded-lg overflow-hidden border border-sand-dark dark:border-dark-border"
         >
           <button
             type="button"
@@ -410,78 +530,173 @@
           </button>
         </div>
 
-        <!-- Action Buttons -->
-        <div class="flex items-center gap-2">
-          <!-- Settings Button -->
-          <button
-            type="button"
-            class="flex items-center gap-2 px-4 py-2 font-body text-sm text-charcoal dark:text-dark-text border border-sand-dark dark:border-dark-border rounded-lg hover:bg-sand dark:hover:bg-dark-bg-secondary transition-colors cursor-pointer"
-            @click="showSettings = !showSettings"
-          >
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
-              />
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-              />
-            </svg>
-            <span>{{ adminT.common.settings }}</span>
-          </button>
+        <!-- Mobile: second row with view toggle, settings, and action buttons -->
+        <!-- Desktop: inline with everything else -->
+        <div class="flex items-center justify-between sm:justify-start gap-2">
+          <!-- Left side on mobile: View toggle and sort -->
+          <div class="flex items-center gap-2">
+            <!-- Sort Dropdown (only show in gifts view when there are gifts) -->
+            <div v-if="viewMode === 'gifts' && gifts.length > 0" class="relative">
+              <select
+                :value="sortOption"
+                class="appearance-none pl-3 pr-8 py-1.5 font-body text-xs sm:text-sm border border-sand-dark dark:border-dark-border rounded-lg bg-white dark:bg-dark-bg-secondary text-charcoal dark:text-dark-text focus:outline-none focus:border-sage cursor-pointer"
+                @change="
+                  setSortOption(($event.target as HTMLSelectElement).value as AdminGiftSortOption)
+                "
+              >
+                <option value="custom">{{ adminT.gifts.sortCustomOrder }}</option>
+                <option value="priority">{{ adminT.gifts.sortPriority }}</option>
+                <option value="name-asc">{{ adminT.gifts.sortNameAsc }}</option>
+                <option value="name-desc">{{ adminT.gifts.sortNameDesc }}</option>
+                <option value="category">{{ adminT.gifts.sortCategory }}</option>
+                <option value="availability">{{ adminT.gifts.sortAvailability }}</option>
+                <option value="most-reserved">{{ adminT.gifts.sortMostReserved }}</option>
+                <option value="newest">{{ adminT.gifts.sortNewest }}</option>
+                <option value="oldest">{{ adminT.gifts.sortOldest }}</option>
+              </select>
+              <!-- Dropdown arrow icon -->
+              <svg
+                class="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-charcoal-light dark:text-dark-text-secondary pointer-events-none"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M19 9l-7 7-7-7"
+                />
+              </svg>
+            </div>
 
-          <!-- Browse Defaults Button -->
-          <button
-            v-show="canAddMore"
-            type="button"
-            :disabled="viewMode !== 'gifts'"
-            :class="[
-              'flex items-center gap-2 px-4 py-2 font-body text-sm rounded-lg transition-colors',
-              viewMode === 'gifts'
-                ? 'border border-sage text-sage hover:bg-sage/10 cursor-pointer'
-                : 'border border-sage/50 text-sage/50 cursor-not-allowed',
-            ]"
-            @click="showDefaultBrowser = true"
-          >
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
-              />
-            </svg>
-            <span>{{ adminT.gifts.browseDefaults }}</span>
-          </button>
+            <!-- Card/List View Toggle (only show in gifts view) -->
+            <div
+              v-if="viewMode === 'gifts' && gifts.length > 0"
+              class="flex rounded-lg overflow-hidden border border-sand-dark dark:border-dark-border"
+            >
+              <button
+                type="button"
+                class="p-1.5 transition-colors cursor-pointer"
+                :class="
+                  giftViewMode === 'card'
+                    ? 'bg-sage text-white'
+                    : 'bg-white dark:bg-dark-bg-secondary text-charcoal dark:text-dark-text hover:bg-sand dark:hover:bg-dark-bg'
+                "
+                :title="adminT.gifts.cardView"
+                @click="setGiftViewMode('card')"
+              >
+                <!-- Grid icon -->
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"
+                  />
+                </svg>
+              </button>
+              <button
+                type="button"
+                class="p-1.5 transition-colors cursor-pointer"
+                :class="
+                  giftViewMode === 'list'
+                    ? 'bg-sage text-white'
+                    : 'bg-white dark:bg-dark-bg-secondary text-charcoal dark:text-dark-text hover:bg-sand dark:hover:bg-dark-bg'
+                "
+                :title="adminT.gifts.listView"
+                @click="setGiftViewMode('list')"
+              >
+                <!-- List icon -->
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M4 6h16M4 12h16M4 18h16"
+                  />
+                </svg>
+              </button>
+            </div>
 
-          <!-- Add Gift Button -->
-          <button
-            v-show="canAddMore"
-            type="button"
-            :disabled="viewMode !== 'gifts'"
-            :class="[
-              'flex items-center gap-2 px-4 py-2 font-body text-sm rounded-lg transition-colors',
-              viewMode === 'gifts'
-                ? 'bg-sage text-white hover:bg-sage-dark cursor-pointer'
-                : 'bg-sage/50 text-white/70 cursor-not-allowed',
-            ]"
-            @click="openCreateModal"
-          >
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M12 4v16m8-8H4"
-              />
-            </svg>
-            <span>{{ adminT.gifts.addGift }}</span>
-          </button>
+            <!-- Settings Button -->
+            <button
+              type="button"
+              class="flex items-center gap-2 px-4 py-2 font-body text-sm text-charcoal dark:text-dark-text border border-sand-dark dark:border-dark-border rounded-lg hover:bg-sand dark:hover:bg-dark-bg-secondary transition-colors cursor-pointer"
+              @click="showSettings = !showSettings"
+            >
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
+                />
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                />
+              </svg>
+              <span class="hidden sm:inline">{{ adminT.common.settings }}</span>
+            </button>
+          </div>
+
+          <!-- Right side on mobile: Action buttons -->
+          <div class="flex items-center gap-2">
+            <!-- Browse Defaults Button -->
+            <button
+              type="button"
+              :disabled="viewMode !== 'gifts' || !canAddMore"
+              :title="!canAddMore ? adminT.gifts.limitReachedTooltip : ''"
+              :class="[
+                'flex items-center gap-2 px-4 py-2 font-body text-sm rounded-lg transition-colors',
+                !canAddMore
+                  ? 'border border-sage/30 text-sage/40 cursor-not-allowed'
+                  : viewMode === 'gifts'
+                    ? 'border border-sage text-sage hover:bg-sage/10 cursor-pointer'
+                    : 'border border-sage/50 text-sage/50 cursor-not-allowed',
+              ]"
+              @click="showDefaultBrowser = true"
+            >
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+                />
+              </svg>
+              <span class="hidden sm:inline">{{ adminT.gifts.browseDefaults }}</span>
+            </button>
+
+            <!-- Add Gift Button -->
+            <button
+              type="button"
+              :disabled="viewMode !== 'gifts' || !canAddMore"
+              :title="!canAddMore ? adminT.gifts.limitReachedTooltip : ''"
+              :class="[
+                'flex items-center gap-2 px-4 py-2 font-body text-sm rounded-lg transition-colors',
+                !canAddMore
+                  ? 'bg-sage/30 text-white/50 cursor-not-allowed'
+                  : viewMode === 'gifts'
+                    ? 'bg-sage text-white hover:bg-sage-dark cursor-pointer'
+                    : 'bg-sage/50 text-white/70 cursor-not-allowed',
+              ]"
+              @click="openCreateModal"
+            >
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M12 4v16m8-8H4"
+                />
+              </svg>
+              <span class="hidden sm:inline">{{ adminT.gifts.addGift }}</span>
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -503,6 +718,34 @@
       type="image"
       @cancel="cancelUpload"
     />
+
+    <!-- Registry Limit Banner -->
+    <div
+      v-if="!canAddMore && !isLoading && !loadError"
+      class="mt-4 p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 rounded-lg flex items-center gap-3"
+    >
+      <svg
+        class="w-5 h-5 text-amber-600 dark:text-amber-400 flex-shrink-0"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+        />
+      </svg>
+      <p class="font-body text-sm text-amber-800 dark:text-amber-200">
+        {{
+          interpolate(adminT.gifts.limitReachedBanner, {
+            current: String(gifts.length),
+            max: String(settings.maxItems),
+          })
+        }}
+      </p>
+    </div>
 
     <!-- Error Display -->
     <div
@@ -575,17 +818,23 @@
           </button>
         </div>
 
-        <!-- Gift Grid -->
-        <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <!-- Gift Card Grid -->
+        <div
+          v-else-if="giftViewMode === 'card'"
+          class="grid grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-4"
+        >
           <div
-            v-for="gift in gifts"
+            v-for="gift in sortedGifts"
             :key="gift.id"
-            class="bg-white dark:bg-dark-bg-secondary rounded-xl shadow-sm border border-sand-dark dark:border-dark-border overflow-hidden cursor-move"
-            :class="{ 'ring-2 ring-sage': dropTargetId === gift.id }"
-            draggable="true"
-            @dragstart="handleDragStart(gift.id)"
-            @dragover="handleDragOver($event, gift.id)"
-            @dragend="handleDragEnd"
+            class="bg-white dark:bg-dark-bg-secondary rounded-xl shadow-sm border border-sand-dark dark:border-dark-border overflow-hidden"
+            :class="[
+              isDragEnabled ? 'cursor-move' : 'cursor-default',
+              { 'ring-2 ring-sage': dropTargetId === gift.id && isDragEnabled },
+            ]"
+            :draggable="isDragEnabled"
+            @dragstart="isDragEnabled ? handleDragStart(gift.id) : undefined"
+            @dragover="isDragEnabled ? handleDragOver($event, gift.id) : undefined"
+            @dragend="isDragEnabled ? handleDragEnd() : undefined"
           >
             <!-- Image -->
             <div class="relative aspect-video bg-sand dark:bg-dark-bg">
@@ -597,7 +846,7 @@
               />
               <div v-else class="w-full h-full flex items-center justify-center">
                 <svg
-                  class="w-12 h-12 text-charcoal-light/30"
+                  class="w-8 h-8 sm:w-12 sm:h-12 text-charcoal-light/30"
                   fill="currentColor"
                   viewBox="0 0 24 24"
                 >
@@ -611,7 +860,7 @@
               <span
                 v-if="gift.priority === 'high'"
                 :class="[
-                  'absolute top-2 right-2 px-2 py-0.5 text-xs font-body rounded-full',
+                  'absolute top-1.5 right-1.5 sm:top-2 sm:right-2 px-1.5 sm:px-2 py-0.5 text-[10px] sm:text-xs font-body rounded-full',
                   getPriorityColor(gift.priority),
                 ]"
               >
@@ -621,21 +870,23 @@
               <!-- Reservation Badge -->
               <span
                 v-if="gift.quantityReserved > 0"
-                class="absolute top-2 left-2 px-2 py-0.5 text-xs font-body rounded-full bg-sage/90 text-white"
+                class="absolute top-1.5 left-1.5 sm:top-2 sm:left-2 px-1.5 sm:px-2 py-0.5 text-[10px] sm:text-xs font-body rounded-full bg-sage/90 text-white"
               >
                 {{ gift.quantityReserved }}/{{ gift.quantityTotal }}
               </span>
             </div>
 
             <!-- Content -->
-            <div class="p-4">
-              <div class="flex items-start justify-between mb-2">
-                <h3 class="font-heading text-base text-charcoal dark:text-dark-text line-clamp-1">
+            <div class="p-2 sm:p-4">
+              <div class="flex items-start justify-between mb-1 sm:mb-2">
+                <h3
+                  class="font-heading text-xs sm:text-base text-charcoal dark:text-dark-text line-clamp-1"
+                >
                   {{ gift.name.en }}
                 </h3>
                 <span
                   :class="[
-                    'ml-2 px-2 py-0.5 text-xs font-body rounded-full',
+                    'ml-1 sm:ml-2 px-1.5 sm:px-2 py-0.5 text-[10px] sm:text-xs font-body rounded-full',
                     getPriorityColor(gift.priority),
                   ]"
                 >
@@ -644,35 +895,142 @@
               </div>
 
               <p
-                class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary line-clamp-2 mb-2"
+                class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary line-clamp-2 mb-2 hidden sm:block"
               >
                 {{ gift.description.en }}
               </p>
 
               <div
-                class="flex items-center justify-between text-xs font-body text-charcoal-light dark:text-dark-text-secondary mb-3"
+                class="flex items-center justify-between text-[10px] sm:text-xs font-body text-charcoal-light dark:text-dark-text-secondary mb-2 sm:mb-3"
               >
                 <span>{{ getCategoryLabel(gift.category) }}</span>
                 <span>{{ gift.priceRange }}</span>
               </div>
 
               <!-- Actions -->
-              <div class="flex gap-2">
+              <div class="flex gap-1 sm:gap-2">
                 <button
                   type="button"
-                  class="flex-1 py-1.5 px-3 text-xs font-body text-sage border border-sage rounded-lg hover:bg-sage/10 transition-colors cursor-pointer"
+                  class="flex-1 py-1 sm:py-1.5 px-2 sm:px-3 text-[10px] sm:text-xs font-body text-sage border border-sage rounded-lg hover:bg-sage/10 transition-colors cursor-pointer"
                   @click="openEditModal(gift)"
                 >
                   {{ adminT.common.edit }}
                 </button>
                 <button
                   type="button"
-                  class="py-1.5 px-3 text-xs font-body text-red-600 dark:text-red-400 border border-red-200 dark:border-red-800 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors cursor-pointer"
+                  class="py-1 sm:py-1.5 px-2 sm:px-3 text-[10px] sm:text-xs font-body text-red-600 dark:text-red-400 border border-red-200 dark:border-red-800 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors cursor-pointer"
                   @click="handleDeleteClick(gift.id)"
                 >
                   {{ adminT.common.delete }}
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Gift List View -->
+        <div v-else class="space-y-2">
+          <div
+            v-for="gift in sortedGifts"
+            :key="gift.id"
+            class="flex items-center gap-3 p-3 bg-white dark:bg-dark-bg-secondary rounded-lg border border-sand-dark dark:border-dark-border"
+            :class="{ 'ring-2 ring-sage': dropTargetId === gift.id && isDragEnabled }"
+            :draggable="isDragEnabled"
+            @dragstart="isDragEnabled ? handleDragStart(gift.id) : undefined"
+            @dragover="isDragEnabled ? handleDragOver($event, gift.id) : undefined"
+            @dragend="isDragEnabled ? handleDragEnd() : undefined"
+          >
+            <!-- Drag Handle -->
+            <div
+              class="flex-shrink-0"
+              :class="
+                isDragEnabled
+                  ? 'cursor-move text-charcoal-light dark:text-dark-text-secondary'
+                  : 'cursor-not-allowed text-charcoal-light/30 dark:text-dark-text-secondary/30'
+              "
+              :title="!isDragEnabled ? adminT.gifts.dragDisabledHint : undefined"
+            >
+              <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                <path
+                  d="M8 6a2 2 0 1 1-4 0 2 2 0 0 1 4 0zm0 6a2 2 0 1 1-4 0 2 2 0 0 1 4 0zm0 6a2 2 0 1 1-4 0 2 2 0 0 1 4 0zm8-12a2 2 0 1 1-4 0 2 2 0 0 1 4 0zm0 6a2 2 0 1 1-4 0 2 2 0 0 1 4 0zm0 6a2 2 0 1 1-4 0 2 2 0 0 1 4 0z"
+                />
+              </svg>
+            </div>
+
+            <!-- Thumbnail -->
+            <div class="w-12 h-12 flex-shrink-0 bg-sand dark:bg-dark-bg rounded overflow-hidden">
+              <img
+                v-if="gift.imageUrl"
+                :src="gift.imageUrl"
+                :alt="gift.name.en"
+                class="w-full h-full object-cover"
+              />
+              <div v-else class="w-full h-full flex items-center justify-center">
+                <svg class="w-6 h-6 text-charcoal-light/30" fill="currentColor" viewBox="0 0 24 24">
+                  <path
+                    d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"
+                  />
+                </svg>
+              </div>
+            </div>
+
+            <!-- Info -->
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center gap-2">
+                <h3 class="font-heading text-sm text-charcoal dark:text-dark-text truncate">
+                  {{ gift.name.en }}
+                </h3>
+                <span
+                  v-if="gift.priority === 'high'"
+                  class="px-1.5 py-0.5 text-xs rounded bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300 flex-shrink-0"
+                >
+                  {{ adminT.gifts.needed }}
+                </span>
+              </div>
+              <div
+                class="flex items-center gap-2 text-xs text-charcoal-light dark:text-dark-text-secondary"
+              >
+                <span>{{ getCategoryLabel(gift.category) }}</span>
+                <span v-if="gift.priceRange" class="hidden sm:inline">•</span>
+                <span v-if="gift.priceRange" class="hidden sm:inline">{{ gift.priceRange }}</span>
+                <span v-if="gift.quantityReserved > 0" class="text-sage">
+                  {{ gift.quantityReserved }}/{{ gift.quantityTotal }}
+                </span>
+              </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="flex items-center gap-1 flex-shrink-0">
+              <button
+                type="button"
+                class="p-1.5 text-sage hover:bg-sage/10 rounded cursor-pointer"
+                :title="adminT.common.edit"
+                @click="openEditModal(gift)"
+              >
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                  />
+                </svg>
+              </button>
+              <button
+                type="button"
+                class="p-1.5 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded cursor-pointer"
+                :title="adminT.common.delete"
+                @click="handleDeleteClick(gift.id)"
+              >
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                  />
+                </svg>
+              </button>
             </div>
           </div>
         </div>
@@ -961,7 +1319,7 @@
               </div>
 
               <!-- Category & Priority -->
-              <div class="grid grid-cols-2 gap-4">
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label
                     class="block font-body text-sm font-medium text-charcoal dark:text-dark-text mb-1"
@@ -970,7 +1328,7 @@
                   </label>
                   <select
                     v-model="formData.category"
-                    class="w-full px-3 py-2 font-body text-sm border border-sand-dark dark:border-gray-600 rounded-lg bg-sand dark:bg-dark-bg focus:outline-none focus:border-sage dark:focus:border-sage text-charcoal dark:text-dark-text"
+                    class="w-full pl-3 pr-10 py-2 font-body text-sm border border-sand-dark dark:border-gray-600 rounded-lg bg-sand dark:bg-dark-bg focus:outline-none focus:border-sage dark:focus:border-sage text-charcoal dark:text-dark-text"
                   >
                     <option value="home">{{ adminT.gifts.categoryHome }}</option>
                     <option value="kitchen">{{ adminT.gifts.categoryKitchen }}</option>
@@ -987,7 +1345,7 @@
                   </label>
                   <select
                     v-model="formData.priority"
-                    class="w-full px-3 py-2 font-body text-sm border border-sand-dark dark:border-gray-600 rounded-lg bg-sand dark:bg-dark-bg focus:outline-none focus:border-sage dark:focus:border-sage text-charcoal dark:text-dark-text"
+                    class="w-full pl-3 pr-10 py-2 font-body text-sm border border-sand-dark dark:border-gray-600 rounded-lg bg-sand dark:bg-dark-bg focus:outline-none focus:border-sage dark:focus:border-sage text-charcoal dark:text-dark-text"
                   >
                     <option value="none">{{ adminT.gifts.priorityNone }}</option>
                     <option value="high">{{ adminT.gifts.priorityHigh }}</option>
@@ -1172,6 +1530,23 @@
     overflow-y: auto;
     border-radius: 0.75rem;
     padding: 1.5rem;
+  }
+
+  /* Mobile: full-screen modal for better dropdown behavior */
+  @media (max-width: 639px) {
+    .modal-backdrop {
+      padding: 0;
+      align-items: stretch;
+    }
+
+    .modal-content {
+      max-width: 100%;
+      max-height: 100%;
+      height: 100%;
+      border-radius: 0;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+    }
   }
 
   .modal-header {

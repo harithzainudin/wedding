@@ -1662,6 +1662,8 @@ export interface AdminTranslations {
     noGiftsHint: string
     addFirstGift: string
     needed: string
+    cardView: string
+    listView: string
     // Categories
     categoryHome: string
     categoryKitchen: string
@@ -1722,6 +1724,14 @@ export interface AdminTranslations {
     noDuplicatesFound: string
     selectAtLeastOne: string
     limitReached: string
+    limitReachedTooltip: string
+    limitReachedBanner: string
+    selectionLimitReached: string
+    // Discard selection confirmation
+    discardSelectionTitle: string
+    discardSelectionMessage: string
+    discardSelectionConfirm: string
+    discardSelectionCancel: string
     // Search
     searchGifts: string
     giftsFound: string
@@ -1729,6 +1739,25 @@ export interface AdminTranslations {
     tryDifferentSearch: string
     // Limits (read-only for wedding admin)
     limitsReadOnly: string
+    // View modes
+    cardView: string
+    listView: string
+    expandAll: string
+    collapseAll: string
+    // Mobile filter toggle
+    filters: string
+    // Sorting
+    sortBy: string
+    sortCustomOrder: string
+    sortPriority: string
+    sortNameAsc: string
+    sortNameDesc: string
+    sortCategory: string
+    sortAvailability: string
+    sortMostReserved: string
+    sortNewest: string
+    sortOldest: string
+    dragDisabledHint: string
   }
 
   // Music
@@ -2660,6 +2689,8 @@ export const adminTranslations: Record<AdminLanguage, AdminTranslations> = {
       noGiftsHint: 'Add your first gift to create a wishlist for guests.',
       addFirstGift: 'Add First Gift',
       needed: 'Needed',
+      cardView: 'Card View',
+      listView: 'List View',
       categoryHome: 'Home',
       categoryKitchen: 'Kitchen',
       categoryElectronics: 'Electronics',
@@ -2716,12 +2747,41 @@ export const adminTranslations: Record<AdminLanguage, AdminTranslations> = {
       noDuplicatesFound: 'All items already in your registry',
       selectAtLeastOne: 'Select at least one gift to add',
       limitReached: 'Registry limit reached',
+      limitReachedTooltip: 'Registry limit reached. Delete existing gifts to add more.',
+      limitReachedBanner:
+        'Registry limit reached ({current}/{max}). Remove existing gifts to add new ones.',
+      selectionLimitReached:
+        'Selection limit reached. Deselect some gifts or save your current selection first.',
+      // Discard selection confirmation
+      discardSelectionTitle: 'Discard Selection?',
+      discardSelectionMessage:
+        'You have {count} gift(s) selected. Are you sure you want to close without adding them?',
+      discardSelectionConfirm: 'Discard',
+      discardSelectionCancel: 'Keep Selecting',
       // Search
       searchGifts: 'Search gifts...',
       giftsFound: '{count} gifts found',
       noSearchResults: 'No gifts match your search',
       tryDifferentSearch: 'Try a different search term or category',
       limitsReadOnly: 'Limits are managed by Super Admin',
+      // View modes
+      cardView: 'Card view',
+      listView: 'List view',
+      expandAll: 'Expand all',
+      collapseAll: 'Collapse all',
+      filters: 'Filters',
+      // Sorting
+      sortBy: 'Sort by',
+      sortCustomOrder: 'Custom Order',
+      sortPriority: 'Priority (High → Low)',
+      sortNameAsc: 'Name (A-Z)',
+      sortNameDesc: 'Name (Z-A)',
+      sortCategory: 'Category',
+      sortAvailability: 'Availability',
+      sortMostReserved: 'Most Reserved',
+      sortNewest: 'Recently Added',
+      sortOldest: 'Oldest First',
+      dragDisabledHint: 'Switch to Custom Order to reorder items',
     },
 
     music: {
@@ -3631,6 +3691,8 @@ export const adminTranslations: Record<AdminLanguage, AdminTranslations> = {
       noGiftsHint: 'Tambah hadiah pertama anda untuk mencipta senarai untuk tetamu.',
       addFirstGift: 'Tambah Hadiah Pertama',
       needed: 'Diperlukan',
+      cardView: 'Paparan Kad',
+      listView: 'Paparan Senarai',
       categoryHome: 'Rumah',
       categoryKitchen: 'Dapur',
       categoryElectronics: 'Elektronik',
@@ -3687,12 +3749,41 @@ export const adminTranslations: Record<AdminLanguage, AdminTranslations> = {
       noDuplicatesFound: 'Semua item sudah dalam senarai anda',
       selectAtLeastOne: 'Pilih sekurang-kurangnya satu hadiah',
       limitReached: 'Had senarai telah dicapai',
+      limitReachedTooltip: 'Had senarai telah dicapai. Padam hadiah sedia ada untuk menambah lagi.',
+      limitReachedBanner:
+        'Had senarai telah dicapai ({current}/{max}). Padam hadiah sedia ada untuk menambah yang baharu.',
+      selectionLimitReached:
+        'Had pilihan telah dicapai. Nyahpilih beberapa hadiah atau simpan pilihan semasa terlebih dahulu.',
+      // Discard selection confirmation
+      discardSelectionTitle: 'Buang Pilihan?',
+      discardSelectionMessage:
+        'Anda mempunyai {count} hadiah dipilih. Adakah anda pasti mahu tutup tanpa menambahnya?',
+      discardSelectionConfirm: 'Buang',
+      discardSelectionCancel: 'Terus Memilih',
       // Search
       searchGifts: 'Cari hadiah...',
       giftsFound: '{count} hadiah dijumpai',
       noSearchResults: 'Tiada hadiah sepadan dengan carian anda',
       tryDifferentSearch: 'Cuba istilah carian atau kategori lain',
       limitsReadOnly: 'Had diuruskan oleh Super Admin',
+      // View modes
+      cardView: 'Paparan kad',
+      listView: 'Paparan senarai',
+      expandAll: 'Kembangkan semua',
+      collapseAll: 'Kuncupkan semua',
+      filters: 'Tapis',
+      // Sorting
+      sortBy: 'Susun mengikut',
+      sortCustomOrder: 'Susunan Tersuai',
+      sortPriority: 'Keutamaan (Tinggi → Rendah)',
+      sortNameAsc: 'Nama (A-Z)',
+      sortNameDesc: 'Nama (Z-A)',
+      sortCategory: 'Kategori',
+      sortAvailability: 'Ketersediaan',
+      sortMostReserved: 'Paling Banyak Ditempah',
+      sortNewest: 'Terkini Ditambah',
+      sortOldest: 'Terlama',
+      dragDisabledHint: 'Tukar ke Susunan Tersuai untuk menyusun semula item',
     },
 
     music: {
