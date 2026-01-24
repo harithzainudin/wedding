@@ -1,6 +1,5 @@
 <script setup lang="ts">
   import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
-  import { useRouter } from 'vue-router'
   import { useSuperAdmin } from '@/composables/useSuperAdmin'
   import { useStaff } from '@/composables/useStaff'
   import { useToast } from '@/composables/useToast'
@@ -18,7 +17,6 @@
   } from '@/types/admin'
   import { getWeddingLimits, updateWeddingLimits } from '@/services/api'
 
-  const router = useRouter()
   const toast = useToast()
   const { adminT } = useAdminLanguage()
 
