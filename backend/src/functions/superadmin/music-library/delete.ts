@@ -17,7 +17,13 @@
 
 import type { APIGatewayProxyHandlerV2 } from 'aws-lambda'
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb'
-import { DynamoDBDocumentClient, GetCommand, DeleteCommand, ScanCommand, UpdateCommand } from '@aws-sdk/lib-dynamodb'
+import {
+  DynamoDBDocumentClient,
+  GetCommand,
+  DeleteCommand,
+  ScanCommand,
+  UpdateCommand,
+} from '@aws-sdk/lib-dynamodb'
 import { S3Client, DeleteObjectCommand } from '@aws-sdk/client-s3'
 import { Resource } from 'sst'
 import { createSuccessResponse, createErrorResponse } from '../../shared/response'
@@ -123,7 +129,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
     const usageCount = usages.length
 
     // Get unique wedding IDs
-    const affectedWeddings = [...new Set(usages.map(u => u.weddingId))]
+    const affectedWeddings = [...new Set(usages.map((u) => u.weddingId))]
 
     // If preview mode, return usage stats
     if (isPreview) {
@@ -185,7 +191,12 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
       )
 
       if (!replacementResult.Item) {
-        return createErrorResponse(404, 'Replacement track not found', context, 'REPLACEMENT_NOT_FOUND')
+        return createErrorResponse(
+          404,
+          'Replacement track not found',
+          context,
+          'REPLACEMENT_NOT_FOUND'
+        )
       }
 
       replacementTrack = replacementResult.Item as GlobalMusicTrack
@@ -199,7 +210,8 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
           new UpdateCommand({
             TableName: Resource.AppDataTable.name,
             Key: { pk: usage.pk, sk: usage.sk },
-            UpdateExpression: 'SET #globalMusicId = :globalMusicId, #title = :title, #artist = :artist, #duration = :duration, #s3Key = :s3Key, #mimeType = :mimeType, #fileSize = :fileSize, #url = :url',
+            UpdateExpression:
+              'SET #globalMusicId = :globalMusicId, #title = :title, #artist = :artist, #duration = :duration, #s3Key = :s3Key, #mimeType = :mimeType, #fileSize = :fileSize, #url = :url',
             ExpressionAttributeNames: {
               '#globalMusicId': 'globalMusicId',
               '#title': 'title',

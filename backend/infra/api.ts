@@ -460,6 +460,13 @@ export function addGiftRoutes(tokenSecret: sst.Secret, imageBucket: sst.aws.Buck
     ...functionConfig,
   })
 
+  // DELETE /admin/w/{weddingId}/gifts/bulk - Admin: bulk delete gifts
+  api.route('DELETE /admin/w/{weddingId}/gifts/bulk', {
+    handler: 'src/functions/gifts/delete-bulk.handler',
+    link: [table, tokenSecret, imageBucket],
+    ...functionConfig,
+  })
+
   // PUT /admin/w/{weddingId}/gifts/reorder - Admin: reorder gifts
   api.route('PUT /admin/w/{weddingId}/gifts/reorder', {
     handler: 'src/functions/gifts/reorder.handler',

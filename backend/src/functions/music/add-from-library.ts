@@ -25,10 +25,7 @@ import { getPublicS3Url } from '../shared/s3-keys'
 import { getWeddingById, requireAdminAccessibleWedding } from '../shared/wedding-middleware'
 import { isValidWeddingId } from '../shared/validation'
 import { DEFAULT_MAX_TRACKS } from '../shared/music-constants'
-import {
-  type GlobalMusicTrack,
-  generateAttributionText,
-} from '../shared/global-music-validation'
+import { type GlobalMusicTrack, generateAttributionText } from '../shared/global-music-validation'
 
 const dynamoClient = new DynamoDBClient({})
 const docClient = DynamoDBDocumentClient.from(dynamoClient)
@@ -141,7 +138,12 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
     const isSuperAdmin = authResult.user.type === 'super' || authResult.user.isMaster
     const accessCheck = requireAdminAccessibleWedding(wedding, isSuperAdmin)
     if (!accessCheck.success) {
-      return createErrorResponse(accessCheck.statusCode, accessCheck.error, context, 'ACCESS_DENIED')
+      return createErrorResponse(
+        accessCheck.statusCode,
+        accessCheck.error,
+        context,
+        'ACCESS_DENIED'
+      )
     }
 
     // ============================================
@@ -160,7 +162,12 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
 
     globalMusicId = body.globalMusicId
     if (!globalMusicId) {
-      return createErrorResponse(400, 'globalMusicId is required', context, 'MISSING_GLOBAL_MUSIC_ID')
+      return createErrorResponse(
+        400,
+        'globalMusicId is required',
+        context,
+        'MISSING_GLOBAL_MUSIC_ID'
+      )
     }
 
     // ============================================
@@ -183,7 +190,12 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
     // ============================================
     const alreadyAdded = await isTrackAlreadyAdded(weddingId, globalMusicId)
     if (alreadyAdded) {
-      return createErrorResponse(400, 'This track is already in your playlist', context, 'ALREADY_ADDED')
+      return createErrorResponse(
+        400,
+        'This track is already in your playlist',
+        context,
+        'ALREADY_ADDED'
+      )
     }
 
     // ============================================

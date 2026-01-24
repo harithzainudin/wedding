@@ -114,6 +114,24 @@ export interface DeleteGiftResponse {
   reservationsDeleted: number
 }
 
+export interface BulkDeleteGiftsRequest {
+  giftIds: string[]
+  skipReserved?: boolean
+}
+
+export interface BulkDeleteGiftsResponse {
+  message: string
+  deleted: {
+    gifts: number
+    reservations: number
+    images: number
+  }
+  skipped: {
+    count: number
+    giftIds: string[]
+  }
+}
+
 export interface ReorderGiftsRequest {
   giftIds: string[]
 }

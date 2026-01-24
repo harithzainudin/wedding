@@ -13,7 +13,12 @@
 
 import type { APIGatewayProxyHandlerV2 } from 'aws-lambda'
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb'
-import { DynamoDBDocumentClient, DeleteCommand, PutCommand, BatchGetCommand } from '@aws-sdk/lib-dynamodb'
+import {
+  DynamoDBDocumentClient,
+  DeleteCommand,
+  PutCommand,
+  BatchGetCommand,
+} from '@aws-sdk/lib-dynamodb'
 import { Resource } from 'sst'
 import { createSuccessResponse, createErrorResponse } from '../../shared/response'
 import { requireSuperAdmin } from '../../shared/auth'
@@ -77,13 +82,23 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
     }
 
     if (!trackIds || !Array.isArray(trackIds) || trackIds.length === 0) {
-      return createErrorResponse(400, 'trackIds must be a non-empty array', context, 'INVALID_TRACK_IDS')
+      return createErrorResponse(
+        400,
+        'trackIds must be a non-empty array',
+        context,
+        'INVALID_TRACK_IDS'
+      )
     }
 
     // Check for duplicates
     const uniqueIds = new Set(trackIds)
     if (uniqueIds.size !== trackIds.length) {
-      return createErrorResponse(400, 'trackIds contains duplicates', context, 'DUPLICATE_TRACK_IDS')
+      return createErrorResponse(
+        400,
+        'trackIds contains duplicates',
+        context,
+        'DUPLICATE_TRACK_IDS'
+      )
     }
 
     // ============================================
@@ -94,7 +109,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
       new BatchGetCommand({
         RequestItems: {
           [Resource.AppDataTable.name]: {
-            Keys: trackIds.map(id => Keys.globalMusic(id)),
+            Keys: trackIds.map((id) => Keys.globalMusic(id)),
           },
         },
       })
@@ -103,8 +118,8 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
     const existingTracks = batchGetResponse.Responses?.[Resource.AppDataTable.name] ?? []
 
     if (existingTracks.length !== trackIds.length) {
-      const foundIds = new Set(existingTracks.map(t => t.id as string))
-      const missingIds = trackIds.filter(id => !foundIds.has(id))
+      const foundIds = new Set(existingTracks.map((t) => t.id as string))
+      const missingIds = trackIds.filter((id) => !foundIds.has(id))
       return createErrorResponse(
         404,
         `Tracks not found: ${missingIds.join(', ')}`,
@@ -114,11 +129,11 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
     }
 
     // Verify all tracks belong to the specified category
-    const wrongCategoryTracks = existingTracks.filter(t => t.category !== category)
+    const wrongCategoryTracks = existingTracks.filter((t) => t.category !== category)
     if (wrongCategoryTracks.length > 0) {
       return createErrorResponse(
         400,
-        `Some tracks do not belong to category "${category}": ${wrongCategoryTracks.map(t => t.id).join(', ')}`,
+        `Some tracks do not belong to category "${category}": ${wrongCategoryTracks.map((t) => t.id).join(', ')}`,
         context,
         'WRONG_CATEGORY'
       )
@@ -133,7 +148,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
     for (let i = 0; i < trackIds.length; i++) {
       const trackId = trackIds[i]!
       const newOrder = i
-      const existingTrack = existingTracks.find(t => t.id === trackId)!
+      const existingTrack = existingTracks.find((t) => t.id === trackId)!
 
       // Only update if order changed
       if (existingTrack.order !== newOrder) {

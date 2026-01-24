@@ -195,9 +195,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
           currentGallery.Item?.maxFileSize ??
           DEFAULT_MAX_FILE_SIZE,
         maxImages:
-          validation.data.gallery.maxImages ??
-          currentGallery.Item?.maxImages ??
-          DEFAULT_MAX_IMAGES,
+          validation.data.gallery.maxImages ?? currentGallery.Item?.maxImages ?? DEFAULT_MAX_IMAGES,
         allowedFormats: currentGallery.Item?.allowedFormats ?? [...ALLOWED_MIME_TYPES],
         showGallery: currentGallery.Item?.showGallery ?? DEFAULT_SHOW_GALLERY,
         updatedAt: now,

@@ -114,7 +114,9 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
       ...settingsKey,
       weddingId,
       enabled: data.enabled ?? currentSettings.enabled,
-      maxItems: isSuperAdmin ? (data.maxItems ?? currentSettings.maxItems) : currentSettings.maxItems,
+      maxItems: isSuperAdmin
+        ? (data.maxItems ?? currentSettings.maxItems)
+        : currentSettings.maxItems,
       maxFileSize: isSuperAdmin
         ? (data.maxFileSize ?? currentSettings.maxFileSize)
         : currentSettings.maxFileSize,

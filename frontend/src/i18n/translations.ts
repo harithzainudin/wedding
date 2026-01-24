@@ -1758,6 +1758,18 @@ export interface AdminTranslations {
     sortNewest: string
     sortOldest: string
     dragDisabledHint: string
+    // Selection mode / Bulk delete
+    select: string
+    selectAll: string
+    deselectAll: string
+    deleteSelected: string
+    exitSelection: string
+    bulkDeleteTitle: string
+    reservationsWarning: string
+    reservationCount: string
+    deleteAll: string
+    deleteOnlyUnreserved: string
+    noReservationsSelected: string
   }
 
   // Music
@@ -2782,6 +2794,18 @@ export const adminTranslations: Record<AdminLanguage, AdminTranslations> = {
       sortNewest: 'Recently Added',
       sortOldest: 'Oldest First',
       dragDisabledHint: 'Switch to Custom Order to reorder items',
+      // Selection mode / Bulk delete
+      select: 'Select',
+      selectAll: 'Select All',
+      deselectAll: 'Deselect All',
+      deleteSelected: 'Delete Selected',
+      exitSelection: 'Cancel',
+      bulkDeleteTitle: 'Delete {count} Gifts',
+      reservationsWarning: '{count} gift(s) have reservations that will also be deleted',
+      reservationCount: '{count} reservations',
+      deleteAll: 'Delete All',
+      deleteOnlyUnreserved: 'Delete Only Unreserved',
+      noReservationsSelected: 'None of the selected gifts have reservations.',
     },
 
     music: {
@@ -3784,6 +3808,18 @@ export const adminTranslations: Record<AdminLanguage, AdminTranslations> = {
       sortNewest: 'Terkini Ditambah',
       sortOldest: 'Terlama',
       dragDisabledHint: 'Tukar ke Susunan Tersuai untuk menyusun semula item',
+      // Selection mode / Bulk delete
+      select: 'Pilih',
+      selectAll: 'Pilih Semua',
+      deselectAll: 'Nyahpilih Semua',
+      deleteSelected: 'Padam Dipilih',
+      exitSelection: 'Batal',
+      bulkDeleteTitle: 'Padam {count} Hadiah',
+      reservationsWarning: '{count} hadiah mempunyai tempahan yang juga akan dipadam',
+      reservationCount: '{count} tempahan',
+      deleteAll: 'Padam Semua',
+      deleteOnlyUnreserved: 'Padam Tanpa Tempahan Sahaja',
+      noReservationsSelected: 'Tiada hadiah dipilih yang mempunyai tempahan.',
     },
 
     music: {

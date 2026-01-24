@@ -13,6 +13,7 @@ import {
   createGift,
   updateGift,
   deleteGift,
+  bulkDeleteGifts,
   reorderGifts,
   getGiftPresignedUrl,
   uploadToS3,
@@ -52,8 +53,13 @@ const operationError = ref('')
 const isCreating = ref(false)
 const isUpdating = ref(false)
 const isDeleting = ref(false)
+const isBulkDeleting = ref(false)
 const isReordering = ref(false)
 const isTogglingEnabled = ref(false)
+
+// Selection mode state
+const isSelectionMode = ref(false)
+const selectedGiftIds = ref<Set<string>>(new Set())
 const uploadProgress = ref<Map<string, UploadState>>(new Map())
 const uploadControllers = ref<Map<string, AbortController>>(new Map())
 
@@ -106,6 +112,42 @@ export function useGifts() {
     })
     return uploads
   })
+
+  // Selection mode computed properties
+  const selectedGifts = computed(() => gifts.value.filter((g) => selectedGiftIds.value.has(g.id)))
+
+  const selectedGiftsWithReservations = computed(() =>
+    selectedGifts.value.filter((g) => g.quantityReserved > 0)
+  )
+
+  // Selection mode methods
+  const enterSelectionMode = (): void => {
+    isSelectionMode.value = true
+    selectedGiftIds.value = new Set()
+  }
+
+  const exitSelectionMode = (): void => {
+    isSelectionMode.value = false
+    selectedGiftIds.value = new Set()
+  }
+
+  const toggleSelection = (giftId: string): void => {
+    const newSet = new Set(selectedGiftIds.value)
+    if (newSet.has(giftId)) {
+      newSet.delete(giftId)
+    } else {
+      newSet.add(giftId)
+    }
+    selectedGiftIds.value = newSet
+  }
+
+  const selectAll = (): void => {
+    selectedGiftIds.value = new Set(gifts.value.map((g) => g.id))
+  }
+
+  const deselectAll = (): void => {
+    selectedGiftIds.value = new Set()
+  }
 
   // Validate a file before upload
   const validateFile = (file: File): { valid: boolean; error?: string } => {
@@ -287,6 +329,47 @@ export function useGifts() {
       return { success: false, error: errorMessage }
     } finally {
       isDeleting.value = false
+    }
+  }
+
+  // Bulk delete gifts
+  const bulkDeleteGiftItems = async (
+    giftIds: string[],
+    skipReserved: boolean,
+    weddingId?: string
+  ): Promise<{
+    success: boolean
+    deleted?: { gifts: number; reservations: number; images: number }
+    skipped?: { count: number; giftIds: string[] }
+    error?: string
+  }> => {
+    isBulkDeleting.value = true
+    operationError.value = ''
+
+    try {
+      const response = await bulkDeleteGifts({ giftIds, skipReserved }, weddingId)
+
+      // Remove deleted gifts from local state
+      const deletedIds = new Set(giftIds.filter((id) => !response.skipped.giftIds.includes(id)))
+      gifts.value = gifts.value.filter((g) => !deletedIds.has(g.id))
+
+      // Clear selection
+      selectedGiftIds.value = new Set()
+
+      // Clear cache to ensure fresh data
+      clearCache(CACHE_KEYS.GIFTS)
+
+      return {
+        success: true,
+        deleted: response.deleted,
+        skipped: response.skipped,
+      }
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to delete gifts'
+      operationError.value = errorMessage
+      return { success: false, error: errorMessage }
+    } finally {
+      isBulkDeleting.value = false
     }
   }
 
@@ -519,9 +602,16 @@ export function useGifts() {
     isCreating,
     isUpdating,
     isDeleting,
+    isBulkDeleting,
     isReordering,
     isTogglingEnabled,
     activeUploads,
+
+    // Selection mode state
+    isSelectionMode,
+    selectedGiftIds,
+    selectedGifts,
+    selectedGiftsWithReservations,
 
     // Multi-tenant context
     currentWeddingSlug,
@@ -540,11 +630,19 @@ export function useGifts() {
     createGiftItem,
     updateGiftItem,
     deleteGiftItem,
+    bulkDeleteGiftItems,
     reorderGiftItems,
     uploadGiftImage,
     cancelUpload,
     updateSettings,
     toggleEnabled,
     validateFile,
+
+    // Selection mode methods
+    enterSelectionMode,
+    exitSelectionMode,
+    toggleSelection,
+    selectAll,
+    deselectAll,
   }
 }

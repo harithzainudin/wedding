@@ -56,7 +56,9 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
     }
 
     // Validate MIME type
-    if (!ALLOWED_AUDIO_MIME_TYPES.includes(body.mimeType as typeof ALLOWED_AUDIO_MIME_TYPES[number])) {
+    if (
+      !ALLOWED_AUDIO_MIME_TYPES.includes(body.mimeType as (typeof ALLOWED_AUDIO_MIME_TYPES)[number])
+    ) {
       return createErrorResponse(
         400,
         `Invalid audio format. Allowed: ${ALLOWED_AUDIO_MIME_TYPES.join(', ')}`,

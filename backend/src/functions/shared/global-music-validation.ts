@@ -205,7 +205,11 @@ export function validateGlobalMusicUpdateRequest(
   }
 
   // Handle license updates
-  if (data.licenseType !== undefined || data.sourceUrl !== undefined || data.attribution !== undefined) {
+  if (
+    data.licenseType !== undefined ||
+    data.sourceUrl !== undefined ||
+    data.attribution !== undefined
+  ) {
     const licenseType = data.licenseType ?? existingLicense?.type ?? 'free'
     if (!isValidLicenseType(licenseType)) {
       return { error: `Invalid license type. Must be one of: ${LICENSE_TYPES.join(', ')}` }
@@ -213,8 +217,16 @@ export function validateGlobalMusicUpdateRequest(
 
     result.license = {
       type: licenseType,
-      ...(data.sourceUrl !== undefined ? { sourceUrl: data.sourceUrl || undefined } : existingLicense?.sourceUrl ? { sourceUrl: existingLicense.sourceUrl } : {}),
-      ...(data.attribution !== undefined ? { attribution: data.attribution || undefined } : existingLicense?.attribution ? { attribution: existingLicense.attribution } : {}),
+      ...(data.sourceUrl !== undefined
+        ? { sourceUrl: data.sourceUrl || undefined }
+        : existingLicense?.sourceUrl
+          ? { sourceUrl: existingLicense.sourceUrl }
+          : {}),
+      ...(data.attribution !== undefined
+        ? { attribution: data.attribution || undefined }
+        : existingLicense?.attribution
+          ? { attribution: existingLicense.attribution }
+          : {}),
     }
   }
 
@@ -224,9 +236,11 @@ export function validateGlobalMusicUpdateRequest(
 /**
  * Generate attribution text for a track based on its license
  */
-export function generateAttributionText(
-  track: { title: string; artist?: string; license?: LicenseInfo }
-): string | null {
+export function generateAttributionText(track: {
+  title: string
+  artist?: string
+  license?: LicenseInfo
+}): string | null {
   if (!track.license) return null
 
   // If custom attribution is provided, use it

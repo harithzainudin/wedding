@@ -9,7 +9,13 @@
 
 import type { APIGatewayProxyHandlerV2 } from 'aws-lambda'
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb'
-import { DynamoDBDocumentClient, GetCommand, UpdateCommand, DeleteCommand, PutCommand } from '@aws-sdk/lib-dynamodb'
+import {
+  DynamoDBDocumentClient,
+  GetCommand,
+  UpdateCommand,
+  DeleteCommand,
+  PutCommand,
+} from '@aws-sdk/lib-dynamodb'
 import { Resource } from 'sst'
 import { createSuccessResponse, createErrorResponse } from '../../shared/response'
 import { requireSuperAdmin } from '../../shared/auth'
@@ -59,7 +65,12 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
       return createErrorResponse(404, 'Track not found', context, 'NOT_FOUND')
     }
 
-    const existingTrack = existingResult.Item as GlobalMusicTrack & { pk: string; sk: string; gsi1pk: string; gsi1sk: string }
+    const existingTrack = existingResult.Item as GlobalMusicTrack & {
+      pk: string
+      sk: string
+      gsi1pk: string
+      gsi1sk: string
+    }
 
     // ============================================
     // 4. Parse and Validate Input
@@ -95,7 +106,13 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
         ...Keys.gsi.allGlobalMusic(newCategory, existingTrack.order, trackId),
         id: existingTrack.id,
         title: validation.title ?? existingTrack.title,
-        ...(validation.artist !== undefined ? (validation.artist ? { artist: validation.artist } : {}) : existingTrack.artist ? { artist: existingTrack.artist } : {}),
+        ...(validation.artist !== undefined
+          ? validation.artist
+            ? { artist: validation.artist }
+            : {}
+          : existingTrack.artist
+            ? { artist: existingTrack.artist }
+            : {}),
         duration: existingTrack.duration,
         filename: existingTrack.filename,
         s3Key: existingTrack.s3Key,
@@ -103,7 +120,11 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
         fileSize: existingTrack.fileSize,
         category: newCategory,
         order: existingTrack.order,
-        ...(validation.license ? { license: validation.license } : existingTrack.license ? { license: existingTrack.license } : {}),
+        ...(validation.license
+          ? { license: validation.license }
+          : existingTrack.license
+            ? { license: existingTrack.license }
+            : {}),
         uploadedAt: existingTrack.uploadedAt,
         uploadedBy: existingTrack.uploadedBy,
         updatedAt: now,
@@ -163,9 +184,12 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
         new UpdateCommand({
           TableName: Resource.AppDataTable.name,
           Key: Keys.globalMusic(trackId),
-          UpdateExpression: `SET ${updateExpressions.filter(e => !e.startsWith('REMOVE')).join(', ')}${updateExpressions.filter(e => e.startsWith('REMOVE')).length > 0 ? ' ' + updateExpressions.filter(e => e.startsWith('REMOVE')).join(' ') : ''}`,
+          UpdateExpression: `SET ${updateExpressions.filter((e) => !e.startsWith('REMOVE')).join(', ')}${updateExpressions.filter((e) => e.startsWith('REMOVE')).length > 0 ? ' ' + updateExpressions.filter((e) => e.startsWith('REMOVE')).join(' ') : ''}`,
           ExpressionAttributeNames: expressionAttributeNames,
-          ExpressionAttributeValues: Object.keys(expressionAttributeValues).length > 0 ? expressionAttributeValues : undefined,
+          ExpressionAttributeValues:
+            Object.keys(expressionAttributeValues).length > 0
+              ? expressionAttributeValues
+              : undefined,
         })
       )
     }

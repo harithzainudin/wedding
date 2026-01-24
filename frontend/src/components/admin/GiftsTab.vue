@@ -28,6 +28,7 @@
     isCreating,
     isUpdating,
     isDeleting,
+    isBulkDeleting,
     isTogglingEnabled,
     activeUploads,
     canAddMore,
@@ -37,10 +38,20 @@
     createGiftItem,
     updateGiftItem,
     deleteGiftItem,
+    bulkDeleteGiftItems,
     reorderGiftItems,
     uploadGiftImage,
     cancelUpload,
     toggleEnabled,
+    // Selection mode
+    isSelectionMode,
+    selectedGiftIds,
+    selectedGiftsWithReservations,
+    enterSelectionMode,
+    exitSelectionMode,
+    toggleSelection,
+    selectAll,
+    deselectAll,
   } = useGifts()
 
   // View mode
@@ -359,6 +370,50 @@
     deleteConfirmId.value = null
   }
 
+  // Bulk delete modal
+  const showBulkDeleteModal = ref(false)
+  const showReservedList = ref(false)
+
+  const openBulkDeleteModal = () => {
+    showBulkDeleteModal.value = true
+    showReservedList.value = false
+  }
+
+  const closeBulkDeleteModal = () => {
+    showBulkDeleteModal.value = false
+    showReservedList.value = false
+  }
+
+  const handleBulkDelete = async (skipReserved: boolean) => {
+    const idsToDelete = Array.from(selectedGiftIds.value)
+    closeBulkDeleteModal()
+
+    await withLoading(
+      async () => {
+        const result = await bulkDeleteGiftItems(
+          idsToDelete,
+          skipReserved,
+          weddingId.value ?? undefined
+        )
+        if (result.success) {
+          exitSelectionMode()
+        }
+      },
+      {
+        message: adminT.value.loadingOverlay.deleting,
+        showSuccess: true,
+      }
+    )
+  }
+
+  const toggleSelectAll = () => {
+    if (selectedGiftIds.value.size === gifts.value.length) {
+      deselectAll()
+    } else {
+      selectAll()
+    }
+  }
+
   // Default gifts handler
   const handleDefaultGiftsAdded = (_count: number) => {
     // Gifts are already added via createGiftItem which updates the reactive gifts array
@@ -480,224 +535,255 @@
 </script>
 
 <template>
-  <div class="space-y-6">
-    <!-- Header -->
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-      <div>
-        <h2 class="font-heading text-xl font-semibold text-charcoal dark:text-dark-text">
-          {{ adminT.gifts.title }}
-        </h2>
-        <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary mt-1">
-          {{ interpolate(adminT.gifts.itemsCount, { count: String(summary.total) }) }} |
-          {{
-            interpolate(adminT.gifts.reserved, {
-              reserved: String(summary.reservedQuantity),
-              total: String(summary.totalQuantity),
-            })
-          }}
-        </p>
+  <div class="space-y-4">
+    <!-- Header Row: Title + View Toggle -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+      <!-- Left: Title and Stats -->
+      <div class="flex items-center gap-4">
+        <div>
+          <h2 class="font-heading text-xl font-semibold text-charcoal dark:text-dark-text">
+            {{ adminT.gifts.title }}
+          </h2>
+          <p
+            class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary mt-0.5 whitespace-nowrap"
+          >
+            {{ interpolate(adminT.gifts.itemsCount, { count: String(summary.total) }) }} |
+            {{
+              interpolate(adminT.gifts.reserved, {
+                reserved: String(summary.reservedQuantity),
+                total: String(summary.totalQuantity),
+              })
+            }}
+          </p>
+        </div>
       </div>
 
-      <!-- Desktop: single row with all controls | Mobile: stacked rows -->
-      <div class="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-2">
-        <!-- Toggle View (Gifts/Reservations) -->
+      <!-- Right: View Toggle (always visible, doesn't move) -->
+      <div
+        class="flex self-start sm:self-auto rounded-lg overflow-hidden border border-sand-dark dark:border-dark-border"
+      >
+        <button
+          type="button"
+          class="px-4 py-2 text-sm font-body transition-colors cursor-pointer"
+          :class="
+            viewMode === 'gifts'
+              ? 'bg-sage text-white'
+              : 'bg-white dark:bg-dark-bg-secondary text-charcoal dark:text-dark-text hover:bg-sand dark:hover:bg-dark-bg'
+          "
+          @click="viewMode = 'gifts'"
+        >
+          {{ adminT.gifts.viewGifts }}
+        </button>
+        <button
+          type="button"
+          class="px-4 py-2 text-sm font-body transition-colors cursor-pointer"
+          :class="
+            viewMode === 'reservations'
+              ? 'bg-sage text-white'
+              : 'bg-white dark:bg-dark-bg-secondary text-charcoal dark:text-dark-text hover:bg-sand dark:hover:bg-dark-bg'
+          "
+          @click="handleViewReservations"
+        >
+          {{ adminT.gifts.viewReservations }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Toolbar Row (only visible in Gifts view - clean show/hide) -->
+    <div
+      v-if="viewMode === 'gifts'"
+      class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-2 border-b border-sand-dark/50 dark:border-dark-border/50"
+    >
+      <!-- Left side: Sort and View options -->
+      <div class="flex items-center gap-2">
+        <!-- Sort Dropdown -->
+        <div v-if="gifts.length > 0" class="relative">
+          <select
+            :value="sortOption"
+            class="appearance-none pl-3 pr-8 py-2 font-body text-sm border border-sand-dark dark:border-dark-border rounded-lg bg-white dark:bg-dark-bg-secondary text-charcoal dark:text-dark-text focus:outline-none focus:border-sage cursor-pointer"
+            @change="
+              setSortOption(($event.target as HTMLSelectElement).value as AdminGiftSortOption)
+            "
+          >
+            <option value="custom">{{ adminT.gifts.sortCustomOrder }}</option>
+            <option value="priority">{{ adminT.gifts.sortPriority }}</option>
+            <option value="name-asc">{{ adminT.gifts.sortNameAsc }}</option>
+            <option value="name-desc">{{ adminT.gifts.sortNameDesc }}</option>
+            <option value="category">{{ adminT.gifts.sortCategory }}</option>
+            <option value="availability">{{ adminT.gifts.sortAvailability }}</option>
+            <option value="most-reserved">{{ adminT.gifts.sortMostReserved }}</option>
+            <option value="newest">{{ adminT.gifts.sortNewest }}</option>
+            <option value="oldest">{{ adminT.gifts.sortOldest }}</option>
+          </select>
+          <svg
+            class="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-charcoal-light dark:text-dark-text-secondary pointer-events-none"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M19 9l-7 7-7-7"
+            />
+          </svg>
+        </div>
+
+        <!-- Card/List View Toggle -->
         <div
-          class="flex self-start sm:self-auto rounded-lg overflow-hidden border border-sand-dark dark:border-dark-border"
+          v-if="gifts.length > 0"
+          class="flex rounded-lg overflow-hidden border border-sand-dark dark:border-dark-border"
         >
           <button
             type="button"
-            class="px-3 py-1.5 text-sm font-body transition-colors cursor-pointer"
+            class="p-2 transition-colors cursor-pointer"
             :class="
-              viewMode === 'gifts'
+              giftViewMode === 'card'
                 ? 'bg-sage text-white'
                 : 'bg-white dark:bg-dark-bg-secondary text-charcoal dark:text-dark-text hover:bg-sand dark:hover:bg-dark-bg'
             "
-            @click="viewMode = 'gifts'"
+            :title="adminT.gifts.cardView"
+            @click="setGiftViewMode('card')"
           >
-            {{ adminT.gifts.viewGifts }}
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"
+              />
+            </svg>
           </button>
           <button
             type="button"
-            class="px-3 py-1.5 text-sm font-body transition-colors cursor-pointer"
+            class="p-2 transition-colors cursor-pointer"
             :class="
-              viewMode === 'reservations'
+              giftViewMode === 'list'
                 ? 'bg-sage text-white'
                 : 'bg-white dark:bg-dark-bg-secondary text-charcoal dark:text-dark-text hover:bg-sand dark:hover:bg-dark-bg'
             "
-            @click="handleViewReservations"
+            :title="adminT.gifts.listView"
+            @click="setGiftViewMode('list')"
           >
-            {{ adminT.gifts.viewReservations }}
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M4 6h16M4 12h16M4 18h16"
+              />
+            </svg>
           </button>
         </div>
 
-        <!-- Mobile: second row with view toggle, settings, and action buttons -->
-        <!-- Desktop: inline with everything else -->
-        <div class="flex items-center justify-between sm:justify-start gap-2">
-          <!-- Left side on mobile: View toggle and sort -->
-          <div class="flex items-center gap-2">
-            <!-- Sort Dropdown (only show in gifts view when there are gifts) -->
-            <div v-if="viewMode === 'gifts' && gifts.length > 0" class="relative">
-              <select
-                :value="sortOption"
-                class="appearance-none pl-3 pr-8 py-1.5 font-body text-xs sm:text-sm border border-sand-dark dark:border-dark-border rounded-lg bg-white dark:bg-dark-bg-secondary text-charcoal dark:text-dark-text focus:outline-none focus:border-sage cursor-pointer"
-                @change="
-                  setSortOption(($event.target as HTMLSelectElement).value as AdminGiftSortOption)
-                "
-              >
-                <option value="custom">{{ adminT.gifts.sortCustomOrder }}</option>
-                <option value="priority">{{ adminT.gifts.sortPriority }}</option>
-                <option value="name-asc">{{ adminT.gifts.sortNameAsc }}</option>
-                <option value="name-desc">{{ adminT.gifts.sortNameDesc }}</option>
-                <option value="category">{{ adminT.gifts.sortCategory }}</option>
-                <option value="availability">{{ adminT.gifts.sortAvailability }}</option>
-                <option value="most-reserved">{{ adminT.gifts.sortMostReserved }}</option>
-                <option value="newest">{{ adminT.gifts.sortNewest }}</option>
-                <option value="oldest">{{ adminT.gifts.sortOldest }}</option>
-              </select>
-              <!-- Dropdown arrow icon -->
-              <svg
-                class="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-charcoal-light dark:text-dark-text-secondary pointer-events-none"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M19 9l-7 7-7-7"
-                />
-              </svg>
-            </div>
+        <!-- Settings Button -->
+        <button
+          type="button"
+          class="flex items-center gap-2 px-3 py-2 font-body text-sm text-charcoal dark:text-dark-text border border-sand-dark dark:border-dark-border rounded-lg hover:bg-sand dark:hover:bg-dark-bg-secondary transition-colors cursor-pointer"
+          @click="showSettings = !showSettings"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
+            />
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+            />
+          </svg>
+          <span class="hidden sm:inline">{{ adminT.common.settings }}</span>
+        </button>
+      </div>
 
-            <!-- Card/List View Toggle (only show in gifts view) -->
-            <div
-              v-if="viewMode === 'gifts' && gifts.length > 0"
-              class="flex rounded-lg overflow-hidden border border-sand-dark dark:border-dark-border"
-            >
-              <button
-                type="button"
-                class="p-1.5 transition-colors cursor-pointer"
-                :class="
-                  giftViewMode === 'card'
-                    ? 'bg-sage text-white'
-                    : 'bg-white dark:bg-dark-bg-secondary text-charcoal dark:text-dark-text hover:bg-sand dark:hover:bg-dark-bg'
-                "
-                :title="adminT.gifts.cardView"
-                @click="setGiftViewMode('card')"
-              >
-                <!-- Grid icon -->
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"
-                  />
-                </svg>
-              </button>
-              <button
-                type="button"
-                class="p-1.5 transition-colors cursor-pointer"
-                :class="
-                  giftViewMode === 'list'
-                    ? 'bg-sage text-white'
-                    : 'bg-white dark:bg-dark-bg-secondary text-charcoal dark:text-dark-text hover:bg-sand dark:hover:bg-dark-bg'
-                "
-                :title="adminT.gifts.listView"
-                @click="setGiftViewMode('list')"
-              >
-                <!-- List icon -->
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M4 6h16M4 12h16M4 18h16"
-                  />
-                </svg>
-              </button>
-            </div>
+      <!-- Right side: Action buttons -->
+      <div class="flex items-center gap-2">
+        <!-- Select / Cancel Selection Button -->
+        <button
+          v-if="!isSelectionMode && gifts.length > 0"
+          type="button"
+          class="flex items-center gap-2 px-3 py-2 font-body text-sm text-charcoal dark:text-dark-text border border-sand-dark dark:border-dark-border rounded-lg hover:bg-sand dark:hover:bg-dark-bg-secondary transition-colors cursor-pointer"
+          @click="enterSelectionMode"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
+            />
+          </svg>
+          <span class="hidden sm:inline">{{ adminT.gifts.select }}</span>
+        </button>
+        <button
+          v-if="isSelectionMode"
+          type="button"
+          class="flex items-center gap-2 px-3 py-2 font-body text-sm text-red-600 dark:text-red-400 border border-red-300 dark:border-red-700 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors cursor-pointer"
+          @click="exitSelectionMode"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M6 18L18 6M6 6l12 12"
+            />
+          </svg>
+          <span class="hidden sm:inline">{{ adminT.gifts.exitSelection }}</span>
+        </button>
 
-            <!-- Settings Button -->
-            <button
-              type="button"
-              class="flex items-center gap-2 px-4 py-2 font-body text-sm text-charcoal dark:text-dark-text border border-sand-dark dark:border-dark-border rounded-lg hover:bg-sand dark:hover:bg-dark-bg-secondary transition-colors cursor-pointer"
-              @click="showSettings = !showSettings"
-            >
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
-                />
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                />
-              </svg>
-              <span class="hidden sm:inline">{{ adminT.common.settings }}</span>
-            </button>
-          </div>
+        <!-- Browse Defaults Button -->
+        <button
+          type="button"
+          :disabled="!canAddMore"
+          :title="!canAddMore ? adminT.gifts.limitReachedTooltip : ''"
+          :class="[
+            'flex items-center gap-2 px-3 py-2 font-body text-sm rounded-lg transition-colors',
+            !canAddMore
+              ? 'border border-sage/30 text-sage/40 cursor-not-allowed'
+              : 'border border-sage text-sage hover:bg-sage/10 cursor-pointer',
+          ]"
+          @click="showDefaultBrowser = true"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+            />
+          </svg>
+          <span class="hidden sm:inline">{{ adminT.gifts.browseDefaults }}</span>
+        </button>
 
-          <!-- Right side on mobile: Action buttons -->
-          <div class="flex items-center gap-2">
-            <!-- Browse Defaults Button -->
-            <button
-              type="button"
-              :disabled="viewMode !== 'gifts' || !canAddMore"
-              :title="!canAddMore ? adminT.gifts.limitReachedTooltip : ''"
-              :class="[
-                'flex items-center gap-2 px-4 py-2 font-body text-sm rounded-lg transition-colors',
-                !canAddMore
-                  ? 'border border-sage/30 text-sage/40 cursor-not-allowed'
-                  : viewMode === 'gifts'
-                    ? 'border border-sage text-sage hover:bg-sage/10 cursor-pointer'
-                    : 'border border-sage/50 text-sage/50 cursor-not-allowed',
-              ]"
-              @click="showDefaultBrowser = true"
-            >
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
-                />
-              </svg>
-              <span class="hidden sm:inline">{{ adminT.gifts.browseDefaults }}</span>
-            </button>
-
-            <!-- Add Gift Button -->
-            <button
-              type="button"
-              :disabled="viewMode !== 'gifts' || !canAddMore"
-              :title="!canAddMore ? adminT.gifts.limitReachedTooltip : ''"
-              :class="[
-                'flex items-center gap-2 px-4 py-2 font-body text-sm rounded-lg transition-colors',
-                !canAddMore
-                  ? 'bg-sage/30 text-white/50 cursor-not-allowed'
-                  : viewMode === 'gifts'
-                    ? 'bg-sage text-white hover:bg-sage-dark cursor-pointer'
-                    : 'bg-sage/50 text-white/70 cursor-not-allowed',
-              ]"
-              @click="openCreateModal"
-            >
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M12 4v16m8-8H4"
-                />
-              </svg>
-              <span class="hidden sm:inline">{{ adminT.gifts.addGift }}</span>
-            </button>
-          </div>
-        </div>
+        <!-- Add Gift Button -->
+        <button
+          type="button"
+          :disabled="!canAddMore"
+          :title="!canAddMore ? adminT.gifts.limitReachedTooltip : ''"
+          :class="[
+            'flex items-center gap-2 px-4 py-2 font-body text-sm rounded-lg transition-colors',
+            !canAddMore
+              ? 'bg-sage/30 text-white/50 cursor-not-allowed'
+              : 'bg-sage text-white hover:bg-sage-dark cursor-pointer',
+          ]"
+          @click="openCreateModal"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 4v16m8-8H4"
+            />
+          </svg>
+          <span class="hidden sm:inline">{{ adminT.gifts.addGift }}</span>
+        </button>
       </div>
     </div>
 
@@ -710,6 +796,61 @@
       :description="adminT.gifts.showGiftsDesc"
       @update:model-value="handleToggleEnabled"
     />
+
+    <!-- Selection Toolbar -->
+    <div
+      v-if="isSelectionMode"
+      class="sticky top-0 z-20 bg-white dark:bg-dark-bg-secondary py-3 px-4 -mx-4 sm:mx-0 sm:px-4 sm:rounded-lg mb-4 flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3 border-b sm:border border-sand-dark dark:border-dark-border shadow-sm"
+    >
+      <!-- Top row: Count + Cancel (mobile) -->
+      <div class="flex items-center justify-between sm:justify-start sm:flex-1 gap-3">
+        <span class="flex items-center gap-2 text-sm font-body text-charcoal dark:text-dark-text">
+          <span
+            class="w-5 h-5 bg-sage text-white rounded flex items-center justify-center text-xs font-medium"
+          >
+            {{ selectedGiftIds.size }}
+          </span>
+          {{ interpolate(adminT.gifts.selectedCount, { count: String(selectedGiftIds.size) }) }}
+        </span>
+        <button
+          type="button"
+          class="sm:hidden px-3 py-1.5 text-sm text-charcoal-light dark:text-dark-text-secondary hover:text-charcoal dark:hover:text-dark-text cursor-pointer"
+          @click="exitSelectionMode"
+        >
+          {{ adminT.gifts.exitSelection }}
+        </button>
+      </div>
+
+      <!-- Bottom row: Actions -->
+      <div class="flex items-center gap-2">
+        <button
+          type="button"
+          class="flex-1 sm:flex-initial min-h-[44px] sm:min-h-0 px-4 py-2 text-sm font-body text-sage border border-sage rounded-lg hover:bg-sage/10 transition-colors cursor-pointer"
+          @click="toggleSelectAll"
+        >
+          {{
+            selectedGiftIds.size === gifts.length
+              ? adminT.gifts.deselectAll
+              : adminT.gifts.selectAll
+          }}
+        </button>
+        <button
+          type="button"
+          class="flex-1 sm:flex-initial min-h-[44px] sm:min-h-0 px-4 py-2 text-sm font-body text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+          :disabled="selectedGiftIds.size === 0"
+          @click="openBulkDeleteModal"
+        >
+          {{ adminT.gifts.deleteSelected }}
+        </button>
+        <button
+          type="button"
+          class="hidden sm:block px-4 py-2 text-sm font-body text-charcoal-light dark:text-dark-text-secondary hover:text-charcoal dark:hover:text-dark-text transition-colors cursor-pointer"
+          @click="exitSelectionMode"
+        >
+          {{ adminT.gifts.exitSelection }}
+        </button>
+      </div>
+    </div>
 
     <!-- Upload Progress Bar -->
     <UploadProgressBar
@@ -828,16 +969,48 @@
             :key="gift.id"
             class="bg-white dark:bg-dark-bg-secondary rounded-xl shadow-sm border border-sand-dark dark:border-dark-border overflow-hidden"
             :class="[
-              isDragEnabled ? 'cursor-move' : 'cursor-default',
-              { 'ring-2 ring-sage': dropTargetId === gift.id && isDragEnabled },
+              isDragEnabled && !isSelectionMode ? 'cursor-move' : 'cursor-default',
+              { 'ring-2 ring-sage': dropTargetId === gift.id && isDragEnabled && !isSelectionMode },
+              { 'ring-2 ring-sage bg-sage/5': isSelectionMode && selectedGiftIds.has(gift.id) },
             ]"
-            :draggable="isDragEnabled"
-            @dragstart="isDragEnabled ? handleDragStart(gift.id) : undefined"
-            @dragover="isDragEnabled ? handleDragOver($event, gift.id) : undefined"
-            @dragend="isDragEnabled ? handleDragEnd() : undefined"
+            :draggable="isDragEnabled && !isSelectionMode"
+            @dragstart="isDragEnabled && !isSelectionMode ? handleDragStart(gift.id) : undefined"
+            @dragover="
+              isDragEnabled && !isSelectionMode ? handleDragOver($event, gift.id) : undefined
+            "
+            @dragend="isDragEnabled && !isSelectionMode ? handleDragEnd() : undefined"
+            @click="isSelectionMode ? toggleSelection(gift.id) : undefined"
           >
             <!-- Image -->
             <div class="relative aspect-video bg-sand dark:bg-dark-bg">
+              <!-- Selection Checkbox -->
+              <div
+                v-if="isSelectionMode"
+                class="absolute top-2 left-2 z-10"
+                @click.stop="toggleSelection(gift.id)"
+              >
+                <div
+                  class="w-6 h-6 rounded-md border-2 flex items-center justify-center cursor-pointer transition-colors duration-150"
+                  :class="
+                    selectedGiftIds.has(gift.id)
+                      ? 'bg-sage border-sage text-white'
+                      : 'bg-white/90 border-charcoal-light/40 hover:border-sage'
+                  "
+                >
+                  <svg
+                    v-if="selectedGiftIds.has(gift.id)"
+                    class="w-4 h-4"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      fill-rule="evenodd"
+                      d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                      clip-rule="evenodd"
+                    />
+                  </svg>
+                </div>
+              </div>
               <img
                 v-if="gift.imageUrl"
                 :src="gift.imageUrl"
@@ -934,14 +1107,49 @@
             v-for="gift in sortedGifts"
             :key="gift.id"
             class="flex items-center gap-3 p-3 bg-white dark:bg-dark-bg-secondary rounded-lg border border-sand-dark dark:border-dark-border"
-            :class="{ 'ring-2 ring-sage': dropTargetId === gift.id && isDragEnabled }"
-            :draggable="isDragEnabled"
-            @dragstart="isDragEnabled ? handleDragStart(gift.id) : undefined"
-            @dragover="isDragEnabled ? handleDragOver($event, gift.id) : undefined"
-            @dragend="isDragEnabled ? handleDragEnd() : undefined"
+            :class="[
+              { 'ring-2 ring-sage': dropTargetId === gift.id && isDragEnabled && !isSelectionMode },
+              { 'ring-2 ring-sage bg-sage/5': isSelectionMode && selectedGiftIds.has(gift.id) },
+            ]"
+            :draggable="isDragEnabled && !isSelectionMode"
+            @dragstart="isDragEnabled && !isSelectionMode ? handleDragStart(gift.id) : undefined"
+            @dragover="
+              isDragEnabled && !isSelectionMode ? handleDragOver($event, gift.id) : undefined
+            "
+            @dragend="isDragEnabled && !isSelectionMode ? handleDragEnd() : undefined"
+            @click="isSelectionMode ? toggleSelection(gift.id) : undefined"
           >
-            <!-- Drag Handle -->
+            <!-- Selection Checkbox (when in selection mode) -->
             <div
+              v-if="isSelectionMode"
+              class="flex-shrink-0"
+              @click.stop="toggleSelection(gift.id)"
+            >
+              <div
+                class="w-5 h-5 rounded border-2 flex items-center justify-center cursor-pointer transition-colors duration-150"
+                :class="
+                  selectedGiftIds.has(gift.id)
+                    ? 'bg-sage border-sage text-white'
+                    : 'border-charcoal-light/40 hover:border-sage'
+                "
+              >
+                <svg
+                  v-if="selectedGiftIds.has(gift.id)"
+                  class="w-3 h-3"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path
+                    fill-rule="evenodd"
+                    d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                    clip-rule="evenodd"
+                  />
+                </svg>
+              </div>
+            </div>
+            <!-- Drag Handle (when not in selection mode) -->
+            <div
+              v-else
               class="flex-shrink-0"
               :class="
                 isDragEnabled
@@ -1498,6 +1706,160 @@
       @confirm="handleDeleteConfirm"
       @cancel="handleDeleteCancel"
     />
+
+    <!-- Bulk Delete Modal -->
+    <Teleport to="body">
+      <Transition
+        enter-active-class="transition duration-200"
+        enter-from-class="opacity-0"
+        enter-to-class="opacity-100"
+        leave-active-class="transition duration-150"
+        leave-from-class="opacity-100"
+        leave-to-class="opacity-0"
+      >
+        <div
+          v-if="showBulkDeleteModal"
+          class="fixed inset-0 z-50 flex items-end sm:items-center justify-center"
+        >
+          <!-- Backdrop -->
+          <div class="absolute inset-0 bg-black/50" @click="closeBulkDeleteModal" />
+
+          <!-- Modal Content - bottom sheet on mobile, centered on desktop -->
+          <div
+            class="relative w-full sm:max-w-lg bg-white dark:bg-dark-bg-secondary rounded-t-2xl sm:rounded-xl max-h-[85vh] overflow-hidden transform transition-transform sm:mx-4"
+          >
+            <!-- Handle bar for mobile -->
+            <div class="sm:hidden flex justify-center pt-3 pb-1">
+              <div class="w-10 h-1 bg-charcoal-light/30 rounded-full" />
+            </div>
+
+            <!-- Header -->
+            <div class="px-4 sm:px-6 py-4 border-b border-sand-dark dark:border-dark-border">
+              <h3 class="font-heading text-lg text-charcoal dark:text-dark-text">
+                {{
+                  interpolate(adminT.gifts.bulkDeleteTitle, {
+                    count: String(selectedGiftIds.size),
+                  })
+                }}
+              </h3>
+            </div>
+
+            <!-- Scrollable Content -->
+            <div class="px-4 sm:px-6 py-4 max-h-[40vh] overflow-y-auto">
+              <!-- Reservation Warning -->
+              <div
+                v-if="selectedGiftsWithReservations.length > 0"
+                class="p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 rounded-lg"
+              >
+                <button
+                  type="button"
+                  class="w-full flex items-center justify-between text-left cursor-pointer"
+                  @click="showReservedList = !showReservedList"
+                >
+                  <span class="flex items-center gap-2 text-sm text-amber-800 dark:text-amber-200">
+                    <svg
+                      class="w-5 h-5 flex-shrink-0"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                      />
+                    </svg>
+                    {{
+                      interpolate(adminT.gifts.reservationsWarning, {
+                        count: String(selectedGiftsWithReservations.length),
+                      })
+                    }}
+                  </span>
+                  <svg
+                    class="w-4 h-4 text-amber-600 transition-transform flex-shrink-0"
+                    :class="showReservedList ? 'rotate-180' : ''"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M19 9l-7 7-7-7"
+                    />
+                  </svg>
+                </button>
+
+                <!-- Expandable List -->
+                <ul v-if="showReservedList" class="mt-3 space-y-2">
+                  <li
+                    v-for="gift in selectedGiftsWithReservations"
+                    :key="gift.id"
+                    class="flex items-center justify-between py-2 px-3 bg-white dark:bg-dark-bg rounded text-sm"
+                  >
+                    <span class="text-charcoal dark:text-dark-text truncate">
+                      {{ gift.name.en || gift.name.ms }}
+                    </span>
+                    <span class="text-amber-600 dark:text-amber-400 flex-shrink-0 ml-2">
+                      {{
+                        interpolate(adminT.gifts.reservationCount, {
+                          count: String(gift.quantityReserved),
+                        })
+                      }}
+                    </span>
+                  </li>
+                </ul>
+              </div>
+
+              <!-- No reservations message -->
+              <p
+                v-else
+                class="text-sm text-charcoal-light dark:text-dark-text-secondary text-center py-2"
+              >
+                {{ adminT.gifts.noReservationsSelected }}
+              </p>
+            </div>
+
+            <!-- Actions - stacked on mobile -->
+            <div
+              class="px-4 sm:px-6 py-4 border-t border-sand-dark dark:border-dark-border flex flex-col sm:flex-row-reverse gap-2 sm:gap-3"
+            >
+              <button
+                type="button"
+                class="w-full sm:w-auto min-h-[48px] sm:min-h-0 px-6 py-3 sm:py-2 font-body text-sm text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                :disabled="isBulkDeleting"
+                @click="handleBulkDelete(false)"
+              >
+                {{ adminT.gifts.deleteAll }} ({{ selectedGiftIds.size }})
+              </button>
+              <button
+                v-if="
+                  selectedGiftsWithReservations.length > 0 &&
+                  selectedGiftsWithReservations.length < selectedGiftIds.size
+                "
+                type="button"
+                class="w-full sm:w-auto min-h-[48px] sm:min-h-0 px-6 py-3 sm:py-2 font-body text-sm text-amber-700 dark:text-amber-300 bg-amber-100 dark:bg-amber-900/30 rounded-lg hover:bg-amber-200 dark:hover:bg-amber-900/50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                :disabled="isBulkDeleting"
+                @click="handleBulkDelete(true)"
+              >
+                {{ adminT.gifts.deleteOnlyUnreserved }}
+                ({{ selectedGiftIds.size - selectedGiftsWithReservations.length }})
+              </button>
+              <button
+                type="button"
+                class="w-full sm:w-auto min-h-[48px] sm:min-h-0 px-6 py-3 sm:py-2 font-body text-sm text-charcoal dark:text-dark-text border border-sand-dark dark:border-dark-border rounded-lg hover:bg-sand dark:hover:bg-dark-bg transition-colors cursor-pointer"
+                :disabled="isBulkDeleting"
+                @click="closeBulkDeleteModal"
+              >
+                {{ adminT.common.cancel }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </Transition>
+    </Teleport>
 
     <!-- Default Gift Browser Modal -->
     <DefaultGiftBrowser

@@ -311,14 +311,18 @@ export function validateUpdateGiftInput(input: unknown):
     if (body.priceRange !== null && body.priceRange !== '' && typeof body.priceRange !== 'string') {
       return { valid: false, error: 'Price range must be a string' }
     }
-    if (typeof body.priceRange === 'string' && body.priceRange.length > GIFT_LIMITS.maxPriceRangeLength) {
+    if (
+      typeof body.priceRange === 'string' &&
+      body.priceRange.length > GIFT_LIMITS.maxPriceRangeLength
+    ) {
       return {
         valid: false,
         error: `Price range must be less than ${GIFT_LIMITS.maxPriceRangeLength} characters`,
       }
     }
     // Allow empty string to clear the price range
-    data.priceRange = typeof body.priceRange === 'string' ? body.priceRange.trim() || undefined : undefined
+    data.priceRange =
+      typeof body.priceRange === 'string' ? body.priceRange.trim() || undefined : undefined
   }
 
   // Validate category if provided
