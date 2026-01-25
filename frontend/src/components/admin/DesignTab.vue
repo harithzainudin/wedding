@@ -174,7 +174,7 @@
   })
 
   // Sync local state from loaded settings
-  const syncFromSettings = (settings: DesignSettings) => {
+  const syncFromSettings = (settings: Readonly<DesignSettings>) => {
     selectedLayoutId.value = settings.layoutId
     selectedAnimationSpeed.value = settings.animationSpeed
     localSections.value = cloneSections(settings.sections ?? DEFAULT_SECTION_ORDER)

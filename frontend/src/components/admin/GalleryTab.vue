@@ -37,7 +37,6 @@
     dismissUpload,
     removeImage,
     updateOrder,
-    updateSettings,
     formatFileSize,
   } = useGallery()
 

@@ -6,6 +6,7 @@
   import { useDocumentTitle } from '@/composables/useDocumentTitle'
   import { usePublicWeddingData } from '@/composables/usePublicWeddingData'
   import { useDesign } from '@/composables/useDesign'
+  import type { DesignSettings } from '@/types/design'
 
   useDocumentTitle({ text: 'Wedding Ceremony', position: 'suffix' })
 
@@ -79,7 +80,7 @@
   <!-- Layout-driven wedding page -->
   <LayoutWrapper
     v-else
-    :design-settings="designSettings"
+    :design-settings="designSettings as DesignSettings"
     :show-rsvp-section="showRsvpSection()"
     :is-accepting-rsvps="isAcceptingRsvps()"
     v-bind="rsvpDeadline ? { rsvpDeadline } : {}"
