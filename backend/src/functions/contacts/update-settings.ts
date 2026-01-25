@@ -1,7 +1,8 @@
 /**
  * Update Contacts Settings Endpoint (Admin)
  *
- * Updates contacts settings (showContacts toggle) for a specific wedding.
+ * Updates contacts settings for a specific wedding.
+ * Note: Visibility is now controlled by Design Tab's section settings.
  * Route: PUT /admin/w/{weddingId}/contacts/settings
  *
  * SECURITY: Requires wedding access authorization
@@ -25,37 +26,6 @@ const docClient = DynamoDBDocumentClient.from(dynamoClient, {
     removeUndefinedValues: true,
   },
 })
-
-interface ContactsSettingsUpdateRequest {
-  showContacts?: boolean
-}
-
-function validateSettingsUpdate(
-  input: unknown
-): { valid: true; data: ContactsSettingsUpdateRequest } | { valid: false; error: string } {
-  if (typeof input !== 'object' || input === null) {
-    return { valid: false, error: 'Invalid request body' }
-  }
-
-  const body = input as Record<string, unknown>
-
-  // At least one setting must be provided
-  if (body.showContacts === undefined) {
-    return { valid: false, error: 'At least one setting (showContacts) must be provided' }
-  }
-
-  // Validate showContacts if provided
-  if (body.showContacts !== undefined && typeof body.showContacts !== 'boolean') {
-    return { valid: false, error: 'showContacts must be a boolean' }
-  }
-
-  return {
-    valid: true,
-    data: {
-      showContacts: body.showContacts as boolean | undefined,
-    },
-  }
-}
 
 export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
   // ============================================
@@ -96,27 +66,10 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
   }
 
   // ============================================
-  // 4. Validate Request Body
+  // 4. Get existing contacts data and update metadata
   // ============================================
-  if (!event.body) {
-    return createErrorResponse(400, 'Missing request body', context, 'MISSING_BODY')
-  }
-
-  let body: unknown
-  try {
-    body = JSON.parse(event.body)
-  } catch {
-    return createErrorResponse(400, 'Invalid JSON body', context, 'INVALID_JSON')
-  }
-
-  const validation = validateSettingsUpdate(body)
-  if (!validation.valid) {
-    return createErrorResponse(400, validation.error, context, 'VALIDATION_ERROR')
-  }
-
-  // ============================================
-  // 5. Get existing contacts data and merge settings
-  // ============================================
+  // Note: Contacts visibility is now controlled by Design Tab.
+  // This endpoint is kept for backward compatibility and future contacts-specific settings.
   try {
     const settingsKey = Keys.settings(weddingId, 'CONTACTS')
 
@@ -129,19 +82,13 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
     )
 
     const existingData = existingResult.Item || {}
-    const existingSettings: ContactsSettings = existingData.settings || DEFAULT_CONTACTS_SETTINGS
 
-    // Merge new settings
-    const updatedSettings: ContactsSettings = {
-      showContacts:
-        validation.data.showContacts !== undefined
-          ? validation.data.showContacts
-          : existingSettings.showContacts,
-    }
+    // Settings is empty for now (visibility moved to Design Tab)
+    const updatedSettings: ContactsSettings = DEFAULT_CONTACTS_SETTINGS
 
     const now = new Date().toISOString()
 
-    // Update with merged settings
+    // Update with settings and metadata
     const contactsItem = {
       ...settingsKey,
       contacts: existingData.contacts || [],

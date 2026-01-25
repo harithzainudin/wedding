@@ -73,6 +73,8 @@ export interface Translations {
     rsvpClosed: string
     rsvpClosedMessage: string
     rsvpClosedDeadline: string
+    // Invitation card
+    openInvitation: string
   }
   // Gallery Section
   gallery: {
@@ -162,6 +164,7 @@ export interface Translations {
   common: {
     and: string
     cancel: string
+    tapToOpen: string
   }
   // Parking
   parking?: {
@@ -362,6 +365,8 @@ export const translations: Record<Language, Translations> = {
       rsvpClosed: 'RSVP Ditutup',
       rsvpClosedMessage: 'RSVP untuk majlis ini telah ditutup. Terima kasih atas minat anda.',
       rsvpClosedDeadline: 'Tarikh akhir RSVP telah berlalu pada {date}.',
+      // Invitation card
+      openInvitation: 'Buka Jemputan',
     },
     gallery: {
       title: 'Galeri Foto',
@@ -447,6 +452,7 @@ export const translations: Record<Language, Translations> = {
     common: {
       and: '&',
       cancel: 'Batal',
+      tapToOpen: 'Ketik untuk buka',
     },
     parking: {
       guide: 'Panduan Parkir',
@@ -637,6 +643,8 @@ export const translations: Record<Language, Translations> = {
       rsvpClosed: 'RSVPs Closed',
       rsvpClosedMessage: 'RSVPs for this event are now closed. Thank you for your interest.',
       rsvpClosedDeadline: 'The RSVP deadline has passed on {date}.',
+      // Invitation card
+      openInvitation: 'Open Invitation',
     },
     gallery: {
       title: 'Photo Gallery',
@@ -722,6 +730,7 @@ export const translations: Record<Language, Translations> = {
     common: {
       and: '&',
       cancel: 'Cancel',
+      tapToOpen: 'Tap to open',
     },
     parking: {
       guide: 'Parking Guide',
@@ -908,6 +917,8 @@ export const translations: Record<Language, Translations> = {
       rsvpClosed: '回复已关闭',
       rsvpClosedMessage: '此活动的回复已关闭。感谢您的关注。',
       rsvpClosedDeadline: '回复截止日期已于 {date} 过期。',
+      // Invitation card
+      openInvitation: '打开邀请函',
     },
     gallery: {
       title: '照片集',
@@ -991,6 +1002,7 @@ export const translations: Record<Language, Translations> = {
     common: {
       and: '&',
       cancel: '取消',
+      tapToOpen: '点击打开',
     },
     parking: {
       guide: '停车指南',
@@ -1175,6 +1187,8 @@ export const translations: Record<Language, Translations> = {
       rsvpClosed: 'பதில் மூடப்பட்டது',
       rsvpClosedMessage: 'இந்த நிகழ்வுக்கான பதில்கள் மூடப்பட்டன. உங்கள் ஆர்வத்திற்கு நன்றி.',
       rsvpClosedDeadline: 'பதில் கடைசி தேதி {date} அன்று முடிந்தது.',
+      // Invitation card
+      openInvitation: 'அழைப்பிதழைத் திறக்கவும்',
     },
     gallery: {
       title: 'புகைப்பட தொகுப்பு',
@@ -1260,6 +1274,7 @@ export const translations: Record<Language, Translations> = {
     common: {
       and: '&',
       cancel: 'ரத்துசெய்',
+      tapToOpen: 'திறக்க தட்டவும்',
     },
     parking: {
       guide: 'பார்க்கிங் வழிகாட்டி',
@@ -2189,6 +2204,16 @@ export interface AdminTranslations {
     autoPlayInterval: string
     storybookSettings: string
     showPageNumbers: string
+    // Background features
+    backgroundFeatures: string
+    backgroundFeaturesHint: string
+    backgroundMusic: string
+    backgroundMusicDescription: string
+    // Empty content warnings
+    emptyGallery: string
+    emptySchedule: string
+    emptyWishlist: string
+    emptyMusic: string
   }
 
   // QR Hub
@@ -3266,6 +3291,16 @@ export const adminTranslations: Record<AdminLanguage, AdminTranslations> = {
       autoPlayInterval: 'Seconds between slides',
       storybookSettings: 'Storybook Settings',
       showPageNumbers: 'Show page numbers',
+      // Background features
+      backgroundFeatures: 'Background Features',
+      backgroundFeaturesHint: 'Enable or disable background features',
+      backgroundMusic: 'Background Music',
+      backgroundMusicDescription: 'Play music while guests browse your wedding site',
+      // Empty content warnings
+      emptyGallery: 'No images',
+      emptySchedule: 'No schedule',
+      emptyWishlist: 'No gifts',
+      emptyMusic: 'No music',
     },
 
     qrHub: {
@@ -4325,6 +4360,16 @@ export const adminTranslations: Record<AdminLanguage, AdminTranslations> = {
       autoPlayInterval: 'Saat antara slaid',
       storybookSettings: 'Tetapan Buku Cerita',
       showPageNumbers: 'Papar nombor halaman',
+      // Background features
+      backgroundFeatures: 'Ciri Latar Belakang',
+      backgroundFeaturesHint: 'Aktifkan atau nyahaktifkan ciri latar belakang',
+      backgroundMusic: 'Muzik Latar Belakang',
+      backgroundMusicDescription: 'Main muzik semasa tetamu melayari laman perkahwinan anda',
+      // Empty content warnings
+      emptyGallery: 'Tiada imej',
+      emptySchedule: 'Tiada jadual',
+      emptyWishlist: 'Tiada hadiah',
+      emptyMusic: 'Tiada muzik',
     },
 
     qrHub: {

@@ -61,12 +61,8 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
 
     const rsvpSettings: RsvpSettings = settingsResult.Item?.settings || DEFAULT_RSVP_SETTINGS
 
-    // Check if RSVP section is visible
-    if (!rsvpSettings.showRsvp) {
-      return createErrorResponse(403, 'RSVP section is not available', context, 'RSVP_HIDDEN')
-    }
-
-    // Check if RSVPs are being accepted (using the acceptingRsvps flag and deadline)
+    // Visibility is now controlled by Design Tab's section settings
+    // Here we only check if RSVPs are being accepted (using the acceptingRsvps flag and deadline)
     const eventDate = weddingCheck.wedding.weddingDate
     if (!canAcceptRsvp(rsvpSettings, eventDate)) {
       return createErrorResponse(403, 'RSVPs are currently closed', context, 'RSVP_CLOSED')

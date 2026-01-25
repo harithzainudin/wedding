@@ -132,7 +132,7 @@ export function validateReorderRequest(
 export function validateSettingsUpdate(input: unknown):
   | {
       valid: true
-      data: { maxFileSize?: number; maxImages?: number; showGallery?: boolean }
+      data: { maxFileSize?: number; maxImages?: number }
     }
   | { valid: false; error: string } {
   if (typeof input !== 'object' || input === null) {
@@ -143,7 +143,6 @@ export function validateSettingsUpdate(input: unknown):
   const result: {
     maxFileSize?: number
     maxImages?: number
-    showGallery?: boolean
   } = {}
 
   // Validate maxFileSize (1MB to 50MB)
@@ -169,19 +168,7 @@ export function validateSettingsUpdate(input: unknown):
     result.maxImages = body.maxImages
   }
 
-  // Validate showGallery (boolean)
-  if (body.showGallery !== undefined) {
-    if (typeof body.showGallery !== 'boolean') {
-      return { valid: false, error: 'showGallery must be a boolean' }
-    }
-    result.showGallery = body.showGallery
-  }
-
-  if (
-    result.maxFileSize === undefined &&
-    result.maxImages === undefined &&
-    result.showGallery === undefined
-  ) {
+  if (result.maxFileSize === undefined && result.maxImages === undefined) {
     return { valid: false, error: 'At least one setting must be provided' }
   }
 

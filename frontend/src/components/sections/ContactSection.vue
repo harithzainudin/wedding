@@ -6,12 +6,10 @@
   import type { ContactPerson } from '@/types/contacts'
 
   const { t, currentLanguage } = useLanguage()
-  const { getContactsMultilingual, isLoadingContacts, contactsData } = usePublicWeddingData()
+  const { getContactsMultilingual, isLoadingContacts } = usePublicWeddingData()
   const { getOrderedNicknamesString } = useNameOrder()
 
-  // Check if contacts section should be shown (default to true)
-  const showContacts = computed(() => contactsData.value?.settings?.showContacts ?? true)
-
+  // Visibility is now controlled by Design Tab's section settings
   const contacts = computed(() => getContactsMultilingual())
 
   const getCleanPhone = (phone: string): string => {
@@ -39,8 +37,8 @@
 </script>
 
 <template>
+  <!-- Visibility is controlled by Design Tab's section settings -->
   <section
-    v-if="showContacts"
     class="py-12 sm:py-16 px-4 sm:px-6 bg-sand dark:bg-dark-bg transition-colors duration-300"
   >
     <div class="max-w-xl mx-auto text-center">

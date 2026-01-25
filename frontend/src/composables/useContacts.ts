@@ -95,7 +95,7 @@ export function useContacts() {
     }
   }
 
-  // Update contacts settings (showContacts toggle)
+  // Update contacts settings (reserved for future use)
   const updateContactsSettings = async (
     settings: Partial<ContactsSettings>,
     weddingId?: string

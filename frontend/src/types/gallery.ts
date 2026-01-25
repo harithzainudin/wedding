@@ -13,7 +13,6 @@ export interface GallerySettings {
   maxFileSize: number
   maxImages: number
   allowedFormats: string[]
-  showGallery: boolean
   updatedAt?: string | undefined
   updatedBy?: string | undefined
 }
@@ -57,7 +56,6 @@ export interface ListImagesResponse {
   total: number
   settings?: GallerySettings | undefined
   remainingSlots?: number | undefined
-  showGallery?: boolean | undefined // Public endpoint returns this at root level
 }
 
 export interface ReorderImagesRequest {
@@ -72,7 +70,6 @@ export interface DeleteImageResponse {
 export interface UpdateSettingsRequest {
   maxFileSize?: number | undefined
   maxImages?: number | undefined
-  showGallery?: boolean | undefined
 }
 
 // Response data from settings endpoint (unwrapped)
@@ -80,7 +77,6 @@ export interface SettingsResponse {
   maxFileSize: number
   maxImages: number
   allowedFormats: string[]
-  showGallery: boolean
   updatedAt?: string | undefined
   updatedBy?: string | undefined
 }

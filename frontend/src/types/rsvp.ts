@@ -1,14 +1,12 @@
 import type { HonorificTitle } from './index'
 
-// RSVP Settings
+// RSVP Settings - visibility is now controlled by Design Tab
 export interface RsvpSettings {
-  showRsvp: boolean // Show the RSVP section on the site
   acceptingRsvps: boolean // Whether to accept new RSVPs (form is open)
   rsvpDeadline?: string // Optional ISO date string for deadline (empty = no deadline, open until event)
 }
 
 export const DEFAULT_RSVP_SETTINGS: RsvpSettings = {
-  showRsvp: true,
   acceptingRsvps: true,
 }
 

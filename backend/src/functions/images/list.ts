@@ -27,7 +27,6 @@ import { isValidWeddingId } from '../shared/validation'
 import {
   DEFAULT_MAX_FILE_SIZE,
   DEFAULT_MAX_IMAGES,
-  DEFAULT_SHOW_GALLERY,
   ALLOWED_MIME_TYPES,
 } from '../shared/image-constants'
 
@@ -117,15 +116,13 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
       url: getPublicS3Url(bucketName, region, item.s3Key as string),
     }))
 
-    // Get settings
+    // Get settings (visibility is now controlled by Design Tab)
     const settingsResult = await docClient.send(
       new GetCommand({
         TableName: Resource.AppDataTable.name,
         Key: Keys.settings(weddingId, 'IMAGES'),
       })
     )
-
-    const showGallery = (settingsResult.Item?.showGallery as boolean) ?? DEFAULT_SHOW_GALLERY
 
     if (isAuthenticated) {
       const settings = {
@@ -134,7 +131,6 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
         allowedFormats: (settingsResult.Item?.allowedFormats as string[]) ?? [
           ...ALLOWED_MIME_TYPES,
         ],
-        showGallery,
       }
 
       return createSuccessResponse(
@@ -155,7 +151,6 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
       {
         images,
         total: images.length,
-        showGallery,
       },
       context
     )

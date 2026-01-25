@@ -49,8 +49,11 @@
 
   // Get couple names for cover
   const coupleNames = computed(() => {
-    if (!weddingDetails.value) return ''
-    const { groomName, brideName } = weddingDetails.value
+    if (!weddingDetails.value?.couple) return ''
+    const groomName =
+      weddingDetails.value.couple.groom?.fullName || weddingDetails.value.couple.groom?.nickname
+    const brideName =
+      weddingDetails.value.couple.bride?.fullName || weddingDetails.value.couple.bride?.nickname
     if (groomName && brideName) {
       return `${groomName} & ${brideName}`
     }

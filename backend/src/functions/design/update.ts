@@ -15,7 +15,11 @@ import { createSuccessResponse, createErrorResponse } from '../shared/response'
 import { requireWeddingAccess } from '../shared/auth'
 import { logError } from '../shared/logger'
 import { validateDesignUpdate } from '../shared/design-validation'
-import type { DesignSettings } from '../shared/design-constants'
+import {
+  type DesignSettings,
+  DEFAULT_SECTION_ORDER,
+  DEFAULT_BACKGROUND_FEATURES,
+} from '../shared/design-constants'
 import { Keys } from '../shared/keys'
 import { getWeddingById, requireAdminAccessibleWedding } from '../shared/wedding-middleware'
 import { isValidWeddingId } from '../shared/validation'
@@ -94,10 +98,11 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
       ...Keys.settings(weddingId, 'DESIGN'),
       layoutId: validation.data.layoutId,
       animationSpeed: validation.data.animationSpeed ?? 'normal',
-      sections: validation.data.sections,
+      sections: validation.data.sections ?? DEFAULT_SECTION_ORDER,
       invitationCard: validation.data.invitationCard,
       pageSlideshow: validation.data.pageSlideshow,
       storybook: validation.data.storybook,
+      backgroundFeatures: validation.data.backgroundFeatures ?? DEFAULT_BACKGROUND_FEATURES,
       updatedAt: now,
       updatedBy: authResult.user.username,
     }
@@ -116,6 +121,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
       invitationCard: designItem.invitationCard,
       pageSlideshow: designItem.pageSlideshow,
       storybook: designItem.storybook,
+      backgroundFeatures: designItem.backgroundFeatures,
       updatedAt: designItem.updatedAt,
       updatedBy: designItem.updatedBy,
     }

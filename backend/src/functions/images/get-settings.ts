@@ -20,7 +20,6 @@ import { isValidWeddingId } from '../shared/validation'
 import {
   DEFAULT_MAX_FILE_SIZE,
   DEFAULT_MAX_IMAGES,
-  DEFAULT_SHOW_GALLERY,
   ALLOWED_MIME_TYPES,
 } from '../shared/image-constants'
 
@@ -82,11 +81,11 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
       })
     )
 
+    // Visibility is now controlled by Design Tab's section settings
     const settings = {
       maxFileSize: (result.Item?.maxFileSize as number) ?? DEFAULT_MAX_FILE_SIZE,
       maxImages: (result.Item?.maxImages as number) ?? DEFAULT_MAX_IMAGES,
       allowedFormats: (result.Item?.allowedFormats as string[]) ?? [...ALLOWED_MIME_TYPES],
-      showGallery: (result.Item?.showGallery as boolean) ?? DEFAULT_SHOW_GALLERY,
       updatedAt: result.Item?.updatedAt as string | undefined,
       updatedBy: result.Item?.updatedBy as string | undefined,
     }

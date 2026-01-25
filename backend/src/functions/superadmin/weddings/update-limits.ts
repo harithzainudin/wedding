@@ -18,7 +18,6 @@ import { Resource } from 'sst'
 import {
   DEFAULT_MAX_FILE_SIZE,
   DEFAULT_MAX_IMAGES,
-  DEFAULT_SHOW_GALLERY,
   ALLOWED_MIME_TYPES,
 } from '../../shared/image-constants'
 import { GIFT_LIMITS } from '../../shared/gift-validation'
@@ -188,6 +187,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
         })
       )
 
+      // Visibility is now controlled by Design Tab's section settings
       const newGallerySettings = {
         ...galleryKey,
         maxFileSize:
@@ -197,7 +197,6 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
         maxImages:
           validation.data.gallery.maxImages ?? currentGallery.Item?.maxImages ?? DEFAULT_MAX_IMAGES,
         allowedFormats: currentGallery.Item?.allowedFormats ?? [...ALLOWED_MIME_TYPES],
-        showGallery: currentGallery.Item?.showGallery ?? DEFAULT_SHOW_GALLERY,
         updatedAt: now,
         updatedBy: username,
       }

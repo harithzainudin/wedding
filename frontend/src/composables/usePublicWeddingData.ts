@@ -387,11 +387,10 @@ export function usePublicWeddingData() {
     return DEFAULT_PARENTS_VISIBILITY
   }
 
-  // RSVP settings - whether to show RSVP section and if accepting
+  // RSVP settings - visibility is now controlled by Design Tab's section settings
+  // This always returns true; actual visibility is determined by designSettings.sections
   const showRsvpSection = (): boolean => {
-    // Default to true if settings not loaded yet
-    if (!rsvpSettingsData.value) return true
-    return rsvpSettingsData.value.settings.showRsvp
+    return true
   }
 
   const isAcceptingRsvps = (): boolean => {

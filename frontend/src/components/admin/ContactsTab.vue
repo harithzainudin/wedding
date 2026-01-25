@@ -10,7 +10,6 @@
   import ItemActions from './ItemActions.vue'
   import MultilingualInput from './MultilingualInput.vue'
   import BaseFormModal from './BaseFormModal.vue'
-  import SectionVisibilityToggle from './SectionVisibilityToggle.vue'
   import type { ContactPerson, MultilingualText } from '@/types/contacts'
 
   const emit = defineEmits<{
@@ -37,23 +36,8 @@
     saveSuccess,
     fetchContactsAdmin,
     updateContacts,
-    updateContactsSettings,
     generateId,
   } = useContacts()
-
-  // Show/hide toggle state (auto-saves on change)
-  const showContacts = computed(() => contacts.value.settings?.showContacts ?? true)
-  const isTogglingVisibility = ref(false)
-
-  // Handle toggle with auto-save
-  const handleToggleVisibility = async (value: boolean) => {
-    isTogglingVisibility.value = true
-    try {
-      await updateContactsSettings({ showContacts: value }, weddingId.value ?? undefined)
-    } finally {
-      isTogglingVisibility.value = false
-    }
-  }
 
   const {
     localItems: localContacts,
@@ -225,16 +209,6 @@
         {{ adminT.contacts.addContact }}
       </button>
     </div>
-
-    <!-- Show/Hide Contacts Toggle -->
-    <SectionVisibilityToggle
-      :model-value="showContacts"
-      :loading="isTogglingVisibility"
-      :disabled="isLoading"
-      :label="adminT.contacts.showContactsSection"
-      :description="adminT.contacts.showContactsDesc"
-      @update:model-value="handleToggleVisibility"
-    />
 
     <div v-if="isLoading" class="text-center py-12">
       <div

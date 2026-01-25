@@ -18,12 +18,7 @@ import { validateSettingsUpdate } from '../shared/image-validation'
 import { Keys } from '../shared/keys'
 import { getWeddingById, requireAdminAccessibleWedding } from '../shared/wedding-middleware'
 import { isValidWeddingId } from '../shared/validation'
-import {
-  DEFAULT_MAX_FILE_SIZE,
-  DEFAULT_MAX_IMAGES,
-  DEFAULT_SHOW_GALLERY,
-  ALLOWED_MIME_TYPES,
-} from '../shared/image-constants'
+import { DEFAULT_MAX_FILE_SIZE, DEFAULT_MAX_IMAGES, ALLOWED_MIME_TYPES } from '../shared/image-constants'
 
 const dynamoClient = new DynamoDBClient({})
 const docClient = DynamoDBDocumentClient.from(dynamoClient, {
@@ -111,8 +106,8 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
     // ============================================
     const now = new Date().toISOString()
 
-    // Non-super admins can only update showGallery (visibility toggle)
     // Limit settings (maxFileSize, maxImages) are managed by super admin
+    // Visibility is now controlled by Design Tab
     const newSettings = {
       ...settingsKey,
       maxFileSize: isSuperAdmin
@@ -122,8 +117,6 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
         ? (validation.data.maxImages ?? currentResult.Item?.maxImages ?? DEFAULT_MAX_IMAGES)
         : ((currentResult.Item?.maxImages as number | undefined) ?? DEFAULT_MAX_IMAGES),
       allowedFormats: currentResult.Item?.allowedFormats ?? [...ALLOWED_MIME_TYPES],
-      showGallery:
-        validation.data.showGallery ?? currentResult.Item?.showGallery ?? DEFAULT_SHOW_GALLERY,
       updatedAt: now,
       updatedBy: authResult.user.username,
     }
@@ -141,7 +134,6 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
         maxFileSize: newSettings.maxFileSize,
         maxImages: newSettings.maxImages,
         allowedFormats: newSettings.allowedFormats,
-        showGallery: newSettings.showGallery,
         updatedAt: newSettings.updatedAt,
         updatedBy: newSettings.updatedBy,
       },

@@ -1,7 +1,8 @@
 /**
  * Update Schedule Settings Endpoint (Admin)
  *
- * Updates schedule settings (showSchedule toggle) for a specific wedding.
+ * Updates schedule settings for a specific wedding.
+ * Note: Visibility is now controlled by Design Tab's section settings.
  * Route: PUT /admin/w/{weddingId}/schedule/settings
  *
  * SECURITY: Requires wedding access authorization
@@ -25,37 +26,6 @@ const docClient = DynamoDBDocumentClient.from(dynamoClient, {
     removeUndefinedValues: true,
   },
 })
-
-interface ScheduleSettingsUpdateRequest {
-  showSchedule?: boolean
-}
-
-function validateSettingsUpdate(
-  input: unknown
-): { valid: true; data: ScheduleSettingsUpdateRequest } | { valid: false; error: string } {
-  if (typeof input !== 'object' || input === null) {
-    return { valid: false, error: 'Invalid request body' }
-  }
-
-  const body = input as Record<string, unknown>
-
-  // At least one setting must be provided
-  if (body.showSchedule === undefined) {
-    return { valid: false, error: 'At least one setting (showSchedule) must be provided' }
-  }
-
-  // Validate showSchedule if provided
-  if (body.showSchedule !== undefined && typeof body.showSchedule !== 'boolean') {
-    return { valid: false, error: 'showSchedule must be a boolean' }
-  }
-
-  return {
-    valid: true,
-    data: {
-      showSchedule: body.showSchedule as boolean | undefined,
-    },
-  }
-}
 
 export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
   // ============================================
@@ -96,27 +66,10 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
   }
 
   // ============================================
-  // 4. Validate Request Body
+  // 4. Get existing schedule data and update metadata
   // ============================================
-  if (!event.body) {
-    return createErrorResponse(400, 'Missing request body', context, 'MISSING_BODY')
-  }
-
-  let body: unknown
-  try {
-    body = JSON.parse(event.body)
-  } catch {
-    return createErrorResponse(400, 'Invalid JSON body', context, 'INVALID_JSON')
-  }
-
-  const validation = validateSettingsUpdate(body)
-  if (!validation.valid) {
-    return createErrorResponse(400, validation.error, context, 'VALIDATION_ERROR')
-  }
-
-  // ============================================
-  // 5. Get existing schedule data and merge settings
-  // ============================================
+  // Note: Schedule visibility is now controlled by Design Tab.
+  // This endpoint is kept for backward compatibility and future schedule-specific settings.
   try {
     const settingsKey = Keys.settings(weddingId, 'SCHEDULE')
 
@@ -129,19 +82,13 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
     )
 
     const existingData = existingResult.Item || {}
-    const existingSettings: ScheduleSettings = existingData.settings || DEFAULT_SCHEDULE_SETTINGS
 
-    // Merge new settings
-    const updatedSettings: ScheduleSettings = {
-      showSchedule:
-        validation.data.showSchedule !== undefined
-          ? validation.data.showSchedule
-          : existingSettings.showSchedule,
-    }
+    // Settings is empty for now (visibility moved to Design Tab)
+    const updatedSettings: ScheduleSettings = DEFAULT_SCHEDULE_SETTINGS
 
     const now = new Date().toISOString()
 
-    // Update with merged settings
+    // Update with settings and metadata
     const scheduleItem = {
       ...settingsKey,
       items: existingData.items || [],

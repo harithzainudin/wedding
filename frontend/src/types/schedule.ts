@@ -14,13 +14,12 @@ export interface ScheduleItem {
   order: number
 }
 
+// Schedule settings - visibility is now controlled by Design Tab
 export interface ScheduleSettings {
-  showSchedule: boolean
+  // Empty for now, reserved for future schedule-specific settings
 }
 
-export const DEFAULT_SCHEDULE_SETTINGS: ScheduleSettings = {
-  showSchedule: true,
-}
+export const DEFAULT_SCHEDULE_SETTINGS: ScheduleSettings = {}
 
 export interface ScheduleData {
   items: ScheduleItem[]

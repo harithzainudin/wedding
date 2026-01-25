@@ -8,7 +8,6 @@
   import type { GiftItem, GiftCategory, GiftPriority } from '@/types/gift'
   import DeleteConfirmModal from './DeleteConfirmModal.vue'
   import UploadProgressBar from './UploadProgressBar.vue'
-  import SectionVisibilityToggle from './SectionVisibilityToggle.vue'
   import DefaultGiftBrowser from './DefaultGiftBrowser.vue'
 
   const { adminT, currentAdminLanguage } = useAdminLanguage()
@@ -29,7 +28,6 @@
     isUpdating,
     isDeleting,
     isBulkDeleting,
-    isTogglingEnabled,
     activeUploads,
     canAddMore,
     summary,
@@ -42,7 +40,6 @@
     reorderGiftItems,
     uploadGiftImage,
     cancelUpload,
-    toggleEnabled,
     // Selection mode
     isSelectionMode,
     selectedGiftIds,
@@ -446,11 +443,6 @@
     dropTargetId.value = null
   }
 
-  // Settings handlers
-  const handleToggleEnabled = async (_value: boolean) => {
-    await toggleEnabled(weddingId.value ?? undefined)
-  }
-
   // View reservations
   const handleViewReservations = async () => {
     viewMode.value = 'reservations'
@@ -786,16 +778,6 @@
         </button>
       </div>
     </div>
-
-    <!-- Enable/Disable Toggle -->
-    <SectionVisibilityToggle
-      :model-value="settings.enabled"
-      :loading="isTogglingEnabled"
-      :disabled="isLoading"
-      :label="adminT.gifts.showGiftsSection"
-      :description="adminT.gifts.showGiftsDesc"
-      @update:model-value="handleToggleEnabled"
-    />
 
     <!-- Selection Toolbar -->
     <div

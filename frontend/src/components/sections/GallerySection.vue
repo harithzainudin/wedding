@@ -15,7 +15,6 @@
   const MAX_VISIBLE_PHOTOS = 6
 
   const photos = ref<Photo[]>([])
-  const showGallery = ref(true)
   const isLoadingPhotos = ref(true)
   const selectedIndex = ref<number | null>(null)
   const slideDirection = ref<'left' | 'right'>('left')
@@ -27,8 +26,6 @@
   const fetchPublicGallery = async (): Promise<void> => {
     try {
       const data = await listGalleryImagesCached(currentWeddingSlug.value ?? undefined)
-      // showGallery can be at data.showGallery (public) or data.settings?.showGallery (admin)
-      showGallery.value = data.showGallery ?? data.settings?.showGallery ?? true
       if (data.images?.length > 0) {
         photos.value = data.images.map((img) => ({
           src: img.url,
@@ -185,7 +182,6 @@
 
 <template>
   <section
-    v-if="showGallery"
     class="py-12 sm:py-16 px-4 sm:px-6 bg-sand dark:bg-dark-bg transition-colors duration-300"
   >
     <div class="max-w-4xl mx-auto">

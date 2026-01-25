@@ -17,7 +17,6 @@
   import { useAdminLanguage } from '@/composables/useAdminLanguage'
   import { useLoadingOverlay } from '@/composables/useLoadingOverlay'
   import { getStoredPrimaryWeddingId } from '@/services/tokenManager'
-  import SectionVisibilityToggle from './SectionVisibilityToggle.vue'
 
   const emit = defineEmits<{
     'dirty-state-change': [
@@ -53,22 +52,6 @@
   const formData = ref<QRCodeHubSettings>({ ...DEFAULT_QRCODE_HUB_SETTINGS })
   const saveSuccess = ref(false)
   const expandedSection = ref<string | null>(null)
-
-  // Show/hide toggle state (auto-saves on change)
-  const hubEnabled = computed(() => settings.value.hubEnabled)
-  const isTogglingVisibility = ref(false)
-
-  // Handle visibility toggle with auto-save
-  const handleToggleVisibility = async (value: boolean) => {
-    isTogglingVisibility.value = true
-    try {
-      await saveSettings({ hubEnabled: value }, weddingId.value ?? undefined)
-      // Re-initialize form to fully sync with updated settings
-      initializeForm()
-    } finally {
-      isTogglingVisibility.value = false
-    }
-  }
 
   // File input ref
   const fileInputRef = ref<HTMLInputElement | null>(null)
@@ -132,14 +115,9 @@
     })
   )
 
-  // Check if there are unsaved changes (excluding hubEnabled which auto-saves)
+  // Check if there are unsaved changes
   const hasChanges = computed(() => {
-    const formCopy = { ...formData.value }
-    const settingsCopy = { ...settings.value }
-    // Exclude hubEnabled from comparison since it auto-saves
-    delete (formCopy as Partial<QRCodeHubSettings>).hubEnabled
-    delete (settingsCopy as Partial<QRCodeHubSettings>).hubEnabled
-    return JSON.stringify(formCopy) !== JSON.stringify(settingsCopy)
+    return JSON.stringify(formData.value) !== JSON.stringify(settings.value)
   })
 
   // Helper to check if a QR type is enabled
@@ -206,16 +184,6 @@
     { deep: true }
   )
 
-  // Auto-close expanded sections when hub is disabled
-  watch(
-    () => formData.value.hubEnabled,
-    (enabled) => {
-      if (!enabled) {
-        expandedSection.value = null
-      }
-    }
-  )
-
   // Toggle section expansion
   const toggleSection = (section: string) => {
     expandedSection.value = expandedSection.value === section ? null : section
@@ -275,7 +243,6 @@
     saveSuccess.value = false
 
     const updateData: QRCodeHubUpdateRequest = {
-      hubEnabled: formData.value.hubEnabled,
       website: formData.value.website,
       restuDigital: formData.value.restuDigital,
       location: formData.value.location,
@@ -314,7 +281,6 @@
   // Save function for external callers (returns result)
   const saveForEmit = async (): Promise<{ success: boolean; error?: string }> => {
     const updateData: QRCodeHubUpdateRequest = {
-      hubEnabled: formData.value.hubEnabled,
       website: formData.value.website,
       restuDigital: formData.value.restuDigital,
       location: formData.value.location,
@@ -363,30 +329,6 @@
       </p>
     </div>
 
-    <!-- Show/Hide QR Hub Toggle -->
-    <SectionVisibilityToggle
-      :model-value="hubEnabled"
-      :loading="isTogglingVisibility"
-      :disabled="isLoading"
-      :label="adminT.qrHub.showQrHubSection"
-      :description="adminT.qrHub.showQrHubDesc"
-      @update:model-value="handleToggleVisibility"
-    />
-
-    <!-- Hub Disabled Info Banner (always rendered, uses opacity for smooth transition) -->
-    <div
-      class="rounded-lg border border-amber-200 bg-amber-50 dark:bg-amber-900/20 dark:border-amber-700 p-3 transition-opacity duration-200"
-      :class="
-        !hubEnabled && !isLoading && !loadError
-          ? 'opacity-100'
-          : 'opacity-0 h-0 p-0 overflow-hidden'
-      "
-    >
-      <p class="font-body text-sm text-amber-700 dark:text-amber-300">
-        ℹ️ {{ adminT.qrHub.hubDisabledInfo }}
-      </p>
-    </div>
-
     <!-- Loading State -->
     <div v-if="isLoading" class="py-8 text-center">
       <div
@@ -410,12 +352,10 @@
         <div
           v-for="type in formData.displayOrder"
           :key="type"
-          class="rounded-lg border bg-white p-4 shadow-sm transition-all"
+          class="rounded-lg border bg-white p-4 shadow-sm transition-all hover:shadow-md"
           :class="{
-            'border-green-300 bg-green-50': hubEnabled && isTypeEnabled(type),
-            'border-gray-200': !hubEnabled || !isTypeEnabled(type),
-            'opacity-50': !hubEnabled,
-            'hover:shadow-md': hubEnabled,
+            'border-green-300 bg-green-50': isTypeEnabled(type),
+            'border-gray-200': !isTypeEnabled(type),
           }"
         >
           <div class="flex items-start justify-between">
@@ -432,16 +372,12 @@
             </div>
 
             <!-- Toggle -->
-            <label
-              class="flex items-center"
-              :class="hubEnabled ? 'cursor-pointer' : 'cursor-not-allowed pointer-events-none'"
-            >
+            <label class="flex items-center cursor-pointer">
               <input
                 type="checkbox"
                 class="sr-only"
                 :checked="isTypeEnabled(type)"
-                :disabled="!hubEnabled"
-                @change="hubEnabled && toggleQRCode(type)"
+                @change="toggleQRCode(type)"
               />
               <div
                 class="relative h-5 w-9 rounded-full transition-colors"
@@ -477,14 +413,8 @@
           <!-- Configure button for complex types -->
           <button
             v-if="type === 'restuDigital' || type === 'wifi' || type === 'location'"
-            class="mt-3 w-full rounded px-3 py-1.5 font-body text-xs transition-colors"
-            :class="
-              hubEnabled
-                ? 'bg-gray-100 text-gray-600 hover:bg-gray-200 cursor-pointer'
-                : 'bg-gray-100 text-gray-400 cursor-not-allowed'
-            "
-            :disabled="!hubEnabled"
-            @click="hubEnabled && toggleSection(type)"
+            class="mt-3 w-full rounded px-3 py-1.5 font-body text-xs transition-colors bg-gray-100 text-gray-600 hover:bg-gray-200 cursor-pointer"
+            @click="toggleSection(type)"
           >
             {{ expandedSection === type ? adminT.qrHub.close : adminT.qrHub.configure }}
           </button>

@@ -1,14 +1,12 @@
 <script setup lang="ts">
-  import { computed, defineAsyncComponent } from 'vue'
+  import { computed } from 'vue'
   import type { DesignSettings, SectionConfig } from '@/types/design'
   import { DEFAULT_DESIGN_SETTINGS } from '@/types/design'
-
-  // Lazy load layout components
-  const ClassicScrollLayout = defineAsyncComponent(() => import('./ClassicScrollLayout.vue'))
-  const InvitationCardLayout = defineAsyncComponent(() => import('./InvitationCardLayout.vue'))
-  const PageSlideshowLayout = defineAsyncComponent(() => import('./PageSlideshowLayout.vue'))
-  const StorybookLayout = defineAsyncComponent(() => import('./StorybookLayout.vue'))
-  const ElegantRevealLayout = defineAsyncComponent(() => import('./ElegantRevealLayout.vue'))
+  import ClassicScrollLayout from './ClassicScrollLayout.vue'
+  import InvitationCardLayout from './InvitationCardLayout.vue'
+  import PageSlideshowLayout from './PageSlideshowLayout.vue'
+  import StorybookLayout from './StorybookLayout.vue'
+  import ElegantRevealLayout from './ElegantRevealLayout.vue'
 
   const props = withDefaults(
     defineProps<{
@@ -44,26 +42,12 @@
 </script>
 
 <template>
-  <Suspense>
-    <template #default>
-      <component
-        :is="currentLayout"
-        :design-settings="designSettings"
-        :visible-sections="visibleSections"
-        :show-rsvp-section="showRsvpSection"
-        :is-accepting-rsvps="isAcceptingRsvps"
-        v-bind="rsvpDeadline ? { rsvpDeadline } : {}"
-      />
-    </template>
-    <template #fallback>
-      <main class="min-h-screen bg-sand flex items-center justify-center">
-        <div class="text-center">
-          <div
-            class="animate-spin rounded-full h-12 w-12 border-b-2 border-sage mx-auto mb-4"
-          ></div>
-          <p class="font-body text-charcoal-light">Loading...</p>
-        </div>
-      </main>
-    </template>
-  </Suspense>
+  <component
+    :is="currentLayout"
+    :design-settings="designSettings"
+    :visible-sections="visibleSections"
+    :show-rsvp-section="showRsvpSection"
+    :is-accepting-rsvps="isAcceptingRsvps"
+    v-bind="rsvpDeadline ? { rsvpDeadline } : {}"
+  />
 </template>

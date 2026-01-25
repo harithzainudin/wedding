@@ -16,6 +16,15 @@ export type LayoutId =
 // Animation speed options
 export type AnimationSpeed = 'none' | 'subtle' | 'normal' | 'dramatic'
 
+// Background feature identifiers (not layout sections)
+export type BackgroundFeatureId = 'music'
+
+// Background feature configuration
+export interface BackgroundFeatureConfig {
+  id: BackgroundFeatureId
+  enabled: boolean
+}
+
 // Section identifiers matching existing components
 export type SectionId =
   | 'hero' // Cannot be hidden or reordered (always first)
@@ -76,6 +85,9 @@ export interface DesignSettings {
   pageSlideshow?: PageSlideshowSettings
   storybook?: StorybookSettings
 
+  // Background features (music, etc.)
+  backgroundFeatures?: BackgroundFeatureConfig[]
+
   // Metadata
   updatedAt?: string
   updatedBy?: string
@@ -89,6 +101,7 @@ export interface DesignUpdateRequest {
   invitationCard?: InvitationCardSettings
   pageSlideshow?: PageSlideshowSettings
   storybook?: StorybookSettings
+  backgroundFeatures?: BackgroundFeatureConfig[]
 }
 
 // API response type
@@ -111,11 +124,17 @@ export const DEFAULT_SECTION_ORDER: SectionConfig[] = [
   { id: 'rsvp', visible: true, order: 8 },
 ]
 
+// Default background features
+export const DEFAULT_BACKGROUND_FEATURES: BackgroundFeatureConfig[] = [
+  { id: 'music', enabled: true },
+]
+
 // Default design settings
 export const DEFAULT_DESIGN_SETTINGS: DesignSettings = {
   layoutId: 'classic-scroll',
   animationSpeed: 'normal',
-  sections: DEFAULT_SECTION_ORDER,
+  sections: [...DEFAULT_SECTION_ORDER],
+  backgroundFeatures: [...DEFAULT_BACKGROUND_FEATURES],
 }
 
 // Layout definitions for admin UI

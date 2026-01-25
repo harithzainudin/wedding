@@ -14,7 +14,6 @@
   const { t, currentLanguage } = useLanguage()
   const {
     gifts,
-    isEnabled,
     isLoading,
     loadError,
     isReserving,
@@ -126,8 +125,8 @@
 </script>
 
 <template>
+  <!-- Section visibility is controlled by Design Tab -->
   <section
-    v-if="isEnabled"
     id="wishlist"
     class="py-12 sm:py-16 px-4 sm:px-6 bg-sand dark:bg-dark-bg transition-colors duration-300"
   >

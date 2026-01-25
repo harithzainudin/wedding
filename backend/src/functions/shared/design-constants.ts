@@ -53,6 +53,15 @@ export interface StorybookSettings {
   showPageNumbers: boolean
 }
 
+// Background feature identifiers (not layout sections)
+export type BackgroundFeatureId = 'music'
+
+// Background feature configuration
+export interface BackgroundFeatureConfig {
+  id: BackgroundFeatureId
+  enabled: boolean
+}
+
 // Design settings stored in database
 export interface DesignSettings {
   layoutId: LayoutId
@@ -61,6 +70,7 @@ export interface DesignSettings {
   invitationCard?: InvitationCardSettings
   pageSlideshow?: PageSlideshowSettings
   storybook?: StorybookSettings
+  backgroundFeatures?: BackgroundFeatureConfig[]
   updatedAt?: string
   updatedBy?: string
 }
@@ -73,6 +83,7 @@ export interface DesignUpdateRequest {
   invitationCard?: InvitationCardSettings
   pageSlideshow?: PageSlideshowSettings
   storybook?: StorybookSettings
+  backgroundFeatures?: BackgroundFeatureConfig[]
 }
 
 // Valid layout IDs
@@ -100,6 +111,9 @@ export const VALID_SECTION_IDS: SectionId[] = [
   'rsvp',
 ]
 
+// Valid background feature IDs
+export const VALID_BACKGROUND_FEATURE_IDS: BackgroundFeatureId[] = ['music']
+
 // Default section order (matches current HomeView order)
 export const DEFAULT_SECTION_ORDER: SectionConfig[] = [
   { id: 'hero', visible: true, order: 0 },
@@ -113,11 +127,17 @@ export const DEFAULT_SECTION_ORDER: SectionConfig[] = [
   { id: 'rsvp', visible: true, order: 8 },
 ]
 
+// Default background features
+export const DEFAULT_BACKGROUND_FEATURES: BackgroundFeatureConfig[] = [
+  { id: 'music', enabled: true },
+]
+
 // Default design settings
 export const DEFAULT_DESIGN_SETTINGS: DesignSettings = {
   layoutId: 'classic-scroll',
   animationSpeed: 'normal',
   sections: DEFAULT_SECTION_ORDER,
+  backgroundFeatures: DEFAULT_BACKGROUND_FEATURES,
 }
 
 // Default invitation card settings
@@ -151,4 +171,10 @@ export function isValidAnimationSpeed(value: unknown): value is AnimationSpeed {
 
 export function isValidSectionId(value: unknown): value is SectionId {
   return typeof value === 'string' && VALID_SECTION_IDS.includes(value as SectionId)
+}
+
+export function isValidBackgroundFeatureId(value: unknown): value is BackgroundFeatureId {
+  return (
+    typeof value === 'string' && VALID_BACKGROUND_FEATURE_IDS.includes(value as BackgroundFeatureId)
+  )
 }

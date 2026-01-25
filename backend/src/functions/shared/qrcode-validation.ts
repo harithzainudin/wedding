@@ -70,9 +70,8 @@ export interface SimpleQRConfig {
   enabled: boolean
 }
 
-// Main QR Code Hub Settings
+// Main QR Code Hub Settings - visibility is now controlled by Design Tab
 export interface QRCodeHubSettings {
-  hubEnabled: boolean
   website: SimpleQRConfig
   restuDigital: RestuDigitalConfig
   location: LocationQRConfig
@@ -89,10 +88,8 @@ export interface QRCodeHubSettings {
 export const DEFAULT_RESTU_TAGLINE = 'Restu anda, walau dalam apa bentuk, amat bermakna'
 
 // Default QR Code Hub settings
-// hubEnabled: true so admins see the section by default
 // All QR types disabled: admin must configure which ones to enable
 export const DEFAULT_QRCODE_HUB_SETTINGS: QRCodeHubSettings = {
-  hubEnabled: true,
   website: { enabled: false },
   restuDigital: {
     enabled: false,
@@ -118,7 +115,6 @@ export const DEFAULT_QRCODE_HUB_SETTINGS: QRCodeHubSettings = {
 
 // Input type for updating settings
 export interface QRCodeHubUpdateInput {
-  hubEnabled?: boolean
   website?: { enabled?: boolean }
   restuDigital?: Partial<RestuDigitalConfig>
   location?: Partial<LocationQRConfig>
@@ -420,14 +416,6 @@ export function validateQRCodeHubUpdate(
   const body = input as Record<string, unknown>
   const data: QRCodeHubUpdateInput = {}
 
-  // Validate hubEnabled
-  if (body.hubEnabled !== undefined) {
-    if (typeof body.hubEnabled !== 'boolean') {
-      return { valid: false, error: 'hubEnabled must be a boolean' }
-    }
-    data.hubEnabled = body.hubEnabled
-  }
-
   // Validate website config
   if (body.website !== undefined) {
     const result = validateSimpleConfig(body.website, 'Website')
@@ -509,7 +497,6 @@ export function mergeQRCodeHubSettings(
   update: QRCodeHubUpdateInput
 ): QRCodeHubSettings {
   return {
-    hubEnabled: update.hubEnabled ?? existing.hubEnabled,
     website: {
       enabled: update.website?.enabled ?? existing.website.enabled,
     },

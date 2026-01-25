@@ -59,9 +59,8 @@ export interface SimpleQRConfig {
   enabled: boolean
 }
 
-// Main QR Code Hub Settings
+// Main QR Code Hub Settings - visibility is now controlled by Design Tab
 export interface QRCodeHubSettings {
-  hubEnabled: boolean
   website: SimpleQRConfig
   restuDigital: RestuDigitalConfig
   location: LocationQRConfig
@@ -75,10 +74,8 @@ export interface QRCodeHubSettings {
 }
 
 // Default QR Code Hub settings
-// hubEnabled: true so admins see the section by default
 // All QR types disabled: admin must configure which ones to enable
 export const DEFAULT_QRCODE_HUB_SETTINGS: QRCodeHubSettings = {
-  hubEnabled: true,
   website: { enabled: false },
   restuDigital: {
     enabled: false,
@@ -104,7 +101,6 @@ export const DEFAULT_QRCODE_HUB_SETTINGS: QRCodeHubSettings = {
 
 // Input type for updating settings
 export interface QRCodeHubUpdateRequest {
-  hubEnabled?: boolean
   website?: { enabled?: boolean }
   restuDigital?: Partial<RestuDigitalConfig>
   location?: Partial<LocationQRConfig>

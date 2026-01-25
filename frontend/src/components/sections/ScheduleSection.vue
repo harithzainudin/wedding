@@ -12,11 +12,9 @@
     selector: '.schedule-item',
   })
 
-  const { getScheduleMultilingual, isLoadingSchedule, scheduleData } = usePublicWeddingData()
+  const { getScheduleMultilingual, isLoadingSchedule } = usePublicWeddingData()
 
-  // Check if schedule section should be shown (default to true)
-  const showSchedule = computed(() => scheduleData.value?.settings?.showSchedule ?? true)
-
+  // Visibility is now controlled by Design Tab's section settings
   // Re-observe elements when loading completes (elements are now in DOM)
   watch(isLoadingSchedule, (loading) => {
     if (!loading) {
@@ -44,8 +42,8 @@
 </script>
 
 <template>
+  <!-- Visibility is controlled by Design Tab's section settings -->
   <section
-    v-if="showSchedule"
     class="py-12 sm:py-16 px-4 sm:px-6 bg-white dark:bg-dark-bg-secondary transition-colors duration-300"
   >
     <div class="max-w-xl mx-auto">

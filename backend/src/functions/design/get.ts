@@ -67,6 +67,8 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
       invitationCard: result.Item.invitationCard,
       pageSlideshow: result.Item.pageSlideshow,
       storybook: result.Item.storybook,
+      backgroundFeatures:
+        result.Item.backgroundFeatures ?? DEFAULT_DESIGN_SETTINGS.backgroundFeatures,
       updatedAt: result.Item.updatedAt,
       updatedBy: result.Item.updatedBy,
     }

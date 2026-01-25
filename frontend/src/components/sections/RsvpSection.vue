@@ -5,14 +5,14 @@
   import { submitRsvp } from '@/services/api'
   import { useLanguage } from '@/composables/useLanguage'
 
+  // Visibility is now controlled by Design Tab's section settings
+  // This component only checks isAcceptingRsvps (functional toggle)
   const props = withDefaults(
     defineProps<{
-      showRsvp?: boolean
       isAcceptingRsvps?: boolean
       rsvpDeadline?: string
     }>(),
     {
-      showRsvp: true,
       isAcceptingRsvps: true,
     }
   )
@@ -91,8 +91,8 @@
         {{ t.rsvp.subtitle }}
       </p>
 
-      <!-- RSVP Closed Message -->
-      <div v-if="!showRsvp || !isAcceptingRsvps" class="text-center p-6 sm:p-8">
+      <!-- RSVP Closed Message (only checks functional isAcceptingRsvps toggle) -->
+      <div v-if="!isAcceptingRsvps" class="text-center p-6 sm:p-8">
         <div
           class="w-14 h-14 sm:w-16 sm:h-16 mx-auto mb-3 sm:mb-4 flex items-center justify-center text-2xl sm:text-3xl text-charcoal-light dark:text-dark-text-secondary bg-sand dark:bg-dark-bg-elevated rounded-full"
         >

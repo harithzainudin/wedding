@@ -10,7 +10,6 @@
   import ItemActions from './ItemActions.vue'
   import MultilingualInput from './MultilingualInput.vue'
   import BaseFormModal from './BaseFormModal.vue'
-  import SectionVisibilityToggle from './SectionVisibilityToggle.vue'
   import type { ScheduleItem, MultilingualText } from '@/types/schedule'
 
   const emit = defineEmits<{
@@ -37,23 +36,8 @@
     saveSuccess,
     fetchScheduleAdmin,
     updateSchedule,
-    updateScheduleSettings,
     generateId,
   } = useSchedule()
-
-  // Show/hide toggle state (auto-saves on change)
-  const showSchedule = computed(() => schedule.value.settings?.showSchedule ?? true)
-  const isTogglingVisibility = ref(false)
-
-  // Handle toggle with auto-save
-  const handleToggleVisibility = async (value: boolean) => {
-    isTogglingVisibility.value = true
-    try {
-      await updateScheduleSettings({ showSchedule: value }, weddingId.value ?? undefined)
-    } finally {
-      isTogglingVisibility.value = false
-    }
-  }
 
   // Clear all state
   const showClearAllModal = ref(false)
@@ -256,16 +240,6 @@
         </button>
       </div>
     </div>
-
-    <!-- Show/Hide Schedule Toggle -->
-    <SectionVisibilityToggle
-      :model-value="showSchedule"
-      :loading="isTogglingVisibility"
-      :disabled="isLoading"
-      :label="adminT.schedule.showScheduleSection"
-      :description="adminT.schedule.showScheduleDesc"
-      @update:model-value="handleToggleVisibility"
-    />
 
     <div v-if="isLoading" class="text-center py-12">
       <div

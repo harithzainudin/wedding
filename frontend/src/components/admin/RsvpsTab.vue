@@ -9,7 +9,6 @@
   import type { RsvpSubmission, AdminRsvpRequest } from '@/types/rsvp'
   import RsvpFormModal from './RsvpFormModal.vue'
   import ConfirmModal from './ConfirmModal.vue'
-  import SectionVisibilityToggle from './SectionVisibilityToggle.vue'
 
   const { adminT } = useAdminLanguage()
   const { withLoading } = useLoadingOverlay()
@@ -41,25 +40,6 @@
     rsvpSettings,
     updateSettings,
   } = useRsvps()
-
-  // Show/hide toggle state (auto-saves on change)
-  const showRsvp = computed(() => rsvpSettings.value.showRsvp)
-  const isTogglingVisibility = ref(false)
-
-  // Handle visibility toggle with auto-save
-  const handleToggleVisibility = async (value: boolean) => {
-    isTogglingVisibility.value = true
-    try {
-      // If disabling, also disable accepting RSVPs
-      const updates: { showRsvp: boolean; acceptingRsvps?: boolean } = { showRsvp: value }
-      if (!value) {
-        updates.acceptingRsvps = false
-      }
-      await updateSettings(updates, weddingId.value ?? undefined)
-    } finally {
-      isTogglingVisibility.value = false
-    }
-  }
 
   // Local state for other settings (saved when clicking save button in modal)
   const localAcceptingRsvps = ref(true)
@@ -279,16 +259,6 @@
         </p>
       </div>
     </div>
-
-    <!-- Show/Hide RSVP Toggle -->
-    <SectionVisibilityToggle
-      :model-value="showRsvp"
-      :loading="isTogglingVisibility"
-      :disabled="isLoading"
-      :label="adminT.rsvps.showRsvpSection"
-      :description="adminT.rsvps.showRsvpDesc"
-      @update:model-value="handleToggleVisibility"
-    />
 
     <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
       <div class="flex gap-2 flex-wrap">
@@ -640,35 +610,24 @@
             <div class="p-4 space-y-4">
               <!-- Accept RSVPs Toggle -->
               <div
-                class="flex items-center justify-between py-3 px-4 bg-sand/50 dark:bg-dark-bg rounded-lg transition-opacity"
-                :class="{ 'opacity-50': !showRsvp }"
+                class="flex items-center justify-between py-3 px-4 bg-sand/50 dark:bg-dark-bg rounded-lg"
               >
                 <div>
-                  <label
-                    class="font-body text-sm font-medium text-charcoal dark:text-dark-text"
-                    :class="{ 'text-charcoal-light dark:text-dark-text-secondary': !showRsvp }"
-                  >
+                  <label class="font-body text-sm font-medium text-charcoal dark:text-dark-text">
                     {{ adminT.rsvps.acceptRsvps }}
                   </label>
                   <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary">
-                    {{
-                      !showRsvp
-                        ? adminT.rsvps.acceptRsvpsDisabledHint
-                        : adminT.rsvps.acceptRsvpsDesc
-                    }}
+                    {{ adminT.rsvps.acceptRsvpsDesc }}
                   </p>
                 </div>
                 <button
                   type="button"
                   role="switch"
                   :aria-checked="localAcceptingRsvps"
-                  :disabled="isLoading || !showRsvp"
-                  class="relative inline-flex h-6 w-11 flex-shrink-0 rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-sage focus:ring-offset-2"
-                  :class="[
-                    localAcceptingRsvps && showRsvp ? 'bg-sage' : 'bg-gray-300 dark:bg-dark-border',
-                    !showRsvp ? 'cursor-not-allowed' : 'cursor-pointer',
-                  ]"
-                  @click="showRsvp && (localAcceptingRsvps = !localAcceptingRsvps)"
+                  :disabled="isLoading"
+                  class="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-sage focus:ring-offset-2"
+                  :class="localAcceptingRsvps ? 'bg-sage' : 'bg-gray-300 dark:bg-dark-border'"
+                  @click="localAcceptingRsvps = !localAcceptingRsvps"
                 >
                   <span
                     class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"

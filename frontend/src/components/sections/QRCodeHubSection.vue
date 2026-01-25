@@ -350,12 +350,8 @@
 </script>
 
 <template>
-  <!-- Only show if hub is enabled -->
-  <section
-    v-if="settings.hubEnabled"
-    id="qr-hub"
-    class="bg-cream px-4 py-12 dark:bg-dark-surface sm:px-6 lg:px-8"
-  >
+  <!-- Section visibility is controlled by Design Tab -->
+  <section id="qr-hub" class="bg-cream px-4 py-12 dark:bg-dark-surface sm:px-6 lg:px-8">
     <div class="mx-auto max-w-4xl">
       <!-- Section Header -->
       <div class="mb-8 text-center">

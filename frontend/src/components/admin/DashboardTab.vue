@@ -64,7 +64,6 @@
     maxFileSize: 10 * 1024 * 1024,
     maxImages: 50,
     allowedFormats: [],
-    showGallery: true,
   })
   const musicSettings = ref<MusicSettings | null>(null)
   const musicTrackCount = ref(0)
@@ -256,55 +255,31 @@
       tab: 'venue',
     })
 
-    // 3. Schedule - check enabled state and item count
-    // If disabled: mark as complete with "disabled" message
-    // If enabled: check if at least 1 schedule item is added
-    const scheduleEnabled = scheduleSettings.value?.showSchedule ?? true
-    if (!scheduleEnabled) {
-      items.push({
-        id: 'schedule',
-        label: t.schedule,
-        isComplete: true,
-        statusText: t.scheduleDisabled,
-        tab: 'schedule',
-      })
-    } else {
-      const scheduleComplete = scheduleItemCount.value >= 1
-      items.push({
-        id: 'schedule',
-        label: t.schedule,
-        isComplete: scheduleComplete,
-        statusText: scheduleComplete
-          ? interpolate(t.scheduleComplete, { count: String(scheduleItemCount.value) })
-          : t.scheduleIncomplete,
-        tab: 'schedule',
-      })
-    }
+    // 3. Schedule - check if at least 1 schedule item is added
+    // (Visibility is now controlled by Design Tab)
+    const scheduleComplete = scheduleItemCount.value >= 1
+    items.push({
+      id: 'schedule',
+      label: t.schedule,
+      isComplete: scheduleComplete,
+      statusText: scheduleComplete
+        ? interpolate(t.scheduleComplete, { count: String(scheduleItemCount.value) })
+        : t.scheduleIncomplete,
+      tab: 'schedule',
+    })
 
-    // 4. Gallery - check enabled state and photo count
-    // If disabled: mark as complete with "disabled" message
-    // If enabled: check if at least 1 photo uploaded
-    const galleryEnabled = gallerySettings.value.showGallery
-    if (!galleryEnabled) {
-      items.push({
-        id: 'gallery',
-        label: t.gallery,
-        isComplete: true,
-        statusText: t.galleryDisabled,
-        tab: 'gallery',
-      })
-    } else {
-      const galleryComplete = galleryCount.value >= 1
-      items.push({
-        id: 'gallery',
-        label: t.gallery,
-        isComplete: galleryComplete,
-        statusText: galleryComplete
-          ? interpolate(t.galleryComplete, { count: String(galleryCount.value) })
-          : t.galleryIncomplete,
-        tab: 'gallery',
-      })
-    }
+    // 4. Gallery - check if at least 1 photo uploaded
+    // (Visibility is now controlled by Design Tab)
+    const galleryComplete = galleryCount.value >= 1
+    items.push({
+      id: 'gallery',
+      label: t.gallery,
+      isComplete: galleryComplete,
+      statusText: galleryComplete
+        ? interpolate(t.galleryComplete, { count: String(galleryCount.value) })
+        : t.galleryIncomplete,
+      tab: 'gallery',
+    })
 
     // 5. Music - check enabled state and track count
     // If disabled: mark as complete with "disabled" message
@@ -366,86 +341,51 @@
       tab: 'theme',
     })
 
-    // 8. Contacts - check enabled state and contact count
-    // If disabled: mark as complete with "disabled" message
-    // If enabled: check if at least 1 contact is added
-    const contactsEnabled = contactsSettings.value?.showContacts ?? true
-    if (!contactsEnabled) {
-      items.push({
-        id: 'contacts',
-        label: t.contacts,
-        isComplete: true,
-        statusText: t.contactsDisabled,
-        tab: 'contacts',
-      })
-    } else {
-      const contactsComplete = contactsCount.value >= 1
-      items.push({
-        id: 'contacts',
-        label: t.contacts,
-        isComplete: contactsComplete,
-        statusText: contactsComplete
-          ? interpolate(t.contactsComplete, { count: String(contactsCount.value) })
-          : t.contactsIncomplete,
-        tab: 'contacts',
-      })
-    }
+    // 8. Contacts - check if at least 1 contact is added
+    // (Visibility is now controlled by Design Tab)
+    const contactsComplete = contactsCount.value >= 1
+    items.push({
+      id: 'contacts',
+      label: t.contacts,
+      isComplete: contactsComplete,
+      statusText: contactsComplete
+        ? interpolate(t.contactsComplete, { count: String(contactsCount.value) })
+        : t.contactsIncomplete,
+      tab: 'contacts',
+    })
 
-    // 9. RSVPs - check enabled state and accepting status
-    // If disabled: mark as complete with "disabled" message
+    // 9. RSVPs - check accepting status and count
+    // (Visibility is now controlled by Design Tab)
     // If closed: show count with "closed" message
     // If accepting: show count
-    const rsvpEnabled = rsvpSettings.value?.showRsvp ?? true
-    if (!rsvpEnabled) {
-      items.push({
-        id: 'rsvps',
-        label: t.rsvps,
-        isComplete: true,
-        statusText: t.rsvpsDisabled,
-        tab: 'rsvps',
-      })
-    } else {
-      const rsvpCount = rsvpStats.value.total
-      const isAccepting = rsvpSettings.value?.acceptingRsvps ?? true
-      const rsvpComplete = rsvpCount >= 1 || !isAccepting
-      items.push({
-        id: 'rsvps',
-        label: t.rsvps,
-        isComplete: rsvpComplete,
-        statusText: isAccepting
-          ? rsvpCount >= 1
-            ? interpolate(t.rsvpsComplete, { count: String(rsvpCount) })
-            : t.rsvpsIncomplete
-          : interpolate(t.rsvpsClosed, { count: String(rsvpCount) }),
-        tab: 'rsvps',
-      })
-    }
+    const rsvpCount = rsvpStats.value.total
+    const isAccepting = rsvpSettings.value?.acceptingRsvps ?? true
+    const rsvpComplete = rsvpCount >= 1 || !isAccepting
+    items.push({
+      id: 'rsvps',
+      label: t.rsvps,
+      isComplete: rsvpComplete,
+      statusText: isAccepting
+        ? rsvpCount >= 1
+          ? interpolate(t.rsvpsComplete, { count: String(rsvpCount) })
+          : t.rsvpsIncomplete
+        : interpolate(t.rsvpsClosed, { count: String(rsvpCount) }),
+      tab: 'rsvps',
+    })
 
-    // 10. QR Hub - check enabled state and QR type count
-    // If disabled: mark as complete with "disabled" message
-    // If enabled: check if at least 1 QR type enabled
-    const qrHubEnabled = qrHubSettings.value?.hubEnabled ?? true
-    if (!qrHubEnabled) {
-      items.push({
-        id: 'qrHub',
-        label: t.qrHub,
-        isComplete: true,
-        statusText: t.qrHubDisabled,
-        tab: 'qrcodehub',
-      })
-    } else {
-      const qrCount = enabledQRCodeCount.value
-      const qrComplete = qrCount >= 1
-      items.push({
-        id: 'qrHub',
-        label: t.qrHub,
-        isComplete: qrComplete,
-        statusText: qrComplete
-          ? interpolate(t.qrHubComplete, { count: String(qrCount) })
-          : t.qrHubIncomplete,
-        tab: 'qrcodehub',
-      })
-    }
+    // 10. QR Hub - check if at least 1 QR type enabled
+    // (Visibility is now controlled by Design Tab)
+    const qrCount = enabledQRCodeCount.value
+    const qrComplete = qrCount >= 1
+    items.push({
+      id: 'qrHub',
+      label: t.qrHub,
+      isComplete: qrComplete,
+      statusText: qrComplete
+        ? interpolate(t.qrHubComplete, { count: String(qrCount) })
+        : t.qrHubIncomplete,
+      tab: 'qrcodehub',
+    })
 
     return items
   })

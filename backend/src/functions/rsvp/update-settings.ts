@@ -123,12 +123,8 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
     const existingData = existingResult.Item || {}
     const existingSettings: RsvpSettings = existingData.settings || DEFAULT_RSVP_SETTINGS
 
-    // Merge new settings
+    // Merge new settings (visibility is now controlled by Design Tab)
     const updatedSettings: RsvpSettings = {
-      showRsvp:
-        validation.data.showRsvp !== undefined
-          ? validation.data.showRsvp
-          : existingSettings.showRsvp,
       acceptingRsvps:
         validation.data.acceptingRsvps !== undefined
           ? validation.data.acceptingRsvps

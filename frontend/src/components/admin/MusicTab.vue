@@ -11,7 +11,6 @@
   import MusicSettings from './MusicSettings.vue'
   import DeleteConfirmModal from './DeleteConfirmModal.vue'
   import UploadProgressBar from './UploadProgressBar.vue'
-  import SectionVisibilityToggle from './SectionVisibilityToggle.vue'
   import MusicLibraryBrowser from './MusicLibraryBrowser.vue'
 
   const { adminT } = useAdminLanguage()
@@ -43,7 +42,6 @@
   const deleteConfirmId = ref<string | null>(null)
   const isDeleting = ref(false)
   const uploadErrors = ref<{ file: string; error: string }[]>([])
-  const isTogglingVisibility = ref(false)
 
   // Handle track added from library
   const handleTrackAddedFromLibrary = (_track: MusicTrack) => {
@@ -51,16 +49,6 @@
     // The useMusic composable should have a method to add track to local state
     // For now, we'll just refetch the tracks to ensure consistency
     fetchTracksAdmin(weddingId.value ?? undefined)
-  }
-
-  // Handle visibility toggle with auto-save
-  const handleToggleVisibility = async (value: boolean) => {
-    isTogglingVisibility.value = true
-    try {
-      await saveSettings({ enabled: value }, weddingId.value ?? undefined)
-    } finally {
-      isTogglingVisibility.value = false
-    }
   }
 
   onMounted(() => {
@@ -256,16 +244,6 @@
         </button>
       </div>
     </div>
-
-    <!-- Show/Hide Music Toggle -->
-    <SectionVisibilityToggle
-      :model-value="settings.enabled"
-      :loading="isTogglingVisibility"
-      :disabled="isLoading"
-      :label="adminT.music.enableMusic"
-      :description="adminT.music.enableMusicDesc"
-      @update:model-value="handleToggleVisibility"
-    />
 
     <!-- Upload Progress Bar -->
     <UploadProgressBar

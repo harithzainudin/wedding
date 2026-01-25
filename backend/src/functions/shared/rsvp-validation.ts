@@ -1,18 +1,16 @@
 // Types and validation for RSVP settings
+// Visibility is now controlled by Design Tab
 
 export interface RsvpSettings {
-  showRsvp: boolean // Show the RSVP section on the site
   acceptingRsvps: boolean // Whether to accept new RSVPs (form is open)
   rsvpDeadline?: string // Optional ISO date string for deadline (empty = no deadline, open until event)
 }
 
 export const DEFAULT_RSVP_SETTINGS: RsvpSettings = {
-  showRsvp: true,
   acceptingRsvps: true,
 }
 
 export interface RsvpSettingsUpdateRequest {
-  showRsvp?: boolean
   acceptingRsvps?: boolean
   rsvpDeadline?: string | null // null means remove deadline
 }
@@ -27,20 +25,11 @@ export function validateRsvpSettingsUpdate(
   const body = input as Record<string, unknown>
 
   // At least one setting must be provided
-  if (
-    body.showRsvp === undefined &&
-    body.acceptingRsvps === undefined &&
-    body.rsvpDeadline === undefined
-  ) {
+  if (body.acceptingRsvps === undefined && body.rsvpDeadline === undefined) {
     return {
       valid: false,
-      error: 'At least one setting (showRsvp, acceptingRsvps, or rsvpDeadline) must be provided',
+      error: 'At least one setting (acceptingRsvps or rsvpDeadline) must be provided',
     }
-  }
-
-  // Validate showRsvp if provided
-  if (body.showRsvp !== undefined && typeof body.showRsvp !== 'boolean') {
-    return { valid: false, error: 'showRsvp must be a boolean' }
   }
 
   // Validate acceptingRsvps if provided
@@ -64,7 +53,6 @@ export function validateRsvpSettingsUpdate(
   return {
     valid: true,
     data: {
-      showRsvp: body.showRsvp as boolean | undefined,
       acceptingRsvps: body.acceptingRsvps as boolean | undefined,
       rsvpDeadline:
         body.rsvpDeadline === undefined

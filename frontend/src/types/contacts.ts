@@ -15,13 +15,12 @@ export interface ContactPerson {
   order: number
 }
 
+// Contacts settings - visibility is now controlled by Design Tab
 export interface ContactsSettings {
-  showContacts: boolean
+  // Empty for now, reserved for future contacts-specific settings
 }
 
-export const DEFAULT_CONTACTS_SETTINGS: ContactsSettings = {
-  showContacts: true,
-}
+export const DEFAULT_CONTACTS_SETTINGS: ContactsSettings = {}
 
 export interface ContactsData {
   contacts: ContactPerson[]

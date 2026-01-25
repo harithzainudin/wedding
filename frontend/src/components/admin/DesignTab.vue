@@ -9,17 +9,23 @@
     InvitationCardSettings,
     PageSlideshowSettings,
     StorybookSettings,
+    BackgroundFeatureConfig,
   } from '@/types/design'
   import {
     LAYOUT_DEFINITIONS,
-    DEFAULT_DESIGN_SETTINGS,
     DEFAULT_SECTION_ORDER,
-    SECTION_IDS,
+    DEFAULT_BACKGROUND_FEATURES,
   } from '@/types/design'
   import { useDesign } from '@/composables/useDesign'
   import { useAdminLanguage } from '@/composables/useAdminLanguage'
   import { useLoadingOverlay } from '@/composables/useLoadingOverlay'
   import { getStoredPrimaryWeddingId } from '@/services/tokenManager'
+  import {
+    listGalleryImages,
+    getScheduleAdmin,
+    listGiftsAdmin,
+    getMusicAdmin,
+  } from '@/services/api'
 
   const emit = defineEmits<{
     'dirty-state-change': [
@@ -44,10 +50,19 @@
 
   const { designSettings, isLoading, isSaving, error, loadDesign, saveDesign } = useDesign()
 
+  // Deep clone sections to avoid mutating readonly originals
+  const cloneSections = (sections: SectionConfig[]): SectionConfig[] =>
+    sections.map((s) => ({ ...s }))
+
+  // Deep clone background features
+  const cloneBackgroundFeatures = (
+    features: BackgroundFeatureConfig[]
+  ): BackgroundFeatureConfig[] => features.map((f) => ({ ...f }))
+
   // Local state
   const selectedLayoutId = ref<LayoutId>('classic-scroll')
   const selectedAnimationSpeed = ref<AnimationSpeed>('normal')
-  const localSections = ref<SectionConfig[]>([...DEFAULT_SECTION_ORDER])
+  const localSections = ref<SectionConfig[]>(cloneSections(DEFAULT_SECTION_ORDER))
   const invitationCardSettings = ref<InvitationCardSettings>({
     showCoverText: true,
     showCoverDate: true,
@@ -62,8 +77,24 @@
   const storybookSettings = ref<StorybookSettings>({
     showPageNumbers: true,
   })
+  const localBackgroundFeatures = ref<BackgroundFeatureConfig[]>(
+    cloneBackgroundFeatures(DEFAULT_BACKGROUND_FEATURES)
+  )
   const saveError = ref<string | null>(null)
   const saveSuccess = ref(false)
+
+  // Content counts for empty warnings
+  const contentCounts = ref<{
+    gallery: number
+    schedule: number
+    wishlist: number
+    music: number
+  }>({
+    gallery: -1, // -1 = not loaded yet
+    schedule: -1,
+    wishlist: -1,
+    music: -1,
+  })
 
   // Dragging state for section reordering
   const draggedIndex = ref<number | null>(null)
@@ -133,6 +164,12 @@
       if (JSON.stringify(storybookSettings.value) !== JSON.stringify(savedStorybook)) return true
     }
 
+    // Compare background features
+    const savedBackgroundFeatures = saved.backgroundFeatures ?? DEFAULT_BACKGROUND_FEATURES
+    if (JSON.stringify(localBackgroundFeatures.value) !== JSON.stringify(savedBackgroundFeatures)) {
+      return true
+    }
+
     return false
   })
 
@@ -140,7 +177,7 @@
   const syncFromSettings = (settings: DesignSettings) => {
     selectedLayoutId.value = settings.layoutId
     selectedAnimationSpeed.value = settings.animationSpeed
-    localSections.value = [...(settings.sections ?? DEFAULT_SECTION_ORDER)]
+    localSections.value = cloneSections(settings.sections ?? DEFAULT_SECTION_ORDER)
 
     if (settings.invitationCard) {
       invitationCardSettings.value = { ...settings.invitationCard }
@@ -151,6 +188,9 @@
     if (settings.storybook) {
       storybookSettings.value = { ...settings.storybook }
     }
+    localBackgroundFeatures.value = cloneBackgroundFeatures(
+      settings.backgroundFeatures ?? DEFAULT_BACKGROUND_FEATURES
+    )
   }
 
   // Initialize from saved settings
@@ -160,6 +200,9 @@
       await loadDesign(slug)
     }
     syncFromSettings(designSettings.value)
+
+    // Fetch content counts for empty warnings
+    await fetchContentCounts()
   })
 
   // Watch for wedding slug changes
@@ -249,7 +292,75 @@
 
   // Reset section order
   const resetSectionOrder = (): void => {
-    localSections.value = [...DEFAULT_SECTION_ORDER]
+    localSections.value = cloneSections(DEFAULT_SECTION_ORDER)
+  }
+
+  // Toggle background feature
+  const toggleBackgroundFeature = (featureId: string): void => {
+    const feature = localBackgroundFeatures.value.find((f) => f.id === featureId)
+    if (feature) {
+      feature.enabled = !feature.enabled
+    }
+  }
+
+  // Get background feature state
+  const isBackgroundFeatureEnabled = (featureId: string): boolean => {
+    const feature = localBackgroundFeatures.value.find((f) => f.id === featureId)
+    return feature?.enabled ?? true
+  }
+
+  // Fetch content counts for empty warnings (using admin APIs with weddingId)
+  const fetchContentCounts = async (): Promise<void> => {
+    const id = weddingId.value ?? undefined
+
+    // Fetch all counts in parallel using admin APIs
+    const [galleryResult, scheduleResult, giftsResult, musicResult] = await Promise.allSettled([
+      listGalleryImages(id),
+      getScheduleAdmin(id),
+      listGiftsAdmin(id),
+      getMusicAdmin(id),
+    ])
+
+    // Update counts (handle errors gracefully)
+    contentCounts.value.gallery =
+      galleryResult.status === 'fulfilled' ? (galleryResult.value.images?.length ?? 0) : 0
+    contentCounts.value.schedule =
+      scheduleResult.status === 'fulfilled' ? (scheduleResult.value.items?.length ?? 0) : 0
+    contentCounts.value.wishlist =
+      giftsResult.status === 'fulfilled' ? (giftsResult.value.gifts?.length ?? 0) : 0
+    contentCounts.value.music =
+      musicResult.status === 'fulfilled' ? (musicResult.value.tracks?.length ?? 0) : 0
+  }
+
+  // Get empty warning for a section
+  const getEmptyWarning = (sectionId: string): string | null => {
+    const t = adminT.value
+    switch (sectionId) {
+      case 'gallery':
+        if (contentCounts.value.gallery === 0) {
+          return t.design?.emptyGallery ?? 'No images'
+        }
+        break
+      case 'schedule':
+        if (contentCounts.value.schedule === 0) {
+          return t.design?.emptySchedule ?? 'No schedule'
+        }
+        break
+      case 'wishlist':
+        if (contentCounts.value.wishlist === 0) {
+          return t.design?.emptyWishlist ?? 'No gifts'
+        }
+        break
+    }
+    return null
+  }
+
+  // Get empty warning for music background feature
+  const getMusicEmptyWarning = (): string | null => {
+    if (contentCounts.value.music === 0) {
+      return adminT.value.design?.emptyMusic ?? 'No music'
+    }
+    return null
   }
 
   // Cancel changes
@@ -268,10 +379,12 @@
       invitationCard?: InvitationCardSettings
       pageSlideshow?: PageSlideshowSettings
       storybook?: StorybookSettings
+      backgroundFeatures?: BackgroundFeatureConfig[]
     } = {
       layoutId: selectedLayoutId.value,
       animationSpeed: selectedAnimationSpeed.value,
       sections: localSections.value,
+      backgroundFeatures: localBackgroundFeatures.value,
     }
 
     if (selectedLayoutId.value === 'invitation-card') {
@@ -345,7 +458,7 @@
   const openPreview = (): void => {
     const slug = weddingSlug.value
     if (slug) {
-      const previewUrl = `/${slug}?layout-preview=true`
+      const previewUrl = `/wedding/${slug}?layout-preview=true`
       window.open(previewUrl, '_blank')
     }
   }
@@ -624,6 +737,28 @@
               >
                 ({{ adminT.design?.alwaysFirst ?? 'always first' }})
               </span>
+              <!-- Empty content warning -->
+              <span
+                v-if="section.visible && getEmptyWarning(section.id)"
+                class="inline-flex items-center gap-1 ml-2 text-xs text-amber-600 dark:text-amber-400"
+              >
+                <svg
+                  class="w-3.5 h-3.5 flex-shrink-0"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                  />
+                </svg>
+                <span class="truncate max-w-[120px] sm:max-w-none">
+                  {{ getEmptyWarning(section.id) }}
+                </span>
+              </span>
             </span>
 
             <!-- Visibility toggle -->
@@ -668,6 +803,94 @@
                   d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"
                 />
               </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Background Features -->
+      <div>
+        <h3 class="font-body text-sm font-medium text-charcoal dark:text-dark-text mb-3">
+          {{ adminT.design?.backgroundFeatures ?? 'Background Features' }}
+        </h3>
+        <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary mb-3">
+          {{ adminT.design?.backgroundFeaturesHint ?? 'Enable or disable background features' }}
+        </p>
+        <div class="space-y-2">
+          <!-- Music Toggle -->
+          <div
+            class="flex items-center justify-between gap-3 p-3 border border-sand-dark dark:border-dark-border rounded-lg bg-white dark:bg-dark-bg-secondary"
+          >
+            <div class="flex items-center gap-3 flex-1 min-w-0">
+              <!-- Speaker Icon -->
+              <svg
+                class="w-5 h-5 flex-shrink-0 text-charcoal-light dark:text-dark-text-secondary"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"
+                />
+              </svg>
+              <div class="min-w-0">
+                <span
+                  class="flex items-center gap-2 font-body text-sm text-charcoal dark:text-dark-text"
+                >
+                  <span class="truncate">
+                    {{ adminT.design?.backgroundMusic ?? 'Background Music' }}
+                  </span>
+                  <!-- Empty music warning -->
+                  <span
+                    v-if="isBackgroundFeatureEnabled('music') && getMusicEmptyWarning()"
+                    class="inline-flex items-center gap-1 text-xs text-amber-600 dark:text-amber-400 flex-shrink-0"
+                  >
+                    <svg
+                      class="w-3.5 h-3.5 flex-shrink-0"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                      />
+                    </svg>
+                    <span class="truncate max-w-[80px] sm:max-w-none">
+                      {{ getMusicEmptyWarning() }}
+                    </span>
+                  </span>
+                </span>
+                <span
+                  class="block font-body text-xs text-charcoal-light dark:text-dark-text-secondary truncate"
+                >
+                  {{
+                    adminT.design?.backgroundMusicDescription ??
+                    'Play music while guests browse your wedding site'
+                  }}
+                </span>
+              </div>
+            </div>
+            <!-- Toggle Button -->
+            <button
+              type="button"
+              class="relative flex-shrink-0 inline-flex h-6 w-11 items-center rounded-full transition-colors cursor-pointer"
+              :class="
+                isBackgroundFeatureEnabled('music')
+                  ? 'bg-sage'
+                  : 'bg-sand-dark dark:bg-dark-bg-elevated'
+              "
+              @click="toggleBackgroundFeature('music')"
+            >
+              <span
+                class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform"
+                :class="isBackgroundFeatureEnabled('music') ? 'translate-x-6' : 'translate-x-1'"
+              />
             </button>
           </div>
         </div>

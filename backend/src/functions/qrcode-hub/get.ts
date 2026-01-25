@@ -82,8 +82,8 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
       return createSuccessResponse(200, DEFAULT_QRCODE_HUB_SETTINGS, context)
     }
 
+    // hubEnabled is removed - visibility is now controlled by Design Tab's section settings
     const settings: QRCodeHubSettings = {
-      hubEnabled: result.Item.hubEnabled ?? DEFAULT_QRCODE_HUB_SETTINGS.hubEnabled,
       website: result.Item.website ?? DEFAULT_QRCODE_HUB_SETTINGS.website,
       restuDigital: {
         enabled:

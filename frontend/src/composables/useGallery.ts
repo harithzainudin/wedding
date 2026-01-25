@@ -22,7 +22,6 @@ const settings = ref<GallerySettings>({
   maxFileSize: 10 * 1024 * 1024, // 10MB default
   maxImages: 50,
   allowedFormats: ALLOWED_MIME_TYPES,
-  showGallery: true,
 })
 const isLoading = ref(false)
 const loadError = ref('')
@@ -334,7 +333,6 @@ export function useGallery() {
     newSettings: {
       maxFileSize?: number | undefined
       maxImages?: number | undefined
-      showGallery?: boolean | undefined
     },
     weddingId?: string,
     weddingSlug?: string

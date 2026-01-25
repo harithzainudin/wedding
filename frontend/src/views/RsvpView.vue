@@ -81,10 +81,9 @@
       </div>
     </div>
 
-    <!-- RSVP Form -->
+    <!-- RSVP Form (visibility is controlled by Design Tab) -->
     <RsvpSection
       v-else
-      :show-rsvp="rsvpSettings?.settings.showRsvp ?? true"
       :is-accepting-rsvps="rsvpSettings?.isAcceptingRsvps ?? true"
       v-bind="
         rsvpSettings?.settings.rsvpDeadline

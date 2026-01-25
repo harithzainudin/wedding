@@ -3,8 +3,10 @@
   import type { MusicTrack, MusicSettings, PlayMode } from '@/types/music'
   import { getMusicCached } from '@/services/api'
   import { usePublicWeddingData } from '@/composables/usePublicWeddingData'
+  import { useDesign } from '@/composables/useDesign'
 
   const { currentWeddingSlug } = usePublicWeddingData()
+  const { designSettings } = useDesign()
 
   const CROSSFADE_DURATION = 2000 // 2 seconds
   const STORAGE_KEY = 'wedding-music-state'
@@ -25,8 +27,11 @@
   const audioElement = ref<HTMLAudioElement | null>(null)
   const nextAudioElement = ref<HTMLAudioElement | null>(null)
 
-  // Computed
-  const isEnabled = computed(() => settings.value?.enabled ?? false)
+  // Computed - Music visibility is controlled by Design Tab's backgroundFeatures
+  const isEnabled = computed(() => {
+    const musicFeature = designSettings.value.backgroundFeatures?.find((f) => f.id === 'music')
+    return musicFeature?.enabled ?? false
+  })
   const shouldAutoplay = computed(() => settings.value?.autoplay ?? false)
   const playMode = computed((): PlayMode => settings.value?.mode ?? 'single')
   const shouldShuffle = computed(() => settings.value?.shuffle ?? false)

@@ -6,11 +6,15 @@ import {
   type InvitationCardSettings,
   type PageSlideshowSettings,
   type StorybookSettings,
+  type BackgroundFeatureConfig,
   isValidLayoutId,
   isValidAnimationSpeed,
   isValidSectionId,
+  isValidBackgroundFeatureId,
   VALID_SECTION_IDS,
+  VALID_BACKGROUND_FEATURE_IDS,
   DEFAULT_SECTION_ORDER,
+  DEFAULT_BACKGROUND_FEATURES,
 } from './design-constants'
 
 // Validation result type
@@ -194,6 +198,64 @@ function validateStorybookSettings(
   }
 }
 
+// Validate background features array
+function validateBackgroundFeatures(
+  features: unknown
+): { valid: true; data: BackgroundFeatureConfig[] } | { valid: false; error: string } {
+  if (!Array.isArray(features)) {
+    return { valid: false, error: 'Background features must be an array' }
+  }
+
+  if (features.length > VALID_BACKGROUND_FEATURE_IDS.length) {
+    return {
+      valid: false,
+      error: `Too many background features. Maximum is ${VALID_BACKGROUND_FEATURE_IDS.length}`,
+    }
+  }
+
+  const validatedFeatures: BackgroundFeatureConfig[] = []
+  const seenIds = new Set<string>()
+
+  for (let i = 0; i < features.length; i++) {
+    const feature = features[i]
+
+    if (typeof feature !== 'object' || feature === null) {
+      return { valid: false, error: `Background feature at index ${i} must be an object` }
+    }
+
+    const f = feature as Record<string, unknown>
+
+    // Validate id
+    if (!isValidBackgroundFeatureId(f.id)) {
+      return {
+        valid: false,
+        error: `Invalid background feature id at index ${i}. Must be one of: ${VALID_BACKGROUND_FEATURE_IDS.join(', ')}`,
+      }
+    }
+
+    // Check for duplicate ids
+    if (seenIds.has(f.id as string)) {
+      return { valid: false, error: `Duplicate background feature id: ${f.id}` }
+    }
+    seenIds.add(f.id as string)
+
+    // Validate enabled
+    if (typeof f.enabled !== 'boolean') {
+      return {
+        valid: false,
+        error: `Background feature at index ${i} must have a boolean 'enabled' property`,
+      }
+    }
+
+    validatedFeatures.push({
+      id: f.id as BackgroundFeatureConfig['id'],
+      enabled: f.enabled as boolean,
+    })
+  }
+
+  return { valid: true, data: validatedFeatures }
+}
+
 // Main validation function for design update request
 export function validateDesignUpdate(input: unknown): ValidationResult {
   if (typeof input !== 'object' || input === null) {
@@ -261,6 +323,18 @@ export function validateDesignUpdate(input: unknown): ValidationResult {
       return { valid: false, error: result.error }
     }
     validatedData.storybook = result.data
+  }
+
+  // Validate background features (optional - use default if not provided)
+  if (body.backgroundFeatures !== undefined) {
+    const featuresResult = validateBackgroundFeatures(body.backgroundFeatures)
+    if (!featuresResult.valid) {
+      return { valid: false, error: featuresResult.error }
+    }
+    validatedData.backgroundFeatures = featuresResult.data
+  } else {
+    // Use default background features
+    validatedData.backgroundFeatures = DEFAULT_BACKGROUND_FEATURES
   }
 
   return { valid: true, data: validatedData }
