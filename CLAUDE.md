@@ -32,14 +32,17 @@ wedding/
 **MANDATORY**: After making ANY code changes (edits, additions, deletions), you MUST run a fresh build check before considering the task complete. This prevents GitHub Actions CI failures.
 
 ```bash
-cd frontend && rm -rf node_modules/.tmp node_modules/.vite && pnpm check
+cd frontend && rm -rf node_modules/.tmp node_modules/.vite && pnpm check && pnpm run build
 ```
 
 **Always clear the cache first** (`rm -rf node_modules/.tmp node_modules/.vite`) to match CI's fresh environment. Never run just `pnpm check` without clearing the cache - this causes false positives where local builds pass but CI fails.
 
+Note: While `pnpm check` includes `vite build`, running `pnpm run build` explicitly ensures the full build process completes successfully.
+
 This runs TypeScript type checking, Prettier formatting check, and production build. If any step fails, fix the issues before proceeding.
 
 **Why fresh builds are critical:**
+
 - CI always runs with fresh cache - local cached builds hide errors
 - Local dev server may not catch all TypeScript errors
 - Vue template errors are only caught during `vue-tsc` type checking
@@ -99,7 +102,6 @@ Remove unused imports, variables, and parameters to avoid build failures.
 ### Common CI Failure Patterns
 
 1. **Missing i18n translations**: When adding new UI text, update THREE places:
-
    - The interface (e.g., `AdminTranslations` or `Translations`)
    - The `en` translation object
    - The `ms` translation object
@@ -208,7 +210,7 @@ Remove unused imports, variables, and parameters to avoid build failures.
     // Option 1: Use it in script
     const sheetRef = ref<HTMLElement | null>(null)
     onMounted(() => {
-      console.log(sheetRef.value?.offsetHeight)  // Now it's "read"
+      console.log(sheetRef.value?.offsetHeight) // Now it's "read"
     })
 
     // Option 2: Remove if not needed in script (just remove both declaration and template ref)
@@ -246,13 +248,13 @@ pnpm format:check # Check formatting without fixing
 Before pushing, run checks in both frontend and backend:
 
 ```bash
-cd frontend && pnpm check && cd ../backend && pnpm check
+cd frontend && pnpm check && pnpm run build && cd ../backend && pnpm check
 ```
 
 **Important**: If you've made significant changes or want to ensure CI won't fail, clear the TypeScript build cache first to match CI's fresh environment:
 
 ```bash
-cd frontend && rm -rf node_modules/.tmp node_modules/.vite && pnpm check
+cd frontend && rm -rf node_modules/.tmp node_modules/.vite && pnpm check && pnpm run build && cd ../backend && pnpm check
 ```
 
 This prevents the common issue where local builds pass (due to caching) but CI fails.
@@ -580,11 +582,11 @@ The project has two different sources for wedding slug that serve different purp
 
 ### Slug Sources
 
-| Source | Use Case | Scope |
-|--------|----------|-------|
-| `route.params.weddingSlug` | **Public pages** - Use this in views like `GiftsView`, `RsvpView` | Page-level |
-| `usePublicWeddingData().currentWeddingSlug` | Section components on `HomeView` | Singleton state |
-| `useWeddingContext().weddingSlug` | **Admin pages only** - For admin panel operations | Singleton state |
+| Source                                      | Use Case                                                          | Scope           |
+| ------------------------------------------- | ----------------------------------------------------------------- | --------------- |
+| `route.params.weddingSlug`                  | **Public pages** - Use this in views like `GiftsView`, `RsvpView` | Page-level      |
+| `usePublicWeddingData().currentWeddingSlug` | Section components on `HomeView`                                  | Singleton state |
+| `useWeddingContext().weddingSlug`           | **Admin pages only** - For admin panel operations                 | Singleton state |
 
 ### ⚠️ Common Mistake
 
@@ -593,7 +595,7 @@ The project has two different sources for wedding slug that serve different purp
 ```typescript
 // ❌ BAD - useWeddingContext is for admin pages, not public views
 import { useWeddingContext } from '@/composables/useWeddingContext'
-const { weddingSlug } = useWeddingContext()  // Will be null!
+const { weddingSlug } = useWeddingContext() // Will be null!
 
 // ✅ GOOD - Get slug from route params for public views
 import { useRoute } from 'vue-router'
@@ -607,6 +609,7 @@ const weddingSlug = computed(() => {
 ### Correct Patterns by View Type
 
 **Public dedicated pages** (GiftsView, RsvpView):
+
 ```typescript
 // Get slug from route params
 const route = useRoute()
@@ -616,7 +619,7 @@ const weddingSlug = computed(() => {
 })
 
 // Use for back links
-const backPath = computed(() => weddingSlug.value ? `/${weddingSlug.value}` : '/')
+const backPath = computed(() => (weddingSlug.value ? `/${weddingSlug.value}` : '/'))
 
 // Use for API calls
 onMounted(() => {
@@ -625,6 +628,7 @@ onMounted(() => {
 ```
 
 **Section components in HomeView** (GallerySection, QRCodeHubSection, etc.):
+
 ```typescript
 // Use the singleton from usePublicWeddingData (set by HomeView)
 const { currentWeddingSlug } = usePublicWeddingData()
@@ -634,6 +638,7 @@ const data = await listGalleryImagesCached(currentWeddingSlug.value ?? undefined
 ```
 
 **Admin views**:
+
 ```typescript
 // Use useWeddingContext for admin operations
 const { weddingId, weddingSlug } = useWeddingContext()
@@ -644,10 +649,10 @@ const data = await listGalleryImages(weddingId.value ?? undefined)
 
 ### API URL Patterns
 
-| Context | API URL Helper | URL Pattern |
-|---------|----------------|-------------|
-| Public endpoints | `buildPublicUrl(endpoint, slug)` | `/{slug}/endpoint` |
-| Admin endpoints | `buildAdminUrl(endpoint, weddingId)` | `/admin/w/{weddingId}/endpoint` |
+| Context          | API URL Helper                       | URL Pattern                     |
+| ---------------- | ------------------------------------ | ------------------------------- |
+| Public endpoints | `buildPublicUrl(endpoint, slug)`     | `/{slug}/endpoint`              |
+| Admin endpoints  | `buildAdminUrl(endpoint, weddingId)` | `/admin/w/{weddingId}/endpoint` |
 
 When slug/weddingId is `undefined`, the API falls back to legacy single-tenant routes.
 
@@ -751,7 +756,7 @@ backend/src/functions/
 - Use `pnpm` for package management (not npm)
 - Frontend uses Vue 3 Composition API with `<script setup>`
 - Backend uses SST v3 with AWS CDK
-- **CRITICAL: Run `cd frontend && rm -rf node_modules/.tmp node_modules/.vite && pnpm check` after EVERY code change** - always with fresh cache
+- **CRITICAL: Run `cd frontend && rm -rf node_modules/.tmp node_modules/.vite && pnpm check && pnpm run build` after EVERY code change** - always with fresh cache
 - **Never consider a task complete without running a fresh build** - even small changes can break the build
 - If removing UI elements, also remove any related unused variables, functions, computed properties, and imports
 - Theme types: `PresetThemeId` for actual themes with definitions, `LegacyThemeId` for old theme IDs used in translations, `ThemeId` for all possible IDs

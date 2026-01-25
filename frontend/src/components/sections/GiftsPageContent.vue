@@ -39,6 +39,10 @@
   const showReserveModal = ref(false)
   const selectedGift = ref<GiftItem | null>(null)
 
+  // Detail modal state
+  const showDetailModal = ref(false)
+  const detailGift = ref<GiftItem | null>(null)
+
   // Form data
   const formData = reactive<ReserveGiftRequest>({
     guestName: '',
@@ -134,6 +138,27 @@
     showReserveModal.value = false
     selectedGift.value = null
     resetReserveState()
+  }
+
+  // Open detail modal
+  const openDetailModal = (gift: GiftItem) => {
+    detailGift.value = gift
+    showDetailModal.value = true
+  }
+
+  // Close detail modal
+  const closeDetailModal = () => {
+    showDetailModal.value = false
+    detailGift.value = null
+  }
+
+  // Open reserve modal from detail modal
+  const openReserveFromDetail = () => {
+    if (detailGift.value) {
+      const gift = detailGift.value
+      closeDetailModal()
+      openReserveModal(gift)
+    }
   }
 
   // Handle form submit
@@ -362,8 +387,9 @@
           <div
             v-for="gift in filteredAndSortedGifts"
             :key="gift.id"
+            @click="openDetailModal(gift)"
             :class="[
-              'bg-sand dark:bg-dark-bg rounded-xl shadow-sm dark:shadow-lg overflow-hidden flex flex-col transition-all duration-300',
+              'bg-sand dark:bg-dark-bg rounded-xl shadow-sm dark:shadow-lg overflow-hidden flex flex-col transition-all duration-300 cursor-pointer hover:shadow-md hover:scale-[1.02]',
               !isGiftAvailable(gift) && 'opacity-60 grayscale',
             ]"
           >
@@ -459,12 +485,13 @@
                   :href="gift.externalLink"
                   target="_blank"
                   rel="noopener noreferrer"
+                  @click.stop
                   class="flex-1 py-1.5 sm:py-2 px-1.5 sm:px-3 text-[10px] sm:text-xs font-body text-center text-sage border border-sage rounded-lg hover:bg-sage/10 transition-colors cursor-pointer"
                 >
                   {{ t.wishlist?.viewOnStore || 'View' }}
                 </a>
                 <button
-                  @click="openReserveModal(gift)"
+                  @click.stop="openReserveModal(gift)"
                   :disabled="!isGiftAvailable(gift)"
                   :class="[
                     'flex-1 py-1.5 sm:py-2 px-1.5 sm:px-3 text-[10px] sm:text-xs font-body rounded-lg transition-colors cursor-pointer',
@@ -617,6 +644,149 @@
                   </button>
                 </div>
               </form>
+            </div>
+          </div>
+        </div>
+      </Transition>
+    </Teleport>
+
+    <!-- Gift Detail Modal -->
+    <Teleport to="body">
+      <Transition name="modal">
+        <div
+          v-if="showDetailModal && detailGift"
+          class="fixed inset-0 z-50 flex items-center justify-center p-4"
+        >
+          <!-- Backdrop -->
+          <div class="absolute inset-0 bg-black/50" @click="closeDetailModal"></div>
+
+          <!-- Modal Content -->
+          <div
+            class="relative w-full max-w-lg bg-white dark:bg-dark-bg-secondary rounded-2xl shadow-xl max-h-[90vh] overflow-y-auto"
+          >
+            <!-- Close Button -->
+            <button
+              @click="closeDetailModal"
+              class="absolute top-3 right-3 z-10 w-8 h-8 flex items-center justify-center rounded-full bg-black/20 hover:bg-black/30 text-white transition-colors cursor-pointer"
+            >
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+            </button>
+
+            <!-- Image -->
+            <div class="relative aspect-video bg-sand-dark dark:bg-dark-bg">
+              <img
+                v-if="detailGift.imageUrl"
+                :src="detailGift.imageUrl"
+                :alt="getLocalizedText(detailGift.name)"
+                class="w-full h-full object-cover"
+              />
+              <div v-else class="w-full h-full flex items-center justify-center">
+                <svg
+                  class="w-16 h-16 text-charcoal-light/30"
+                  fill="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"
+                  />
+                </svg>
+              </div>
+
+              <!-- Priority Badge -->
+              <span
+                v-if="detailGift.priority === 'high' && isGiftAvailable(detailGift)"
+                :class="[
+                  'absolute top-3 left-3 px-2.5 py-1 text-xs font-body rounded-full',
+                  getPriorityColor(detailGift.priority),
+                ]"
+              >
+                {{ t.wishlist?.needed || 'Needed' }}
+              </span>
+
+              <!-- Fully Reserved Overlay -->
+              <div
+                v-if="!isGiftAvailable(detailGift)"
+                class="absolute inset-0 bg-black/30 flex items-center justify-center"
+              >
+                <span class="px-4 py-2 bg-charcoal/80 text-white text-sm font-body rounded-full">
+                  {{ t.wishlist?.fullyReserved || 'Reserved' }}
+                </span>
+              </div>
+            </div>
+
+            <!-- Content -->
+            <div class="p-5 sm:p-6">
+              <!-- Title -->
+              <h3 class="font-heading text-lg sm:text-xl text-charcoal dark:text-dark-text mb-3">
+                {{ getLocalizedText(detailGift.name) }}
+              </h3>
+
+              <!-- Full Description -->
+              <p
+                v-if="getLocalizedText(detailGift.description)"
+                class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary mb-4 whitespace-pre-line"
+              >
+                {{ getLocalizedText(detailGift.description) }}
+              </p>
+
+              <!-- Notes -->
+              <div v-if="detailGift.notes" class="mb-4 p-3 bg-sage/10 dark:bg-sage/20 rounded-lg">
+                <p class="font-body text-sm text-sage-dark dark:text-sage-light italic">
+                  {{ detailGift.notes }}
+                </p>
+              </div>
+
+              <!-- Price & Availability -->
+              <div class="space-y-1 mb-5">
+                <p
+                  v-if="detailGift.priceRange"
+                  class="font-body text-sm font-medium text-charcoal dark:text-dark-text"
+                >
+                  {{ detailGift.priceRange }}
+                </p>
+                <p
+                  :class="[
+                    'font-body text-sm',
+                    isGiftAvailable(detailGift)
+                      ? 'text-green-600 dark:text-green-400'
+                      : 'text-red-500 dark:text-red-400',
+                  ]"
+                >
+                  {{ getAvailabilityText(detailGift) }}
+                </p>
+              </div>
+
+              <!-- Actions -->
+              <div class="flex gap-3">
+                <a
+                  v-if="detailGift.externalLink"
+                  :href="detailGift.externalLink"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="flex-1 py-2.5 px-4 text-sm font-body text-center text-sage border border-sage rounded-lg hover:bg-sage/10 transition-colors cursor-pointer"
+                >
+                  {{ t.wishlist?.viewOnStore || 'View on Store' }}
+                </a>
+                <button
+                  @click="openReserveFromDetail"
+                  :disabled="!isGiftAvailable(detailGift)"
+                  :class="[
+                    'flex-1 py-2.5 px-4 text-sm font-body rounded-lg transition-colors cursor-pointer',
+                    isGiftAvailable(detailGift)
+                      ? 'bg-sage text-white hover:bg-sage-dark'
+                      : 'bg-gray-200 dark:bg-gray-700 text-gray-400 dark:text-gray-500 !cursor-not-allowed',
+                  ]"
+                >
+                  {{ t.wishlist?.reserveButton || 'Reserve' }}
+                </button>
+              </div>
             </div>
           </div>
         </div>

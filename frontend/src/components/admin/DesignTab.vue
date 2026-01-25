@@ -51,12 +51,12 @@
   const { designSettings, isLoading, isSaving, error, loadDesign, saveDesign } = useDesign()
 
   // Deep clone sections to avoid mutating readonly originals
-  const cloneSections = (sections: SectionConfig[]): SectionConfig[] =>
+  const cloneSections = (sections: ReadonlyArray<Readonly<SectionConfig>>): SectionConfig[] =>
     sections.map((s) => ({ ...s }))
 
   // Deep clone background features
   const cloneBackgroundFeatures = (
-    features: BackgroundFeatureConfig[]
+    features: ReadonlyArray<Readonly<BackgroundFeatureConfig>>
   ): BackgroundFeatureConfig[] => features.map((f) => ({ ...f }))
 
   // Local state

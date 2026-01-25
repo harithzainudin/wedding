@@ -135,6 +135,7 @@ export interface Translations {
     itemsFound: string
     noResults: string
     clearFilters: string
+    viewDetails: string
     categories: {
       all: string
       home: string
@@ -426,6 +427,7 @@ export const translations: Record<Language, Translations> = {
       itemsFound: 'hadiah',
       noResults: 'Tiada hadiah dijumpai.',
       clearFilters: 'Padam penapis',
+      viewDetails: 'Lihat Butiran',
       categories: {
         all: 'Semua',
         home: 'Rumah',
@@ -704,6 +706,7 @@ export const translations: Record<Language, Translations> = {
       itemsFound: 'items',
       noResults: 'No gifts found matching your criteria.',
       clearFilters: 'Clear filters',
+      viewDetails: 'View Details',
       categories: {
         all: 'All',
         home: 'Home',
@@ -976,6 +979,7 @@ export const translations: Record<Language, Translations> = {
       itemsFound: '件礼物',
       noResults: '未找到符合条件的礼物。',
       clearFilters: '清除筛选',
+      viewDetails: '查看详情',
       categories: {
         all: '全部',
         home: '家居',
@@ -1248,6 +1252,7 @@ export const translations: Record<Language, Translations> = {
       itemsFound: 'பொருட்கள்',
       noResults: 'உங்கள் தேடலுக்கு பொருந்தும் பரிசுகள் இல்லை.',
       clearFilters: 'வடிப்பான்களை அழி',
+      viewDetails: 'விவரங்களைக் காண்க',
       categories: {
         all: 'அனைத்தும்',
         home: 'வீடு',
