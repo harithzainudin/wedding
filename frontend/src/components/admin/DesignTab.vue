@@ -1,5 +1,5 @@
 <script setup lang="ts">
-  import { ref, computed, onMounted, watch } from 'vue'
+  import { ref, computed, onMounted, watch, type DeepReadonly } from 'vue'
   import { useRoute } from 'vue-router'
   import type {
     LayoutId,
@@ -174,7 +174,7 @@
   })
 
   // Sync local state from loaded settings
-  const syncFromSettings = (settings: Readonly<DesignSettings>) => {
+  const syncFromSettings = (settings: DeepReadonly<DesignSettings>) => {
     selectedLayoutId.value = settings.layoutId
     selectedAnimationSpeed.value = settings.animationSpeed
     localSections.value = cloneSections(settings.sections ?? DEFAULT_SECTION_ORDER)
