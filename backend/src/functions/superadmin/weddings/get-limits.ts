@@ -17,6 +17,7 @@ import { getWeddingById } from '../../shared/wedding-middleware'
 import { Resource } from 'sst'
 import {
   DEFAULT_MAX_FILE_SIZE,
+  DEFAULT_MAX_VIDEO_SIZE,
   DEFAULT_MAX_IMAGES,
   ALLOWED_MIME_TYPES,
 } from '../../shared/image-constants'
@@ -28,6 +29,7 @@ const docClient = DynamoDBDocumentClient.from(client)
 interface WeddingLimits {
   gallery: {
     maxFileSize: number
+    maxVideoSize: number
     maxImages: number
     allowedFormats: readonly string[]
   }
@@ -118,11 +120,13 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
       updatedBy = giftSettings?.updatedBy as string | undefined
     }
 
+    // Note: allowedFormats is always the full ALLOWED_MIME_TYPES (application-defined, not user-configurable)
     const limits: WeddingLimits = {
       gallery: {
         maxFileSize: (gallerySettings?.maxFileSize as number) ?? DEFAULT_MAX_FILE_SIZE,
+        maxVideoSize: (gallerySettings?.maxVideoSize as number) ?? DEFAULT_MAX_VIDEO_SIZE,
         maxImages: (gallerySettings?.maxImages as number) ?? DEFAULT_MAX_IMAGES,
-        allowedFormats: (gallerySettings?.allowedFormats as string[]) ?? ALLOWED_MIME_TYPES,
+        allowedFormats: [...ALLOWED_MIME_TYPES],
       },
       gifts: {
         maxItems: (giftSettings?.maxItems as number) ?? GIFT_LIMITS.maxItems,

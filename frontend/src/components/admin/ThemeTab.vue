@@ -197,6 +197,10 @@
         )
 
         if (result.success) {
+          // Sync local state from saved settings to clear hasChanges
+          selectedThemeId.value = themeSettings.value.activeThemeId
+          customThemeData.value = themeSettings.value.customTheme
+          showCustomizer.value = themeSettings.value.activeThemeId === 'custom'
           // End preview mode since we've saved
           endPreview()
         } else {
@@ -236,6 +240,10 @@
         id
       )
       if (result.success) {
+        // Sync local state from saved settings to clear hasChanges
+        selectedThemeId.value = themeSettings.value.activeThemeId
+        customThemeData.value = themeSettings.value.customTheme
+        showCustomizer.value = themeSettings.value.activeThemeId === 'custom'
         endPreview()
       }
       return result

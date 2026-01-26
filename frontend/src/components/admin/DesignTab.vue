@@ -413,7 +413,10 @@
       async () => {
         const result = await saveDesign(data, id)
 
-        if (!result.success) {
+        if (result.success) {
+          // Sync local state from saved settings to clear hasChanges
+          syncFromSettings(designSettings.value)
+        } else {
           saveError.value = result.error ?? 'Failed to save design'
         }
       },
@@ -436,6 +439,10 @@
 
     try {
       const result = await saveDesign(data, id)
+      if (result.success) {
+        // Sync local state from saved settings to clear hasChanges
+        syncFromSettings(designSettings.value)
+      }
       return result
     } catch (err) {
       return { success: false, error: err instanceof Error ? err.message : 'Save failed' }

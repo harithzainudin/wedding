@@ -1,6 +1,6 @@
 import { ref, computed } from 'vue'
 import { listRsvps, createRsvp, updateRsvp, deleteRsvp, updateRsvpSettings } from '@/services/api'
-import type { RsvpSubmission, AdminRsvpRequest, RsvpSettings } from '@/types/rsvp'
+import type { RsvpSubmission, AdminRsvpRequest, RsvpSettings, RsvpAnalytics } from '@/types/rsvp'
 import { DEFAULT_RSVP_SETTINGS } from '@/types/rsvp'
 
 export interface RsvpSummary {
@@ -30,6 +30,9 @@ export function useRsvps() {
   // RSVP settings
   const rsvpSettings = ref<RsvpSettings>(DEFAULT_RSVP_SETTINGS)
 
+  // RSVP analytics (only available for admin requests)
+  const analytics = ref<RsvpAnalytics | undefined>(undefined)
+
   // CRUD operation states
   const isCreating = ref(false)
   const isUpdating = ref(false)
@@ -57,6 +60,9 @@ export function useRsvps() {
       summary.value = data.summary
       if (data.settings) {
         rsvpSettings.value = data.settings
+      }
+      if (data.analytics) {
+        analytics.value = data.analytics
       }
     } catch {
       loadError.value = 'Failed to load RSVPs. Please try again.'
@@ -153,6 +159,7 @@ export function useRsvps() {
       'Phone',
       'Attending',
       'Guests',
+      'Guest Type',
       'Message',
       'Submitted At',
     ]
@@ -162,6 +169,7 @@ export function useRsvps() {
       r.phoneNumber,
       r.isAttending ? 'Yes' : 'No',
       r.numberOfGuests.toString(),
+      r.guestType ?? '',
       `"${r.message.replace(/"/g, '""')}"`,
       r.submittedAt,
     ])
@@ -223,5 +231,7 @@ export function useRsvps() {
     // Settings
     rsvpSettings,
     updateSettings,
+    // Analytics
+    analytics,
   }
 }

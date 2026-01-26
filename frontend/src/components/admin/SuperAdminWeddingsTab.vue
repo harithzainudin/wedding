@@ -567,7 +567,12 @@
         console.error('Failed to fetch wedding limits:', err)
         // Set defaults if fetch fails
         weddingLimits.value = {
-          gallery: { maxFileSize: 10 * 1024 * 1024, maxImages: 50, allowedFormats: [] },
+          gallery: {
+            maxFileSize: 10 * 1024 * 1024,
+            maxVideoSize: 100 * 1024 * 1024,
+            maxImages: 50,
+            allowedFormats: [],
+          },
           gifts: { maxItems: 50, maxFileSize: 5 * 1024 * 1024, allowedFormats: [] },
         }
       } finally {
@@ -619,6 +624,7 @@
         await updateWeddingLimits(settingsWedding.value.weddingId, {
           gallery: {
             maxFileSize: weddingLimits.value.gallery.maxFileSize,
+            maxVideoSize: weddingLimits.value.gallery.maxVideoSize,
             maxImages: weddingLimits.value.gallery.maxImages,
           },
           gifts: {
@@ -2609,11 +2615,12 @@
                           {{ adminT.superAdmin?.galleryLimits ?? 'Gallery Limits' }}
                         </p>
                         <div class="grid grid-cols-2 gap-3">
+                          <!-- Max Image Size -->
                           <div>
                             <label
                               class="block font-body text-xs text-charcoal-light dark:text-dark-text-secondary mb-1"
                             >
-                              {{ adminT.gallery?.maxFileSize ?? 'Max File Size' }}
+                              {{ adminT.gallery?.maxFileSize ?? 'Max Image Size' }}
                             </label>
                             <select
                               v-model="weddingLimits.gallery.maxFileSize"
@@ -2627,11 +2634,30 @@
                               <option :value="50 * 1024 * 1024">50 MB</option>
                             </select>
                           </div>
+                          <!-- Max Video Size -->
                           <div>
                             <label
                               class="block font-body text-xs text-charcoal-light dark:text-dark-text-secondary mb-1"
                             >
-                              {{ adminT.gallery?.maxImages ?? 'Max Images' }}
+                              {{ adminT.gallery?.maxVideoSize ?? 'Max Video Size' }}
+                            </label>
+                            <select
+                              v-model="weddingLimits.gallery.maxVideoSize"
+                              class="w-full px-2 py-1.5 text-sm rounded-lg border border-sand-dark dark:border-dark-border bg-white dark:bg-dark-bg text-charcoal dark:text-dark-text"
+                            >
+                              <option :value="25 * 1024 * 1024">25 MB</option>
+                              <option :value="50 * 1024 * 1024">50 MB</option>
+                              <option :value="100 * 1024 * 1024">100 MB</option>
+                              <option :value="200 * 1024 * 1024">200 MB</option>
+                              <option :value="500 * 1024 * 1024">500 MB</option>
+                            </select>
+                          </div>
+                          <!-- Max Media Count -->
+                          <div>
+                            <label
+                              class="block font-body text-xs text-charcoal-light dark:text-dark-text-secondary mb-1"
+                            >
+                              {{ adminT.gallery?.maxMedia ?? 'Max Media' }}
                             </label>
                             <select
                               v-model="weddingLimits.gallery.maxImages"

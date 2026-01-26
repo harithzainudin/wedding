@@ -16,6 +16,7 @@ import { createSuccessResponse, createErrorResponse } from '../shared/response'
 import { requireWeddingAccess } from '../shared/auth'
 import { logError } from '../shared/logger'
 import { validateConfirmUpload } from '../shared/image-validation'
+import { isVideoMimeType } from '../shared/image-constants'
 import { Keys } from '../shared/keys'
 import { getPublicS3Url, validateS3KeyOwnership } from '../shared/s3-keys'
 import { getWeddingById, requireAdminAccessibleWedding } from '../shared/wedding-middleware'
@@ -146,6 +147,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
     // ============================================
     const imageKeys = Keys.image(weddingId, imageId)
     const gsiKeys = Keys.gsi.weddingImages(weddingId, order, imageId)
+    const mediaType = isVideoMimeType(mimeType) ? 'video' : 'image'
 
     await docClient.send(
       new PutCommand({
@@ -158,6 +160,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
           filename,
           s3Key,
           mimeType,
+          mediaType,
           fileSize,
           order,
           uploadedAt: now,
@@ -177,6 +180,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
         filename,
         s3Key,
         mimeType,
+        mediaType,
         fileSize,
         order,
         uploadedAt: now,

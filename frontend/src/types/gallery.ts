@@ -1,8 +1,11 @@
+export type MediaType = 'image' | 'video'
+
 export interface GalleryImage {
   id: string
   url: string
   filename: string
   mimeType: string
+  mediaType: MediaType
   fileSize: number
   order: number
   uploadedAt: string
@@ -11,6 +14,7 @@ export interface GalleryImage {
 
 export interface GallerySettings {
   maxFileSize: number
+  maxVideoSize: number
   maxImages: number
   allowedFormats: string[]
   updatedAt?: string | undefined
@@ -44,6 +48,7 @@ export interface ConfirmUploadResponse {
   filename: string
   s3Key: string
   mimeType: string
+  mediaType: MediaType
   fileSize: number
   order: number
   uploadedAt: string
@@ -69,12 +74,14 @@ export interface DeleteImageResponse {
 
 export interface UpdateSettingsRequest {
   maxFileSize?: number | undefined
+  maxVideoSize?: number | undefined
   maxImages?: number | undefined
 }
 
 // Response data from settings endpoint (unwrapped)
 export interface SettingsResponse {
   maxFileSize: number
+  maxVideoSize: number
   maxImages: number
   allowedFormats: string[]
   updatedAt?: string | undefined

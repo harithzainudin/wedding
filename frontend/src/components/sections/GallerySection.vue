@@ -3,6 +3,7 @@
   import { useLanguage } from '@/composables/useLanguage'
   import { usePublicWeddingData } from '@/composables/usePublicWeddingData'
   import { listGalleryImagesCached } from '@/services/api'
+  import type { MediaType } from '@/types/gallery'
 
   const { t } = useLanguage()
   const { currentWeddingSlug } = usePublicWeddingData()
@@ -10,6 +11,7 @@
   interface Photo {
     src: string
     alt?: string
+    mediaType: MediaType
   }
 
   const MAX_VISIBLE_PHOTOS = 6
@@ -20,6 +22,11 @@
   const slideDirection = ref<'left' | 'right'>('left')
   const lightboxMode = ref<'single' | 'grid'>('single')
   const thumbnailStripRef = ref<HTMLDivElement | null>(null)
+  const videoRef = ref<HTMLVideoElement | null>(null)
+
+  const isCurrentVideo = computed(
+    () => currentPhoto.value !== null && currentPhoto.value.mediaType === 'video'
+  )
 
   const visiblePhotos = computed(() => photos.value.slice(0, MAX_VISIBLE_PHOTOS))
   const hasMorePhotos = computed(() => photos.value.length > MAX_VISIBLE_PHOTOS)
@@ -30,6 +37,7 @@
         photos.value = data.images.map((img) => ({
           src: img.url,
           alt: img.filename,
+          mediaType: img.mediaType ?? 'image',
         }))
       }
     } catch {
@@ -59,7 +67,14 @@
     document.body.style.overflow = 'hidden'
   }
 
+  const pauseVideo = (): void => {
+    if (videoRef.value) {
+      videoRef.value.pause()
+    }
+  }
+
   const closeLightbox = (): void => {
+    pauseVideo()
     selectedIndex.value = null
     lightboxMode.value = 'single'
     document.body.style.overflow = ''
@@ -106,6 +121,7 @@
 
   const goToPrevious = (): void => {
     if (selectedIndex.value === null) return
+    pauseVideo()
     slideDirection.value = 'right'
     selectedIndex.value =
       selectedIndex.value === 0 ? photos.value.length - 1 : selectedIndex.value - 1
@@ -113,6 +129,7 @@
 
   const goToNext = (): void => {
     if (selectedIndex.value === null) return
+    pauseVideo()
     slideDirection.value = 'left'
     selectedIndex.value =
       selectedIndex.value === photos.value.length - 1 ? 0 : selectedIndex.value + 1
@@ -221,15 +238,43 @@
           v-for="(photo, index) in visiblePhotos"
           :key="photo.src"
           type="button"
-          class="aspect-square overflow-hidden rounded-lg cursor-pointer transition-transform hover:scale-[1.02] active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-sage focus:ring-offset-2"
+          class="aspect-square overflow-hidden rounded-lg cursor-pointer transition-transform hover:scale-[1.02] active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-sage focus:ring-offset-2 relative"
           @click="openLightbox(index)"
         >
+          <!-- Video thumbnail -->
+          <video
+            v-if="photo.mediaType === 'video'"
+            :src="photo.src"
+            class="w-full h-full object-cover"
+            preload="metadata"
+            muted
+            playsinline
+          />
+          <!-- Image -->
           <img
+            v-else
             :src="photo.src"
             :alt="photo.alt ?? `Photo ${index + 1}`"
             class="w-full h-full object-cover"
             loading="lazy"
           />
+          <!-- Play icon overlay for videos -->
+          <div
+            v-if="photo.mediaType === 'video'"
+            class="absolute inset-0 flex items-center justify-center bg-black/30"
+          >
+            <div
+              class="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-white/90 flex items-center justify-center"
+            >
+              <svg
+                class="w-6 h-6 sm:w-7 sm:h-7 text-charcoal ml-1"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+              >
+                <path d="M8 5.14v14l11-7-11-7z" />
+              </svg>
+            </div>
+          </div>
         </button>
 
         <div v-if="hasMorePhotos" class="col-span-full mt-4 text-center">
@@ -357,8 +402,22 @@
                 :name="slideDirection === 'left' ? 'slide-left' : 'slide-right'"
                 mode="out-in"
               >
+                <!-- Video Player -->
+                <video
+                  v-if="currentPhoto && isCurrentVideo"
+                  :key="`video-${selectedIndex}`"
+                  ref="videoRef"
+                  :src="currentPhoto.src"
+                  class="max-w-full max-h-[60vh] sm:max-h-[65vh] rounded-lg"
+                  controls
+                  autoplay
+                  playsinline
+                >
+                  Your browser does not support video playback.
+                </video>
+                <!-- Image -->
                 <img
-                  v-if="currentPhoto"
+                  v-else-if="currentPhoto"
                   :key="selectedIndex ?? 0"
                   :src="currentPhoto.src"
                   :alt="currentPhoto.alt ?? 'Gallery photo'"
@@ -375,7 +434,7 @@
                 v-for="(photo, index) in photos"
                 :key="photo.src"
                 type="button"
-                class="aspect-square overflow-hidden rounded-lg transition-all"
+                class="aspect-square overflow-hidden rounded-lg transition-all relative"
                 :class="
                   index === selectedIndex
                     ? 'ring-2 ring-white ring-offset-2 ring-offset-black'
@@ -383,12 +442,35 @@
                 "
                 @click="jumpToPhoto(index)"
               >
+                <video
+                  v-if="photo.mediaType === 'video'"
+                  :src="photo.src"
+                  class="w-full h-full object-cover"
+                  preload="metadata"
+                  muted
+                />
                 <img
+                  v-else
                   :src="photo.src"
                   :alt="photo.alt ?? `Photo ${index + 1}`"
                   class="w-full h-full object-cover"
                   loading="lazy"
                 />
+                <!-- Play icon for videos in grid -->
+                <div
+                  v-if="photo.mediaType === 'video'"
+                  class="absolute inset-0 flex items-center justify-center bg-black/20"
+                >
+                  <div class="w-8 h-8 rounded-full bg-white/90 flex items-center justify-center">
+                    <svg
+                      class="w-4 h-4 text-charcoal ml-0.5"
+                      viewBox="0 0 24 24"
+                      fill="currentColor"
+                    >
+                      <path d="M8 5.14v14l11-7-11-7z" />
+                    </svg>
+                  </div>
+                </div>
               </button>
             </div>
           </div>
@@ -402,7 +484,7 @@
                 v-for="(photo, index) in photos"
                 :key="photo.src"
                 type="button"
-                class="flex-shrink-0 w-14 h-14 sm:w-16 sm:h-16 overflow-hidden rounded-md transition-all"
+                class="flex-shrink-0 w-14 h-14 sm:w-16 sm:h-16 overflow-hidden rounded-md transition-all relative"
                 :class="
                   index === selectedIndex
                     ? 'ring-2 ring-white opacity-100'
@@ -410,12 +492,35 @@
                 "
                 @click="jumpToPhoto(index)"
               >
+                <video
+                  v-if="photo.mediaType === 'video'"
+                  :src="photo.src"
+                  class="w-full h-full object-cover"
+                  preload="metadata"
+                  muted
+                />
                 <img
+                  v-else
                   :src="photo.src"
                   :alt="photo.alt ?? `Thumbnail ${index + 1}`"
                   class="w-full h-full object-cover"
                   loading="lazy"
                 />
+                <!-- Small play icon for videos -->
+                <div
+                  v-if="photo.mediaType === 'video'"
+                  class="absolute inset-0 flex items-center justify-center"
+                >
+                  <div class="w-5 h-5 rounded-full bg-white/80 flex items-center justify-center">
+                    <svg
+                      class="w-2.5 h-2.5 text-charcoal ml-0.5"
+                      viewBox="0 0 24 24"
+                      fill="currentColor"
+                    >
+                      <path d="M8 5.14v14l11-7-11-7z" />
+                    </svg>
+                  </div>
+                </div>
               </button>
             </div>
           </div>

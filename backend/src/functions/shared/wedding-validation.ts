@@ -26,6 +26,11 @@ export type DisplayNameOrder = 'bride_first' | 'groom_first'
 
 export const VALID_DISPLAY_NAME_ORDERS: DisplayNameOrder[] = ['bride_first', 'groom_first']
 
+// Wedding type - determines relationship options shown in RSVP form
+export type WeddingType = 'single_side' | 'combined'
+
+export const VALID_WEDDING_TYPES: WeddingType[] = ['single_side', 'combined']
+
 // Display format types
 export type EventDisplayPreset =
   | 'date_time_range'
@@ -123,6 +128,7 @@ export interface WeddingDetailsData {
   eventEndTime?: string // ISO datetime string (end time)
   eventDisplayFormat?: EventDisplayFormat
   displayNameOrder?: DisplayNameOrder
+  weddingType?: WeddingType
   bismillahCalligraphy?: BismillahCalligraphySettings
   dressCode: string
   hashtag: string
@@ -146,6 +152,7 @@ export interface WeddingDetailsUpdateRequest {
   eventEndTime?: string
   eventDisplayFormat?: EventDisplayFormat
   displayNameOrder?: DisplayNameOrder
+  weddingType?: WeddingType
   bismillahCalligraphy?: BismillahCalligraphySettings
   dressCode: string
   hashtag: string
@@ -397,6 +404,18 @@ export function validateWeddingDetailsUpdate(
     validatedDisplayNameOrder = body.displayNameOrder as DisplayNameOrder
   }
 
+  // Validate weddingType (optional)
+  let validatedWeddingType: WeddingType | undefined
+  if (body.weddingType !== undefined && body.weddingType !== null && body.weddingType !== '') {
+    if (VALID_WEDDING_TYPES.indexOf(body.weddingType as WeddingType) === -1) {
+      return {
+        valid: false,
+        error: "Wedding type must be 'single_side' or 'combined'",
+      }
+    }
+    validatedWeddingType = body.weddingType as WeddingType
+  }
+
   // Validate bismillahCalligraphy (optional)
   let validatedBismillahCalligraphy: BismillahCalligraphySettings | undefined
   if (body.bismillahCalligraphy !== undefined && body.bismillahCalligraphy !== null) {
@@ -496,6 +515,7 @@ export function validateWeddingDetailsUpdate(
       eventEndTime: validatedEndTime,
       eventDisplayFormat: validatedDisplayFormat,
       displayNameOrder: validatedDisplayNameOrder,
+      weddingType: validatedWeddingType,
       bismillahCalligraphy: validatedBismillahCalligraphy,
       dressCode: body.dressCode.trim(),
       hashtag: body.hashtag.trim(),

@@ -1,6 +1,137 @@
 // Types and validation for RSVP settings
 // Visibility is now controlled by Design Tab
 
+// Guest Type - for single-side weddings (simpler options)
+export type GuestType =
+  | 'father_guest' // Dad's guest
+  | 'mother_guest' // Mom's guest
+  | 'both_parents_guest' // Both parents' guest
+  | 'father_relative'
+  | 'mother_relative'
+  | 'couple_friend'
+  | 'couple_colleague'
+  | 'spouse_family'
+  | 'other'
+
+// Guest Type - for combined weddings (includes bride/groom prefix)
+export type CombinedGuestType =
+  | 'bride_father_guest'
+  | 'bride_mother_guest'
+  | 'bride_both_parents_guest'
+  | 'bride_father_relative'
+  | 'bride_mother_relative'
+  | 'bride_friend'
+  | 'bride_colleague'
+  | 'groom_father_guest'
+  | 'groom_mother_guest'
+  | 'groom_both_parents_guest'
+  | 'groom_father_relative'
+  | 'groom_mother_relative'
+  | 'groom_friend'
+  | 'groom_colleague'
+  | 'mutual_friend'
+  | 'other'
+
+// All possible guest types (for storage)
+export type AnyGuestType = GuestType | CombinedGuestType
+
+export const GUEST_TYPES: GuestType[] = [
+  'father_guest',
+  'mother_guest',
+  'both_parents_guest',
+  'father_relative',
+  'mother_relative',
+  'couple_friend',
+  'couple_colleague',
+  'spouse_family',
+  'other',
+]
+
+export const COMBINED_GUEST_TYPES: CombinedGuestType[] = [
+  'bride_father_guest',
+  'bride_mother_guest',
+  'bride_both_parents_guest',
+  'bride_father_relative',
+  'bride_mother_relative',
+  'bride_friend',
+  'bride_colleague',
+  'groom_father_guest',
+  'groom_mother_guest',
+  'groom_both_parents_guest',
+  'groom_father_relative',
+  'groom_mother_relative',
+  'groom_friend',
+  'groom_colleague',
+  'mutual_friend',
+  'other',
+]
+
+// All valid guest types for validation
+export const ALL_GUEST_TYPES: string[] = [...GUEST_TYPES, ...COMBINED_GUEST_TYPES]
+
+// Helper to validate guestType
+export function isValidGuestType(value: unknown): value is AnyGuestType {
+  return typeof value === 'string' && ALL_GUEST_TYPES.includes(value)
+}
+
+// Helper to map combined guest type to category (for statistics)
+export function getGuestCategory(
+  guestType: AnyGuestType | undefined
+): keyof GuestCategoryMap | 'unknown' {
+  if (!guestType) return 'unknown'
+
+  // For combined types, strip the bride_/groom_ prefix
+  if (guestType.startsWith('bride_') || guestType.startsWith('groom_')) {
+    const withoutPrefix = guestType.replace(/^(bride_|groom_)/, '')
+    // Map to base categories
+    if (withoutPrefix === 'father_guest') return 'father_guest'
+    if (withoutPrefix === 'mother_guest') return 'mother_guest'
+    if (withoutPrefix === 'both_parents_guest') return 'both_parents_guest'
+    if (withoutPrefix === 'father_relative') return 'father_relative'
+    if (withoutPrefix === 'mother_relative') return 'mother_relative'
+    if (withoutPrefix === 'friend') return 'couple_friend'
+    if (withoutPrefix === 'colleague') return 'couple_colleague'
+  }
+
+  // For mutual_friend
+  if (guestType === 'mutual_friend') return 'mutual_friend'
+
+  // Return as-is for simple types
+  if (GUEST_TYPES.includes(guestType as GuestType)) return guestType as keyof GuestCategoryMap
+
+  return 'other'
+}
+
+// Helper to get guest side (for bySide statistics)
+export function getGuestSide(
+  guestType: AnyGuestType | undefined
+): 'bride' | 'groom' | 'mutual' | 'unknown' {
+  if (!guestType) return 'unknown'
+
+  if (guestType.startsWith('bride_')) return 'bride'
+  if (guestType.startsWith('groom_')) return 'groom'
+  if (guestType === 'mutual_friend') return 'mutual'
+
+  // Simple guest types are considered "host side" in single-side weddings
+  // We don't know the side, so return 'unknown' for stats
+  return 'unknown'
+}
+
+// Guest category map for statistics
+export interface GuestCategoryMap {
+  father_guest: { entries: number; guests: number }
+  mother_guest: { entries: number; guests: number }
+  both_parents_guest: { entries: number; guests: number }
+  father_relative: { entries: number; guests: number }
+  mother_relative: { entries: number; guests: number }
+  couple_friend: { entries: number; guests: number }
+  couple_colleague: { entries: number; guests: number }
+  spouse_family: { entries: number; guests: number }
+  mutual_friend: { entries: number; guests: number }
+  other: { entries: number; guests: number }
+  unknown: { entries: number; guests: number }
+}
+
 export interface RsvpSettings {
   acceptingRsvps: boolean // Whether to accept new RSVPs (form is open)
   rsvpDeadline?: string // Optional ISO date string for deadline (empty = no deadline, open until event)

@@ -26,8 +26,9 @@ import {
 import { isValidWeddingId } from '../shared/validation'
 import {
   DEFAULT_MAX_FILE_SIZE,
+  DEFAULT_MAX_VIDEO_SIZE,
   DEFAULT_MAX_IMAGES,
-  ALLOWED_MIME_TYPES,
+  ALLOWED_MEDIA_TYPES,
 } from '../shared/image-constants'
 
 const dynamoClient = new DynamoDBClient({})
@@ -109,6 +110,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
       id: item.id as string,
       filename: item.filename as string,
       mimeType: item.mimeType as string,
+      mediaType: (item.mediaType as string) ?? 'image', // Default to 'image' for existing records
       fileSize: item.fileSize as number,
       order: item.order as number,
       uploadedAt: item.uploadedAt as string,
@@ -125,12 +127,12 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
     )
 
     if (isAuthenticated) {
+      // Note: allowedFormats is always the full ALLOWED_MEDIA_TYPES (application-defined, not user-configurable)
       const settings = {
         maxFileSize: (settingsResult.Item?.maxFileSize as number) ?? DEFAULT_MAX_FILE_SIZE,
+        maxVideoSize: (settingsResult.Item?.maxVideoSize as number) ?? DEFAULT_MAX_VIDEO_SIZE,
         maxImages: (settingsResult.Item?.maxImages as number) ?? DEFAULT_MAX_IMAGES,
-        allowedFormats: (settingsResult.Item?.allowedFormats as string[]) ?? [
-          ...ALLOWED_MIME_TYPES,
-        ],
+        allowedFormats: [...ALLOWED_MEDIA_TYPES],
       }
 
       return createSuccessResponse(

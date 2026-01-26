@@ -17,6 +17,7 @@ import { logError } from '../shared/logger'
 import { Keys } from '../shared/keys'
 import { getWeddingById, requireAdminAccessibleWedding } from '../shared/wedding-middleware'
 import { isValidWeddingId } from '../shared/validation'
+import { type AnyGuestType, isValidGuestType } from '../shared/rsvp-validation'
 
 const client = new DynamoDBClient({})
 const docClient = DynamoDBDocumentClient.from(client)
@@ -43,6 +44,7 @@ interface AdminRsvpInput {
   numberOfGuests: number
   phoneNumber?: string
   message?: string
+  guestType?: AnyGuestType | null // null means remove
 }
 
 function validateAdminRsvpInput(input: unknown):
@@ -111,6 +113,17 @@ function validateAdminRsvpInput(input: unknown):
     }
   }
 
+  // Validate guestType (optional, null means remove)
+  let validatedGuestType: AnyGuestType | null | undefined
+  if (body.guestType === null) {
+    validatedGuestType = null // Explicitly remove
+  } else if (body.guestType !== undefined && body.guestType !== '') {
+    if (!isValidGuestType(body.guestType)) {
+      return { valid: false, error: 'Invalid guest type selected' }
+    }
+    validatedGuestType = body.guestType as AnyGuestType
+  }
+
   return {
     valid: true,
     data: {
@@ -120,6 +133,7 @@ function validateAdminRsvpInput(input: unknown):
       numberOfGuests: body.isAttending ? (body.numberOfGuests as number) : 0,
       phoneNumber: cleanPhone || undefined,
       message: typeof body.message === 'string' ? body.message.trim() : undefined,
+      guestType: validatedGuestType,
     },
   }
 }
@@ -214,7 +228,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
     // ============================================
     // 7. Update RSVP Record
     // ============================================
-    const updatedItem = {
+    const updatedItem: Record<string, unknown> = {
       ...rsvpKeys,
       ...Keys.gsi.weddingRsvpsByStatus(weddingId, status, existingItem.submittedAt as string),
       id: rsvpId,
@@ -230,6 +244,16 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
       createdBy: existingItem.createdBy,
       updatedAt: timestamp,
       updatedBy: authResult.user.username,
+    }
+
+    // Handle guestType: add if provided, remove if null, preserve if undefined
+    if (data.guestType === null) {
+      // Explicitly remove - don't include in updatedItem
+    } else if (data.guestType !== undefined) {
+      updatedItem.guestType = data.guestType
+    } else if (existingItem.guestType) {
+      // Preserve existing value
+      updatedItem.guestType = existingItem.guestType
     }
 
     await docClient.send(

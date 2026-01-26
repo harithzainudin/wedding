@@ -1,6 +1,9 @@
 <script setup lang="ts">
-  defineProps<{
+  import { computed } from 'vue'
+
+  const props = defineProps<{
     maxFileSize: string
+    maxVideoSize: string
     allowedFormats: string[]
     maxImages: number
   }>()
@@ -10,7 +13,26 @@
     'image/png': 'PNG',
     'image/webp': 'WebP',
     'image/gif': 'GIF',
+    'video/mp4': 'MP4',
+    'video/webm': 'WebM',
+    'video/quicktime': 'MOV',
   }
+
+  const imageFormats = computed(() =>
+    props.allowedFormats
+      .filter((f) => f.startsWith('image/'))
+      .map((f) => formatLabels[f] ?? f)
+      .join(', ')
+  )
+
+  const videoFormats = computed(() =>
+    props.allowedFormats
+      .filter((f) => f.startsWith('video/'))
+      .map((f) => formatLabels[f] ?? f)
+      .join(', ')
+  )
+
+  const hasVideoSupport = computed(() => props.allowedFormats.some((f) => f.startsWith('video/')))
 </script>
 
 <template>
@@ -31,15 +53,15 @@
         </svg>
       </div>
       <div>
-        <p class="font-medium text-charcoal dark:text-dark-text">Reorder Images</p>
+        <p class="font-medium text-charcoal dark:text-dark-text">Reorder Media</p>
         <p class="text-charcoal-light dark:text-dark-text-secondary mt-0.5">
-          <span class="hidden sm:inline">Drag and drop images to reorder.</span>
+          <span class="hidden sm:inline">Drag and drop images/videos to reorder.</span>
           <span class="sm:hidden">Touch, hold, and drag to reorder.</span>
         </p>
       </div>
     </div>
 
-    <!-- Featured Image Info -->
+    <!-- Featured Media Info -->
     <div class="flex gap-3">
       <div
         class="flex-shrink-0 w-6 h-6 rounded-full bg-sage/20 dark:bg-sage/30 flex items-center justify-center"
@@ -57,9 +79,9 @@
         </svg>
       </div>
       <div>
-        <p class="font-medium text-charcoal dark:text-dark-text">Featured Image</p>
+        <p class="font-medium text-charcoal dark:text-dark-text">Featured Media</p>
         <p class="text-charcoal-light dark:text-dark-text-secondary mt-0.5">
-          Image #1 appears as the main/featured image on your site.
+          Item #1 appears as the main/featured media on your site.
         </p>
       </div>
     </div>
@@ -84,11 +106,13 @@
       <div>
         <p class="font-medium text-charcoal dark:text-dark-text">Upload Limits</p>
         <p class="text-charcoal-light dark:text-dark-text-secondary mt-0.5">
-          Max {{ maxFileSize }} per file. Up to {{ maxImages }} images total.
+          Up to {{ maxImages }} items total.
         </p>
         <p class="text-charcoal-light dark:text-dark-text-secondary mt-0.5">
-          Formats:
-          {{ allowedFormats.map((f) => formatLabels[f] ?? f).join(', ') }}
+          Images: {{ imageFormats }} (max {{ maxFileSize }})
+        </p>
+        <p v-if="hasVideoSupport" class="text-charcoal-light dark:text-dark-text-secondary mt-0.5">
+          Videos: {{ videoFormats }} (max {{ maxVideoSize }})
         </p>
       </div>
     </div>
@@ -113,7 +137,8 @@
       <div>
         <p class="font-medium text-charcoal dark:text-dark-text">Public Display</p>
         <p class="text-charcoal-light dark:text-dark-text-secondary mt-0.5">
-          First 6 images show on the homepage. Visitors can view all in a lightbox gallery.
+          First 6 items show on the homepage. Visitors can view all in a lightbox gallery.
+          <span v-if="hasVideoSupport">Videos play with native controls.</span>
         </p>
       </div>
     </div>

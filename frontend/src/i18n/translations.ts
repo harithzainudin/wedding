@@ -68,6 +68,7 @@ export interface Translations {
     prayer: string
     errorName: string
     errorPhone: string
+    errorPhoneInvalid: string
     errorGeneric: string
     // RSVP closed messages
     rsvpClosed: string
@@ -75,6 +76,52 @@ export interface Translations {
     rsvpClosedDeadline: string
     // Invitation card
     openInvitation: string
+    // Guest type (relationship tracking)
+    guestTypeLabel: string
+    selectGuestType: string
+    guestTypeGroups: {
+      brideSide: string
+      groomSide: string
+      both: string
+    }
+    guestTypes: {
+      father_guest: string
+      mother_guest: string
+      both_parents_guest: string
+      father_relative: string
+      mother_relative: string
+      couple_friend: string
+      couple_colleague: string
+      spouse_family: string
+      mutual_friend: string
+      other: string
+      // Combined wedding types
+      bride_father_guest: string
+      bride_mother_guest: string
+      bride_both_parents_guest: string
+      bride_father_relative: string
+      bride_mother_relative: string
+      bride_friend: string
+      bride_colleague: string
+      groom_father_guest: string
+      groom_mother_guest: string
+      groom_both_parents_guest: string
+      groom_father_relative: string
+      groom_mother_relative: string
+      groom_friend: string
+      groom_colleague: string
+    }
+    guestTypeHelp: {
+      father_guest: string
+      mother_guest: string
+      both_parents_guest: string
+      father_relative: string
+      mother_relative: string
+      couple_friend: string
+      couple_colleague: string
+      spouse_family: string
+      other: string
+    }
   }
   // Gallery Section
   gallery: {
@@ -368,6 +415,7 @@ export const translations: Record<Language, Translations> = {
         '"Ya Allah, berkatilah majlis ini dan kurniakanlah kebahagiaan kepada kedua mempelai. Amin."',
       errorName: 'Sila masukkan nama penuh anda.',
       errorPhone: 'Sila masukkan nombor telefon anda.',
+      errorPhoneInvalid: 'Format nombor telefon tidak sah. Contoh: 012-3456789 atau +60123456789',
       errorGeneric: 'Maaf, terdapat masalah. Sila cuba lagi.',
       // RSVP closed messages
       rsvpClosed: 'RSVP Ditutup',
@@ -375,6 +423,52 @@ export const translations: Record<Language, Translations> = {
       rsvpClosedDeadline: 'Tarikh akhir RSVP telah berlalu pada {date}.',
       // Invitation card
       openInvitation: 'Buka Jemputan',
+      // Guest type (relationship tracking)
+      guestTypeLabel: 'Saya hadir sebagai... (Pilihan)',
+      selectGuestType: 'Pilih jawapan',
+      guestTypeGroups: {
+        brideSide: 'Pihak Pengantin Perempuan',
+        groomSide: 'Pihak Pengantin Lelaki',
+        both: 'Kedua-dua',
+      },
+      guestTypes: {
+        father_guest: 'Tetamu bapa',
+        mother_guest: 'Tetamu ibu',
+        both_parents_guest: 'Tetamu kedua-dua ibu bapa',
+        father_relative: 'Keluarga sebelah bapa',
+        mother_relative: 'Keluarga sebelah ibu',
+        couple_friend: 'Kawan pengantin',
+        couple_colleague: 'Rakan sekerja pengantin',
+        spouse_family: 'Keluarga pasangan',
+        mutual_friend: 'Kawan bersama',
+        other: 'Lain-lain',
+        // Combined wedding types
+        bride_father_guest: 'Tetamu bapa pengantin perempuan',
+        bride_mother_guest: 'Tetamu ibu pengantin perempuan',
+        bride_both_parents_guest: 'Tetamu ibu bapa pengantin perempuan',
+        bride_father_relative: 'Keluarga bapa pengantin perempuan',
+        bride_mother_relative: 'Keluarga ibu pengantin perempuan',
+        bride_friend: 'Kawan pengantin perempuan',
+        bride_colleague: 'Rakan sekerja pengantin perempuan',
+        groom_father_guest: 'Tetamu bapa pengantin lelaki',
+        groom_mother_guest: 'Tetamu ibu pengantin lelaki',
+        groom_both_parents_guest: 'Tetamu ibu bapa pengantin lelaki',
+        groom_father_relative: 'Keluarga bapa pengantin lelaki',
+        groom_mother_relative: 'Keluarga ibu pengantin lelaki',
+        groom_friend: 'Kawan pengantin lelaki',
+        groom_colleague: 'Rakan sekerja pengantin lelaki',
+      },
+      guestTypeHelp: {
+        father_guest: 'Dijemput oleh bapa',
+        mother_guest: 'Dijemput oleh ibu',
+        both_parents_guest: 'Dijemput oleh kedua-dua ibu bapa',
+        father_relative: 'Saudara-mara sebelah bapa',
+        mother_relative: 'Saudara-mara sebelah ibu',
+        couple_friend: 'Kawan rapat pengantin',
+        couple_colleague: 'Rakan sekerja/sekolah',
+        spouse_family: 'Dari pihak pasangan',
+        other: 'VIP, jiran, dll.',
+      },
     },
     gallery: {
       title: 'Galeri Foto',
@@ -653,6 +747,7 @@ export const translations: Record<Language, Translations> = {
       prayer: '"O Allah, bless this union and grant happiness to the newlyweds. Amin."',
       errorName: 'Please enter your full name.',
       errorPhone: 'Please enter your phone number.',
+      errorPhoneInvalid: 'Invalid phone number format. Example: 012-3456789 or +60123456789',
       errorGeneric: 'Sorry, there was an error. Please try again.',
       // RSVP closed messages
       rsvpClosed: 'RSVPs Closed',
@@ -660,6 +755,52 @@ export const translations: Record<Language, Translations> = {
       rsvpClosedDeadline: 'The RSVP deadline has passed on {date}.',
       // Invitation card
       openInvitation: 'Open Invitation',
+      // Guest type (relationship tracking)
+      guestTypeLabel: 'I am here as... (Optional)',
+      selectGuestType: 'Select an option',
+      guestTypeGroups: {
+        brideSide: "Bride's Side",
+        groomSide: "Groom's Side",
+        both: 'Both',
+      },
+      guestTypes: {
+        father_guest: "Father's guest",
+        mother_guest: "Mother's guest",
+        both_parents_guest: "Both parents' guest",
+        father_relative: "Father's family",
+        mother_relative: "Mother's family",
+        couple_friend: 'A friend of the couple',
+        couple_colleague: 'A colleague of the couple',
+        spouse_family: "Spouse's family",
+        mutual_friend: 'A mutual friend',
+        other: 'Other',
+        // Combined wedding types
+        bride_father_guest: "Bride's father's guest",
+        bride_mother_guest: "Bride's mother's guest",
+        bride_both_parents_guest: "Bride's parents' guest",
+        bride_father_relative: "Bride's father's family",
+        bride_mother_relative: "Bride's mother's family",
+        bride_friend: 'A friend of the Bride',
+        bride_colleague: 'A colleague of the Bride',
+        groom_father_guest: "Groom's father's guest",
+        groom_mother_guest: "Groom's mother's guest",
+        groom_both_parents_guest: "Groom's parents' guest",
+        groom_father_relative: "Groom's father's family",
+        groom_mother_relative: "Groom's mother's family",
+        groom_friend: 'A friend of the Groom',
+        groom_colleague: 'A colleague of the Groom',
+      },
+      guestTypeHelp: {
+        father_guest: 'Invited by father',
+        mother_guest: 'Invited by mother',
+        both_parents_guest: 'Invited by both parents',
+        father_relative: "Related to the father's side",
+        mother_relative: "Related to the mother's side",
+        couple_friend: 'Personal friend of the couple',
+        couple_colleague: 'Work/school friend',
+        spouse_family: "From the other side's family",
+        other: 'VIP, neighbor, etc.',
+      },
     },
     gallery: {
       title: 'Photo Gallery',
@@ -934,6 +1075,7 @@ export const translations: Record<Language, Translations> = {
       prayer: '"愿真主祝福这场婚礼，赐予新人幸福美满。阿敏。"',
       errorName: '请输入您的全名。',
       errorPhone: '请输入您的电话号码。',
+      errorPhoneInvalid: '电话号码格式无效。例如：012-3456789 或 +60123456789',
       errorGeneric: '抱歉，发生错误。请重试。',
       // RSVP closed messages
       rsvpClosed: '回复已关闭',
@@ -941,6 +1083,52 @@ export const translations: Record<Language, Translations> = {
       rsvpClosedDeadline: '回复截止日期已于 {date} 过期。',
       // Invitation card
       openInvitation: '打开邀请函',
+      // Guest type (relationship tracking)
+      guestTypeLabel: '我的身份是...（选填）',
+      selectGuestType: '请选择',
+      guestTypeGroups: {
+        brideSide: '新娘方',
+        groomSide: '新郎方',
+        both: '双方',
+      },
+      guestTypes: {
+        father_guest: '父亲的宾客',
+        mother_guest: '母亲的宾客',
+        both_parents_guest: '父母的宾客',
+        father_relative: '父亲的亲戚',
+        mother_relative: '母亲的亲戚',
+        couple_friend: '新人的朋友',
+        couple_colleague: '新人的同事',
+        spouse_family: '配偶的家人',
+        mutual_friend: '共同的朋友',
+        other: '其他',
+        // Combined wedding types
+        bride_father_guest: '新娘父亲的宾客',
+        bride_mother_guest: '新娘母亲的宾客',
+        bride_both_parents_guest: '新娘父母的宾客',
+        bride_father_relative: '新娘父亲的亲戚',
+        bride_mother_relative: '新娘母亲的亲戚',
+        bride_friend: '新娘的朋友',
+        bride_colleague: '新娘的同事',
+        groom_father_guest: '新郎父亲的宾客',
+        groom_mother_guest: '新郎母亲的宾客',
+        groom_both_parents_guest: '新郎父母的宾客',
+        groom_father_relative: '新郎父亲的亲戚',
+        groom_mother_relative: '新郎母亲的亲戚',
+        groom_friend: '新郎的朋友',
+        groom_colleague: '新郎的同事',
+      },
+      guestTypeHelp: {
+        father_guest: '收到父亲的邀请',
+        mother_guest: '收到母亲的邀请',
+        both_parents_guest: '收到父母的邀请',
+        father_relative: '父亲方的亲戚',
+        mother_relative: '母亲方的亲戚',
+        couple_friend: '新人的私人朋友',
+        couple_colleague: '工作/学校朋友',
+        spouse_family: '来自另一方的家人',
+        other: '贵宾、邻居等',
+      },
     },
     gallery: {
       title: '照片集',
@@ -1211,6 +1399,7 @@ export const translations: Record<Language, Translations> = {
         '"அல்லாஹ், இந்த திருமணத்தை ஆசீர்வதித்து புதுமணத் தம்பதிகளுக்கு மகிழ்ச்சியை வழங்குவாயாக. ஆமீன்."',
       errorName: 'உங்கள் முழுப் பெயரை உள்ளிடவும்.',
       errorPhone: 'உங்கள் தொலைபேசி எண்ணை உள்ளிடவும்.',
+      errorPhoneInvalid: 'தவறான தொலைபேசி எண் வடிவம். எடுத்துக்காட்டு: 012-3456789 அல்லது +60123456789',
       errorGeneric: 'மன்னிக்கவும், பிழை ஏற்பட்டது. மீண்டும் முயற்சிக்கவும்.',
       // RSVP closed messages
       rsvpClosed: 'பதில் மூடப்பட்டது',
@@ -1218,6 +1407,52 @@ export const translations: Record<Language, Translations> = {
       rsvpClosedDeadline: 'பதில் கடைசி தேதி {date} அன்று முடிந்தது.',
       // Invitation card
       openInvitation: 'அழைப்பிதழைத் திறக்கவும்',
+      // Guest type (relationship tracking)
+      guestTypeLabel: 'நான் வந்துள்ளேன்... (விருப்பம்)',
+      selectGuestType: 'ஒரு விருப்பத்தைத் தேர்ந்தெடுக்கவும்',
+      guestTypeGroups: {
+        brideSide: 'மணப்பெண் பக்கம்',
+        groomSide: 'மணமகன் பக்கம்',
+        both: 'இருவரும்',
+      },
+      guestTypes: {
+        father_guest: 'தந்தையின் விருந்தினர்',
+        mother_guest: 'தாயின் விருந்தினர்',
+        both_parents_guest: 'பெற்றோரின் விருந்தினர்',
+        father_relative: 'தந்தையின் குடும்பம்',
+        mother_relative: 'தாயின் குடும்பம்',
+        couple_friend: 'தம்பதியின் நண்பர்',
+        couple_colleague: 'தம்பதியின் சக ஊழியர்',
+        spouse_family: 'துணையின் குடும்பம்',
+        mutual_friend: 'பொதுவான நண்பர்',
+        other: 'மற்றவை',
+        // Combined wedding types
+        bride_father_guest: 'மணப்பெண் தந்தையின் விருந்தினர்',
+        bride_mother_guest: 'மணப்பெண் தாயின் விருந்தினர்',
+        bride_both_parents_guest: 'மணப்பெண் பெற்றோரின் விருந்தினர்',
+        bride_father_relative: 'மணப்பெண் தந்தையின் குடும்பம்',
+        bride_mother_relative: 'மணப்பெண் தாயின் குடும்பம்',
+        bride_friend: 'மணப்பெண்ணின் நண்பர்',
+        bride_colleague: 'மணப்பெண்ணின் சக ஊழியர்',
+        groom_father_guest: 'மணமகன் தந்தையின் விருந்தினர்',
+        groom_mother_guest: 'மணமகன் தாயின் விருந்தினர்',
+        groom_both_parents_guest: 'மணமகன் பெற்றோரின் விருந்தினர்',
+        groom_father_relative: 'மணமகன் தந்தையின் குடும்பம்',
+        groom_mother_relative: 'மணமகன் தாயின் குடும்பம்',
+        groom_friend: 'மணமகனின் நண்பர்',
+        groom_colleague: 'மணமகனின் சக ஊழியர்',
+      },
+      guestTypeHelp: {
+        father_guest: 'தந்தையிடமிருந்து அழைப்பு பெற்றது',
+        mother_guest: 'தாயிடமிருந்து அழைப்பு பெற்றது',
+        both_parents_guest: 'பெற்றோரிடமிருந்து அழைப்பு பெற்றது',
+        father_relative: 'தந்தை பக்கத்தின் உறவினர்',
+        mother_relative: 'தாய் பக்கத்தின் உறவினர்',
+        couple_friend: 'தம்பதியின் நெருங்கிய நண்பர்',
+        couple_colleague: 'வேலை/பள்ளி நண்பர்',
+        spouse_family: 'மற்ற பக்கத்தின் குடும்பம்',
+        other: 'VIP, அண்டை வீட்டார், முதலியன',
+      },
     },
     gallery: {
       title: 'புகைப்பட தொகுப்பு',
@@ -1487,6 +1722,7 @@ export interface AdminTranslations {
     backToSuperAdmin: string
     clearFilters: string
     dismiss: string
+    recommended: string
   }
 
   // Authentication
@@ -1668,36 +1904,107 @@ export interface AdminTranslations {
     deadlineAfterEventError: string
     rsvpDisabled: string
     rsvpClosed: string
+    // Guest type field
+    guestTypeLabel: string
+    guestTypeLabelOptional: string
+    noGuestType: string
+    guestTypes: {
+      father_guest: string
+      mother_guest: string
+      both_parents_guest: string
+      father_relative: string
+      mother_relative: string
+      couple_friend: string
+      couple_colleague: string
+      spouse_family: string
+      mutual_friend: string
+      other: string
+      bride_father_guest: string
+      bride_mother_guest: string
+      bride_both_parents_guest: string
+      bride_father_relative: string
+      bride_mother_relative: string
+      bride_friend: string
+      bride_colleague: string
+      groom_father_guest: string
+      groom_mother_guest: string
+      groom_both_parents_guest: string
+      groom_father_relative: string
+      groom_mother_relative: string
+      groom_friend: string
+      groom_colleague: string
+    }
+    // Analytics dashboard
+    analytics: string
+    attendanceRate: string
+    avgPartySize: string
+    attendanceBreakdown: string
+    guestsByCategory: string
+    guestsBySide: string
+    rsvpTimeline: string
+    partySizeDistribution: string
+    brideSide: string
+    groomSide: string
+    mutualOther: string
+    notSpecified: string
+    fatherGuests: string
+    motherGuests: string
+    bothParentsGuests: string
+    fatherFamily: string
+    motherFamily: string
+    couplesFriends: string
+    couplesColleagues: string
+    spouseSide: string
+    mutualFriends: string
+    otherGuests: string
+    entries: string
+    guestsLabel: string
+    cumulative: string
+    daily: string
+    person: string
+    people: string
+    orMore: string
   }
 
   // Gallery
   gallery: {
     title: string
-    imagesCount: string
+    mediaCount: string
     slotsRemaining: string
     loadingGallery: string
-    noImages: string
+    noMedia: string
     uploadFirst: string
     maxReached: string
     galleryHelp: string
-    deleteImage: string
-    deleteImageConfirm: string
+    deleteMedia: string
+    deleteMediaConfirm: string
     gallerySettings: string
-    maxImages: string
+    maxMedia: string
     compression: string
-    uploadImages: string
+    uploadMedia: string
     dragDrop: string
     dragDropImages: string
+    dragDropMedia: string
     upToSize: string
     showGallerySection: string
     showGalleryDesc: string
     maxFileSize: string
+    maxVideoSize: string
     allowedFormats: string
-    imagesLabel: string
+    mediaLabel: string
     lastUpdatedBy: string
     dragToReorder: string
     tapToMoveOrView: string
     limitsReadOnly: string
+    // Video upload
+    howToUpload: string
+    optimizeForWeb: string
+    uploadOriginal: string
+    smallerFile: string
+    fullQuality: string
+    upload: string
+    compressionNotSupported: string
+    optimizingVideo: string
   }
 
   // Gifts
@@ -2014,6 +2321,13 @@ export interface AdminTranslations {
     savedSuccess: string
     unsavedChanges: string
     lastUpdated: string
+    // Wedding Type
+    weddingType: string
+    weddingTypeDesc: string
+    singleSide: string
+    singleSideDesc: string
+    combined: string
+    combinedDesc: string
   }
 
   // Venue/Location
@@ -2629,6 +2943,7 @@ export const adminTranslations: Record<AdminLanguage, AdminTranslations> = {
       backToSuperAdmin: 'Back to Super Admin',
       clearFilters: 'Clear filters',
       dismiss: 'Dismiss',
+      recommended: 'Recommended',
     },
 
     auth: {
@@ -2806,36 +3121,106 @@ export const adminTranslations: Record<AdminLanguage, AdminTranslations> = {
       deadlineAfterEventError: 'Deadline cannot be after the event date',
       rsvpDisabled: 'Disabled',
       rsvpClosed: 'RSVPs Closed',
+      // Guest type field
+      guestTypeLabel: 'Guest Type',
+      guestTypeLabelOptional: 'Guest Type (Optional)',
+      noGuestType: '-- Not Specified --',
+      guestTypes: {
+        father_guest: "Father's Guest",
+        mother_guest: "Mother's Guest",
+        both_parents_guest: "Both Parents' Guest",
+        father_relative: "Father's Family",
+        mother_relative: "Mother's Family",
+        couple_friend: 'Friend of Couple',
+        couple_colleague: 'Colleague of Couple',
+        spouse_family: "Spouse's Family",
+        mutual_friend: 'Mutual Friend',
+        other: 'Other',
+        bride_father_guest: "Bride's Father's Guest",
+        bride_mother_guest: "Bride's Mother's Guest",
+        bride_both_parents_guest: "Bride's Parents' Guest",
+        bride_father_relative: "Bride's Father's Family",
+        bride_mother_relative: "Bride's Mother's Family",
+        bride_friend: "Bride's Friend",
+        bride_colleague: "Bride's Colleague",
+        groom_father_guest: "Groom's Father's Guest",
+        groom_mother_guest: "Groom's Mother's Guest",
+        groom_both_parents_guest: "Groom's Parents' Guest",
+        groom_father_relative: "Groom's Father's Family",
+        groom_mother_relative: "Groom's Mother's Family",
+        groom_friend: "Groom's Friend",
+        groom_colleague: "Groom's Colleague",
+      },
+      // Analytics dashboard
+      analytics: 'RSVP Analytics',
+      attendanceRate: 'Attendance Rate',
+      avgPartySize: 'Avg Party Size',
+      attendanceBreakdown: 'Attendance Breakdown',
+      guestsByCategory: 'Guests by Category',
+      guestsBySide: 'Guests by Side',
+      rsvpTimeline: 'RSVP Timeline',
+      partySizeDistribution: 'Party Size Distribution',
+      brideSide: "Bride's Side",
+      groomSide: "Groom's Side",
+      mutualOther: 'Mutual/Other',
+      notSpecified: 'Not Specified',
+      fatherGuests: "Father's Guests",
+      motherGuests: "Mother's Guests",
+      bothParentsGuests: "Both Parents' Guests",
+      fatherFamily: "Father's Family",
+      motherFamily: "Mother's Family",
+      couplesFriends: 'Friends',
+      couplesColleagues: 'Colleagues',
+      spouseSide: "Spouse's Side",
+      mutualFriends: 'Mutual Friends',
+      otherGuests: 'Other',
+      entries: 'entries',
+      guestsLabel: 'guests',
+      cumulative: 'Cumulative',
+      daily: 'Daily',
+      person: 'person',
+      people: 'people',
+      orMore: 'or more',
     },
 
     gallery: {
       title: 'Gallery Management',
-      imagesCount: '{count} / {max} images',
+      mediaCount: '{count} / {max} media',
       slotsRemaining: '({remaining} slots remaining)',
       loadingGallery: 'Loading gallery...',
-      noImages: 'No images in gallery yet.',
-      uploadFirst: 'Upload your first image to get started.',
-      maxReached: 'Maximum number of images ({max}) reached. Delete some images to upload more.',
+      noMedia: 'No media in gallery yet.',
+      uploadFirst: 'Upload your first image or video to get started.',
+      maxReached: 'Maximum media limit ({max}) reached. Delete some items to upload more.',
       galleryHelp: 'Gallery Help',
-      deleteImage: 'Delete Image?',
-      deleteImageConfirm:
-        'Are you sure you want to delete this image? This action cannot be undone.',
+      deleteMedia: 'Delete Media?',
+      deleteMediaConfirm: 'Are you sure you want to delete this? This action cannot be undone.',
       gallerySettings: 'Gallery Settings',
-      maxImages: 'Maximum Images',
+      maxMedia: 'Maximum Media',
       compression: 'Image Compression',
-      uploadImages: 'Upload Images',
+      uploadMedia: 'Upload Media',
       dragDrop: 'Drag and drop or click to upload',
       dragDropImages: 'Drag & drop images here or click to browse',
+      dragDropMedia: 'Drag & drop images or videos here or click to browse',
       upToSize: '{formats} up to {size}',
       showGallerySection: 'Show Gallery Section',
-      showGalleryDesc: 'Display the photo gallery on the public website',
-      maxFileSize: 'Max File Size',
+      showGalleryDesc: 'Display the photo and video gallery on the public website',
+      maxFileSize: 'Max Image Size',
+      maxVideoSize: 'Max Video Size',
       allowedFormats: 'Allowed Formats',
-      imagesLabel: '{count} images',
+      mediaLabel: '{count} items',
       lastUpdatedBy: 'Last updated: {date} by {user}',
-      dragToReorder: 'Drag images to reorder them.',
-      tapToMoveOrView: 'Tap an image to move or view it.',
+      dragToReorder: 'Drag to reorder items.',
+      tapToMoveOrView: 'Tap to move or view.',
       limitsReadOnly: 'Limits are managed by Super Admin',
+      // Video upload
+      howToUpload: 'How would you like to upload this video?',
+      optimizeForWeb: 'Optimize for web',
+      uploadOriginal: 'Upload original',
+      smallerFile: 'Smaller file size, may take a moment to process',
+      fullQuality: 'Full quality, faster upload',
+      upload: 'Upload',
+      compressionNotSupported: 'Video optimization not supported in this browser',
+      optimizingVideo: 'Optimizing video...',
     },
 
     gifts: {
@@ -3146,6 +3531,13 @@ export const adminTranslations: Record<AdminLanguage, AdminTranslations> = {
       savedSuccess: 'Wedding details saved successfully!',
       unsavedChanges: 'You have unsaved changes',
       lastUpdated: 'Last updated: {date} by {user}',
+      // Wedding Type
+      weddingType: 'Wedding Type',
+      weddingTypeDesc: 'Choose the type of wedding to customize RSVP relationship options',
+      singleSide: 'Single Side',
+      singleSideDesc: 'Wedding held on one family side. Shows simpler relationship options.',
+      combined: 'Combined / Joint',
+      combinedDesc: 'Both families hosting together. Shows full relationship options.',
     },
 
     venue: {
@@ -3735,6 +4127,7 @@ export const adminTranslations: Record<AdminLanguage, AdminTranslations> = {
       backToSuperAdmin: 'Kembali ke Super Admin',
       clearFilters: 'Padam penapis',
       dismiss: 'Abaikan',
+      recommended: 'Disyorkan',
     },
 
     auth: {
@@ -3914,37 +4307,108 @@ export const adminTranslations: Record<AdminLanguage, AdminTranslations> = {
       deadlineAfterEventError: 'Tarikh akhir tidak boleh selepas tarikh majlis',
       rsvpDisabled: 'Dilumpuhkan',
       rsvpClosed: 'RSVP Ditutup',
+      // Guest type field
+      guestTypeLabel: 'Jenis Tetamu',
+      guestTypeLabelOptional: 'Jenis Tetamu (Pilihan)',
+      noGuestType: '-- Tidak Dinyatakan --',
+      guestTypes: {
+        father_guest: 'Tetamu Bapa',
+        mother_guest: 'Tetamu Ibu',
+        both_parents_guest: 'Tetamu Kedua-dua Ibu Bapa',
+        father_relative: 'Keluarga Sebelah Bapa',
+        mother_relative: 'Keluarga Sebelah Ibu',
+        couple_friend: 'Kawan Pengantin',
+        couple_colleague: 'Rakan Sekerja Pengantin',
+        spouse_family: 'Keluarga Pasangan',
+        mutual_friend: 'Kawan Bersama',
+        other: 'Lain-lain',
+        bride_father_guest: 'Tetamu Bapa Pengantin Perempuan',
+        bride_mother_guest: 'Tetamu Ibu Pengantin Perempuan',
+        bride_both_parents_guest: 'Tetamu Ibu Bapa Pengantin Perempuan',
+        bride_father_relative: 'Keluarga Bapa Pengantin Perempuan',
+        bride_mother_relative: 'Keluarga Ibu Pengantin Perempuan',
+        bride_friend: 'Kawan Pengantin Perempuan',
+        bride_colleague: 'Rakan Sekerja Pengantin Perempuan',
+        groom_father_guest: 'Tetamu Bapa Pengantin Lelaki',
+        groom_mother_guest: 'Tetamu Ibu Pengantin Lelaki',
+        groom_both_parents_guest: 'Tetamu Ibu Bapa Pengantin Lelaki',
+        groom_father_relative: 'Keluarga Bapa Pengantin Lelaki',
+        groom_mother_relative: 'Keluarga Ibu Pengantin Lelaki',
+        groom_friend: 'Kawan Pengantin Lelaki',
+        groom_colleague: 'Rakan Sekerja Pengantin Lelaki',
+      },
+      // Analytics dashboard
+      analytics: 'Analitik RSVP',
+      attendanceRate: 'Kadar Kehadiran',
+      avgPartySize: 'Purata Saiz Kumpulan',
+      attendanceBreakdown: 'Pecahan Kehadiran',
+      guestsByCategory: 'Tetamu Mengikut Kategori',
+      guestsBySide: 'Tetamu Mengikut Pihak',
+      rsvpTimeline: 'Garis Masa RSVP',
+      partySizeDistribution: 'Taburan Saiz Kumpulan',
+      brideSide: 'Pihak Pengantin Perempuan',
+      groomSide: 'Pihak Pengantin Lelaki',
+      mutualOther: 'Bersama/Lain-lain',
+      notSpecified: 'Tidak Dinyatakan',
+      fatherGuests: 'Tetamu Bapa',
+      motherGuests: 'Tetamu Ibu',
+      bothParentsGuests: 'Tetamu Kedua-dua Ibu Bapa',
+      fatherFamily: 'Keluarga Bapa',
+      motherFamily: 'Keluarga Ibu',
+      couplesFriends: 'Kawan',
+      couplesColleagues: 'Rakan Sekerja',
+      spouseSide: 'Pihak Pasangan',
+      mutualFriends: 'Kawan Bersama',
+      otherGuests: 'Lain-lain',
+      entries: 'entri',
+      guestsLabel: 'tetamu',
+      cumulative: 'Kumulatif',
+      daily: 'Harian',
+      person: 'orang',
+      people: 'orang',
+      orMore: 'atau lebih',
     },
 
     gallery: {
       title: 'Pengurusan Galeri',
-      imagesCount: '{count} / {max} imej',
+      mediaCount: '{count} / {max} media',
       slotsRemaining: '({remaining} slot berbaki)',
       loadingGallery: 'Memuatkan galeri...',
-      noImages: 'Belum ada imej dalam galeri.',
-      uploadFirst: 'Muat naik imej pertama anda untuk bermula.',
+      noMedia: 'Belum ada media dalam galeri.',
+      uploadFirst: 'Muat naik imej atau video pertama anda untuk bermula.',
       maxReached:
-        'Bilangan maksimum imej ({max}) telah dicapai. Padam beberapa imej untuk muat naik lebih.',
+        'Bilangan maksimum media ({max}) telah dicapai. Padam beberapa item untuk muat naik lebih.',
       galleryHelp: 'Bantuan Galeri',
-      deleteImage: 'Padam Imej?',
-      deleteImageConfirm:
-        'Adakah anda pasti mahu memadam imej ini? Tindakan ini tidak boleh dibatalkan.',
+      deleteMedia: 'Padam Media?',
+      deleteMediaConfirm:
+        'Adakah anda pasti mahu memadam ini? Tindakan ini tidak boleh dibatalkan.',
       gallerySettings: 'Tetapan Galeri',
-      maxImages: 'Maksimum Imej',
+      maxMedia: 'Maksimum Media',
       compression: 'Pemampatan Imej',
-      uploadImages: 'Muat Naik Imej',
+      uploadMedia: 'Muat Naik Media',
       dragDrop: 'Seret dan lepas atau klik untuk muat naik',
       dragDropImages: 'Seret & lepas imej di sini atau klik untuk semak imbas',
+      dragDropMedia: 'Seret & lepas imej atau video di sini atau klik untuk semak imbas',
       upToSize: '{formats} sehingga {size}',
       showGallerySection: 'Papar Bahagian Galeri',
-      showGalleryDesc: 'Paparkan galeri foto di laman web awam',
-      maxFileSize: 'Saiz Fail Maksimum',
+      showGalleryDesc: 'Paparkan galeri foto dan video di laman web awam',
+      maxFileSize: 'Saiz Imej Maksimum',
+      maxVideoSize: 'Saiz Video Maksimum',
       allowedFormats: 'Format Yang Dibenarkan',
-      imagesLabel: '{count} imej',
+      mediaLabel: '{count} item',
       lastUpdatedBy: 'Terakhir dikemaskini: {date} oleh {user}',
-      dragToReorder: 'Seret imej untuk menyusun semula.',
-      tapToMoveOrView: 'Ketik imej untuk alih atau lihat.',
+      dragToReorder: 'Seret item untuk menyusun semula.',
+      tapToMoveOrView: 'Ketik untuk alih atau lihat.',
       limitsReadOnly: 'Had diuruskan oleh Super Admin',
+      // Video upload
+      howToUpload: 'Bagaimana anda mahu muat naik video ini?',
+      optimizeForWeb: 'Optimumkan untuk web',
+      uploadOriginal: 'Muat naik asal',
+      smallerFile: 'Saiz fail lebih kecil, mungkin memerlukan sedikit masa',
+      fullQuality: 'Kualiti penuh, muat naik lebih cepat',
+      upload: 'Muat Naik',
+      compressionNotSupported: 'Pengoptimuman video tidak disokong dalam pelayar ini',
+      optimizingVideo: 'Mengoptimumkan video...',
     },
 
     gifts: {
@@ -4259,6 +4723,13 @@ export const adminTranslations: Record<AdminLanguage, AdminTranslations> = {
       savedSuccess: 'Butiran perkahwinan berjaya disimpan!',
       unsavedChanges: 'Anda mempunyai perubahan yang belum disimpan',
       lastUpdated: 'Terakhir dikemaskini: {date} oleh {user}',
+      // Wedding Type
+      weddingType: 'Jenis Majlis',
+      weddingTypeDesc: 'Pilih jenis majlis untuk menyesuaikan pilihan hubungan RSVP',
+      singleSide: 'Satu Pihak',
+      singleSideDesc: 'Majlis diadakan di satu pihak keluarga. Papar pilihan hubungan mudah.',
+      combined: 'Gabungan',
+      combinedDesc: 'Kedua-dua keluarga menganjurkan bersama. Papar pilihan hubungan penuh.',
     },
 
     venue: {

@@ -1,9 +1,12 @@
 <script setup lang="ts">
   import { ref, reactive, computed } from 'vue'
-  import type { RsvpFormData } from '@/types/rsvp'
+  import type { RsvpFormData, AnyGuestType } from '@/types/rsvp'
+  import { GUEST_TYPES, COMBINED_GUEST_TYPES } from '@/types/rsvp'
+  import type { WeddingType } from '@/types/weddingDetails'
   import { HONORIFIC_TITLES } from '@/types'
   import { submitRsvp } from '@/services/api'
   import { useLanguage } from '@/composables/useLanguage'
+  import { usePublicWeddingData } from '@/composables/usePublicWeddingData'
 
   // Visibility is now controlled by Design Tab's section settings
   // This component only checks isAcceptingRsvps (functional toggle)
@@ -11,13 +14,21 @@
     defineProps<{
       isAcceptingRsvps?: boolean
       rsvpDeadline?: string
+      weddingType?: WeddingType
     }>(),
     {
       isAcceptingRsvps: true,
+      weddingType: 'single_side',
     }
   )
 
   const { t } = useLanguage()
+  const { currentWeddingSlug, weddingDetails } = usePublicWeddingData()
+
+  // Get wedding type from loaded wedding details (fallback to prop for backward compatibility)
+  const effectiveWeddingType = computed(() => {
+    return weddingDetails.value?.weddingType ?? props.weddingType ?? 'single_side'
+  })
 
   // Format the deadline for display
   const formattedDeadline = computed(() => {
@@ -43,9 +54,49 @@
     message: '',
   })
 
+  // Computed guest type options based on wedding type
+  const guestTypeOptions = computed(() => {
+    if (effectiveWeddingType.value === 'combined') {
+      return COMBINED_GUEST_TYPES
+    }
+    return GUEST_TYPES
+  })
+
+  // Get translation key for guest type
+  const getGuestTypeLabel = (guestType: AnyGuestType): string => {
+    const key = guestType as keyof typeof t.value.rsvp.guestTypes
+    return t.value.rsvp.guestTypes[key] || guestType
+  }
+
   const isSubmitting = ref(false)
   const isSubmitted = ref(false)
   const errorMessage = ref('')
+  const phoneBlurred = ref(false)
+
+  // Phone number validation - matches backend regex
+  const validatePhone = (phone: string): boolean => {
+    if (!phone.trim()) return false
+    // Remove common formatting characters: spaces, dashes, parentheses, dots
+    const cleanPhone = phone.replace(/[-\s().]/g, '')
+    // Accept international formats: +{country code}{number} or local formats starting with 0
+    // Minimum 7 digits (local), maximum 15 digits (E.164 standard)
+    const phoneRegex = /^(\+?[1-9]\d{6,14}|0[1-9]\d{6,12})$/
+    return phoneRegex.test(cleanPhone)
+  }
+
+  // Computed phone validation state
+  const phoneValidation = computed(() => {
+    const phone = formData.phoneNumber
+    if (!phone.trim()) {
+      return { isEmpty: true, isValid: false }
+    }
+    return { isEmpty: false, isValid: validatePhone(phone) }
+  })
+
+  // Show phone error only after user has interacted with the field
+  const showPhoneError = computed(() => {
+    return phoneBlurred.value && !phoneValidation.value.isEmpty && !phoneValidation.value.isValid
+  })
 
   const handleSubmit = async (): Promise<void> => {
     errorMessage.value = ''
@@ -61,10 +112,16 @@
       return
     }
 
+    // Validate phone format
+    if (!validatePhone(formData.phoneNumber)) {
+      errorMessage.value = t.value.rsvp.errorPhoneInvalid
+      return
+    }
+
     isSubmitting.value = true
 
     try {
-      await submitRsvp(formData)
+      await submitRsvp(formData, currentWeddingSlug.value ?? undefined)
       isSubmitted.value = true
     } catch {
       errorMessage.value = t.value.rsvp.errorGeneric
@@ -252,10 +309,96 @@
             id="phoneNumber"
             v-model="formData.phoneNumber"
             type="tel"
-            class="w-full px-3 py-2.5 font-body text-sm sm:text-base border border-sand-dark dark:border-dark-border rounded-lg bg-sand dark:bg-dark-bg-elevated text-charcoal dark:text-dark-text focus:outline-none focus:border-sage placeholder:text-charcoal-light/60 dark:placeholder:text-dark-text-secondary/60"
+            class="w-full px-3 py-2.5 font-body text-sm sm:text-base border rounded-lg bg-sand dark:bg-dark-bg-elevated text-charcoal dark:text-dark-text focus:outline-none placeholder:text-charcoal-light/60 dark:placeholder:text-dark-text-secondary/60 transition-colors"
+            :class="
+              showPhoneError
+                ? 'border-red-500 focus:border-red-500'
+                : 'border-sand-dark dark:border-dark-border focus:border-sage'
+            "
             :placeholder="t.rsvp.phonePlaceholder"
             required
+            @blur="phoneBlurred = true"
           />
+          <!-- Inline phone validation error -->
+          <p
+            v-if="showPhoneError"
+            class="mt-1 font-body text-xs text-red-600 dark:text-red-400"
+          >
+            {{ t.rsvp.errorPhoneInvalid }}
+          </p>
+        </div>
+
+        <!-- Guest Type (Relationship) - Optional -->
+        <div>
+          <label
+            for="guestType"
+            class="block font-body text-xs sm:text-sm font-medium text-charcoal dark:text-dark-text mb-1"
+          >
+            {{ t.rsvp.guestTypeLabel }}
+          </label>
+          <!-- Single side: simple dropdown with helper text -->
+          <select
+            v-if="effectiveWeddingType === 'single_side'"
+            id="guestType"
+            v-model="formData.guestType"
+            class="w-full px-3 py-2.5 font-body text-sm sm:text-base border border-sand-dark dark:border-dark-border rounded-lg bg-sand dark:bg-dark-bg-elevated text-charcoal dark:text-dark-text focus:outline-none focus:border-sage"
+          >
+            <option value="">{{ t.rsvp.selectGuestType }}</option>
+            <option v-for="gType in guestTypeOptions" :key="gType" :value="gType">
+              {{ getGuestTypeLabel(gType) }}
+            </option>
+          </select>
+          <!-- Combined: grouped dropdown -->
+          <select
+            v-else
+            id="guestType"
+            v-model="formData.guestType"
+            class="w-full px-3 py-2.5 font-body text-sm sm:text-base border border-sand-dark dark:border-dark-border rounded-lg bg-sand dark:bg-dark-bg-elevated text-charcoal dark:text-dark-text focus:outline-none focus:border-sage"
+          >
+            <option value="">{{ t.rsvp.selectGuestType }}</option>
+            <optgroup :label="t.rsvp.guestTypeGroups.brideSide">
+              <option value="bride_father_guest">
+                {{ t.rsvp.guestTypes.bride_father_guest }}
+              </option>
+              <option value="bride_mother_guest">
+                {{ t.rsvp.guestTypes.bride_mother_guest }}
+              </option>
+              <option value="bride_both_parents_guest">
+                {{ t.rsvp.guestTypes.bride_both_parents_guest }}
+              </option>
+              <option value="bride_father_relative">
+                {{ t.rsvp.guestTypes.bride_father_relative }}
+              </option>
+              <option value="bride_mother_relative">
+                {{ t.rsvp.guestTypes.bride_mother_relative }}
+              </option>
+              <option value="bride_friend">{{ t.rsvp.guestTypes.bride_friend }}</option>
+              <option value="bride_colleague">{{ t.rsvp.guestTypes.bride_colleague }}</option>
+            </optgroup>
+            <optgroup :label="t.rsvp.guestTypeGroups.groomSide">
+              <option value="groom_father_guest">
+                {{ t.rsvp.guestTypes.groom_father_guest }}
+              </option>
+              <option value="groom_mother_guest">
+                {{ t.rsvp.guestTypes.groom_mother_guest }}
+              </option>
+              <option value="groom_both_parents_guest">
+                {{ t.rsvp.guestTypes.groom_both_parents_guest }}
+              </option>
+              <option value="groom_father_relative">
+                {{ t.rsvp.guestTypes.groom_father_relative }}
+              </option>
+              <option value="groom_mother_relative">
+                {{ t.rsvp.guestTypes.groom_mother_relative }}
+              </option>
+              <option value="groom_friend">{{ t.rsvp.guestTypes.groom_friend }}</option>
+              <option value="groom_colleague">{{ t.rsvp.guestTypes.groom_colleague }}</option>
+            </optgroup>
+            <optgroup :label="t.rsvp.guestTypeGroups.both">
+              <option value="mutual_friend">{{ t.rsvp.guestTypes.mutual_friend }}</option>
+              <option value="other">{{ t.rsvp.guestTypes.other }}</option>
+            </optgroup>
+          </select>
         </div>
 
         <!-- Message -->

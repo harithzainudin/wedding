@@ -24,8 +24,9 @@ import { getWeddingById, requireAdminAccessibleWedding } from '../shared/wedding
 import { isValidWeddingId } from '../shared/validation'
 import {
   DEFAULT_MAX_FILE_SIZE,
+  DEFAULT_MAX_VIDEO_SIZE,
   DEFAULT_MAX_IMAGES,
-  ALLOWED_MIME_TYPES,
+  ALLOWED_MEDIA_TYPES,
   MIME_TO_EXTENSION,
 } from '../shared/image-constants'
 
@@ -43,8 +44,9 @@ async function getImageSettings(weddingId: string) {
 
   return {
     maxFileSize: (result.Item?.maxFileSize as number) ?? DEFAULT_MAX_FILE_SIZE,
+    maxVideoSize: (result.Item?.maxVideoSize as number) ?? DEFAULT_MAX_VIDEO_SIZE,
     maxImages: (result.Item?.maxImages as number) ?? DEFAULT_MAX_IMAGES,
-    allowedFormats: (result.Item?.allowedFormats as string[]) ?? [...ALLOWED_MIME_TYPES],
+    allowedFormats: (result.Item?.allowedFormats as string[]) ?? [...ALLOWED_MEDIA_TYPES],
   }
 }
 

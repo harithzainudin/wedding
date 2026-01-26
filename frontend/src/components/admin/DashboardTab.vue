@@ -62,6 +62,7 @@
   const galleryCount = ref(0)
   const gallerySettings = ref<GallerySettings>({
     maxFileSize: 10 * 1024 * 1024,
+    maxVideoSize: 100 * 1024 * 1024,
     maxImages: 50,
     allowedFormats: [],
   })

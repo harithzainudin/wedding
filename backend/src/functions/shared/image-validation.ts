@@ -1,4 +1,8 @@
-import { ALLOWED_MIME_TYPES, type AllowedMimeType } from './image-constants'
+import {
+  ALLOWED_MEDIA_TYPES,
+  type AllowedMediaMimeType,
+  isVideoMimeType,
+} from './image-constants'
 
 export interface ImageUploadRequest {
   filename: string
@@ -8,6 +12,7 @@ export interface ImageUploadRequest {
 
 export interface ImageSettings {
   maxFileSize: number
+  maxVideoSize: number
   maxImages: number
   allowedFormats: string[]
 }
@@ -39,10 +44,10 @@ export function validateImageUpload(
     return { valid: false, error: 'MIME type is required' }
   }
 
-  if (!ALLOWED_MIME_TYPES.includes(body.mimeType as AllowedMimeType)) {
+  if (!ALLOWED_MEDIA_TYPES.includes(body.mimeType as AllowedMediaMimeType)) {
     return {
       valid: false,
-      error: `Invalid file type. Allowed: ${ALLOWED_MIME_TYPES.join(', ')}`,
+      error: `Invalid file type. Allowed: ${ALLOWED_MEDIA_TYPES.join(', ')}`,
     }
   }
 
@@ -51,9 +56,14 @@ export function validateImageUpload(
     return { valid: false, error: 'File size must be a positive number' }
   }
 
-  if (body.fileSize > settings.maxFileSize) {
-    const maxMB = Math.round(settings.maxFileSize / (1024 * 1024))
-    return { valid: false, error: `File size exceeds maximum of ${maxMB}MB` }
+  // Apply different size limits for videos vs images
+  const isVideo = isVideoMimeType(body.mimeType)
+  const maxSize = isVideo ? settings.maxVideoSize : settings.maxFileSize
+  const mediaType = isVideo ? 'Video' : 'Image'
+
+  if (body.fileSize > maxSize) {
+    const maxMB = Math.round(maxSize / (1024 * 1024))
+    return { valid: false, error: `${mediaType} file size exceeds maximum of ${maxMB}MB` }
   }
 
   return {
@@ -132,7 +142,7 @@ export function validateReorderRequest(
 export function validateSettingsUpdate(input: unknown):
   | {
       valid: true
-      data: { maxFileSize?: number; maxImages?: number }
+      data: { maxFileSize?: number; maxVideoSize?: number; maxImages?: number }
     }
   | { valid: false; error: string } {
   if (typeof input !== 'object' || input === null) {
@@ -142,10 +152,11 @@ export function validateSettingsUpdate(input: unknown):
   const body = input as Record<string, unknown>
   const result: {
     maxFileSize?: number
+    maxVideoSize?: number
     maxImages?: number
   } = {}
 
-  // Validate maxFileSize (1MB to 50MB)
+  // Validate maxFileSize (1MB to 50MB) - for images
   if (body.maxFileSize !== undefined) {
     if (
       typeof body.maxFileSize !== 'number' ||
@@ -160,6 +171,21 @@ export function validateSettingsUpdate(input: unknown):
     result.maxFileSize = body.maxFileSize
   }
 
+  // Validate maxVideoSize (10MB to 200MB) - for videos
+  if (body.maxVideoSize !== undefined) {
+    if (
+      typeof body.maxVideoSize !== 'number' ||
+      body.maxVideoSize < 10 * 1024 * 1024 ||
+      body.maxVideoSize > 200 * 1024 * 1024
+    ) {
+      return {
+        valid: false,
+        error: 'maxVideoSize must be between 10MB and 200MB',
+      }
+    }
+    result.maxVideoSize = body.maxVideoSize
+  }
+
   // Validate maxImages (1 to 200)
   if (body.maxImages !== undefined) {
     if (typeof body.maxImages !== 'number' || body.maxImages < 1 || body.maxImages > 200) {
@@ -168,7 +194,11 @@ export function validateSettingsUpdate(input: unknown):
     result.maxImages = body.maxImages
   }
 
-  if (result.maxFileSize === undefined && result.maxImages === undefined) {
+  if (
+    result.maxFileSize === undefined &&
+    result.maxVideoSize === undefined &&
+    result.maxImages === undefined
+  ) {
     return { valid: false, error: 'At least one setting must be provided' }
   }
 

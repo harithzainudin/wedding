@@ -8,6 +8,13 @@ export interface CoupleInfo {
 // Display name order - determines whether bride or groom name appears first
 export type DisplayNameOrder = 'bride_first' | 'groom_first'
 
+// Wedding type - determines relationship options shown in RSVP form
+export type WeddingType = 'single_side' | 'combined'
+
+export const VALID_WEDDING_TYPES: WeddingType[] = ['single_side', 'combined']
+
+export const VALID_DISPLAY_NAME_ORDERS: DisplayNameOrder[] = ['bride_first', 'groom_first']
+
 export interface ParentsInfo {
   father: string
   mother: string
@@ -98,6 +105,7 @@ export interface WeddingDetailsData {
   eventEndTime?: string
   eventDisplayFormat?: EventDisplayFormat
   displayNameOrder?: DisplayNameOrder
+  weddingType?: WeddingType
   bismillahCalligraphy?: BismillahCalligraphySettings
   dressCode: string
   hashtag: string
@@ -121,6 +129,7 @@ export interface WeddingDetailsUpdateRequest {
   eventEndTime?: string
   eventDisplayFormat?: EventDisplayFormat
   displayNameOrder?: DisplayNameOrder
+  weddingType?: WeddingType
   bismillahCalligraphy?: BismillahCalligraphySettings
   dressCode: string
   hashtag: string

@@ -23,6 +23,9 @@
     'image/png': 'PNG',
     'image/webp': 'WebP',
     'image/gif': 'GIF',
+    'video/mp4': 'MP4',
+    'video/webm': 'WebM',
+    'video/quicktime': 'MOV',
   }
 </script>
 
@@ -46,8 +49,8 @@
     <div
       class="p-3 bg-sand/50 dark:bg-dark-bg rounded-lg border border-sand-dark/50 dark:border-dark-border/50"
     >
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <!-- Max File Size -->
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <!-- Max File Size (Images) -->
         <div>
           <p class="font-body text-sm font-medium text-charcoal dark:text-dark-text mb-1">
             {{ adminT.gallery.maxFileSize }}
@@ -57,13 +60,23 @@
           </p>
         </div>
 
-        <!-- Max Images -->
+        <!-- Max Video Size -->
         <div>
           <p class="font-body text-sm font-medium text-charcoal dark:text-dark-text mb-1">
-            {{ adminT.gallery.maxImages }}
+            {{ adminT.gallery.maxVideoSize }}
           </p>
           <p class="font-body text-base text-charcoal-light dark:text-dark-text-secondary">
-            {{ interpolate(adminT.gallery.imagesLabel, { count: settings.maxImages }) }}
+            {{ props.formatFileSize(settings.maxVideoSize) }}
+          </p>
+        </div>
+
+        <!-- Max Media -->
+        <div>
+          <p class="font-body text-sm font-medium text-charcoal dark:text-dark-text mb-1">
+            {{ adminT.gallery.maxMedia }}
+          </p>
+          <p class="font-body text-base text-charcoal-light dark:text-dark-text-secondary">
+            {{ interpolate(adminT.gallery.mediaLabel, { count: settings.maxImages }) }}
           </p>
         </div>
       </div>

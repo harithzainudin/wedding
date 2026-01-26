@@ -1,5 +1,121 @@
 import type { HonorificTitle } from './index'
 
+// Guest Type - for single-side weddings (simpler options)
+export type GuestType =
+  | 'father_guest' // Dad's guest
+  | 'mother_guest' // Mom's guest
+  | 'both_parents_guest' // Both parents' guest
+  | 'father_relative'
+  | 'mother_relative'
+  | 'couple_friend'
+  | 'couple_colleague'
+  | 'spouse_family'
+  | 'other'
+
+// Guest Type - for combined weddings (includes bride/groom prefix)
+export type CombinedGuestType =
+  | 'bride_father_guest'
+  | 'bride_mother_guest'
+  | 'bride_both_parents_guest'
+  | 'bride_father_relative'
+  | 'bride_mother_relative'
+  | 'bride_friend'
+  | 'bride_colleague'
+  | 'groom_father_guest'
+  | 'groom_mother_guest'
+  | 'groom_both_parents_guest'
+  | 'groom_father_relative'
+  | 'groom_mother_relative'
+  | 'groom_friend'
+  | 'groom_colleague'
+  | 'mutual_friend'
+  | 'other'
+
+// All possible guest types (for storage)
+export type AnyGuestType = GuestType | CombinedGuestType
+
+export const GUEST_TYPES: GuestType[] = [
+  'father_guest',
+  'mother_guest',
+  'both_parents_guest',
+  'father_relative',
+  'mother_relative',
+  'couple_friend',
+  'couple_colleague',
+  'spouse_family',
+  'other',
+]
+
+export const COMBINED_GUEST_TYPES: CombinedGuestType[] = [
+  'bride_father_guest',
+  'bride_mother_guest',
+  'bride_both_parents_guest',
+  'bride_father_relative',
+  'bride_mother_relative',
+  'bride_friend',
+  'bride_colleague',
+  'groom_father_guest',
+  'groom_mother_guest',
+  'groom_both_parents_guest',
+  'groom_father_relative',
+  'groom_mother_relative',
+  'groom_friend',
+  'groom_colleague',
+  'mutual_friend',
+  'other',
+]
+
+// Analytics types for RSVP dashboard
+export interface GuestCategoryStats {
+  entries: number
+  guests: number
+}
+
+export interface RsvpAnalytics {
+  // Attendance metrics
+  attendanceRate: number
+  avgPartySize: number
+
+  // Guest distribution by category
+  byCategory: {
+    father_guest: GuestCategoryStats
+    mother_guest: GuestCategoryStats
+    both_parents_guest: GuestCategoryStats
+    father_relative: GuestCategoryStats
+    mother_relative: GuestCategoryStats
+    couple_friend: GuestCategoryStats
+    couple_colleague: GuestCategoryStats
+    spouse_family: GuestCategoryStats
+    mutual_friend: GuestCategoryStats
+    other: GuestCategoryStats
+    unknown: GuestCategoryStats
+  }
+
+  // For combined weddings - breakdown by bride/groom side
+  bySide?: {
+    bride: GuestCategoryStats
+    groom: GuestCategoryStats
+    mutual: GuestCategoryStats
+    unknown: GuestCategoryStats
+  }
+
+  // RSVP timeline for charts
+  timeline: Array<{
+    date: string
+    cumulative: number
+    daily: number
+  }>
+
+  // Party size distribution
+  partySizeDistribution: {
+    '1': number
+    '2': number
+    '3': number
+    '4': number
+    '5+': number
+  }
+}
+
 // RSVP Settings - visibility is now controlled by Design Tab
 export interface RsvpSettings {
   acceptingRsvps: boolean // Whether to accept new RSVPs (form is open)
@@ -24,6 +140,7 @@ export interface RsvpFormData {
   numberOfGuests: number
   phoneNumber: string
   message: string
+  guestType?: AnyGuestType
 }
 
 export interface RsvpSubmission extends RsvpFormData {
@@ -33,6 +150,7 @@ export interface RsvpSubmission extends RsvpFormData {
   createdBy?: string
   updatedAt?: string
   updatedBy?: string
+  guestType?: AnyGuestType
 }
 
 // Response data from RSVP submit endpoint (unwrapped)
@@ -51,6 +169,7 @@ export interface RsvpListResponse {
     notAttending: number
     totalGuests: number
   }
+  analytics?: RsvpAnalytics
   settings?: RsvpSettings
 }
 
@@ -62,6 +181,7 @@ export interface AdminRsvpRequest {
   numberOfGuests: number
   phoneNumber?: string
   message?: string
+  guestType?: AnyGuestType | null // null means explicitly remove
 }
 
 // Response from admin create RSVP

@@ -17,6 +17,7 @@ import { getWeddingById } from '../../shared/wedding-middleware'
 import { Resource } from 'sst'
 import {
   DEFAULT_MAX_FILE_SIZE,
+  DEFAULT_MAX_VIDEO_SIZE,
   DEFAULT_MAX_IMAGES,
   ALLOWED_MIME_TYPES,
 } from '../../shared/image-constants'
@@ -40,6 +41,7 @@ const docClient = DynamoDBDocumentClient.from(client, {
 interface UpdateLimitsInput {
   gallery?: {
     maxFileSize?: number
+    maxVideoSize?: number
     maxImages?: number
   }
   gifts?: {
@@ -86,6 +88,15 @@ function validateUpdateLimitsInput(input: unknown): ValidationResult | Validatio
         return { valid: false, error: 'Gallery max file size must be between 1MB and 50MB' }
       }
       data.gallery.maxFileSize = maxFileSize
+    }
+
+    // Validate maxVideoSize (25MB to 500MB)
+    if (gallery.maxVideoSize !== undefined) {
+      const maxVideoSize = Number(gallery.maxVideoSize)
+      if (isNaN(maxVideoSize) || maxVideoSize < 25 * 1024 * 1024 || maxVideoSize > 500 * 1024 * 1024) {
+        return { valid: false, error: 'Gallery max video size must be between 25MB and 500MB' }
+      }
+      data.gallery.maxVideoSize = maxVideoSize
     }
 
     // Validate maxImages (10 to 200)
@@ -242,6 +253,10 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
           validation.data.gallery.maxFileSize ??
           currentGallery.Item?.maxFileSize ??
           DEFAULT_MAX_FILE_SIZE,
+        maxVideoSize:
+          validation.data.gallery.maxVideoSize ??
+          currentGallery.Item?.maxVideoSize ??
+          DEFAULT_MAX_VIDEO_SIZE,
         maxImages:
           validation.data.gallery.maxImages ?? currentGallery.Item?.maxImages ?? DEFAULT_MAX_IMAGES,
         allowedFormats: currentGallery.Item?.allowedFormats ?? [...ALLOWED_MIME_TYPES],
@@ -258,6 +273,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
 
       gallerySettings = {
         maxFileSize: newGallerySettings.maxFileSize,
+        maxVideoSize: newGallerySettings.maxVideoSize,
         maxImages: newGallerySettings.maxImages,
         allowedFormats: newGallerySettings.allowedFormats,
       }

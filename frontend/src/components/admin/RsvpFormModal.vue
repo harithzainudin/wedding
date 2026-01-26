@@ -1,6 +1,7 @@
 <script setup lang="ts">
   import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue'
-  import type { RsvpSubmission, AdminRsvpRequest } from '@/types/rsvp'
+  import type { RsvpSubmission, AdminRsvpRequest, AnyGuestType } from '@/types/rsvp'
+  import { GUEST_TYPES } from '@/types/rsvp'
   import type { HonorificTitle } from '@/types/index'
   import { HONORIFIC_TITLES } from '@/types/index'
   import { useAdminLanguage } from '@/composables/useAdminLanguage'
@@ -27,6 +28,7 @@
   const fullName = ref('')
   const isAttending = ref(true)
   const numberOfGuests = ref(1)
+  const guestType = ref<AnyGuestType | ''>('')
   const message = ref('')
 
   // Computed
@@ -68,6 +70,7 @@
         fullName.value = props.rsvp.fullName
         isAttending.value = props.rsvp.isAttending
         numberOfGuests.value = props.rsvp.numberOfGuests || 1
+        guestType.value = props.rsvp.guestType || ''
         message.value = props.rsvp.message || ''
       } else if (props.show) {
         // Create mode: reset to defaults
@@ -75,6 +78,7 @@
         fullName.value = ''
         isAttending.value = true
         numberOfGuests.value = 1
+        guestType.value = ''
         message.value = ''
       }
 
@@ -103,6 +107,14 @@
 
     if (message.value.trim()) {
       data.message = message.value.trim()
+    }
+
+    // Handle guestType - include if selected, set null to remove in edit mode
+    if (guestType.value) {
+      data.guestType = guestType.value
+    } else if (isEditMode.value && props.rsvp?.guestType) {
+      // Explicitly remove guestType when editing and it was previously set
+      data.guestType = null
     }
 
     emit('submit', data)
@@ -296,6 +308,23 @@
         </p>
       </div>
     </Transition>
+
+    <!-- Guest Type - Optional -->
+    <div>
+      <label class="block font-body text-sm text-charcoal dark:text-dark-text mb-1">
+        {{ adminT.rsvps.guestTypeLabelOptional }}
+      </label>
+      <select
+        v-model="guestType"
+        :disabled="isSubmitting"
+        class="w-full px-3 py-2 font-body text-sm border border-sand-dark dark:border-dark-border rounded-lg bg-white dark:bg-dark-bg focus:outline-none focus:ring-2 focus:ring-sage/50 dark:text-dark-text disabled:opacity-50"
+      >
+        <option value="">{{ adminT.rsvps.noGuestType }}</option>
+        <option v-for="type in GUEST_TYPES" :key="type" :value="type">
+          {{ adminT.rsvps.guestTypes[type] }}
+        </option>
+      </select>
+    </div>
 
     <!-- Message - Optional -->
     <div>

@@ -18,6 +18,7 @@ import { logError } from '../shared/logger'
 import { Keys } from '../shared/keys'
 import { getWeddingById, requireAdminAccessibleWedding } from '../shared/wedding-middleware'
 import { isValidWeddingId } from '../shared/validation'
+import { type AnyGuestType, isValidGuestType } from '../shared/rsvp-validation'
 
 const client = new DynamoDBClient({})
 const docClient = DynamoDBDocumentClient.from(client)
@@ -44,6 +45,7 @@ interface AdminRsvpInput {
   numberOfGuests: number
   phoneNumber?: string
   message?: string
+  guestType?: AnyGuestType
 }
 
 function validateAdminRsvpInput(input: unknown):
@@ -112,6 +114,15 @@ function validateAdminRsvpInput(input: unknown):
     }
   }
 
+  // Validate guestType (optional)
+  let validatedGuestType: AnyGuestType | undefined
+  if (body.guestType !== undefined && body.guestType !== null && body.guestType !== '') {
+    if (!isValidGuestType(body.guestType)) {
+      return { valid: false, error: 'Invalid guest type selected' }
+    }
+    validatedGuestType = body.guestType as AnyGuestType
+  }
+
   return {
     valid: true,
     data: {
@@ -121,6 +132,7 @@ function validateAdminRsvpInput(input: unknown):
       numberOfGuests: body.isAttending ? (body.numberOfGuests as number) : 0,
       phoneNumber: cleanPhone || undefined,
       message: typeof body.message === 'string' ? body.message.trim() : undefined,
+      guestType: validatedGuestType,
     },
   }
 }
@@ -193,7 +205,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
     const timestamp = new Date().toISOString()
     const status = data.isAttending ? 'attending' : 'not_attending'
 
-    const rsvpItem = {
+    const rsvpItem: Record<string, unknown> = {
       ...Keys.rsvp(weddingId, id),
       ...Keys.gsi.weddingRsvpsByStatus(weddingId, status, timestamp),
       id,
@@ -207,6 +219,11 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
       submittedAt: timestamp,
       source: 'admin',
       createdBy: authResult.user.username,
+    }
+
+    // Add guestType only if provided (optional field)
+    if (data.guestType) {
+      rsvpItem.guestType = data.guestType
     }
 
     await docClient.send(

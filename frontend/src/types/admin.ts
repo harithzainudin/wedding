@@ -380,6 +380,7 @@ export interface ResetSuperAdminPasswordResponse {
 export interface WeddingLimits {
   gallery: {
     maxFileSize: number
+    maxVideoSize: number
     maxImages: number
     allowedFormats: string[]
   }
@@ -395,6 +396,7 @@ export interface WeddingLimits {
 export interface UpdateWeddingLimitsRequest {
   gallery?: {
     maxFileSize?: number
+    maxVideoSize?: number
     maxImages?: number
   }
   gifts?: {

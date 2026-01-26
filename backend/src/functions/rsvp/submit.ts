@@ -93,7 +93,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
     const timestamp = new Date().toISOString()
     const status = data.isAttending ? 'attending' : 'not_attending'
 
-    const rsvpItem = {
+    const rsvpItem: Record<string, unknown> = {
       ...Keys.rsvp(weddingId, id),
       ...Keys.gsi.weddingRsvpsByStatus(weddingId, status, timestamp),
       id,
@@ -106,6 +106,11 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
       message: data.message ?? '',
       submittedAt: timestamp,
       source: 'public',
+    }
+
+    // Add guestType only if provided (optional field)
+    if (data.guestType) {
+      rsvpItem.guestType = data.guestType
     }
 
     await docClient.send(

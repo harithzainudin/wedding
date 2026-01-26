@@ -1,6 +1,7 @@
 export type UploadStatus =
   | 'preparing'
   | 'compressing'
+  | 'optimizing' // For video compression
   | 'uploading'
   | 'confirming'
   | 'completed'

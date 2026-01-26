@@ -38,6 +38,7 @@
     removeImage,
     updateOrder,
     formatFileSize,
+    checkVideoCompressionSupported,
   } = useGallery()
 
   const showSettings = ref(false)
@@ -56,11 +57,11 @@
     }
   })
 
-  const handleFilesSelected = async (files: File[]): Promise<void> => {
+  const handleFilesSelected = async (files: File[], compressVideos?: boolean): Promise<void> => {
     uploadErrors.value = []
 
     for (const file of files) {
-      const result = await uploadImage(file, weddingId.value ?? undefined)
+      const result = await uploadImage(file, weddingId.value ?? undefined, compressVideos)
       if (!result.success) {
         uploadErrors.value.push({
           file: file.name,
@@ -148,6 +149,7 @@
           <HelpTooltip :title="adminT.gallery.galleryHelp">
             <GalleryHelpContent
               :max-file-size="formatFileSize(settings.maxFileSize)"
+              :max-video-size="formatFileSize(settings.maxVideoSize)"
               :allowed-formats="settings.allowedFormats"
               :max-images="settings.maxImages"
             />
@@ -155,7 +157,7 @@
         </div>
         <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary mt-1">
           {{
-            interpolate(adminT.gallery.imagesCount, {
+            interpolate(adminT.gallery.mediaCount, {
               count: images.length,
               max: settings.maxImages,
             })
@@ -326,8 +328,10 @@
       <ImageUploader
         v-if="canUploadMore"
         :max-file-size="settings.maxFileSize"
+        :max-video-size="settings.maxVideoSize"
         :allowed-formats="settings.allowedFormats"
         :format-file-size="formatFileSize"
+        :is-video-compression-supported="checkVideoCompressionSupported()"
         @files-selected="handleFilesSelected"
       />
 
@@ -357,7 +361,7 @@
           <path d="M21 15l-5-5L5 21" />
         </svg>
         <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary">
-          {{ adminT.gallery.noImages }}
+          {{ adminT.gallery.noMedia }}
         </p>
         <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary mt-2">
           {{ adminT.gallery.uploadFirst }}
@@ -387,6 +391,7 @@
     z-index: 50;
     display: flex;
     align-items: flex-end;
+    background-color: rgba(0, 0, 0, 0.5);
   }
 
   /* Settings Panel - Mobile: Bottom Sheet */
@@ -471,16 +476,20 @@
     transform: translateY(0);
   }
 
-  /* Desktop: Scale and fade */
+  /* Desktop: Scale and fade with backdrop */
   @media (min-width: 640px) {
+    .settings-container {
+      background-color: rgba(0, 0, 0, 0.5);
+    }
+
     .settings-panel-enter-from,
     .settings-panel-leave-to {
-      background-color: transparent;
+      background-color: rgba(0, 0, 0, 0);
     }
 
     .settings-panel-enter-to,
     .settings-panel-leave-from {
-      background-color: transparent;
+      background-color: rgba(0, 0, 0, 0.5);
     }
 
     .settings-panel-enter-from .settings-panel,

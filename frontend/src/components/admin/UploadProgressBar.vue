@@ -20,6 +20,7 @@
       (u) =>
         u.status === 'preparing' ||
         u.status === 'compressing' ||
+        u.status === 'optimizing' ||
         u.status === 'uploading' ||
         u.status === 'confirming'
     )
@@ -45,6 +46,8 @@
         return 'Preparing...'
       case 'compressing':
         return adminT.value.common.compressing
+      case 'optimizing':
+        return adminT.value.gallery.optimizingVideo
       case 'uploading':
         return getProgressLabel(upload.progress)
       case 'confirming':
@@ -106,11 +109,12 @@
                     : 'bg-sand dark:bg-dark-bg',
               ]"
             >
-              <!-- Spinner for preparing/compressing/uploading/confirming -->
+              <!-- Spinner for preparing/compressing/optimizing/uploading/confirming -->
               <div
                 v-if="
                   upload.status === 'preparing' ||
                   upload.status === 'compressing' ||
+                  upload.status === 'optimizing' ||
                   upload.status === 'uploading' ||
                   upload.status === 'confirming'
                 "
@@ -179,6 +183,7 @@
                 v-if="
                   upload.status === 'preparing' ||
                   upload.status === 'compressing' ||
+                  upload.status === 'optimizing' ||
                   upload.status === 'uploading' ||
                   upload.status === 'confirming'
                 "
@@ -186,11 +191,12 @@
               >
                 {{ upload.progress }}%
               </span>
-              <!-- Cancel button for preparing/compressing/uploading (not for confirming) -->
+              <!-- Cancel button for preparing/compressing/optimizing/uploading (not for confirming) -->
               <button
                 v-if="
                   upload.status === 'preparing' ||
                   upload.status === 'compressing' ||
+                  upload.status === 'optimizing' ||
                   upload.status === 'uploading'
                 "
                 type="button"
@@ -232,6 +238,7 @@
             v-if="
               upload.status === 'preparing' ||
               upload.status === 'compressing' ||
+              upload.status === 'optimizing' ||
               upload.status === 'uploading' ||
               upload.status === 'confirming'
             "

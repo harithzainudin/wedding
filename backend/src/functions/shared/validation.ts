@@ -1,3 +1,5 @@
+import { type AnyGuestType, isValidGuestType } from './rsvp-validation'
+
 export interface RsvpInput {
   title: string
   fullName: string
@@ -5,6 +7,7 @@ export interface RsvpInput {
   numberOfGuests: number
   phoneNumber: string
   message?: string
+  guestType?: AnyGuestType
 }
 
 const VALID_TITLES = [
@@ -47,9 +50,12 @@ export function validateRsvpInput(input: unknown):
     return { valid: false, error: 'Phone number is required' }
   }
 
-  // Validate phone number format (Malaysian)
-  const cleanPhone = body.phoneNumber.replace(/[-\s]/g, '')
-  const phoneRegex = /^(\+?60|0)[1-9]\d{7,9}$/
+  // Validate phone number format (international)
+  // Remove common formatting characters: spaces, dashes, parentheses, dots
+  const cleanPhone = body.phoneNumber.replace(/[-\s().]/g, '')
+  // Accept international formats: +{country code}{number} or local formats starting with 0
+  // Minimum 7 digits (local), maximum 15 digits (E.164 standard)
+  const phoneRegex = /^(\+?[1-9]\d{6,14}|0[1-9]\d{6,12})$/
   if (!phoneRegex.test(cleanPhone)) {
     return { valid: false, error: 'Invalid phone number format' }
   }
@@ -91,6 +97,15 @@ export function validateRsvpInput(input: unknown):
     }
   }
 
+  // Validate guestType (optional)
+  let validatedGuestType: AnyGuestType | undefined
+  if (body.guestType !== undefined && body.guestType !== null && body.guestType !== '') {
+    if (!isValidGuestType(body.guestType)) {
+      return { valid: false, error: 'Invalid guest type selected' }
+    }
+    validatedGuestType = body.guestType as AnyGuestType
+  }
+
   return {
     valid: true,
     data: {
@@ -100,6 +115,7 @@ export function validateRsvpInput(input: unknown):
       numberOfGuests: body.isAttending ? (body.numberOfGuests as number) : 0,
       phoneNumber: cleanPhone,
       message: typeof body.message === 'string' ? body.message.trim() : undefined,
+      guestType: validatedGuestType,
     },
   }
 }

@@ -11,6 +11,7 @@
     DisplayNameOrder,
     BismillahCalligraphySettings,
     ParentsVisibilitySettings,
+    WeddingType,
   } from '@/types/weddingDetails'
   import {
     DEFAULT_DISPLAY_FORMAT,
@@ -67,6 +68,7 @@
   const expandedSections = ref({
     couple: false,
     nameOrder: false,
+    weddingType: false,
     calligraphy: false,
     parents: false,
     event: false,
@@ -102,6 +104,7 @@
     hashtag: '',
     showDressCode: true,
     showHashtag: true,
+    weddingType: 'single_side' as WeddingType,
   })
 
   // Track if form has unsaved changes
@@ -122,6 +125,7 @@
         hashtag: weddingDetails.value.hashtag,
         showDressCode: weddingDetails.value.showDressCode ?? true,
         showHashtag: weddingDetails.value.showHashtag ?? true,
+        weddingType: weddingDetails.value.weddingType ?? 'single_side',
       })
     )
   })
@@ -161,6 +165,7 @@
       hashtag: weddingDetails.value.hashtag,
       showDressCode: weddingDetails.value.showDressCode ?? true,
       showHashtag: weddingDetails.value.showHashtag ?? true,
+      weddingType: weddingDetails.value.weddingType ?? 'single_side',
     }
     // Set custom options toggle based on preset
     showCustomOptions.value = formData.value.eventDisplayFormat.preset === 'custom'
@@ -819,6 +824,132 @@
                       class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary"
                     >
                       {{ adminT.wedding.groomFirstDesc }}
+                    </span>
+                  </div>
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Wedding Type Setting -->
+      <div
+        class="bg-white dark:bg-dark-bg-secondary rounded-lg border border-sand-dark dark:border-dark-border transition-all"
+        :class="
+          expandedSections.weddingType
+            ? 'ring-2 ring-sage/30 border-sage/50'
+            : 'hover:border-sage/30'
+        "
+      >
+        <button
+          type="button"
+          class="w-full p-4 sm:p-6 flex items-center justify-between text-left transition-colors group cursor-pointer rounded-t-lg"
+          :class="
+            expandedSections.weddingType
+              ? 'bg-sage/5 dark:bg-sage/10'
+              : 'hover:bg-sand/30 dark:hover:bg-dark-bg-elevated'
+          "
+          @click="toggleSection('weddingType')"
+        >
+          <div>
+            <h3
+              class="font-heading text-base font-medium transition-colors"
+              :class="
+                expandedSections.weddingType
+                  ? 'text-sage-dark dark:text-sage-light'
+                  : 'text-charcoal dark:text-dark-text group-hover:text-sage-dark dark:group-hover:text-sage-light'
+              "
+            >
+              {{ adminT.wedding.weddingType }}
+            </h3>
+            <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary mt-1">
+              {{ adminT.wedding.weddingTypeDesc }}
+            </p>
+          </div>
+          <svg
+            class="w-5 h-5 transition-all flex-shrink-0 ml-2"
+            :class="[
+              expandedSections.weddingType
+                ? 'rotate-180 text-sage'
+                : 'text-charcoal-light dark:text-dark-text-secondary group-hover:text-sage',
+            ]"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M19 9l-7 7-7-7"
+            />
+          </svg>
+        </button>
+        <div
+          class="grid transition-[grid-template-rows] duration-300 ease-out"
+          :class="expandedSections.weddingType ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'"
+        >
+          <div class="overflow-hidden min-h-0">
+            <div class="px-4 sm:px-6 pt-2 pb-4 sm:pb-6">
+              <div class="flex flex-col sm:flex-row gap-3">
+                <label
+                  class="flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors"
+                  :class="
+                    formData.weddingType === 'single_side'
+                      ? 'border-sage bg-sage/10 dark:bg-sage/20'
+                      : 'border-sand-dark dark:border-dark-border hover:border-sage/50'
+                  "
+                >
+                  <input
+                    v-model="formData.weddingType"
+                    type="radio"
+                    value="single_side"
+                    class="w-4 h-4 border-sand-dark text-sage focus:ring-sage"
+                    :disabled="isSaving"
+                  />
+                  <div>
+                    <span
+                      class="font-body text-sm font-medium text-charcoal dark:text-dark-text block"
+                    >
+                      {{ adminT.wedding.singleSide }}
+                      <span class="text-sage-dark dark:text-sage-light text-xs ml-1"
+                        >({{ adminT.common.recommended }})</span
+                      >
+                    </span>
+                    <span
+                      class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary"
+                    >
+                      {{ adminT.wedding.singleSideDesc }}
+                    </span>
+                  </div>
+                </label>
+
+                <label
+                  class="flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors"
+                  :class="
+                    formData.weddingType === 'combined'
+                      ? 'border-sage bg-sage/10 dark:bg-sage/20'
+                      : 'border-sand-dark dark:border-dark-border hover:border-sage/50'
+                  "
+                >
+                  <input
+                    v-model="formData.weddingType"
+                    type="radio"
+                    value="combined"
+                    class="w-4 h-4 border-sand-dark text-sage focus:ring-sage"
+                    :disabled="isSaving"
+                  />
+                  <div>
+                    <span
+                      class="font-body text-sm font-medium text-charcoal dark:text-dark-text block"
+                    >
+                      {{ adminT.wedding.combined }}
+                    </span>
+                    <span
+                      class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary"
+                    >
+                      {{ adminT.wedding.combinedDesc }}
                     </span>
                   </div>
                 </label>

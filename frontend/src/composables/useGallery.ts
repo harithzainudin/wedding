@@ -11,17 +11,25 @@ import {
   updateGallerySettings,
 } from '@/services/api'
 import { compressImage, formatBytes } from '@/utils/imageCompression'
+import { compressVideo, isVideoCompressionSupported } from '@/utils/videoCompression'
 import { clearCache, CACHE_KEYS } from '@/utils/apiCache'
 
 // Allowed MIME types
-const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
+const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
+const ALLOWED_VIDEO_TYPES = ['video/mp4', 'video/webm', 'video/quicktime']
+const ALLOWED_MEDIA_TYPES = [...ALLOWED_IMAGE_TYPES, ...ALLOWED_VIDEO_TYPES]
+
+// Helper functions
+const isVideoFile = (file: File): boolean =>
+  file.type.startsWith('video/') || file.type === 'video/quicktime'
 
 // Singleton state
 const images = ref<GalleryImage[]>([])
 const settings = ref<GallerySettings>({
-  maxFileSize: 10 * 1024 * 1024, // 10MB default
+  maxFileSize: 10 * 1024 * 1024, // 10MB default for images
+  maxVideoSize: 100 * 1024 * 1024, // 100MB default for videos
   maxImages: 50,
-  allowedFormats: ALLOWED_MIME_TYPES,
+  allowedFormats: ALLOWED_MEDIA_TYPES,
 })
 const isLoading = ref(false)
 const loadError = ref('')
@@ -66,19 +74,23 @@ export function useGallery() {
   // Validate a file before upload
   const validateFile = (file: File): { valid: boolean; error?: string | undefined } => {
     // Check file type
-    if (!ALLOWED_MIME_TYPES.includes(file.type)) {
+    if (!ALLOWED_MEDIA_TYPES.includes(file.type)) {
       return {
         valid: false,
-        error: `Invalid file type. Allowed: JPG, PNG, WebP, GIF`,
+        error: `Invalid file type. Allowed: JPG, PNG, WebP, GIF, MP4, WebM, MOV`,
       }
     }
 
-    // Check file size
-    if (file.size > settings.value.maxFileSize) {
-      const maxMB = Math.round(settings.value.maxFileSize / (1024 * 1024))
+    // Check file size (different limits for images vs videos)
+    const isVideo = isVideoFile(file)
+    const maxSize = isVideo ? settings.value.maxVideoSize : settings.value.maxFileSize
+    const mediaType = isVideo ? 'Video' : 'Image'
+
+    if (file.size > maxSize) {
+      const maxMB = Math.round(maxSize / (1024 * 1024))
       return {
         valid: false,
-        error: `File size exceeds maximum of ${maxMB}MB`,
+        error: `${mediaType} file size exceeds maximum of ${maxMB}MB`,
       }
     }
 
@@ -86,7 +98,7 @@ export function useGallery() {
     if (!canUploadMore.value) {
       return {
         valid: false,
-        error: `Maximum of ${settings.value.maxImages} images reached`,
+        error: `Maximum of ${settings.value.maxImages} items reached`,
       }
     }
 
@@ -103,7 +115,11 @@ export function useGallery() {
       const response = await listGalleryImages(weddingId)
       images.value = response.images
       if (response.settings) {
-        settings.value = response.settings
+        // Always use ALLOWED_MEDIA_TYPES for allowedFormats (application-defined, not user-configurable)
+        settings.value = {
+          ...response.settings,
+          allowedFormats: ALLOWED_MEDIA_TYPES,
+        }
       }
     } catch (err) {
       loadError.value = err instanceof Error ? err.message : 'Failed to load images'
@@ -112,37 +128,75 @@ export function useGallery() {
     }
   }
 
-  // Upload a single image
+  // Upload a single image or video
   const uploadImage = async (
     file: File,
-    weddingId?: string
+    weddingId?: string,
+    shouldCompressVideo?: boolean // Only applies to videos; images are always compressed
   ): Promise<{ success: boolean; error?: string | undefined }> => {
     currentWeddingId.value = weddingId
     const fileId = `${file.name}-${Date.now()}`
     const abortController = new AbortController()
     uploadControllers.value.set(fileId, abortController)
-    uploadProgress.value.set(fileId, { progress: 0, status: 'compressing' })
 
-    // Step 0: Compress image before upload
+    const isVideo = isVideoFile(file)
+    const initialStatus = isVideo ? 'preparing' : 'compressing'
+    uploadProgress.value.set(fileId, { progress: 0, status: initialStatus })
+
+    // Step 0: Compress media before upload
     let fileToUpload = file
     let compressionInfo:
       | { originalSize: number; compressedSize: number; savedPercent: number }
       | undefined
-    try {
-      const result = await compressImage(file)
-      fileToUpload = result.file
-      if (result.compressionRatio > 1) {
-        compressionInfo = {
-          originalSize: result.originalSize,
-          compressedSize: result.compressedSize,
-          savedPercent: Math.round((1 - result.compressedSize / result.originalSize) * 100),
+
+    if (isVideo) {
+      // VIDEO: Optional compression based on user choice
+      if (shouldCompressVideo && isVideoCompressionSupported()) {
+        uploadProgress.value.set(fileId, { progress: 0, status: 'optimizing' })
+        try {
+          const result = await compressVideo(file, {}, (progress) => {
+            // Map compression progress (0-100) to (0-50) of total
+            uploadProgress.value.set(fileId, {
+              progress: Math.round(progress * 0.5),
+              status: 'optimizing',
+            })
+          })
+          fileToUpload = result.file
+          if (result.wasCompressed) {
+            compressionInfo = {
+              originalSize: result.originalSize,
+              compressedSize: result.compressedSize,
+              savedPercent: result.savedPercent,
+            }
+            console.log(
+              `[Gallery] Video optimized: ${formatBytes(result.originalSize)} → ${formatBytes(result.compressedSize)} (${result.savedPercent}% saved)`
+            )
+          }
+        } catch (compressionError) {
+          console.warn('[Gallery] Video compression failed, using original:', compressionError)
         }
-        console.log(
-          `[Gallery] Compressed: ${formatBytes(result.originalSize)} → ${formatBytes(result.compressedSize)} (${compressionInfo.savedPercent}% saved)`
-        )
+      } else {
+        // Skip to uploading for videos without compression
+        uploadProgress.value.set(fileId, { progress: 5, status: 'uploading' })
       }
-    } catch (compressionError) {
-      console.warn('[Gallery] Compression failed, using original:', compressionError)
+    } else {
+      // IMAGE: Always compress automatically
+      try {
+        const result = await compressImage(file)
+        fileToUpload = result.file
+        if (result.compressionRatio > 1) {
+          compressionInfo = {
+            originalSize: result.originalSize,
+            compressedSize: result.compressedSize,
+            savedPercent: Math.round((1 - result.compressedSize / result.originalSize) * 100),
+          }
+          console.log(
+            `[Gallery] Image compressed: ${formatBytes(result.originalSize)} → ${formatBytes(result.compressedSize)} (${compressionInfo.savedPercent}% saved)`
+          )
+        }
+      } catch (compressionError) {
+        console.warn('[Gallery] Image compression failed, using original:', compressionError)
+      }
     }
 
     // Validate the (possibly compressed) file
@@ -234,12 +288,13 @@ export function useGallery() {
       })
       uploadControllers.value.delete(fileId)
 
-      // Add the new image to the list
+      // Add the new media item to the list
       images.value.push({
         id: confirmResponse.id,
         url: confirmResponse.url,
         filename: confirmResponse.filename,
         mimeType: confirmResponse.mimeType,
+        mediaType: confirmResponse.mediaType,
         fileSize: confirmResponse.fileSize,
         order: confirmResponse.order,
         uploadedAt: confirmResponse.uploadedAt,
@@ -343,6 +398,7 @@ export function useGallery() {
   const updateSettings = async (
     newSettings: {
       maxFileSize?: number | undefined
+      maxVideoSize?: number | undefined
       maxImages?: number | undefined
     },
     weddingId?: string,
@@ -373,6 +429,12 @@ export function useGallery() {
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
   }
 
+  // Check if a file is a video
+  const checkIsVideoFile = (file: File): boolean => isVideoFile(file)
+
+  // Check if video compression is supported in this browser
+  const checkVideoCompressionSupported = (): boolean => isVideoCompressionSupported()
+
   return {
     images: sortedImages,
     settings,
@@ -393,5 +455,7 @@ export function useGallery() {
     updateSettings,
     validateFile,
     formatFileSize,
+    checkIsVideoFile,
+    checkVideoCompressionSupported,
   }
 }

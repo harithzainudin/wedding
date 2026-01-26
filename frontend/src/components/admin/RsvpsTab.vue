@@ -9,6 +9,11 @@
   import type { RsvpSubmission, AdminRsvpRequest } from '@/types/rsvp'
   import RsvpFormModal from './RsvpFormModal.vue'
   import ConfirmModal from './ConfirmModal.vue'
+  import RsvpAttendanceChart from './charts/RsvpAttendanceChart.vue'
+  import RsvpCategoryChart from './charts/RsvpCategoryChart.vue'
+  import RsvpTimelineChart from './charts/RsvpTimelineChart.vue'
+  import RsvpPartySizeChart from './charts/RsvpPartySizeChart.vue'
+  import RsvpSideChart from './charts/RsvpSideChart.vue'
 
   const { adminT } = useAdminLanguage()
   const { withLoading } = useLoadingOverlay()
@@ -19,6 +24,9 @@
 
   // Settings panel state
   const showSettings = ref(false)
+
+  // Analytics section state
+  const showAnalytics = ref(true)
 
   const {
     filteredRsvps,
@@ -39,6 +47,7 @@
     clearOperationError,
     rsvpSettings,
     updateSettings,
+    analytics,
   } = useRsvps()
 
   // Local state for other settings (saved when clicking save button in modal)
@@ -258,6 +267,113 @@
           {{ summary.totalGuests }}
         </p>
       </div>
+    </div>
+
+    <!-- Analytics Dashboard Section -->
+    <div v-if="analytics && summary.total > 0" class="mb-8">
+      <button
+        type="button"
+        class="w-full flex items-center justify-between p-4 bg-white dark:bg-dark-bg-secondary rounded-xl shadow-sm dark:shadow-lg cursor-pointer hover:bg-sand/50 dark:hover:bg-dark-bg-elevated transition-colors mb-4"
+        @click="showAnalytics = !showAnalytics"
+      >
+        <span class="font-heading text-lg text-charcoal dark:text-dark-text">
+          {{ adminT.rsvps.analytics }}
+        </span>
+        <svg
+          class="w-5 h-5 text-charcoal-light dark:text-dark-text-secondary transition-transform"
+          :class="{ 'rotate-180': showAnalytics }"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M19 9l-7 7-7-7"
+          />
+        </svg>
+      </button>
+
+      <Transition
+        enter-active-class="transition-all duration-300 ease-out"
+        enter-from-class="opacity-0 -translate-y-2 max-h-0"
+        enter-to-class="opacity-100 translate-y-0 max-h-[2000px]"
+        leave-active-class="transition-all duration-200 ease-in"
+        leave-from-class="opacity-100 translate-y-0 max-h-[2000px]"
+        leave-to-class="opacity-0 -translate-y-2 max-h-0"
+      >
+        <div v-if="showAnalytics" class="overflow-hidden space-y-4">
+          <!-- Metrics Row -->
+          <div class="grid grid-cols-2 gap-4">
+            <div class="p-4 bg-white dark:bg-dark-bg-secondary rounded-xl shadow-sm dark:shadow-lg">
+              <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary">
+                {{ adminT.rsvps.attendanceRate }}
+              </p>
+              <p class="font-heading text-2xl text-green-600 dark:text-green-400">
+                {{ analytics.attendanceRate }}%
+              </p>
+            </div>
+            <div class="p-4 bg-white dark:bg-dark-bg-secondary rounded-xl shadow-sm dark:shadow-lg">
+              <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary">
+                {{ adminT.rsvps.avgPartySize }}
+              </p>
+              <p class="font-heading text-2xl text-blue-600 dark:text-blue-400">
+                {{ analytics.avgPartySize }}
+              </p>
+            </div>
+          </div>
+
+          <!-- Charts Grid -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- Attendance Breakdown -->
+            <div class="p-4 bg-white dark:bg-dark-bg-secondary rounded-xl shadow-sm dark:shadow-lg">
+              <h4 class="font-heading text-sm text-charcoal dark:text-dark-text mb-3">
+                {{ adminT.rsvps.attendanceBreakdown }}
+              </h4>
+              <RsvpAttendanceChart
+                :attending="summary.attending"
+                :not-attending="summary.notAttending"
+              />
+            </div>
+
+            <!-- Guest Category Breakdown -->
+            <div class="p-4 bg-white dark:bg-dark-bg-secondary rounded-xl shadow-sm dark:shadow-lg">
+              <h4 class="font-heading text-sm text-charcoal dark:text-dark-text mb-3">
+                {{ adminT.rsvps.guestsByCategory }}
+              </h4>
+              <RsvpCategoryChart :by-category="analytics.byCategory" />
+            </div>
+
+            <!-- RSVP Timeline -->
+            <div class="p-4 bg-white dark:bg-dark-bg-secondary rounded-xl shadow-sm dark:shadow-lg">
+              <h4 class="font-heading text-sm text-charcoal dark:text-dark-text mb-3">
+                {{ adminT.rsvps.rsvpTimeline }}
+              </h4>
+              <RsvpTimelineChart :timeline="analytics.timeline" />
+            </div>
+
+            <!-- Party Size Distribution -->
+            <div class="p-4 bg-white dark:bg-dark-bg-secondary rounded-xl shadow-sm dark:shadow-lg">
+              <h4 class="font-heading text-sm text-charcoal dark:text-dark-text mb-3">
+                {{ adminT.rsvps.partySizeDistribution }}
+              </h4>
+              <RsvpPartySizeChart :distribution="analytics.partySizeDistribution" />
+            </div>
+          </div>
+
+          <!-- Bride/Groom Side Chart (only for combined weddings) -->
+          <div
+            v-if="analytics.bySide && weddingDetails?.weddingType === 'combined'"
+            class="p-4 bg-white dark:bg-dark-bg-secondary rounded-xl shadow-sm dark:shadow-lg"
+          >
+            <h4 class="font-heading text-sm text-charcoal dark:text-dark-text mb-3">
+              {{ adminT.rsvps.guestsBySide }}
+            </h4>
+            <RsvpSideChart :by-side="analytics.bySide" />
+          </div>
+        </div>
+      </Transition>
     </div>
 
     <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">

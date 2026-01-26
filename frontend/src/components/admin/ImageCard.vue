@@ -1,7 +1,8 @@
 <script setup lang="ts">
+  import { computed, ref, onMounted } from 'vue'
   import type { GalleryImage } from '@/types/gallery'
 
-  defineProps<{
+  const props = defineProps<{
     image: GalleryImage
   }>()
 
@@ -9,6 +10,19 @@
     delete: []
     view: []
   }>()
+
+  const isVideo = computed(() => props.image.mediaType === 'video')
+  const videoRef = ref<HTMLVideoElement | null>(null)
+  const thumbnailLoaded = ref(false)
+
+  // For videos, we let the browser show the first frame via preload="metadata"
+  onMounted(() => {
+    if (isVideo.value && videoRef.value) {
+      videoRef.value.addEventListener('loadeddata', () => {
+        thumbnailLoaded.value = true
+      })
+    }
+  })
 
   const handleDelete = (event: Event): void => {
     event.stopPropagation()
@@ -25,7 +39,36 @@
   <div
     class="group relative w-full h-full rounded-lg overflow-hidden bg-sand dark:bg-dark-bg-secondary"
   >
-    <img :src="image.url" :alt="image.filename" class="w-full h-full object-cover" loading="lazy" />
+    <!-- Image display -->
+    <img
+      v-if="!isVideo"
+      :src="image.url"
+      :alt="image.filename"
+      class="w-full h-full object-cover"
+      loading="lazy"
+    />
+
+    <!-- Video display (shows first frame as thumbnail) -->
+    <video
+      v-else
+      ref="videoRef"
+      :src="image.url"
+      class="w-full h-full object-cover"
+      preload="metadata"
+      muted
+      playsinline
+    />
+
+    <!-- Video indicator badge -->
+    <div
+      v-if="isVideo"
+      class="absolute top-2 left-2 px-2 py-1 bg-black/60 rounded text-white text-xs flex items-center gap-1 pointer-events-none"
+    >
+      <svg class="w-3 h-3" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M8 5.14v14l11-7-11-7z" />
+      </svg>
+      <span class="uppercase font-medium">Video</span>
+    </div>
 
     <!-- Overlay with controls - always visible on mobile, hover on desktop -->
     <div
@@ -35,7 +78,7 @@
       <button
         type="button"
         class="absolute top-2 right-2 p-2 sm:p-1.5 bg-black/50 hover:bg-red-600 text-white rounded-full transition-colors opacity-100 sm:opacity-0 sm:group-hover:opacity-100 cursor-pointer"
-        title="Delete image"
+        :title="isVideo ? 'Delete video' : 'Delete image'"
         @click="handleDelete"
       >
         <svg class="w-5 h-5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -48,14 +91,17 @@
         </svg>
       </button>
 
-      <!-- View button - only visible on desktop hover -->
+      <!-- View/Play button - only visible on desktop hover -->
       <button
         type="button"
         class="absolute bottom-2 right-2 p-1.5 bg-black/50 hover:bg-sage text-white rounded-full transition-colors hidden sm:opacity-0 sm:group-hover:opacity-100 sm:block cursor-pointer"
-        title="View full image"
+        :title="isVideo ? 'Play video' : 'View full image'"
         @click="handleView"
       >
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg v-if="isVideo" class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M8 5.14v14l11-7-11-7z" />
+        </svg>
+        <svg v-else class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path
             stroke-linecap="round"
             stroke-linejoin="round"
@@ -73,7 +119,7 @@
 
       <!-- Drag handle indicator - only visible on desktop (drag disabled on mobile) -->
       <div
-        class="drag-handle absolute top-2 left-2 p-1.5 bg-black/50 text-white rounded hidden sm:opacity-0 sm:group-hover:opacity-100 sm:block transition-opacity cursor-grab active:cursor-grabbing"
+        class="drag-handle absolute bottom-2 left-2 p-1.5 bg-black/50 text-white rounded hidden sm:opacity-0 sm:group-hover:opacity-100 sm:block transition-opacity cursor-grab active:cursor-grabbing"
       >
         <svg
           class="w-4 h-4 pointer-events-none"

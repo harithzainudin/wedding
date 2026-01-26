@@ -111,6 +111,9 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
     if (validation.data.displayNameOrder) {
       weddingItem.displayNameOrder = validation.data.displayNameOrder
     }
+    if (validation.data.weddingType) {
+      weddingItem.weddingType = validation.data.weddingType
+    }
     if (validation.data.bismillahCalligraphy) {
       weddingItem.bismillahCalligraphy = validation.data.bismillahCalligraphy
     }
@@ -140,6 +143,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
       eventDisplayFormat:
         weddingItem.eventDisplayFormat as WeddingDetailsData['eventDisplayFormat'],
       displayNameOrder: weddingItem.displayNameOrder as WeddingDetailsData['displayNameOrder'],
+      weddingType: weddingItem.weddingType as WeddingDetailsData['weddingType'],
       bismillahCalligraphy:
         weddingItem.bismillahCalligraphy as WeddingDetailsData['bismillahCalligraphy'],
       dressCode: weddingItem.dressCode as string,
