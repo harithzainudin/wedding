@@ -579,7 +579,9 @@
             <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary">
               <span v-if="rsvp.phoneNumber">{{ rsvp.phoneNumber }}</span>
               <span
-                v-if="rsvp.phoneNumber && (rsvp.isAttending === 'yes' || rsvp.isAttending === 'maybe')"
+                v-if="
+                  rsvp.phoneNumber && (rsvp.isAttending === 'yes' || rsvp.isAttending === 'maybe')
+                "
               >
                 &bull;
               </span>

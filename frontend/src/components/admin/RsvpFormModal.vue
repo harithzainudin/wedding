@@ -1,6 +1,11 @@
 <script setup lang="ts">
   import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue'
-  import type { RsvpSubmission, AdminRsvpRequest, AnyGuestType, AttendanceStatus } from '@/types/rsvp'
+  import type {
+    RsvpSubmission,
+    AdminRsvpRequest,
+    AnyGuestType,
+    AttendanceStatus,
+  } from '@/types/rsvp'
   import { GUEST_TYPES } from '@/types/rsvp'
   import type { HonorificTitle } from '@/types/index'
   import { HONORIFIC_TITLES } from '@/types/index'

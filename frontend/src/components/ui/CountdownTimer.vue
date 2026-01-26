@@ -1,6 +1,7 @@
 <script setup lang="ts">
   import { ref, computed, onMounted, onUnmounted } from 'vue'
   import { useLanguage } from '@/composables/useLanguage'
+  import { interpolate } from '@/i18n/translations'
 
   interface Props {
     targetDate: Date
@@ -11,6 +12,27 @@
 
   const now = ref(new Date())
   let intervalId: ReturnType<typeof setInterval> | undefined
+
+  const isWeddingDay = computed(() => {
+    const today = new Date(now.value)
+    const target = new Date(props.targetDate)
+    return (
+      today.getFullYear() === target.getFullYear() &&
+      today.getMonth() === target.getMonth() &&
+      today.getDate() === target.getDate()
+    )
+  })
+
+  const isPastDate = computed(() => {
+    if (isWeddingDay.value) return false
+    return props.targetDate.getTime() - now.value.getTime() < 0
+  })
+
+  const daysSinceWedding = computed(() => {
+    if (!isPastDate.value) return 0
+    const diff = now.value.getTime() - props.targetDate.getTime()
+    return Math.floor(diff / (1000 * 60 * 60 * 24))
+  })
 
   const timeLeft = computed(() => {
     const diff = props.targetDate.getTime() - now.value.getTime()
@@ -45,7 +67,25 @@
 </script>
 
 <template>
-  <div class="flex items-center justify-center gap-1 sm:gap-3">
+  <!-- State 1: Wedding Day -->
+  <div v-if="isWeddingDay" class="text-center">
+    <div class="font-heading text-2xl sm:text-3xl md:text-4xl font-semibold animate-pulse">
+      {{ t.countdown.weddingDayMessage }}
+    </div>
+  </div>
+
+  <!-- State 2: Past Wedding (Married) -->
+  <div v-else-if="isPastDate" class="text-center">
+    <div class="font-heading text-2xl sm:text-3xl md:text-4xl font-semibold">
+      {{ t.countdown.marriedMessage }}
+    </div>
+    <div v-if="daysSinceWedding > 0" class="text-sm opacity-80 mt-2 font-body">
+      {{ interpolate(t.countdown.daysSince, { days: daysSinceWedding }) }}
+    </div>
+  </div>
+
+  <!-- State 3: Future (Countdown) -->
+  <div v-else class="flex items-center justify-center gap-1 sm:gap-3">
     <!-- Days -->
     <div class="flex flex-col items-center w-14 sm:w-16 md:w-20">
       <span class="font-heading text-2xl sm:text-3xl md:text-4xl font-semibold leading-none">

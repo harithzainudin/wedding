@@ -159,13 +159,13 @@
   const validTabs: TabType[] = [
     'dashboard',
     'wedding',
+    'design',
+    'theme',
     'venue',
     'schedule',
     'gallery',
     'music',
     'gifts',
-    'theme',
-    'design',
     'contacts',
     'rsvps',
     'qrcodehub',
@@ -250,17 +250,17 @@
       'M3 11h8V3H3v8zm2-6h4v4H5V5zM3 21h8v-8H3v8zm2-6h4v4H5v-4zm8-12v8h8V3h-8zm6 6h-4V5h4v4zm-6 4h2v2h-2zm2 2h2v2h-2zm-2 2h2v2h-2zm4-4h2v2h-2zm0 4h2v2h-2zm2-2h2v2h-2z',
   }
 
-  // Computed tabs with translated labels
+  // Computed tabs with translated labels (Setup Flow Order)
   const tabs = computed<TabConfig[]>(() => [
     { key: 'dashboard', label: adminT.value.nav.dashboard, icon: tabIcons.dashboard },
     { key: 'wedding', label: adminT.value.nav.wedding, icon: tabIcons.wedding },
+    { key: 'design', label: adminT.value.nav.design ?? 'Design', icon: tabIcons.design },
+    { key: 'theme', label: adminT.value.nav.theme, icon: tabIcons.theme },
     { key: 'venue', label: adminT.value.nav.venue, icon: tabIcons.venue },
     { key: 'schedule', label: adminT.value.nav.schedule, icon: tabIcons.schedule },
     { key: 'gallery', label: adminT.value.nav.gallery, icon: tabIcons.gallery },
     { key: 'music', label: adminT.value.nav.music, icon: tabIcons.music },
     { key: 'gifts', label: adminT.value.nav.gifts, icon: tabIcons.gifts },
-    { key: 'theme', label: adminT.value.nav.theme, icon: tabIcons.theme },
-    { key: 'design', label: adminT.value.nav.design ?? 'Design', icon: tabIcons.design },
     { key: 'contacts', label: adminT.value.nav.contacts, icon: tabIcons.contacts },
     { key: 'rsvps', label: adminT.value.nav.rsvps, icon: tabIcons.rsvps },
     { key: 'qrcodehub', label: adminT.value.nav.qrHub, icon: tabIcons.qrcodehub },

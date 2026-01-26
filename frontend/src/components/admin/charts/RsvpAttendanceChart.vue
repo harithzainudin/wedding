@@ -22,7 +22,11 @@
       background: 'transparent',
       fontFamily: 'inherit',
     },
-    labels: [adminT.value.rsvps.attending, adminT.value.rsvps.maybe, adminT.value.rsvps.notAttending],
+    labels: [
+      adminT.value.rsvps.attending,
+      adminT.value.rsvps.maybe,
+      adminT.value.rsvps.notAttending,
+    ],
     colors: ['#22c55e', '#f59e0b', '#ef4444'], // green-500, amber-500, red-500
     legend: {
       position: 'bottom',

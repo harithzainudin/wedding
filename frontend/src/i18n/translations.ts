@@ -226,6 +226,9 @@ export interface Translations {
     hours: string
     minutes: string
     seconds: string
+    weddingDayMessage: string
+    marriedMessage: string
+    daysSince: string
   }
   // Parking
   parking?: {
@@ -575,6 +578,9 @@ export const translations: Record<Language, Translations> = {
       hours: 'Jam',
       minutes: 'Minit',
       seconds: 'Saat',
+      weddingDayMessage: 'Hari Ini Hari Bahagia!',
+      marriedMessage: 'Telah Berkahwin!',
+      daysSince: 'Meraikan {days} hari perkahwinan',
     },
     parking: {
       guide: 'Panduan Parkir',
@@ -749,7 +755,8 @@ export const translations: Record<Language, Translations> = {
       maybe: "Maybe, I'm not sure yet",
       notAttending: 'Sorry, I cannot attend',
       guestCountHintYes: 'Help us prepare the perfect celebration for you!',
-      guestCountHintMaybe: "Even a rough estimate helps us plan - don't worry, it's not set in stone!",
+      guestCountHintMaybe:
+        "Even a rough estimate helps us plan - don't worry, it's not set in stone!",
       numberOfAdults: 'Adults',
       numberOfChildren: 'Children',
       childrenAgeNote: 'Children: 12 years and below',
@@ -913,6 +920,9 @@ export const translations: Record<Language, Translations> = {
       hours: 'Hours',
       minutes: 'Minutes',
       seconds: 'Seconds',
+      weddingDayMessage: "Today's the Day!",
+      marriedMessage: 'Happily Married!',
+      daysSince: 'Celebrating {days} days of marriage',
     },
     parking: {
       guide: 'Parking Guide',
@@ -1245,6 +1255,9 @@ export const translations: Record<Language, Translations> = {
       hours: '时',
       minutes: '分',
       seconds: '秒',
+      weddingDayMessage: '今天是大喜之日！',
+      marriedMessage: '幸福美满！',
+      daysSince: '庆祝结婚 {days} 天',
     },
     parking: {
       guide: '停车指南',
@@ -1579,6 +1592,9 @@ export const translations: Record<Language, Translations> = {
       hours: 'மணி',
       minutes: 'நிமிடங்கள்',
       seconds: 'வினாடிகள்',
+      weddingDayMessage: 'இன்று மங்கள நாள்!',
+      marriedMessage: 'மகிழ்ச்சியான திருமணம்!',
+      daysSince: '{days} நாட்கள் திருமண வாழ்க்கை',
     },
     parking: {
       guide: 'பார்க்கிங் வழிகாட்டி',
