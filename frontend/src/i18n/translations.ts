@@ -167,6 +167,13 @@ export interface Translations {
     cancel: string
     tapToOpen: string
   }
+  // Countdown
+  countdown: {
+    days: string
+    hours: string
+    minutes: string
+    seconds: string
+  }
   // Parking
   parking?: {
     guide: string
@@ -456,6 +463,12 @@ export const translations: Record<Language, Translations> = {
       cancel: 'Batal',
       tapToOpen: 'Ketik untuk buka',
     },
+    countdown: {
+      days: 'Hari',
+      hours: 'Jam',
+      minutes: 'Minit',
+      seconds: 'Saat',
+    },
     parking: {
       guide: 'Panduan Parkir',
       tapToExpand: 'Ketik untuk butiran',
@@ -735,6 +748,12 @@ export const translations: Record<Language, Translations> = {
       cancel: 'Cancel',
       tapToOpen: 'Tap to open',
     },
+    countdown: {
+      days: 'Days',
+      hours: 'Hours',
+      minutes: 'Minutes',
+      seconds: 'Seconds',
+    },
     parking: {
       guide: 'Parking Guide',
       tapToExpand: 'Tap for details',
@@ -1007,6 +1026,12 @@ export const translations: Record<Language, Translations> = {
       and: '&',
       cancel: '取消',
       tapToOpen: '点击打开',
+    },
+    countdown: {
+      days: '天',
+      hours: '时',
+      minutes: '分',
+      seconds: '秒',
     },
     parking: {
       guide: '停车指南',
@@ -1281,6 +1306,12 @@ export const translations: Record<Language, Translations> = {
       cancel: 'ரத்துசெய்',
       tapToOpen: 'திறக்க தட்டவும்',
     },
+    countdown: {
+      days: 'நாட்கள்',
+      hours: 'மணி',
+      minutes: 'நிமிடங்கள்',
+      seconds: 'வினாடிகள்',
+    },
     parking: {
       guide: 'பார்க்கிங் வழிகாட்டி',
       tapToExpand: 'விவரங்களுக்கு தட்டவும்',
@@ -1509,6 +1540,7 @@ export interface AdminTranslations {
     profileSettings: string
     masterAccount: string
     darkMode: string
+    language: string
     viewLiveSite: string
   }
 
@@ -2647,6 +2679,7 @@ export const adminTranslations: Record<AdminLanguage, AdminTranslations> = {
       profileSettings: 'Profile Settings',
       masterAccount: 'Master Account',
       darkMode: 'Dark Mode',
+      language: 'Language',
       viewLiveSite: 'View Live Site',
     },
 
@@ -3754,6 +3787,7 @@ export const adminTranslations: Record<AdminLanguage, AdminTranslations> = {
       profileSettings: 'Tetapan Profil',
       masterAccount: 'Akaun Master',
       darkMode: 'Mod Gelap',
+      language: 'Bahasa',
       viewLiveSite: 'Lihat Laman Langsung',
     },
 

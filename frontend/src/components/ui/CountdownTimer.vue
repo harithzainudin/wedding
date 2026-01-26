@@ -1,11 +1,13 @@
 <script setup lang="ts">
   import { ref, computed, onMounted, onUnmounted } from 'vue'
+  import { useLanguage } from '@/composables/useLanguage'
 
   interface Props {
     targetDate: Date
   }
 
   const props = defineProps<Props>()
+  const { t } = useLanguage()
 
   const now = ref(new Date())
   let intervalId: ReturnType<typeof setInterval> | undefined
@@ -52,7 +54,7 @@
       <span
         class="font-body text-[8px] sm:text-[10px] md:text-xs uppercase tracking-wider mt-1 opacity-80"
       >
-        Hari
+        {{ t.countdown.days }}
       </span>
     </div>
 
@@ -66,7 +68,7 @@
       <span
         class="font-body text-[8px] sm:text-[10px] md:text-xs uppercase tracking-wider mt-1 opacity-80"
       >
-        Jam
+        {{ t.countdown.hours }}
       </span>
     </div>
 
@@ -80,7 +82,7 @@
       <span
         class="font-body text-[8px] sm:text-[10px] md:text-xs uppercase tracking-wider mt-1 opacity-80"
       >
-        Minit
+        {{ t.countdown.minutes }}
       </span>
     </div>
 
@@ -94,7 +96,7 @@
       <span
         class="font-body text-[8px] sm:text-[10px] md:text-xs uppercase tracking-wider mt-1 opacity-80"
       >
-        Saat
+        {{ t.countdown.seconds }}
       </span>
     </div>
   </div>

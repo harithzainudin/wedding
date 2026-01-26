@@ -5,7 +5,7 @@
    * Opens like a physical invitation card with a cover page.
    * User clicks/taps to "open" the card and reveal content.
    */
-  import { ref, computed, onMounted } from 'vue'
+  import { ref, computed, onMounted, onUnmounted } from 'vue'
   import type { DesignSettings, SectionConfig } from '@/types/design'
   import { usePublicWeddingData } from '@/composables/usePublicWeddingData'
   import { useLanguage } from '@/composables/useLanguage'
@@ -65,19 +65,36 @@
     isAnimating.value = true
     isCardOpen.value = true
 
+    // Scroll to top when opening
+    window.scrollTo(0, 0)
+
+    // Unlock body scroll
+    document.body.style.overflow = ''
+
     // Allow animation to complete
     setTimeout(() => {
       isAnimating.value = false
     }, 800)
   }
 
-  // Auto-open functionality
+  // Lock scroll when cover is showing, auto-open functionality
   onMounted(() => {
+    // Lock scroll when cover is showing
+    if (!isCardOpen.value) {
+      document.body.style.overflow = 'hidden'
+    }
+
+    // Auto-open after delay if configured
     if (cardSettings.value.autoOpenDelay > 0) {
       setTimeout(() => {
         openCard()
       }, cardSettings.value.autoOpenDelay * 1000)
     }
+  })
+
+  // Cleanup: restore scroll if component unmounts while cover is showing
+  onUnmounted(() => {
+    document.body.style.overflow = ''
   })
 </script>
 

@@ -1,5 +1,6 @@
 <script setup lang="ts">
   import { computed, ref } from 'vue'
+  import AdminLanguageToggle from '@/components/admin/AdminLanguageToggle.vue'
   import DarkModeToggle from '@/components/ui/DarkModeToggle.vue'
   import { useAdminLanguage } from '@/composables/useAdminLanguage'
   import { useWeddingMetadata } from '@/composables/useWeddingMetadata'
@@ -260,6 +261,15 @@
               adminT.header.darkMode
             }}</span>
             <DarkModeToggle variant="light" />
+          </div>
+
+          <div
+            class="flex items-center justify-between px-4 py-3 border-b border-sand-dark dark:border-dark-border"
+          >
+            <span class="font-body text-sm text-charcoal dark:text-dark-text">{{
+              adminT.header.language
+            }}</span>
+            <AdminLanguageToggle />
           </div>
 
           <!-- Super Admin Dashboard link - only for super admins -->

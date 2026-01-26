@@ -27,6 +27,9 @@
   const audioElement = ref<HTMLAudioElement | null>(null)
   const nextAudioElement = ref<HTMLAudioElement | null>(null)
 
+  // Ref for click outside detection
+  const containerRef = ref<HTMLElement | null>(null)
+
   // Computed - Music visibility is controlled by Design Tab's backgroundFeatures
   const isEnabled = computed(() => {
     const musicFeature = designSettings.value.backgroundFeatures?.find((f) => f.id === 'music')
@@ -285,6 +288,17 @@
     }
   }
 
+  // Handle click outside to close controls
+  const handleClickOutside = (event: MouseEvent): void => {
+    if (
+      showControls.value &&
+      containerRef.value &&
+      !containerRef.value.contains(event.target as Node)
+    ) {
+      showControls.value = false
+    }
+  }
+
   // Watch for track changes (only if music is enabled)
   watch(currentTrack, (newTrack) => {
     if (isEnabled.value && newTrack && audioElement.value && !isPlaying.value) {
@@ -326,6 +340,9 @@
       el.addEventListener('blur', handleFormBlur)
     })
 
+    // Listen for clicks outside to close controls
+    document.addEventListener('click', handleClickOutside)
+
     // Attempt autoplay if music section is enabled and autoplay is on
     if (isEnabled.value && shouldAutoplay.value && currentTrack.value && audioElement.value) {
       try {
@@ -349,11 +366,13 @@
       nextAudioElement.value.pause()
       nextAudioElement.value = null
     }
+    // Remove click outside listener
+    document.removeEventListener('click', handleClickOutside)
   })
 </script>
 
 <template>
-  <div v-if="isEnabled && !isLoading && tracks.length > 0" class="relative">
+  <div v-if="isEnabled && !isLoading && tracks.length > 0" ref="containerRef" class="relative">
     <!-- Main Button -->
     <div class="relative" @mouseenter="showTooltip = true" @mouseleave="showTooltip = false">
       <div class="flex items-center gap-1">
@@ -410,11 +429,13 @@
       <Transition name="tooltip">
         <div
           v-if="showTooltip && currentTrack && isPlaying"
-          class="absolute top-full right-0 mt-2 px-3 py-1.5 bg-black/80 backdrop-blur-sm text-white text-xs rounded-lg whitespace-nowrap z-50"
+          class="absolute top-full right-0 mt-2 px-3 py-1.5 bg-black/80 backdrop-blur-sm text-white text-xs rounded-lg z-50 max-w-[250px] sm:max-w-[300px]"
         >
-          <span class="text-white/60">Now Playing:</span>
-          {{ currentTrack.title }}
-          <span v-if="currentTrack.artist" class="text-white/60">- {{ currentTrack.artist }}</span>
+          <p class="text-white/60 text-[10px] mb-0.5">Now Playing</p>
+          <p class="font-medium truncate">{{ currentTrack.title }}</p>
+          <p v-if="currentTrack.artist" class="text-white/60 truncate text-[10px]">
+            {{ currentTrack.artist }}
+          </p>
         </div>
       </Transition>
     </div>

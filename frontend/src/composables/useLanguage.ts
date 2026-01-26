@@ -3,14 +3,14 @@ import { translations, languageNames, type Language, type Translations } from '@
 
 const STORAGE_KEY = 'wedding-language'
 
-// Get initial language from localStorage or default to Malay
+// Get initial language from localStorage or default to English
 const getInitialLanguage = (): Language => {
-  if (typeof window === 'undefined') return 'ms'
+  if (typeof window === 'undefined') return 'en'
   const stored = localStorage.getItem(STORAGE_KEY)
   if (stored && (stored === 'ms' || stored === 'en' || stored === 'zh' || stored === 'ta')) {
     return stored
   }
-  return 'ms'
+  return 'en'
 }
 
 // Global reactive state

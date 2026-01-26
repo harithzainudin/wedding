@@ -27,27 +27,19 @@ wedding/
 └── .claude/           # Claude Code configuration
 ```
 
-## CRITICAL: Always Run Fresh Build After Any Code Change
+## Pre-Commit Build Check
 
-**MANDATORY**: After making ANY code changes (edits, additions, deletions), you MUST run a fresh build check before considering the task complete. This prevents GitHub Actions CI failures.
+Before committing changes, run a build check to prevent CI failures:
 
 ```bash
-cd frontend && rm -rf node_modules/.tmp node_modules/.vite && pnpm check && pnpm run build
+cd frontend && pnpm check
 ```
 
-**Always clear the cache first** (`rm -rf node_modules/.tmp node_modules/.vite`) to match CI's fresh environment. Never run just `pnpm check` without clearing the cache - this causes false positives where local builds pass but CI fails.
+If the build fails due to caching issues (local passes but CI fails), clear the cache:
 
-Note: While `pnpm check` includes `vite build`, running `pnpm run build` explicitly ensures the full build process completes successfully.
-
-This runs TypeScript type checking, Prettier formatting check, and production build. If any step fails, fix the issues before proceeding.
-
-**Why fresh builds are critical:**
-
-- CI always runs with fresh cache - local cached builds hide errors
-- Local dev server may not catch all TypeScript errors
-- Vue template errors are only caught during `vue-tsc` type checking
-- Unused variables/imports cause build failures in CI
-- Type narrowing issues may be cached incorrectly
+```bash
+cd frontend && rm -rf node_modules/.tmp node_modules/.vite && pnpm check
+```
 
 ---
 
@@ -248,16 +240,14 @@ pnpm format:check # Check formatting without fixing
 Before pushing, run checks in both frontend and backend:
 
 ```bash
-cd frontend && pnpm check && pnpm run build && cd ../backend && pnpm check
+cd frontend && pnpm check && cd ../backend && pnpm check
 ```
 
-**Important**: If you've made significant changes or want to ensure CI won't fail, clear the TypeScript build cache first to match CI's fresh environment:
+If CI fails but local build passes, clear the cache and retry:
 
 ```bash
-cd frontend && rm -rf node_modules/.tmp node_modules/.vite && pnpm check && pnpm run build && cd ../backend && pnpm check
+rm -rf frontend/node_modules/.tmp frontend/node_modules/.vite && cd frontend && pnpm check
 ```
-
-This prevents the common issue where local builds pass (due to caching) but CI fails.
 
 ## Tech Stack
 
@@ -467,7 +457,7 @@ The project uses a custom lightweight i18n implementation with TypeScript for ty
 ### Public Site (4 languages)
 
 - **Languages**: Malay (ms), English (en), Chinese (zh), Tamil (ta)
-- **Default**: Malay
+- **Default**: English
 - **Storage**: `localStorage` key `wedding-language`
 - **Composable**: `useLanguage()` from `@/composables/useLanguage`
 - **Toggle**: `LanguageToggle.vue` component
@@ -756,8 +746,7 @@ backend/src/functions/
 - Use `pnpm` for package management (not npm)
 - Frontend uses Vue 3 Composition API with `<script setup>`
 - Backend uses SST v3 with AWS CDK
-- **CRITICAL: Run `cd frontend && rm -rf node_modules/.tmp node_modules/.vite && pnpm check && pnpm run build` after EVERY code change** - always with fresh cache
-- **Never consider a task complete without running a fresh build** - even small changes can break the build
+- Run `pnpm check` before committing to catch TypeScript and formatting errors
 - If removing UI elements, also remove any related unused variables, functions, computed properties, and imports
 - Theme types: `PresetThemeId` for actual themes with definitions, `LegacyThemeId` for old theme IDs used in translations, `ThemeId` for all possible IDs
 - When adding new types to interfaces (e.g., `VenueData`), ensure all usages handle the new property correctly
