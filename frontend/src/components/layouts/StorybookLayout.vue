@@ -8,6 +8,7 @@
   import { ref, computed, onMounted, onUnmounted } from 'vue'
   import type { DesignSettings, SectionConfig } from '@/types/design'
   import SectionRenderer from './SectionRenderer.vue'
+  import FloatingActionMenu from '@/components/ui/FloatingActionMenu.vue'
 
   const props = defineProps<{
     designSettings: DesignSettings
@@ -134,6 +135,9 @@
         {{ currentPageIndex + 1 }} / {{ totalPages }}
       </span>
     </div>
+
+    <!-- Floating Action Menu -->
+    <FloatingActionMenu :show-rsvp-button="showRsvpSection" />
   </main>
 </template>
 

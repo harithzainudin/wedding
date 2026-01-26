@@ -351,7 +351,7 @@
 
 <template>
   <!-- Section visibility is controlled by Design Tab -->
-  <section id="qr-hub" class="bg-cream px-4 py-12 dark:bg-dark-surface sm:px-6 lg:px-8">
+  <section id="qr-hub" class="bg-cream px-4 py-12 dark:bg-dark-bg-secondary sm:px-6 lg:px-8">
     <div class="mx-auto max-w-4xl">
       <!-- Section Header -->
       <div class="mb-8 text-center">
@@ -370,7 +370,7 @@
         <div
           v-for="i in 4"
           :key="i"
-          class="flex flex-col items-center rounded-lg bg-white/50 dark:bg-dark-card/50 p-4"
+          class="flex flex-col items-center rounded-lg bg-white/50 dark:bg-dark-bg-elevated/50 p-4"
         >
           <div
             class="mb-3 h-24 w-24 rounded-lg bg-charcoal/10 dark:bg-dark-text/10 animate-pulse"
@@ -409,7 +409,7 @@
           <div
             v-for="type in enabledQRTypes"
             :key="type"
-            class="flex cursor-pointer flex-col items-center rounded-lg bg-white p-4 shadow-sm transition-shadow hover:shadow-md dark:bg-dark-card"
+            class="flex cursor-pointer flex-col items-center rounded-lg bg-white p-4 shadow-sm transition-shadow hover:shadow-md dark:bg-dark-bg-elevated"
             @click="openModal(type)"
           >
             <!-- QR Code Image -->
@@ -463,7 +463,7 @@
             :href="generateGoogleMapsUrl(venueData.coordinates.lat, venueData.coordinates.lng)"
             target="_blank"
             rel="noopener noreferrer"
-            class="flex items-center gap-2 rounded-full bg-white px-4 py-2 font-body text-sm text-charcoal shadow-sm transition-shadow hover:shadow-md dark:bg-dark-card dark:text-dark-text"
+            class="flex items-center gap-2 rounded-full bg-white px-4 py-2 font-body text-sm text-charcoal shadow-sm transition-shadow hover:shadow-md dark:bg-dark-bg-elevated dark:text-dark-text"
           >
             📍 Google Maps
           </a>
@@ -471,7 +471,7 @@
             :href="generateWazeUrl(venueData.coordinates.lat, venueData.coordinates.lng)"
             target="_blank"
             rel="noopener noreferrer"
-            class="flex items-center gap-2 rounded-full bg-white px-4 py-2 font-body text-sm text-charcoal shadow-sm transition-shadow hover:shadow-md dark:bg-dark-card dark:text-dark-text"
+            class="flex items-center gap-2 rounded-full bg-white px-4 py-2 font-body text-sm text-charcoal shadow-sm transition-shadow hover:shadow-md dark:bg-dark-bg-elevated dark:text-dark-text"
           >
             🚗 Waze
           </a>
@@ -489,11 +489,11 @@
         >
           <Transition name="modal-content" appear>
             <div
-              class="relative w-full max-w-sm rounded-xl bg-white p-6 shadow-2xl dark:bg-dark-card"
+              class="relative w-full max-w-sm rounded-xl bg-white p-6 shadow-2xl dark:bg-dark-bg-elevated"
             >
               <!-- Close button -->
               <button
-                class="absolute right-3 top-3 rounded-full p-1 text-charcoal-light transition-colors hover:bg-gray-100 hover:text-charcoal dark:text-dark-text-secondary dark:hover:bg-dark-surface"
+                class="absolute right-3 top-3 rounded-full p-1 text-charcoal-light transition-colors hover:bg-gray-100 hover:text-charcoal dark:text-dark-text-secondary dark:hover:bg-dark-bg-secondary"
                 @click="closeModal"
               >
                 <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -532,7 +532,7 @@
                     !settings.restuDigital.useImage &&
                     settings.restuDigital.bankName
                   "
-                  class="mb-4 rounded-lg bg-gray-50 p-3 text-left dark:bg-dark-surface"
+                  class="mb-4 rounded-lg bg-gray-50 p-3 text-left dark:bg-dark-bg-secondary"
                 >
                   <p class="font-body text-sm text-charcoal dark:text-dark-text">
                     <strong>Bank:</strong> {{ settings.restuDigital.bankName }}

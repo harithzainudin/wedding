@@ -8,6 +8,7 @@
   import { ref, computed, onMounted, onUnmounted } from 'vue'
   import type { DesignSettings, SectionConfig } from '@/types/design'
   import SectionRenderer from './SectionRenderer.vue'
+  import FloatingActionMenu from '@/components/ui/FloatingActionMenu.vue'
 
   const props = defineProps<{
     designSettings: DesignSettings
@@ -21,6 +22,39 @@
   const touchStartX = ref(0)
   const touchEndX = ref(0)
   const isAnimating = ref(false)
+  const touchStartedOnInteractive = ref(false)
+
+  // Check if an element or its parents are interactive (should not trigger swipe)
+  const isInteractiveElement = (element: HTMLElement | null): boolean => {
+    if (!element) return false
+
+    const interactiveTags = ['BUTTON', 'A', 'INPUT', 'TEXTAREA', 'SELECT', 'LABEL']
+    const interactiveRoles = ['button', 'link', 'checkbox', 'radio', 'slider', 'switch', 'tab']
+
+    let current: HTMLElement | null = element
+    while (current && current !== document.body) {
+      // Check tag name
+      if (interactiveTags.includes(current.tagName)) return true
+
+      // Check role attribute
+      const role = current.getAttribute('role')
+      if (role && interactiveRoles.includes(role)) return true
+
+      // Check if it has click handlers or is explicitly interactive
+      if (current.onclick || current.hasAttribute('data-interactive')) return true
+
+      // Check for common interactive class patterns
+      if (
+        current.classList.contains('cursor-pointer') ||
+        current.classList.contains('btn') ||
+        current.classList.contains('clickable')
+      )
+        return true
+
+      current = current.parentElement
+    }
+    return false
+  }
 
   // Get slideshow settings with defaults
   const slideshowSettings = computed(() => ({
@@ -61,16 +95,29 @@
 
   // Touch handlers for swipe
   const handleTouchStart = (e: TouchEvent) => {
+    // Check if touch started on an interactive element
+    touchStartedOnInteractive.value = isInteractiveElement(e.target as HTMLElement)
+
+    // Still record position for non-interactive swipes
     touchStartX.value = e.touches[0]?.clientX ?? 0
+    touchEndX.value = touchStartX.value // Reset end position
   }
 
   const handleTouchMove = (e: TouchEvent) => {
+    // Skip if touch started on interactive element
+    if (touchStartedOnInteractive.value) return
     touchEndX.value = e.touches[0]?.clientX ?? 0
   }
 
   const handleTouchEnd = () => {
+    // Skip swipe detection if touch started on interactive element
+    if (touchStartedOnInteractive.value) {
+      touchStartedOnInteractive.value = false
+      return
+    }
+
     const diff = touchStartX.value - touchEndX.value
-    const threshold = 50
+    const threshold = 80 // Increased threshold to reduce accidental swipes
 
     if (Math.abs(diff) > threshold) {
       if (diff > 0) {
@@ -79,6 +126,8 @@
         prevSlide()
       }
     }
+
+    touchStartedOnInteractive.value = false
   }
 
   // Keyboard navigation
@@ -212,5 +261,8 @@
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
       </svg>
     </div>
+
+    <!-- Floating Action Menu -->
+    <FloatingActionMenu :show-rsvp-button="showRsvpSection" />
   </main>
 </template>
