@@ -28,7 +28,7 @@ export default $config({
     const tokenSecret = new sst.Secret("TokenSecret");
 
     const { table } = await import("./infra/database");
-    const { api, addAdminRoutes, addRsvpAuthRoutes, addImageRoutes, addVenueRoutes, addWeddingDetailsRoutes, addScheduleRoutes, addContactsRoutes, addThemeRoutes, addDesignRoutes, addMusicRoutes, addGiftRoutes, addParkingRoutes, addQRCodeHubRoutes, addAuthRoutes, addSuperAdminRoutes } = await import("./infra/api");
+    const { api, addAdminRoutes, addRsvpAuthRoutes, addImageRoutes, addVenueRoutes, addWeddingDetailsRoutes, addScheduleRoutes, addContactsRoutes, addThemeRoutes, addDesignRoutes, addHeroBackgroundRoutes, addMusicRoutes, addGiftRoutes, addParkingRoutes, addQRCodeHubRoutes, addAuthRoutes, addSuperAdminRoutes } = await import("./infra/api");
     const { imageBucket } = await import("./infra/storage");
 
     // Add admin routes with secrets
@@ -57,6 +57,9 @@ export default $config({
 
     // Add design/layout routes
     addDesignRoutes(tokenSecret);
+
+    // Add hero background routes
+    addHeroBackgroundRoutes(tokenSecret, imageBucket);
 
     // Add music management routes
     addMusicRoutes(tokenSecret, imageBucket);

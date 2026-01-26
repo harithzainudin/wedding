@@ -1,4 +1,11 @@
-export type UploadStatus = 'compressing' | 'uploading' | 'completed' | 'error' | 'cancelled'
+export type UploadStatus =
+  | 'preparing'
+  | 'compressing'
+  | 'uploading'
+  | 'confirming'
+  | 'completed'
+  | 'error'
+  | 'cancelled'
 
 export interface CompressionInfo {
   originalSize: number

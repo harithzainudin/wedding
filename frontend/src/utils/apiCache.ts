@@ -70,4 +70,5 @@ export const CACHE_KEYS = {
   RSVPS: 'rsvps',
   GIFTS: 'gifts',
   QRCODE_HUB: 'qrcode-hub',
+  HERO_BACKGROUND: 'hero-background',
 } as const

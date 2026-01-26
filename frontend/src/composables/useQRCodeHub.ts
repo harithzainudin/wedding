@@ -10,7 +10,7 @@ import {
   getQRCodeHubAdmin,
   updateQRCodeHub,
   getQRCodeHubPresignedUrl,
-  uploadToS3,
+  uploadToS3WithProgress,
   clearCache,
 } from '@/services/api'
 import { CACHE_KEYS } from '@/utils/apiCache'
@@ -156,16 +156,22 @@ export function useQRCodeHub() {
     uploadProgress.value = 0
 
     try {
-      // Get presigned URL
+      // Get presigned URL (0-10%)
+      uploadProgress.value = 5
       const presignedData: QRCodeHubPresignedUrlRequest = {
         mimeType: file.type,
         fileSize: file.size,
       }
       const { uploadUrl, publicUrl } = await getQRCodeHubPresignedUrl(presignedData, weddingId)
+      uploadProgress.value = 10
 
-      // Upload to S3
-      uploadProgress.value = 50
-      const uploadSuccess = await uploadToS3(uploadUrl, file)
+      // Upload to S3 with real progress tracking (10-100%)
+      // Progress callback maps 0-100% of S3 upload to 10-100% of total progress
+      const handleS3Progress = (s3Progress: number) => {
+        uploadProgress.value = 10 + Math.round((s3Progress / 100) * 90)
+      }
+
+      const uploadSuccess = await uploadToS3WithProgress(uploadUrl, file, handleS3Progress)
 
       if (!uploadSuccess) {
         throw new Error('Failed to upload file to storage')

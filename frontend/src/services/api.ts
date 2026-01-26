@@ -135,6 +135,14 @@ import type {
   QRCodeHubPresignedUrlRequest,
   QRCodeHubPresignedUrlResponse,
 } from '@/types/qrCodeHub'
+import type {
+  HeroBackgroundSettings,
+  HeroBackgroundUpdateRequest,
+  HeroBackgroundPresignedUrlRequest,
+  HeroBackgroundPresignedUrlResponse,
+  HeroBackgroundConfirmRequest,
+  DeviceType,
+} from '@/types/heroBackground'
 import {
   getAccessToken,
   refreshTokens,
@@ -456,6 +464,56 @@ export async function uploadToS3(
     signal: signal ?? null,
   })
   return response.ok
+}
+
+/**
+ * Upload file to S3 with progress tracking using XMLHttpRequest
+ */
+export function uploadToS3WithProgress(
+  presignedUrl: string,
+  file: File,
+  onProgress: (progress: number) => void,
+  signal?: AbortSignal
+): Promise<boolean> {
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest()
+
+    // Handle abort signal
+    if (signal) {
+      signal.addEventListener('abort', () => {
+        xhr.abort()
+        reject(new Error('Upload aborted'))
+      })
+    }
+
+    // Track upload progress
+    xhr.upload.addEventListener('progress', (event) => {
+      if (event.lengthComputable) {
+        const percentComplete = Math.round((event.loaded / event.total) * 100)
+        onProgress(percentComplete)
+      }
+    })
+
+    xhr.addEventListener('load', () => {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        resolve(true)
+      } else {
+        reject(new Error(`Upload failed with status ${xhr.status}`))
+      }
+    })
+
+    xhr.addEventListener('error', () => {
+      reject(new Error('Upload failed due to network error'))
+    })
+
+    xhr.addEventListener('abort', () => {
+      reject(new Error('Upload aborted'))
+    })
+
+    xhr.open('PUT', presignedUrl)
+    xhr.setRequestHeader('Content-Type', file.type)
+    xhr.send(file)
+  })
 }
 
 export async function confirmImageUpload(
@@ -1511,4 +1569,111 @@ export async function reorderGlobalMusic(
     method: 'PUT',
     body: JSON.stringify(data),
   })
+}
+
+// ============================================
+// HERO BACKGROUND API Functions
+// ============================================
+
+/**
+ * Get hero background settings (public)
+ */
+export async function getHeroBackground(weddingSlug?: string): Promise<HeroBackgroundSettings> {
+  const response = await fetch(buildPublicUrl('/hero-background', weddingSlug), {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  })
+
+  const json = (await response.json()) as ApiResponse<{ heroBackground: HeroBackgroundSettings }>
+  return unwrapResponse(json).heroBackground
+}
+
+/**
+ * Get hero background settings (cached for public pages)
+ */
+export function getHeroBackgroundCached(
+  weddingSlug?: string,
+  forceRefresh = false
+): Promise<HeroBackgroundSettings> {
+  const cacheKey = weddingSlug
+    ? `${CACHE_KEYS.HERO_BACKGROUND}-${weddingSlug}`
+    : CACHE_KEYS.HERO_BACKGROUND
+  return cachedFetch(cacheKey, () => getHeroBackground(weddingSlug), forceRefresh)
+}
+
+/**
+ * Get hero background settings (admin - authenticated)
+ */
+export async function getHeroBackgroundAdmin(weddingId?: string): Promise<HeroBackgroundSettings> {
+  const result = await authenticatedFetch<{ heroBackground: HeroBackgroundSettings }>(
+    buildAdminUrl('/hero-background', weddingId),
+    { method: 'GET' }
+  )
+  return result.heroBackground
+}
+
+/**
+ * Update hero background settings (admin)
+ */
+export async function updateHeroBackground(
+  data: HeroBackgroundUpdateRequest,
+  weddingId?: string
+): Promise<HeroBackgroundSettings> {
+  const result = await authenticatedFetch<{ heroBackground: HeroBackgroundSettings }>(
+    buildAdminUrl('/hero-background', weddingId),
+    {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }
+  )
+  return result.heroBackground
+}
+
+/**
+ * Get presigned URL for hero background upload
+ */
+export async function getHeroBackgroundPresignedUrl(
+  data: HeroBackgroundPresignedUrlRequest,
+  weddingId?: string
+): Promise<HeroBackgroundPresignedUrlResponse> {
+  return authenticatedFetch<HeroBackgroundPresignedUrlResponse>(
+    buildAdminUrl('/hero-background/presigned-url', weddingId),
+    {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }
+  )
+}
+
+/**
+ * Confirm hero background upload
+ */
+export async function confirmHeroBackgroundUpload(
+  data: HeroBackgroundConfirmRequest,
+  weddingId?: string
+): Promise<HeroBackgroundSettings> {
+  const result = await authenticatedFetch<{ heroBackground: HeroBackgroundSettings }>(
+    buildAdminUrl('/hero-background/confirm', weddingId),
+    {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }
+  )
+  return result.heroBackground
+}
+
+/**
+ * Delete hero background media
+ */
+export async function deleteHeroBackgroundMedia(
+  deviceType: DeviceType,
+  weddingId?: string
+): Promise<HeroBackgroundSettings> {
+  const result = await authenticatedFetch<{ heroBackground: HeroBackgroundSettings }>(
+    buildAdminUrl(`/hero-background/${encodeURIComponent(deviceType)}`, weddingId),
+    { method: 'DELETE' }
+  )
+  return result.heroBackground
 }

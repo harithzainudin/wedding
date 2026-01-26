@@ -26,6 +26,7 @@
     listGiftsAdmin,
     getMusicAdmin,
   } from '@/services/api'
+  import HeroBackgroundEditor from '@/components/admin/HeroBackgroundEditor.vue'
 
   const emit = defineEmits<{
     'dirty-state-change': [
@@ -677,6 +678,9 @@
           </button>
         </div>
       </div>
+
+      <!-- Hero Background -->
+      <HeroBackgroundEditor v-bind="weddingId ? { weddingId } : {}" />
 
       <!-- Section Order -->
       <div>

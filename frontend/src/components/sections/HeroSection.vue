@@ -1,5 +1,5 @@
 <script setup lang="ts">
-  import { computed, ref, watch, onMounted } from 'vue'
+  import { computed, ref, watch, onMounted, onUnmounted } from 'vue'
   import CountdownTimer from '@/components/ui/CountdownTimer.vue'
   import MusicToggle from '@/components/ui/MusicToggle.vue'
   import LanguageToggle from '@/components/ui/LanguageToggle.vue'
@@ -9,9 +9,11 @@
   import { useNameOrder } from '@/composables/useNameOrder'
   import { getCalligraphySvg } from '@/assets/calligraphy/bismillah'
   import { DEFAULT_BISMILLAH_SETTINGS } from '@/types/weddingDetails'
+  import { getMediaForDevice } from '@/types/heroBackground'
 
   const { t } = useLanguage()
-  const { getEventDate, isLoadingWeddingDetails, getBismillahSettings } = usePublicWeddingData()
+  const { getEventDate, isLoadingWeddingDetails, getBismillahSettings, getHeroBackground } =
+    usePublicWeddingData()
   const { orderedCouple } = useNameOrder()
 
   const coupleNames = computed(() => ({
@@ -52,14 +54,155 @@
 
   onMounted(() => {
     loadCalligraphy()
+    setupVideoObserver()
+    window.addEventListener('resize', handleResize)
+  })
+
+  onUnmounted(() => {
+    videoObserver.value?.disconnect()
+    window.removeEventListener('resize', handleResize)
+  })
+
+  // Hero background state
+  const heroBackground = computed(() => getHeroBackground())
+  const isMobile = ref(typeof window !== 'undefined' ? window.innerWidth < 768 : false)
+  const mediaFailed = ref(false)
+  const videoRef = ref<HTMLVideoElement | null>(null)
+  const videoObserver = ref<IntersectionObserver | null>(null)
+
+  // Get current media based on device and upload mode
+  const currentMedia = computed(() => {
+    const bg = heroBackground.value
+    if (!bg || bg.mediaType === 'none') return null
+    return getMediaForDevice(bg, isMobile.value)
+  })
+
+  // Overlay style
+  const overlayStyle = computed(() => {
+    const bg = heroBackground.value
+    if (!bg?.overlay?.enabled) return {}
+    const { color, opacity } = bg.overlay
+    let rgb: string
+    switch (color) {
+      case 'white':
+        rgb = '255,255,255'
+        break
+      case 'theme':
+        rgb = '107,142,111' // sage color RGB
+        break
+      default:
+        rgb = '0,0,0'
+    }
+    return { backgroundColor: `rgba(${rgb}, ${opacity / 100})` }
+  })
+
+  // Determine if we should use responsive images (separate mode with both)
+  const useResponsivePicture = computed(() => {
+    const bg = heroBackground.value
+    if (!bg) return false
+    return bg.uploadMode === 'separate' && (bg.desktop || bg.mobile)
+  })
+
+  // Resize handler
+  const handleResize = () => {
+    isMobile.value = window.innerWidth < 768
+  }
+
+  // Media error handler
+  const handleMediaError = () => {
+    mediaFailed.value = true
+  }
+
+  // Video visibility optimization
+  const setupVideoObserver = () => {
+    if (!videoRef.value) return
+    videoObserver.value = new IntersectionObserver(
+      ([entry]) => {
+        if (entry?.isIntersecting) {
+          videoRef.value?.play().catch(() => {
+            // Autoplay may be blocked
+          })
+        } else {
+          videoRef.value?.pause()
+        }
+      },
+      { threshold: 0.1 }
+    )
+    videoObserver.value.observe(videoRef.value)
+  }
+
+  // Watch for video element changes
+  watch(videoRef, (newRef) => {
+    if (newRef && heroBackground.value?.mediaType === 'video') {
+      videoObserver.value?.disconnect()
+      setupVideoObserver()
+    }
   })
 </script>
 
 <template>
   <section class="relative min-h-svh flex items-center justify-center text-center overflow-hidden">
-    <!-- Background with gradient overlay -->
-    <div class="absolute inset-0 bg-sage-dark">
-      <div class="absolute inset-0 bg-black/30"></div>
+    <!-- Background Container -->
+    <div class="absolute inset-0">
+      <!-- Fallback: Solid Color -->
+      <div
+        v-if="!heroBackground || heroBackground.mediaType === 'none' || mediaFailed"
+        class="absolute inset-0 bg-sage-dark"
+      />
+
+      <!-- Image Background -->
+      <template v-else-if="heroBackground.mediaType === 'image' && currentMedia">
+        <!-- Single upload mode OR responsive picture -->
+        <picture v-if="useResponsivePicture" class="absolute inset-0 w-full h-full">
+          <source
+            v-if="heroBackground.mobile"
+            media="(max-width: 767px)"
+            :srcset="heroBackground.mobile.url"
+          />
+          <img
+            :src="heroBackground.desktop?.url ?? heroBackground.mobile?.url ?? ''"
+            class="w-full h-full object-cover"
+            alt=""
+            @error="handleMediaError"
+          />
+        </picture>
+        <img
+          v-else
+          :src="currentMedia.url"
+          class="absolute inset-0 w-full h-full object-cover"
+          alt=""
+          @error="handleMediaError"
+        />
+      </template>
+
+      <!-- Video Background -->
+      <video
+        v-else-if="heroBackground?.mediaType === 'video' && currentMedia"
+        ref="videoRef"
+        class="absolute inset-0 w-full h-full object-cover"
+        autoplay
+        muted
+        loop
+        playsinline
+        :poster="heroBackground.posterUrl"
+        @error="handleMediaError"
+      >
+        <source :src="currentMedia.url" :type="currentMedia.mimeType" />
+      </video>
+
+      <!-- Dynamic Overlay -->
+      <div
+        v-if="
+          heroBackground?.overlay?.enabled && heroBackground.mediaType !== 'none' && !mediaFailed
+        "
+        class="absolute inset-0"
+        :style="overlayStyle"
+      />
+      <!-- Default overlay for solid color fallback -->
+      <div
+        v-else-if="!heroBackground || heroBackground.mediaType === 'none' || mediaFailed"
+        class="absolute inset-0 bg-black/30"
+      />
     </div>
 
     <!-- Top Controls -->

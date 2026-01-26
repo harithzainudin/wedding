@@ -21,6 +21,14 @@ import {
   ALLOWED_MIME_TYPES,
 } from '../../shared/image-constants'
 import { GIFT_LIMITS } from '../../shared/gift-validation'
+import {
+  HERO_IMAGE_DEFAULT_MAX_SIZE,
+  HERO_VIDEO_DEFAULT_MAX_SIZE,
+  HERO_IMAGE_MIN_LIMIT,
+  HERO_IMAGE_MAX_LIMIT,
+  HERO_VIDEO_MIN_LIMIT,
+  HERO_VIDEO_MAX_LIMIT,
+} from '../../shared/hero-background-constants'
 
 const client = new DynamoDBClient({})
 const docClient = DynamoDBDocumentClient.from(client, {
@@ -37,6 +45,10 @@ interface UpdateLimitsInput {
   gifts?: {
     maxItems?: number
     maxFileSize?: number
+  }
+  heroBackground?: {
+    maxImageSize?: number
+    maxVideoSize?: number
   }
 }
 
@@ -114,8 +126,44 @@ function validateUpdateLimitsInput(input: unknown): ValidationResult | Validatio
     }
   }
 
+  // Validate heroBackground limits
+  if (body.heroBackground !== undefined) {
+    if (typeof body.heroBackground !== 'object' || body.heroBackground === null) {
+      return { valid: false, error: 'Hero background must be an object' }
+    }
+
+    const heroBackground = body.heroBackground as Record<string, unknown>
+    data.heroBackground = {}
+
+    // Validate maxImageSize (1MB to 20MB)
+    if (heroBackground.maxImageSize !== undefined) {
+      const maxImageSize = Number(heroBackground.maxImageSize)
+      if (
+        isNaN(maxImageSize) ||
+        maxImageSize < HERO_IMAGE_MIN_LIMIT ||
+        maxImageSize > HERO_IMAGE_MAX_LIMIT
+      ) {
+        return { valid: false, error: 'Hero image max size must be between 1MB and 20MB' }
+      }
+      data.heroBackground.maxImageSize = maxImageSize
+    }
+
+    // Validate maxVideoSize (10MB to 100MB)
+    if (heroBackground.maxVideoSize !== undefined) {
+      const maxVideoSize = Number(heroBackground.maxVideoSize)
+      if (
+        isNaN(maxVideoSize) ||
+        maxVideoSize < HERO_VIDEO_MIN_LIMIT ||
+        maxVideoSize > HERO_VIDEO_MAX_LIMIT
+      ) {
+        return { valid: false, error: 'Hero video max size must be between 10MB and 100MB' }
+      }
+      data.heroBackground.maxVideoSize = maxVideoSize
+    }
+  }
+
   // At least one setting must be provided
-  if (!data.gallery && !data.gifts) {
+  if (!data.gallery && !data.gifts && !data.heroBackground) {
     return { valid: false, error: 'At least one limit setting must be provided' }
   }
 
@@ -257,13 +305,72 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
     }
 
     // ============================================
-    // 7. Return Updated Limits
+    // 7. Update Hero Background Settings if Provided
+    // ============================================
+    let heroBackgroundSettings: Record<string, unknown> | undefined
+    if (validation.data.heroBackground) {
+      const heroBackgroundKey = Keys.settings(weddingId, 'HERO_BACKGROUND')
+      const currentHeroBackground = await docClient.send(
+        new GetCommand({
+          TableName: Resource.AppDataTable.name,
+          Key: heroBackgroundKey,
+        })
+      )
+
+      const newHeroBackgroundSettings = {
+        ...heroBackgroundKey,
+        // Preserve existing settings
+        mediaType: currentHeroBackground.Item?.mediaType ?? 'none',
+        uploadMode: currentHeroBackground.Item?.uploadMode ?? 'single',
+        overlay: currentHeroBackground.Item?.overlay ?? {
+          enabled: true,
+          color: 'black',
+          opacity: 30,
+        },
+        // Update limits
+        maxImageSize:
+          validation.data.heroBackground.maxImageSize ??
+          currentHeroBackground.Item?.maxImageSize ??
+          HERO_IMAGE_DEFAULT_MAX_SIZE,
+        maxVideoSize:
+          validation.data.heroBackground.maxVideoSize ??
+          currentHeroBackground.Item?.maxVideoSize ??
+          HERO_VIDEO_DEFAULT_MAX_SIZE,
+        // Preserve media items if they exist
+        ...(currentHeroBackground.Item?.desktop && { desktop: currentHeroBackground.Item.desktop }),
+        ...(currentHeroBackground.Item?.mobile && { mobile: currentHeroBackground.Item.mobile }),
+        ...(currentHeroBackground.Item?.universal && {
+          universal: currentHeroBackground.Item.universal,
+        }),
+        ...(currentHeroBackground.Item?.posterUrl && {
+          posterUrl: currentHeroBackground.Item.posterUrl,
+        }),
+        updatedAt: now,
+        updatedBy: username,
+      }
+
+      await docClient.send(
+        new PutCommand({
+          TableName: Resource.AppDataTable.name,
+          Item: newHeroBackgroundSettings,
+        })
+      )
+
+      heroBackgroundSettings = {
+        maxImageSize: newHeroBackgroundSettings.maxImageSize,
+        maxVideoSize: newHeroBackgroundSettings.maxVideoSize,
+      }
+    }
+
+    // ============================================
+    // 8. Return Updated Limits
     // ============================================
     return createSuccessResponse(
       200,
       {
         ...(gallerySettings && { gallery: gallerySettings }),
         ...(giftSettings && { gifts: giftSettings }),
+        ...(heroBackgroundSettings && { heroBackground: heroBackgroundSettings }),
         updatedAt: now,
         updatedBy: username,
       },

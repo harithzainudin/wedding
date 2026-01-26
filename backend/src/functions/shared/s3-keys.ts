@@ -52,6 +52,14 @@ export const S3Keys = {
    */
   globalMusic: (trackId: string, extension: string): string =>
     `global/music/${trackId}${extension}`,
+
+  /**
+   * Hero background media (image or video)
+   * Path: weddings/{weddingId}/hero/{deviceType}{ext}
+   * deviceType: "desktop" | "mobile" | "universal" | "poster"
+   */
+  heroBackground: (weddingId: string, deviceType: string, extension: string): string =>
+    `weddings/${weddingId}/hero/${deviceType}${extension}`,
 }
 
 /**

@@ -16,7 +16,13 @@
   const { adminT } = useAdminLanguage()
 
   const activeUploads = computed(() =>
-    props.uploads.filter((u) => u.status === 'uploading' || u.status === 'compressing')
+    props.uploads.filter(
+      (u) =>
+        u.status === 'preparing' ||
+        u.status === 'compressing' ||
+        u.status === 'uploading' ||
+        u.status === 'confirming'
+    )
   )
 
   const formatBytes = (bytes: number): string => {
@@ -27,18 +33,22 @@
 
   const getProgressLabel = (progress: number): string => {
     if (progress <= 10) return 'Preparing...'
-    if (progress <= 30) return 'Getting upload URL...'
-    if (progress <= 70) return 'Uploading to storage...'
+    if (progress <= 15) return 'Getting upload URL...'
+    if (progress < 90) return 'Uploading...'
     if (progress < 100) return 'Confirming...'
     return 'Complete!'
   }
 
   const getStatusLabel = (upload: UploadProgress): string => {
     switch (upload.status) {
+      case 'preparing':
+        return 'Preparing...'
       case 'compressing':
         return adminT.value.common.compressing
       case 'uploading':
         return getProgressLabel(upload.progress)
+      case 'confirming':
+        return 'Confirming...'
       case 'completed':
         return 'Upload complete'
       case 'error':
@@ -96,9 +106,14 @@
                     : 'bg-sand dark:bg-dark-bg',
               ]"
             >
-              <!-- Spinner for compressing/uploading -->
+              <!-- Spinner for preparing/compressing/uploading/confirming -->
               <div
-                v-if="upload.status === 'uploading' || upload.status === 'compressing'"
+                v-if="
+                  upload.status === 'preparing' ||
+                  upload.status === 'compressing' ||
+                  upload.status === 'uploading' ||
+                  upload.status === 'confirming'
+                "
                 class="w-4 h-4 border-2 border-sage border-t-transparent rounded-full animate-spin"
               />
               <!-- Checkmark for completed -->
@@ -159,16 +174,25 @@
 
             <!-- Progress Percentage / Action Buttons -->
             <div class="flex-shrink-0 flex items-center gap-2">
-              <!-- Progress percentage for uploading -->
+              <!-- Progress percentage for preparing/uploading/confirming -->
               <span
-                v-if="upload.status === 'uploading' || upload.status === 'compressing'"
+                v-if="
+                  upload.status === 'preparing' ||
+                  upload.status === 'compressing' ||
+                  upload.status === 'uploading' ||
+                  upload.status === 'confirming'
+                "
                 class="font-body text-sm font-medium text-sage"
               >
                 {{ upload.progress }}%
               </span>
-              <!-- Cancel button for uploading/compressing -->
+              <!-- Cancel button for preparing/compressing/uploading (not for confirming) -->
               <button
-                v-if="upload.status === 'uploading' || upload.status === 'compressing'"
+                v-if="
+                  upload.status === 'preparing' ||
+                  upload.status === 'compressing' ||
+                  upload.status === 'uploading'
+                "
                 type="button"
                 class="p-1 text-charcoal-light hover:text-red-500 dark:text-dark-text-secondary dark:hover:text-red-400 transition-colors cursor-pointer"
                 title="Cancel upload"
@@ -205,7 +229,12 @@
 
           <!-- Progress Bar -->
           <div
-            v-if="upload.status === 'uploading' || upload.status === 'compressing'"
+            v-if="
+              upload.status === 'preparing' ||
+              upload.status === 'compressing' ||
+              upload.status === 'uploading' ||
+              upload.status === 'confirming'
+            "
             class="mt-2 h-1.5 bg-sand-dark dark:bg-dark-border rounded-full overflow-hidden"
           >
             <div

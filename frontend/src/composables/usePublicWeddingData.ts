@@ -4,6 +4,7 @@ import {
   getScheduleCached,
   getContactsCached,
   getRsvpSettings,
+  getHeroBackgroundCached,
 } from '@/services/api'
 import { weddingConfig } from '@/config/wedding'
 import type {
@@ -21,6 +22,7 @@ import {
 import type { ScheduleData, ScheduleItem } from '@/types/schedule'
 import type { ContactsData, ContactPerson } from '@/types/contacts'
 import type { RsvpSettingsResponse } from '@/types/rsvp'
+import type { HeroBackgroundSettings } from '@/types/heroBackground'
 
 // Error types for wedding status
 export type WeddingErrorType = 'archived' | 'draft' | 'not_found' | 'error' | null
@@ -30,6 +32,7 @@ const weddingDetails = ref<WeddingDetailsData | null>(null)
 const scheduleData = ref<ScheduleData | null>(null)
 const contactsData = ref<ContactsData | null>(null)
 const rsvpSettingsData = ref<RsvpSettingsResponse | null>(null)
+const heroBackgroundData = ref<HeroBackgroundSettings | null>(null)
 const isLoading = ref(false)
 const hasLoaded = ref(false)
 const currentWeddingSlug = ref<string | null>(null)
@@ -43,6 +46,7 @@ const isLoadingWeddingDetails = ref(false)
 const isLoadingSchedule = ref(false)
 const isLoadingContacts = ref(false)
 const isLoadingRsvpSettings = ref(false)
+const isLoadingHeroBackground = ref(false)
 
 // Convert API schedule to config format for backward compatibility
 interface LegacyScheduleItem {
@@ -101,6 +105,7 @@ export function usePublicWeddingData() {
       scheduleData.value = null
       contactsData.value = null
       rsvpSettingsData.value = null
+      heroBackgroundData.value = null
     }
 
     currentWeddingSlug.value = weddingSlug
@@ -109,6 +114,7 @@ export function usePublicWeddingData() {
     isLoadingSchedule.value = true
     isLoadingContacts.value = true
     isLoadingRsvpSettings.value = true
+    isLoadingHeroBackground.value = true
     // Reset error state
     weddingError.value = null
     weddingErrorMessage.value = null
@@ -175,8 +181,26 @@ export function usePublicWeddingData() {
           isLoadingRsvpSettings.value = false
         })
 
+      const heroBackgroundPromise = getHeroBackgroundCached(weddingSlug, forceRefresh)
+        .then((data) => {
+          heroBackgroundData.value = data
+        })
+        .catch((err) => {
+          console.error('Failed to fetch hero background:', err)
+          // Hero background is optional, don't set critical error
+        })
+        .finally(() => {
+          isLoadingHeroBackground.value = false
+        })
+
       // Wait for all to complete
-      await Promise.all([weddingPromise, schedulePromise, contactsPromise, rsvpSettingsPromise])
+      await Promise.all([
+        weddingPromise,
+        schedulePromise,
+        contactsPromise,
+        rsvpSettingsPromise,
+        heroBackgroundPromise,
+      ])
 
       // Set error state if we detected a critical error
       if (criticalError !== null) {
@@ -403,6 +427,11 @@ export function usePublicWeddingData() {
     return rsvpSettingsData.value?.settings.rsvpDeadline
   }
 
+  // Hero background settings
+  const getHeroBackground = (): HeroBackgroundSettings | null => {
+    return heroBackgroundData.value
+  }
+
   return {
     isLoading,
     hasLoaded,
@@ -410,10 +439,12 @@ export function usePublicWeddingData() {
     isLoadingSchedule,
     isLoadingContacts,
     isLoadingRsvpSettings,
+    isLoadingHeroBackground,
     weddingDetails,
     scheduleData,
     contactsData,
     rsvpSettingsData,
+    heroBackgroundData,
     currentWeddingSlug,
     // Error states
     weddingError,
@@ -443,5 +474,7 @@ export function usePublicWeddingData() {
     showRsvpSection,
     isAcceptingRsvps,
     getRsvpDeadline,
+    // Hero background
+    getHeroBackground,
   }
 }

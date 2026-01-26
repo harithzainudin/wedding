@@ -17,7 +17,7 @@ import {
   bulkDeleteGifts,
   reorderGifts,
   getGiftPresignedUrl,
-  uploadToS3,
+  uploadToS3WithProgress,
   confirmGiftUpload,
   getGiftSettings,
   updateGiftSettings,
@@ -484,7 +484,7 @@ export function useGifts() {
     })
 
     try {
-      // Step 1: Get presigned URL
+      // Step 1: Get presigned URL (10-15%)
       const presignedResponse = await getGiftPresignedUrl(
         {
           filename: fileToUpload.name,
@@ -500,20 +500,31 @@ export function useGifts() {
       }
 
       uploadProgress.value.set(fileId, {
-        progress: 30,
+        progress: 15,
         status: 'uploading',
         ...(compressionInfo && { compression: compressionInfo }),
       })
 
-      // Step 2: Upload to S3
-      const uploadSuccess = await uploadToS3(
+      // Step 2: Upload to S3 with real progress tracking (15-90%)
+      // Progress callback maps 0-100% of S3 upload to 15-90% of total progress
+      const handleS3Progress = (s3Progress: number) => {
+        const mappedProgress = 15 + Math.round((s3Progress / 100) * 75)
+        uploadProgress.value.set(fileId, {
+          progress: mappedProgress,
+          status: 'uploading',
+          ...(compressionInfo && { compression: compressionInfo }),
+        })
+      }
+
+      const uploadSuccess = await uploadToS3WithProgress(
         presignedResponse.uploadUrl,
         fileToUpload,
+        handleS3Progress,
         abortController.signal
       )
       if (!uploadSuccess) {
         uploadProgress.value.set(fileId, {
-          progress: 30,
+          progress: 15,
           status: 'error',
           error: 'Failed to upload file to storage',
           ...(compressionInfo && { compression: compressionInfo }),
@@ -524,8 +535,8 @@ export function useGifts() {
       }
 
       uploadProgress.value.set(fileId, {
-        progress: 70,
-        status: 'uploading',
+        progress: 90,
+        status: 'confirming',
         ...(compressionInfo && { compression: compressionInfo }),
       })
 

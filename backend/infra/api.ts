@@ -433,6 +433,59 @@ export function addDesignRoutes(tokenSecret: sst.Secret) {
   })
 }
 
+// Function to add hero background routes
+export function addHeroBackgroundRoutes(tokenSecret: sst.Secret, imageBucket: sst.aws.Bucket) {
+  // ============================================
+  // PUBLIC ROUTES (wedding slug in path)
+  // ============================================
+
+  // GET /{weddingSlug}/hero-background - Public endpoint to fetch hero background settings
+  api.route('GET /{weddingSlug}/hero-background', {
+    handler: 'src/functions/hero-background/get.handler',
+    link: [table],
+    ...functionConfig,
+  })
+
+  // ============================================
+  // ADMIN ROUTES (wedding ID in path)
+  // ============================================
+
+  // GET /admin/w/{weddingId}/hero-background - Get hero background settings (auth required)
+  api.route('GET /admin/w/{weddingId}/hero-background', {
+    handler: 'src/functions/hero-background/get-admin.handler',
+    link: [table, tokenSecret],
+    ...functionConfig,
+  })
+
+  // PUT /admin/w/{weddingId}/hero-background - Update hero background settings (auth required)
+  api.route('PUT /admin/w/{weddingId}/hero-background', {
+    handler: 'src/functions/hero-background/update.handler',
+    link: [table, tokenSecret],
+    ...functionConfig,
+  })
+
+  // POST /admin/w/{weddingId}/hero-background/presigned-url - Request presigned URL for upload
+  api.route('POST /admin/w/{weddingId}/hero-background/presigned-url', {
+    handler: 'src/functions/hero-background/request-upload.handler',
+    link: [table, tokenSecret, imageBucket],
+    ...functionConfig,
+  })
+
+  // POST /admin/w/{weddingId}/hero-background/confirm - Confirm upload after S3 upload
+  api.route('POST /admin/w/{weddingId}/hero-background/confirm', {
+    handler: 'src/functions/hero-background/confirm-upload.handler',
+    link: [table, tokenSecret, imageBucket],
+    ...functionConfig,
+  })
+
+  // DELETE /admin/w/{weddingId}/hero-background/{deviceType} - Delete hero background media
+  api.route('DELETE /admin/w/{weddingId}/hero-background/{deviceType}', {
+    handler: 'src/functions/hero-background/delete-media.handler',
+    link: [table, tokenSecret, imageBucket],
+    ...functionConfig,
+  })
+}
+
 // Function to add gift registry routes
 export function addGiftRoutes(tokenSecret: sst.Secret, imageBucket: sst.aws.Bucket) {
   // ============================================

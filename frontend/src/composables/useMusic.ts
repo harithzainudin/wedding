@@ -5,7 +5,7 @@ import {
   getMusic,
   getMusicAdmin,
   getMusicPresignedUrl,
-  uploadMusicToS3,
+  uploadToS3WithProgress,
   confirmMusicUpload,
   deleteMusicTrack,
   reorderMusicTracks,
@@ -195,7 +195,7 @@ export function useMusic() {
 
       uploadProgress.value.set(fileId, { progress: 10, status: 'uploading' })
 
-      // Step 1: Get presigned URL
+      // Step 1: Get presigned URL (10-15%)
       const presignedRequest: {
         filename: string
         mimeType: string
@@ -220,17 +220,27 @@ export function useMusic() {
         throw new DOMException('Upload cancelled', 'AbortError')
       }
 
-      uploadProgress.value.set(fileId, { progress: 30, status: 'uploading' })
+      uploadProgress.value.set(fileId, { progress: 15, status: 'uploading' })
 
-      // Step 2: Upload to S3
-      const uploadSuccess = await uploadMusicToS3(
+      // Step 2: Upload to S3 with real progress tracking (15-90%)
+      // Progress callback maps 0-100% of S3 upload to 15-90% of total progress
+      const handleS3Progress = (s3Progress: number) => {
+        const mappedProgress = 15 + Math.round((s3Progress / 100) * 75)
+        uploadProgress.value.set(fileId, {
+          progress: mappedProgress,
+          status: 'uploading',
+        })
+      }
+
+      const uploadSuccess = await uploadToS3WithProgress(
         presignedResponse.uploadUrl,
         file,
+        handleS3Progress,
         abortController.signal
       )
       if (!uploadSuccess) {
         uploadProgress.value.set(fileId, {
-          progress: 30,
+          progress: 15,
           status: 'error',
           error: 'Failed to upload file to storage',
         })
@@ -239,7 +249,7 @@ export function useMusic() {
         return { success: false, error: 'Failed to upload file to storage' }
       }
 
-      uploadProgress.value.set(fileId, { progress: 70, status: 'uploading' })
+      uploadProgress.value.set(fileId, { progress: 90, status: 'confirming' })
 
       // Step 3: Confirm upload
       const confirmRequest: {

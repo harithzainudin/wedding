@@ -1455,6 +1455,7 @@ export interface AdminTranslations {
     compressing: string
     backToSuperAdmin: string
     clearFilters: string
+    dismiss: string
   }
 
   // Authentication
@@ -2221,6 +2222,47 @@ export interface AdminTranslations {
     emptyMusic: string
   }
 
+  // Hero Background
+  heroBackground: {
+    title: string
+    subtitle: string
+    mediaType: string
+    none: string
+    image: string
+    video: string
+    uploadMode: string
+    singleUpload: string
+    singleUploadDesc: string
+    separateUpload: string
+    separateUploadDesc: string
+    universalBackground: string
+    universalRecommend: string
+    desktopBackground: string
+    desktopRecommend: string
+    mobileBackground: string
+    mobileRecommend: string
+    clickToUpload: string
+    uploadDesktop: string
+    uploadMobile: string
+    overlaySettings: string
+    enableOverlay: string
+    overlayHelp: string
+    overlayColor: string
+    overlayOpacity: string
+    resolution: string
+    size: string
+    format: string
+    aspectRatio: string
+    confirmDelete: string
+    uploading: string
+    deleting: string
+    pleaseWait: string
+    hiddenMediaTitle: string
+    hiddenMediaDesc: string
+    hiddenMediaHint: string
+    switchModeConfirm: string
+  }
+
   // QR Hub
   qrHub: {
     title: string
@@ -2554,6 +2596,7 @@ export const adminTranslations: Record<AdminLanguage, AdminTranslations> = {
       compressing: 'Compressing...',
       backToSuperAdmin: 'Back to Super Admin',
       clearFilters: 'Clear filters',
+      dismiss: 'Dismiss',
     },
 
     auth: {
@@ -3308,6 +3351,48 @@ export const adminTranslations: Record<AdminLanguage, AdminTranslations> = {
       emptyMusic: 'No music',
     },
 
+    heroBackground: {
+      title: 'Hero Background',
+      subtitle: 'Add an image or video behind your wedding info',
+      mediaType: 'Media Type',
+      none: 'None (Solid Color)',
+      image: 'Image',
+      video: 'Video',
+      uploadMode: 'Upload Mode',
+      singleUpload: 'Single upload for both devices',
+      singleUploadDesc: 'Quick option - one media works everywhere',
+      separateUpload: 'Separate uploads for desktop & mobile',
+      separateUploadDesc: 'Best quality - optimized for each device',
+      universalBackground: 'Universal Background',
+      universalRecommend: 'Recommended: 1920x1440px (4:3) or square',
+      desktopBackground: 'Desktop Background',
+      desktopRecommend: 'Recommended: 1920x1080px (16:9 landscape)',
+      mobileBackground: 'Mobile Background',
+      mobileRecommend: 'Recommended: 1080x1920px (9:16 portrait)',
+      clickToUpload: 'Click to upload',
+      uploadDesktop: 'Upload desktop background',
+      uploadMobile: 'Upload mobile background',
+      overlaySettings: 'Overlay Settings',
+      enableOverlay: 'Enable overlay',
+      overlayHelp: 'Recommended for text readability',
+      overlayColor: 'Color',
+      overlayOpacity: 'Opacity',
+      resolution: 'Resolution',
+      size: 'Size',
+      format: 'Format',
+      aspectRatio: 'Aspect',
+      confirmDelete: 'Delete this background media?',
+      uploading: 'Uploading...',
+      deleting: 'Deleting...',
+      pleaseWait: 'Please wait while your file is being uploaded',
+      hiddenMediaTitle: "You have existing media that won't be displayed",
+      hiddenMediaDesc: "The following media exists but won't show with current settings:",
+      hiddenMediaHint:
+        'Switch back to the original settings to see it, or upload new media for the current mode.',
+      switchModeConfirm:
+        "Switching modes will hide your current media (it won't be deleted). You can switch back anytime to see it again. Continue?",
+    },
+
     qrHub: {
       title: 'QR Code Hub',
       subtitle: 'Manage QR codes for your wedding',
@@ -3616,6 +3701,7 @@ export const adminTranslations: Record<AdminLanguage, AdminTranslations> = {
       compressing: 'Memampatkan...',
       backToSuperAdmin: 'Kembali ke Super Admin',
       clearFilters: 'Padam penapis',
+      dismiss: 'Abaikan',
     },
 
     auth: {
@@ -4375,6 +4461,48 @@ export const adminTranslations: Record<AdminLanguage, AdminTranslations> = {
       emptySchedule: 'Tiada jadual',
       emptyWishlist: 'Tiada hadiah',
       emptyMusic: 'Tiada muzik',
+    },
+
+    heroBackground: {
+      title: 'Latar Belakang Hero',
+      subtitle: 'Tambah imej atau video di belakang maklumat perkahwinan anda',
+      mediaType: 'Jenis Media',
+      none: 'Tiada (Warna Pepejal)',
+      image: 'Imej',
+      video: 'Video',
+      uploadMode: 'Mod Muat Naik',
+      singleUpload: 'Satu muat naik untuk kedua-dua peranti',
+      singleUploadDesc: 'Pilihan cepat - satu media berfungsi di mana-mana',
+      separateUpload: 'Muat naik berasingan untuk desktop & mudah alih',
+      separateUploadDesc: 'Kualiti terbaik - dioptimumkan untuk setiap peranti',
+      universalBackground: 'Latar Belakang Universal',
+      universalRecommend: 'Disyorkan: 1920x1440px (4:3) atau segi empat',
+      desktopBackground: 'Latar Belakang Desktop',
+      desktopRecommend: 'Disyorkan: 1920x1080px (16:9 landskap)',
+      mobileBackground: 'Latar Belakang Mudah Alih',
+      mobileRecommend: 'Disyorkan: 1080x1920px (9:16 potret)',
+      clickToUpload: 'Klik untuk muat naik',
+      uploadDesktop: 'Muat naik latar belakang desktop',
+      uploadMobile: 'Muat naik latar belakang mudah alih',
+      overlaySettings: 'Tetapan Lapisan',
+      enableOverlay: 'Aktifkan lapisan',
+      overlayHelp: 'Disyorkan untuk kebolehbacaan teks',
+      overlayColor: 'Warna',
+      overlayOpacity: 'Kelegapan',
+      resolution: 'Resolusi',
+      size: 'Saiz',
+      format: 'Format',
+      aspectRatio: 'Nisbah',
+      confirmDelete: 'Padam media latar belakang ini?',
+      uploading: 'Memuat naik...',
+      deleting: 'Memadam...',
+      pleaseWait: 'Sila tunggu sementara fail anda dimuat naik',
+      hiddenMediaTitle: 'Anda mempunyai media sedia ada yang tidak akan dipaparkan',
+      hiddenMediaDesc: 'Media berikut wujud tetapi tidak akan dipaparkan dengan tetapan semasa:',
+      hiddenMediaHint:
+        'Tukar kembali ke tetapan asal untuk melihatnya, atau muat naik media baharu untuk mod semasa.',
+      switchModeConfirm:
+        'Menukar mod akan menyembunyikan media semasa anda (ia tidak akan dipadam). Anda boleh tukar kembali bila-bila masa untuk melihatnya semula. Teruskan?',
     },
 
     qrHub: {

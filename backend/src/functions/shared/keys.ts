@@ -334,3 +334,4 @@ export type SettingsType =
   | 'QRCODE_HUB'
   | 'PARKING'
   | 'RSVP'
+  | 'HERO_BACKGROUND'
