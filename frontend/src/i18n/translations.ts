@@ -291,6 +291,12 @@ export interface Translations {
     galleryInfo: string
     qrHubInfo: string
   }
+  // Music Hint
+  music: {
+    hintTitle: string
+    hintSubtitle: string
+    hintLocation: string
+  }
   // Landing Page
   landing?: {
     // Header
@@ -624,6 +630,11 @@ export const translations: Record<Language, Translations> = {
       giftInfo: 'Tiada hadiah dalam senarai buat masa ini',
       galleryInfo: 'Tiada gambar dalam galeri buat masa ini',
       qrHubInfo: 'Tiada QR code diaktifkan buat masa ini',
+    },
+    music: {
+      hintTitle: 'Muzik tersedia',
+      hintSubtitle: 'Lagu telah disediakan untuk anda',
+      hintLocation: 'Penjuru kanan atas',
     },
     landing: {
       // Header
@@ -967,6 +978,11 @@ export const translations: Record<Language, Translations> = {
       galleryInfo: 'No photos in the gallery yet',
       qrHubInfo: 'No QR codes enabled yet',
     },
+    music: {
+      hintTitle: 'Music available',
+      hintSubtitle: 'A song has been prepared for you',
+      hintLocation: 'Top-right corner',
+    },
     landing: {
       // Header
       brandName: 'WeddingApp',
@@ -1301,6 +1317,11 @@ export const translations: Record<Language, Translations> = {
       giftInfo: '礼物清单暂无内容',
       galleryInfo: '相册暂无照片',
       qrHubInfo: '暂无启用的二维码',
+    },
+    music: {
+      hintTitle: '音乐可用',
+      hintSubtitle: '我们为您准备了一首歌曲',
+      hintLocation: '右上角',
     },
     landing: {
       // Header
@@ -1638,6 +1659,11 @@ export const translations: Record<Language, Translations> = {
       giftInfo: 'பரிசுப் பட்டியல் இன்னும் காலியாக உள்ளது',
       galleryInfo: 'கேலரியில் புகைப்படங்கள் இன்னும் இல்லை',
       qrHubInfo: 'QR குறியீடுகள் இன்னும் இயக்கப்படவில்லை',
+    },
+    music: {
+      hintTitle: 'இசை கிடைக்கிறது',
+      hintSubtitle: 'உங்களுக்காக ஒரு பாடல் தயாரிக்கப்பட்டுள்ளது',
+      hintLocation: 'வலது மேல் மூலையில்',
     },
     landing: {
       // Header

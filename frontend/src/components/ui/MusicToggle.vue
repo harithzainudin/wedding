@@ -4,10 +4,13 @@
   import { getMusicCached } from '@/services/api'
   import { usePublicWeddingData } from '@/composables/usePublicWeddingData'
   import { useDesign } from '@/composables/useDesign'
+  import { useMusicHint } from '@/composables/useMusicHint'
   import YouTubePlayer from './YouTubePlayer.vue'
 
   const { currentWeddingSlug } = usePublicWeddingData()
   const { designSettings } = useDesign()
+  const { markAutoplayBlocked, setHasTracks, setIsPlaying, onMusicStarted, registerPlayCallback } =
+    useMusicHint()
 
   const CROSSFADE_DURATION = 2000 // 2 seconds
   const STORAGE_KEY = 'wedding-music-state'
@@ -405,6 +408,9 @@
       settings.value = response.settings
       tracks.value = response.tracks
 
+      // Notify hint composable about track availability
+      setHasTracks(tracks.value.length > 0)
+
       // Initialize volume from settings or localStorage
       loadState()
       if (!localStorage.getItem(STORAGE_KEY) && settings.value) {
@@ -453,7 +459,22 @@
     }
   })
 
+  // Notify hint composable when play state changes
+  watch(isPlaying, (playing) => {
+    setIsPlaying(playing)
+    if (playing) {
+      onMusicStarted()
+    }
+  })
+
   onMounted(async () => {
+    // Register callback for MusicHint to trigger play
+    registerPlayCallback(() => {
+      if (!isPlaying.value) {
+        toggleMusic()
+      }
+    })
+
     await fetchMusicData()
 
     // Don't initialize audio if music is disabled
@@ -498,6 +519,7 @@
       } catch {
         // Autoplay blocked by browser - user will need to click to play
         console.log('Autoplay blocked by browser policy')
+        markAutoplayBlocked()
       }
     }
   })

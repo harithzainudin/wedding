@@ -5,10 +5,15 @@
    * Horizontal slides, one section per page.
    * User swipes or uses arrows to navigate between sections.
    */
-  import { ref, computed, onMounted, onUnmounted } from 'vue'
+  import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
   import type { DesignSettings, SectionConfig } from '@/types/design'
   import SectionRenderer from './SectionRenderer.vue'
   import FloatingActionMenu from '@/components/ui/FloatingActionMenu.vue'
+  import { useLayoutNavigation } from '@/composables/useLayoutNavigation'
+  import { useMusicHint } from '@/composables/useMusicHint'
+
+  const { registerGoToFirstSection, notifySectionChange } = useLayoutNavigation()
+  const { markUserEngaged } = useMusicHint()
 
   const props = defineProps<{
     designSettings: DesignSettings
@@ -142,7 +147,23 @@
   // Auto-play
   let autoPlayInterval: ReturnType<typeof setInterval> | null = null
 
+  // Watch for slide changes and notify layout navigation
+  watch(
+    currentIndex,
+    (newIndex) => {
+      notifySectionChange(newIndex)
+      // Mark user as engaged when they navigate past the first slide
+      if (newIndex > 0) {
+        markUserEngaged()
+      }
+    },
+    { immediate: true }
+  )
+
   onMounted(() => {
+    // Register navigation function for MusicHint and other components
+    registerGoToFirstSection(() => goToSlide(0))
+
     window.addEventListener('keydown', handleKeydown)
 
     if (slideshowSettings.value.autoPlay) {

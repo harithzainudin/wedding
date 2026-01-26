@@ -2,6 +2,7 @@
   import { computed, ref, watch, onMounted, onUnmounted } from 'vue'
   import CountdownTimer from '@/components/ui/CountdownTimer.vue'
   import MusicToggle from '@/components/ui/MusicToggle.vue'
+  import MusicHint from '@/components/ui/MusicHint.vue'
   import LanguageToggle from '@/components/ui/LanguageToggle.vue'
   import DarkModeToggle from '@/components/ui/DarkModeToggle.vue'
   import { useLanguage } from '@/composables/useLanguage'
@@ -211,6 +212,9 @@
       <DarkModeToggle />
       <MusicToggle />
     </div>
+
+    <!-- Music Hint (teleports to bottom-left of viewport) -->
+    <MusicHint />
 
     <!-- Content -->
     <div class="relative text-white w-full px-6 py-12">

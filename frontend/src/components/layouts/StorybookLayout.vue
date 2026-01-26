@@ -5,10 +5,15 @@
    * Vertical page-by-page layout with scroll-snap.
    * Each section is a "page" that snaps into view.
    */
-  import { ref, computed, onMounted, onUnmounted } from 'vue'
+  import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
   import type { DesignSettings, SectionConfig } from '@/types/design'
   import SectionRenderer from './SectionRenderer.vue'
   import FloatingActionMenu from '@/components/ui/FloatingActionMenu.vue'
+  import { useLayoutNavigation } from '@/composables/useLayoutNavigation'
+  import { useMusicHint } from '@/composables/useMusicHint'
+
+  const { registerGoToFirstSection, notifySectionChange } = useLayoutNavigation()
+  const { markUserEngaged } = useMusicHint()
 
   const props = defineProps<{
     designSettings: DesignSettings
@@ -53,7 +58,23 @@
     })
   }
 
+  // Watch for page changes and notify layout navigation
+  watch(
+    currentPageIndex,
+    (newIndex) => {
+      notifySectionChange(newIndex)
+      // Mark user as engaged when they navigate past the first page
+      if (newIndex > 0) {
+        markUserEngaged()
+      }
+    },
+    { immediate: true }
+  )
+
   onMounted(() => {
+    // Register navigation function for MusicHint and other components
+    registerGoToFirstSection(() => goToPage(0))
+
     if (containerRef.value) {
       containerRef.value.addEventListener('scroll', handleScroll, { passive: true })
     }
