@@ -103,6 +103,7 @@ import type {
   GlobalMusicReorderRequest,
   GlobalMusicReorderResponse,
   AddFromLibraryResponse,
+  AddYouTubeTrackResponse,
 } from '@/types/music'
 import type { ThemeSettings, ThemeUpdateRequest } from '@/types/theme'
 import type { DesignSettings, DesignUpdateRequest } from '@/types/design'
@@ -861,6 +862,20 @@ export async function addMusicFromLibrary(
     {
       method: 'POST',
       body: JSON.stringify({ globalMusicId }),
+    }
+  )
+}
+
+// Add YouTube track (wedding admin)
+export async function addYouTubeTrack(
+  youtubeUrl: string,
+  weddingId?: string
+): Promise<AddYouTubeTrackResponse> {
+  return authenticatedFetch<AddYouTubeTrackResponse>(
+    buildAdminUrl('/music/add-youtube', weddingId),
+    {
+      method: 'POST',
+      body: JSON.stringify({ youtubeUrl }),
     }
   )
 }

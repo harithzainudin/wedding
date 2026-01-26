@@ -12,6 +12,7 @@
   import DeleteConfirmModal from './DeleteConfirmModal.vue'
   import UploadProgressBar from './UploadProgressBar.vue'
   import MusicLibraryBrowser from './MusicLibraryBrowser.vue'
+  import YouTubeTrackAdder from './YouTubeTrackAdder.vue'
 
   const { adminT } = useAdminLanguage()
   const { withLoading } = useLoadingOverlay()
@@ -33,9 +34,17 @@
     removeTrack,
     updateOrder,
     saveSettings,
+    addYouTubeTrack,
     formatDuration,
     formatFileSize,
   } = useMusic()
+
+  // Tab state for upload vs YouTube
+  type AddMode = 'upload' | 'youtube'
+  const activeAddMode = ref<AddMode>('upload')
+  const youtubeAdderRef = ref<InstanceType<typeof YouTubeTrackAdder> | null>(null)
+  const isAddingYouTube = ref(false)
+  const youtubeError = ref('')
 
   const showSettings = ref(false)
   const showLibraryBrowser = ref(false)
@@ -49,6 +58,23 @@
     // The useMusic composable should have a method to add track to local state
     // For now, we'll just refetch the tracks to ensure consistency
     fetchTracksAdmin(weddingId.value ?? undefined)
+  }
+
+  // Handle YouTube track addition
+  const handleAddYouTube = async (youtubeUrl: string): Promise<void> => {
+    isAddingYouTube.value = true
+    youtubeError.value = ''
+
+    const result = await addYouTubeTrack(youtubeUrl, weddingId.value ?? undefined)
+
+    isAddingYouTube.value = false
+
+    if (result.success) {
+      // Clear the input on success
+      youtubeAdderRef.value?.clearOnSuccess()
+    } else {
+      youtubeError.value = result.error ?? 'Failed to add YouTube track'
+    }
   }
 
   onMounted(() => {
@@ -317,13 +343,66 @@
 
     <!-- Content -->
     <div v-else class="space-y-6">
-      <!-- Upload Zone -->
-      <MusicUploader
-        v-if="canUploadMore"
-        :max-file-size="settings.maxFileSize"
-        :format-file-size="formatFileSize"
-        @files-selected="handleFilesSelected"
-      />
+      <!-- Add Music Section (Upload / YouTube Tabs) -->
+      <div v-if="canUploadMore">
+        <!-- Tab Buttons -->
+        <div class="flex gap-2 mb-4">
+          <button
+            type="button"
+            class="flex-1 py-2.5 px-4 font-body text-sm font-medium rounded-lg transition-colors cursor-pointer flex items-center justify-center gap-2"
+            :class="[
+              activeAddMode === 'upload'
+                ? 'bg-sage text-white'
+                : 'bg-sand dark:bg-dark-bg-secondary text-charcoal dark:text-dark-text border border-sand-dark dark:border-dark-border hover:bg-sand-dark dark:hover:bg-dark-border',
+            ]"
+            @click="activeAddMode = 'upload'"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"
+              />
+            </svg>
+            {{ adminT.music.tabUpload }}
+          </button>
+          <button
+            type="button"
+            class="flex-1 py-2.5 px-4 font-body text-sm font-medium rounded-lg transition-colors cursor-pointer flex items-center justify-center gap-2"
+            :class="[
+              activeAddMode === 'youtube'
+                ? 'bg-red-600 text-white'
+                : 'bg-sand dark:bg-dark-bg-secondary text-charcoal dark:text-dark-text border border-sand-dark dark:border-dark-border hover:bg-sand-dark dark:hover:bg-dark-border',
+            ]"
+            @click="activeAddMode = 'youtube'"
+          >
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+              <path
+                d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"
+              />
+            </svg>
+            {{ adminT.music.tabYouTube }}
+          </button>
+        </div>
+
+        <!-- Upload Zone (shown when upload tab active) -->
+        <MusicUploader
+          v-if="activeAddMode === 'upload'"
+          :max-file-size="settings.maxFileSize"
+          :format-file-size="formatFileSize"
+          @files-selected="handleFilesSelected"
+        />
+
+        <!-- YouTube Adder (shown when youtube tab active) -->
+        <YouTubeTrackAdder
+          v-else
+          ref="youtubeAdderRef"
+          :is-loading="isAddingYouTube"
+          :error="youtubeError"
+          @add-you-tube="handleAddYouTube"
+        />
+      </div>
 
       <div
         v-else

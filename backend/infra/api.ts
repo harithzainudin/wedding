@@ -661,6 +661,13 @@ export function addMusicRoutes(tokenSecret: sst.Secret, imageBucket: sst.aws.Buc
     ...functionConfig,
   })
 
+  // POST /admin/w/{weddingId}/music/add-youtube - Add YouTube track (auth required)
+  api.route('POST /admin/w/{weddingId}/music/add-youtube', {
+    handler: 'src/functions/music/add-youtube.handler',
+    link: [table, tokenSecret],
+    ...functionConfig,
+  })
+
   // GET /admin/music-library - List global music library for wedding admin (read-only)
   api.route('GET /admin/music-library', {
     handler: 'src/functions/admin/music-library/list.handler',

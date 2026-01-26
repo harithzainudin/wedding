@@ -4,12 +4,14 @@
   import { getMusicCached } from '@/services/api'
   import { usePublicWeddingData } from '@/composables/usePublicWeddingData'
   import { useDesign } from '@/composables/useDesign'
+  import YouTubePlayer from './YouTubePlayer.vue'
 
   const { currentWeddingSlug } = usePublicWeddingData()
   const { designSettings } = useDesign()
 
   const CROSSFADE_DURATION = 2000 // 2 seconds
   const STORAGE_KEY = 'wedding-music-state'
+  const YOUTUBE_PROGRESS_INTERVAL = 500 // ms
 
   // State
   const isPlaying = ref(false)
@@ -27,8 +29,18 @@
   const audioElement = ref<HTMLAudioElement | null>(null)
   const nextAudioElement = ref<HTMLAudioElement | null>(null)
 
+  // YouTube player refs
+  const youtubePlayerRef = ref<InstanceType<typeof YouTubePlayer> | null>(null)
+  const youtubeProgressInterval = ref<ReturnType<typeof setInterval> | null>(null)
+  const currentYouTubeDuration = ref(0)
+
   // Ref for click outside detection
   const containerRef = ref<HTMLElement | null>(null)
+
+  // Check if a track is from YouTube
+  const isYouTubeTrack = (track: MusicTrack | null): boolean => {
+    return track?.source === 'youtube' && !!track.externalId
+  }
 
   // Computed - Music visibility is controlled by Design Tab's backgroundFeatures
   const isEnabled = computed(() => {
@@ -110,9 +122,59 @@
     }
   }
 
-  // Crossfade to next track
+  // Stop YouTube progress tracking
+  const stopYouTubeProgress = (): void => {
+    if (youtubeProgressInterval.value) {
+      clearInterval(youtubeProgressInterval.value)
+      youtubeProgressInterval.value = null
+    }
+  }
+
+  // Start YouTube progress tracking
+  const startYouTubeProgress = (): void => {
+    stopYouTubeProgress()
+    youtubeProgressInterval.value = setInterval(() => {
+      if (youtubePlayerRef.value && currentYouTubeDuration.value > 0) {
+        const currentTime = youtubePlayerRef.value.getCurrentTime()
+        progress.value = (currentTime / currentYouTubeDuration.value) * 100
+      }
+    }, YOUTUBE_PROGRESS_INTERVAL)
+  }
+
+  // Transition to a track (handles both audio and YouTube)
+  const transitionToTrack = async (track: MusicTrack): Promise<void> => {
+    const wasYouTube = currentTrack.value && isYouTubeTrack(currentTrack.value)
+    const isNextYouTube = isYouTubeTrack(track)
+
+    // Stop any ongoing playback
+    if (wasYouTube) {
+      stopYouTubeProgress()
+      youtubePlayerRef.value?.pause()
+    } else if (audioElement.value) {
+      audioElement.value.pause()
+    }
+
+    progress.value = 0
+
+    if (isNextYouTube) {
+      // Play YouTube track
+      if (track.externalId && youtubePlayerRef.value) {
+        youtubePlayerRef.value.loadVideo(track.externalId)
+        youtubePlayerRef.value.setVolume(localVolume.value)
+        youtubePlayerRef.value.play()
+        startYouTubeProgress()
+      }
+    } else {
+      // Play audio track using crossfade
+      await crossfadeToTrack(track)
+    }
+  }
+
+  // Crossfade to next track (audio only)
   const crossfadeToTrack = async (track: MusicTrack): Promise<void> => {
-    if (!audioElement.value) return
+    // Stop YouTube if playing
+    stopYouTubeProgress()
+    youtubePlayerRef.value?.stop()
 
     // Create new audio element
     nextAudioElement.value = new Audio(track.url)
@@ -126,19 +188,24 @@
     try {
       await nextAudioElement.value.play()
 
-      // Crossfade animation
-      const steps = 20
-      const interval = CROSSFADE_DURATION / steps
-      const volumeStep = localVolume.value / steps
+      // Crossfade animation (only if old audio was playing)
+      if (audioElement.value && !audioElement.value.paused) {
+        const steps = 20
+        const interval = CROSSFADE_DURATION / steps
+        const volumeStep = localVolume.value / steps
 
-      for (let i = 0; i <= steps; i++) {
-        await new Promise((resolve) => setTimeout(resolve, interval))
-        if (audioElement.value) {
-          audioElement.value.volume = Math.max(0, localVolume.value - volumeStep * i)
+        for (let i = 0; i <= steps; i++) {
+          await new Promise((resolve) => setTimeout(resolve, interval))
+          if (audioElement.value) {
+            audioElement.value.volume = Math.max(0, localVolume.value - volumeStep * i)
+          }
+          if (nextAudioElement.value) {
+            nextAudioElement.value.volume = Math.min(localVolume.value, volumeStep * i)
+          }
         }
-        if (nextAudioElement.value) {
-          nextAudioElement.value.volume = Math.min(localVolume.value, volumeStep * i)
-        }
+      } else {
+        // No crossfade needed, just set volume
+        nextAudioElement.value.volume = localVolume.value
       }
 
       // Cleanup old audio
@@ -157,14 +224,21 @@
     }
   }
 
-  // Handle track end
+  // Handle track end (for both audio and YouTube)
   const handleTrackEnd = (): void => {
     if (playMode.value === 'single') {
-      if (shouldLoop.value && audioElement.value) {
-        audioElement.value.currentTime = 0
-        audioElement.value.play()
+      if (shouldLoop.value) {
+        // Restart current track
+        if (isYouTubeTrack(currentTrack.value)) {
+          youtubePlayerRef.value?.loadVideo(currentTrack.value?.externalId ?? '')
+          youtubePlayerRef.value?.play()
+        } else if (audioElement.value) {
+          audioElement.value.currentTime = 0
+          audioElement.value.play()
+        }
       } else {
         isPlaying.value = false
+        stopYouTubeProgress()
       }
       return
     }
@@ -174,7 +248,7 @@
       currentTrackIndex.value++
       const nextTrack = currentTrack.value
       if (nextTrack) {
-        crossfadeToTrack(nextTrack)
+        transitionToTrack(nextTrack)
       }
     } else if (shouldLoop.value) {
       currentTrackIndex.value = 0
@@ -183,10 +257,50 @@
       }
       const nextTrack = currentTrack.value
       if (nextTrack) {
-        crossfadeToTrack(nextTrack)
+        transitionToTrack(nextTrack)
       }
     } else {
       isPlaying.value = false
+      stopYouTubeProgress()
+    }
+  }
+
+  // Handle YouTube player ready
+  const handleYouTubeReady = (): void => {
+    // Player is ready
+  }
+
+  // Handle YouTube duration change
+  const handleYouTubeDuration = (duration: number): void => {
+    currentYouTubeDuration.value = duration
+  }
+
+  // Handle YouTube state change
+  const handleYouTubeStateChange = (state: number): void => {
+    // YT states: -1 (unstarted), 0 (ended), 1 (playing), 2 (paused), 3 (buffering), 5 (cued)
+    if (state === 1) {
+      isPlaying.value = true
+      startYouTubeProgress()
+    } else if (state === 2) {
+      isPlaying.value = false
+      stopYouTubeProgress()
+    }
+  }
+
+  // Handle YouTube ended
+  const handleYouTubeEnded = (): void => {
+    handleTrackEnd()
+  }
+
+  // Handle YouTube error
+  const handleYouTubeError = (): void => {
+    // Skip to next track on error
+    console.warn('YouTube playback error, skipping to next track')
+    if (playMode.value === 'playlist') {
+      skipNext()
+    } else {
+      isPlaying.value = false
+      stopYouTubeProgress()
     }
   }
 
@@ -212,27 +326,56 @@
 
     const nextTrack = currentTrack.value
     if (nextTrack && isPlaying.value) {
-      crossfadeToTrack(nextTrack)
-    } else if (nextTrack && audioElement.value) {
-      audioElement.value.src = nextTrack.url
+      transitionToTrack(nextTrack)
+    } else if (nextTrack) {
+      // Preload the track
+      if (isYouTubeTrack(nextTrack)) {
+        // YouTube tracks are loaded on demand
+      } else if (audioElement.value) {
+        audioElement.value.src = nextTrack.url
+      }
     }
   }
 
   // Toggle music
   const toggleMusic = async (): Promise<void> => {
-    if (!audioElement.value || !currentTrack.value) return
+    if (!currentTrack.value) return
+
+    const isCurrentYouTube = isYouTubeTrack(currentTrack.value)
 
     if (isPlaying.value) {
-      audioElement.value.pause()
+      // Pause
+      if (isCurrentYouTube) {
+        youtubePlayerRef.value?.pause()
+        stopYouTubeProgress()
+      } else {
+        audioElement.value?.pause()
+      }
       isPlaying.value = false
     } else {
+      // Play
       try {
-        // Ensure correct track is loaded
-        if (audioElement.value.src !== currentTrack.value.url) {
-          audioElement.value.src = currentTrack.value.url
+        if (isCurrentYouTube) {
+          // Play YouTube
+          if (currentTrack.value.externalId) {
+            youtubePlayerRef.value?.setVolume(localVolume.value)
+            youtubePlayerRef.value?.play()
+            startYouTubeProgress()
+          }
+        } else {
+          // Play audio
+          if (!audioElement.value) {
+            audioElement.value = new Audio()
+            audioElement.value.addEventListener('ended', handleTrackEnd)
+            audioElement.value.addEventListener('timeupdate', updateProgress)
+          }
+          // Ensure correct track is loaded
+          if (audioElement.value.src !== currentTrack.value.url) {
+            audioElement.value.src = currentTrack.value.url
+          }
+          audioElement.value.volume = localVolume.value
+          await audioElement.value.play()
         }
-        audioElement.value.volume = localVolume.value
-        await audioElement.value.play()
         isPlaying.value = true
       } catch {
         isPlaying.value = false
@@ -245,6 +388,10 @@
     localVolume.value = newVolume
     if (audioElement.value) {
       audioElement.value.volume = newVolume
+    }
+    // Also update YouTube volume if playing
+    if (youtubePlayerRef.value) {
+      youtubePlayerRef.value.setVolume(newVolume)
     }
     saveState()
   }
@@ -366,12 +513,28 @@
       nextAudioElement.value.pause()
       nextAudioElement.value = null
     }
+    // Cleanup YouTube
+    stopYouTubeProgress()
     // Remove click outside listener
     document.removeEventListener('click', handleClickOutside)
   })
 </script>
 
 <template>
+  <!-- Hidden YouTube Player -->
+  <YouTubePlayer
+    v-if="isEnabled && currentTrack && isYouTubeTrack(currentTrack)"
+    ref="youtubePlayerRef"
+    :video-id="currentTrack.externalId ?? ''"
+    :volume="localVolume"
+    :autoplay="false"
+    @ready="handleYouTubeReady"
+    @state-change="handleYouTubeStateChange"
+    @ended="handleYouTubeEnded"
+    @error="handleYouTubeError"
+    @duration-change="handleYouTubeDuration"
+  />
+
   <div v-if="isEnabled && !isLoading && tracks.length > 0" ref="containerRef" class="relative">
     <!-- Main Button -->
     <div class="relative" @mouseenter="showTooltip = true" @mouseleave="showTooltip = false">

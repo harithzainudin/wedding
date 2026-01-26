@@ -4,6 +4,114 @@ import {
   type PlayMode,
 } from './music-constants'
 
+// ============================================
+// YOUTUBE URL VALIDATION
+// ============================================
+
+export interface AddYouTubeRequest {
+  youtubeUrl: string
+}
+
+/**
+ * Validates a YouTube URL and extracts the video ID.
+ *
+ * Supported formats:
+ * - https://www.youtube.com/watch?v=VIDEO_ID
+ * - https://youtube.com/watch?v=VIDEO_ID
+ * - https://youtu.be/VIDEO_ID
+ * - https://www.youtube.com/embed/VIDEO_ID
+ * - https://music.youtube.com/watch?v=VIDEO_ID
+ * - https://m.youtube.com/watch?v=VIDEO_ID
+ */
+export function validateYouTubeUrl(
+  url: string
+): { valid: true; videoId: string } | { valid: false; error: string } {
+  if (!url || typeof url !== 'string') {
+    return { valid: false, error: 'YouTube URL is required' }
+  }
+
+  const trimmedUrl = url.trim()
+
+  // YouTube video ID pattern (11 characters: alphanumeric, underscore, hyphen)
+  const videoIdPattern = /^[a-zA-Z0-9_-]{11}$/
+
+  let videoId: string | null = null
+
+  try {
+    const urlObj = new URL(trimmedUrl)
+    const hostname = urlObj.hostname.toLowerCase()
+
+    // Check if it's a YouTube domain
+    const youtubeHosts = [
+      'youtube.com',
+      'www.youtube.com',
+      'm.youtube.com',
+      'music.youtube.com',
+      'youtu.be',
+      'www.youtu.be',
+    ]
+
+    if (!youtubeHosts.some((host) => hostname === host || hostname.endsWith('.' + host))) {
+      return { valid: false, error: 'URL must be from YouTube' }
+    }
+
+    // Extract video ID based on URL format
+    if (hostname === 'youtu.be' || hostname === 'www.youtu.be') {
+      // youtu.be/VIDEO_ID
+      videoId = urlObj.pathname.slice(1).split('?')[0] ?? null
+    } else if (urlObj.pathname.startsWith('/embed/')) {
+      // youtube.com/embed/VIDEO_ID
+      videoId = urlObj.pathname.replace('/embed/', '').split('?')[0] ?? null
+    } else if (urlObj.pathname.startsWith('/v/')) {
+      // youtube.com/v/VIDEO_ID (legacy)
+      videoId = urlObj.pathname.replace('/v/', '').split('?')[0] ?? null
+    } else if (urlObj.pathname === '/watch' || urlObj.pathname === '/watch/') {
+      // youtube.com/watch?v=VIDEO_ID
+      videoId = urlObj.searchParams.get('v')
+    } else {
+      return { valid: false, error: 'Invalid YouTube URL format' }
+    }
+
+    // Validate video ID format
+    if (!videoId || !videoIdPattern.test(videoId)) {
+      return { valid: false, error: 'Could not extract valid video ID from URL' }
+    }
+
+    return { valid: true, videoId }
+  } catch {
+    return { valid: false, error: 'Invalid URL format' }
+  }
+}
+
+export function validateAddYouTubeRequest(
+  input: unknown
+): { valid: true; data: AddYouTubeRequest; videoId: string } | { valid: false; error: string } {
+  if (typeof input !== 'object' || input === null) {
+    return { valid: false, error: 'Invalid request body' }
+  }
+
+  const body = input as Record<string, unknown>
+
+  if (typeof body.youtubeUrl !== 'string' || !body.youtubeUrl.trim()) {
+    return { valid: false, error: 'YouTube URL is required' }
+  }
+
+  const urlValidation = validateYouTubeUrl(body.youtubeUrl)
+  if (!urlValidation.valid) {
+    return { valid: false, error: urlValidation.error }
+  }
+
+  return {
+    valid: true,
+    data: { youtubeUrl: body.youtubeUrl.trim() },
+    videoId: urlValidation.videoId,
+  }
+}
+
+// ============================================
+// MUSIC UPLOAD VALIDATION
+// ============================================
+
 export interface MusicUploadRequest {
   filename: string
   mimeType: string

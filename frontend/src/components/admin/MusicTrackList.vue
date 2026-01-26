@@ -22,8 +22,14 @@
   const dragOverIndex = ref<number | null>(null)
   const previewingId = ref<string | null>(null)
   const audioElement = ref<HTMLAudioElement | null>(null)
+  const youtubePreviewId = ref<string | null>(null)
 
   const sortedTracks = computed(() => [...props.tracks].sort((a, b) => a.order - b.order))
+
+  // Check if track is from YouTube
+  const isYouTubeTrack = (track: MusicTrack): boolean => {
+    return track.source === 'youtube' && !!track.externalId
+  }
 
   const handleDragStart = (index: number): void => {
     draggedIndex.value = index
@@ -60,6 +66,20 @@
   }
 
   const togglePreview = (track: MusicTrack): void => {
+    // For YouTube tracks, open preview modal
+    if (isYouTubeTrack(track)) {
+      if (youtubePreviewId.value === track.id) {
+        youtubePreviewId.value = null
+      } else {
+        // Stop any audio preview first
+        audioElement.value?.pause()
+        previewingId.value = null
+        youtubePreviewId.value = track.id
+      }
+      return
+    }
+
+    // For uploaded tracks, use audio preview
     if (previewingId.value === track.id) {
       // Stop preview
       audioElement.value?.pause()
@@ -69,6 +89,9 @@
       if (audioElement.value) {
         audioElement.value.pause()
       }
+      // Close any YouTube preview
+      youtubePreviewId.value = null
+
       audioElement.value = new Audio(track.url)
       audioElement.value.volume = 0.5
       audioElement.value.play()
@@ -82,6 +105,11 @@
   const stopPreview = (): void => {
     audioElement.value?.pause()
     previewingId.value = null
+    youtubePreviewId.value = null
+  }
+
+  const closeYouTubePreview = (): void => {
+    youtubePreviewId.value = null
   }
 
   onUnmounted(() => {
@@ -90,6 +118,7 @@
       audioElement.value = null
     }
     previewingId.value = null
+    youtubePreviewId.value = null
   })
 </script>
 
@@ -178,39 +207,87 @@
             </svg>
           </button>
 
-          <!-- Play/Pause Preview -->
+          <!-- Play/Pause Preview - Different display for YouTube vs Audio -->
           <button
             type="button"
-            class="w-10 h-10 rounded-full flex items-center justify-center transition-colors cursor-pointer"
+            class="w-10 h-10 rounded-lg flex items-center justify-center transition-colors cursor-pointer relative overflow-hidden"
             :class="[
-              previewingId === track.id
-                ? 'bg-sage text-white'
-                : 'bg-sand dark:bg-dark-bg text-charcoal dark:text-dark-text hover:bg-sage hover:text-white',
+              isYouTubeTrack(track)
+                ? 'bg-red-100 dark:bg-red-900/30'
+                : previewingId === track.id
+                  ? 'bg-sage text-white'
+                  : 'bg-sand dark:bg-dark-bg text-charcoal dark:text-dark-text hover:bg-sage hover:text-white',
             ]"
             @click="togglePreview(track)"
           >
-            <svg
-              v-if="previewingId === track.id"
-              class="w-5 h-5"
-              fill="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <rect x="6" y="5" width="4" height="14" rx="1" />
-              <rect x="14" y="5" width="4" height="14" rx="1" />
-            </svg>
-            <svg v-else class="w-5 h-5 ml-0.5" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M8 5v14l11-7z" />
-            </svg>
+            <!-- YouTube Thumbnail or Icon -->
+            <template v-if="isYouTubeTrack(track)">
+              <img
+                v-if="track.thumbnailUrl"
+                :src="track.thumbnailUrl"
+                :alt="track.title"
+                class="w-full h-full object-cover"
+              />
+              <svg
+                v-else
+                class="w-5 h-5 text-red-600 dark:text-red-400"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+              >
+                <path
+                  d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"
+                />
+              </svg>
+              <!-- YouTube play overlay -->
+              <div
+                class="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity"
+              >
+                <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M8 5v14l11-7z" />
+                </svg>
+              </div>
+            </template>
+            <!-- Audio Preview Icon -->
+            <template v-else>
+              <svg
+                v-if="previewingId === track.id"
+                class="w-5 h-5"
+                fill="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <rect x="6" y="5" width="4" height="14" rx="1" />
+                <rect x="14" y="5" width="4" height="14" rx="1" />
+              </svg>
+              <svg v-else class="w-5 h-5 ml-0.5" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M8 5v14l11-7z" />
+              </svg>
+            </template>
           </button>
 
           <!-- Track Info -->
           <div class="flex-1 min-w-0">
-            <p class="font-body text-sm font-medium text-charcoal dark:text-dark-text truncate">
-              {{ track.title }}
-            </p>
+            <div class="flex items-center gap-2">
+              <p class="font-body text-sm font-medium text-charcoal dark:text-dark-text truncate">
+                {{ track.title }}
+              </p>
+              <!-- YouTube Badge -->
+              <span
+                v-if="isYouTubeTrack(track)"
+                class="flex-shrink-0 px-1.5 py-0.5 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 text-[10px] font-medium rounded"
+              >
+                YouTube
+              </span>
+              <!-- Library Badge -->
+              <span
+                v-else-if="track.source === 'library'"
+                class="flex-shrink-0 px-1.5 py-0.5 bg-sage/10 text-sage text-[10px] font-medium rounded"
+              >
+                {{ adminT.music.library ?? 'Library' }}
+              </span>
+            </div>
             <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary truncate">
-              {{ track.artist || adminT.music.unknownArtist }} ·
-              {{ formatDuration(track.duration) }}
+              {{ track.artist || adminT.music.unknownArtist }}
+              <template v-if="track.duration > 0">· {{ formatDuration(track.duration) }}</template>
             </p>
           </div>
 
@@ -232,5 +309,73 @@
         </div>
       </div>
     </div>
+
+    <!-- YouTube Preview Modal -->
+    <Teleport to="body">
+      <Transition name="modal">
+        <div
+          v-if="youtubePreviewId"
+          class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"
+          @click.self="closeYouTubePreview"
+        >
+          <div class="relative w-full max-w-2xl bg-black rounded-xl overflow-hidden shadow-2xl">
+            <!-- Close Button -->
+            <button
+              type="button"
+              class="absolute top-3 right-3 z-10 p-2 bg-black/50 text-white rounded-full hover:bg-black/70 cursor-pointer"
+              @click="closeYouTubePreview"
+            >
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+            </button>
+
+            <!-- YouTube Embed -->
+            <div class="aspect-video">
+              <iframe
+                :src="`https://www.youtube.com/embed/${sortedTracks.find((t) => t.id === youtubePreviewId)?.externalId}?autoplay=1`"
+                class="w-full h-full"
+                allow="
+                  accelerometer;
+                  autoplay;
+                  clipboard-write;
+                  encrypted-media;
+                  gyroscope;
+                  picture-in-picture;
+                "
+                allowfullscreen
+              ></iframe>
+            </div>
+
+            <!-- Track Info -->
+            <div class="p-4 bg-charcoal">
+              <p class="font-body text-white font-medium truncate">
+                {{ sortedTracks.find((t) => t.id === youtubePreviewId)?.title }}
+              </p>
+              <p class="font-body text-sm text-white/70 truncate">
+                {{ sortedTracks.find((t) => t.id === youtubePreviewId)?.artist }}
+              </p>
+            </div>
+          </div>
+        </div>
+      </Transition>
+    </Teleport>
   </div>
 </template>
+
+<style scoped>
+  .modal-enter-active,
+  .modal-leave-active {
+    transition: opacity 0.2s ease;
+  }
+
+  .modal-enter-from,
+  .modal-leave-to {
+    opacity: 0;
+  }
+</style>

@@ -52,6 +52,14 @@ interface MusicTrack {
   source: string
   externalId?: string
   externalUrl?: string
+  thumbnailUrl?: string
+  globalMusicId?: string
+  license?: {
+    type: string
+    sourceUrl?: string
+    attribution?: string
+  }
+  attribution?: string | null
   uploadedAt: string
   uploadedBy: string
 }
@@ -168,22 +176,32 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
     const bucketName = Resource.WeddingImageBucket.name
     const region = process.env.AWS_REGION ?? 'ap-southeast-5'
 
-    const tracks: MusicTrack[] = (tracksResult.Items ?? []).map((item) => ({
-      id: item.id as string,
-      title: item.title as string,
-      artist: item.artist as string | undefined,
-      duration: item.duration as number,
-      filename: item.filename as string,
-      url: getPublicS3Url(bucketName, region, item.s3Key as string),
-      mimeType: item.mimeType as string,
-      fileSize: item.fileSize as number,
-      order: item.order as number,
-      source: item.source as string,
-      externalId: item.externalId as string | undefined,
-      externalUrl: item.externalUrl as string | undefined,
-      uploadedAt: item.uploadedAt as string,
-      uploadedBy: item.uploadedBy as string,
-    }))
+    const tracks: MusicTrack[] = (tracksResult.Items ?? []).map((item) => {
+      const source = item.source as string
+      const isYouTube = source === 'youtube'
+
+      return {
+        id: item.id as string,
+        title: item.title as string,
+        artist: item.artist as string | undefined,
+        duration: item.duration as number,
+        filename: item.filename as string,
+        // For YouTube tracks, don't generate S3 URL (there's no S3 file)
+        url: isYouTube ? '' : getPublicS3Url(bucketName, region, item.s3Key as string),
+        mimeType: item.mimeType as string,
+        fileSize: item.fileSize as number,
+        order: item.order as number,
+        source,
+        externalId: item.externalId as string | undefined,
+        externalUrl: item.externalUrl as string | undefined,
+        thumbnailUrl: item.thumbnailUrl as string | undefined,
+        globalMusicId: item.globalMusicId as string | undefined,
+        license: item.license as MusicTrack['license'] | undefined,
+        attribution: item.attribution as string | null | undefined,
+        uploadedAt: item.uploadedAt as string,
+        uploadedBy: item.uploadedBy as string,
+      }
+    })
 
     // Return response based on authentication
     if (isAuthenticated) {

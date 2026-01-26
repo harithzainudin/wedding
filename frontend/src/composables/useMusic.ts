@@ -10,6 +10,7 @@ import {
   deleteMusicTrack,
   reorderMusicTracks,
   updateMusicSettings,
+  addYouTubeTrack as addYouTubeTrackApi,
 } from '@/services/api'
 
 // Allowed MIME types
@@ -414,6 +415,53 @@ export function useMusic() {
     }
   }
 
+  // Add a YouTube track
+  const addYouTubeTrack = async (
+    youtubeUrl: string,
+    weddingId?: string
+  ): Promise<{ success: boolean; error?: string }> => {
+    // Check if we can add more tracks
+    if (!canUploadMore.value) {
+      return {
+        success: false,
+        error: `Maximum of ${settings.value.maxTracks} tracks reached`,
+      }
+    }
+
+    // Update context tracking
+    currentWeddingId.value = weddingId
+
+    try {
+      const response = await addYouTubeTrackApi(youtubeUrl, weddingId)
+
+      // Add the new track to the list
+      tracks.value.push({
+        id: response.id,
+        title: response.title,
+        artist: response.artist,
+        duration: response.duration,
+        filename: response.filename,
+        url: response.url,
+        mimeType: response.mimeType,
+        fileSize: response.fileSize,
+        order: response.order,
+        source: response.source,
+        externalId: response.externalId,
+        externalUrl: response.externalUrl,
+        thumbnailUrl: response.thumbnailUrl,
+        uploadedAt: response.uploadedAt,
+        uploadedBy: response.uploadedBy,
+      })
+
+      return { success: true }
+    } catch (err) {
+      return {
+        success: false,
+        error: err instanceof Error ? err.message : 'Failed to add YouTube track',
+      }
+    }
+  }
+
   // Format duration for display (MM:SS)
   const formatDuration = (seconds: number): string => {
     const mins = Math.floor(seconds / 60)
@@ -450,6 +498,7 @@ export function useMusic() {
     removeTrack,
     updateOrder,
     saveSettings,
+    addYouTubeTrack,
     validateFile,
     formatDuration,
     formatFileSize,

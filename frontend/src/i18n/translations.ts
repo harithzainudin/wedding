@@ -1772,6 +1772,7 @@ export interface AdminTranslations {
     clearFilters: string
     dismiss: string
     recommended: string
+    tip: string
   }
 
   // Authentication
@@ -2239,6 +2240,20 @@ export interface AdminTranslations {
     alreadyAdded: string
     addedFromLibrary: string
     trackFromLibrary: string
+    // YouTube
+    tabUpload: string
+    tabYouTube: string
+    youtubeUrlPlaceholder: string
+    invalidYouTubeUrl: string
+    fetchingYouTubeInfo: string
+    youtubeAddSuccess: string
+    youtubeAddError: string
+    youtubeVideoNotFound: string
+    youtubeEmbedDisabled: string
+    youtubeNote: string
+    youtubeTip: string
+    addYouTube: string
+    library: string
   }
 
   // Music Library (Super Admin)
@@ -3007,6 +3022,7 @@ export const adminTranslations: Record<AdminLanguage, AdminTranslations> = {
       clearFilters: 'Clear filters',
       dismiss: 'Dismiss',
       recommended: 'Recommended',
+      tip: 'Tip',
     },
 
     auth: {
@@ -3465,6 +3481,20 @@ export const adminTranslations: Record<AdminLanguage, AdminTranslations> = {
       alreadyAdded: 'Added',
       addedFromLibrary: 'Added from library',
       trackFromLibrary: 'From library',
+      // YouTube
+      tabUpload: 'Upload Files',
+      tabYouTube: 'YouTube Link',
+      youtubeUrlPlaceholder: 'Paste YouTube video or music URL',
+      invalidYouTubeUrl: 'Please enter a valid YouTube URL',
+      fetchingYouTubeInfo: 'Fetching video info...',
+      youtubeAddSuccess: 'YouTube track added successfully',
+      youtubeAddError: 'Failed to add YouTube track',
+      youtubeVideoNotFound: 'Video not found or unavailable',
+      youtubeEmbedDisabled: 'This video cannot be embedded',
+      youtubeNote: 'Note: Ads may play. Some videos may not allow embedding.',
+      youtubeTip: 'Paste a YouTube URL to add music from YouTube',
+      addYouTube: 'Add YouTube Track',
+      library: 'Library',
     },
 
     musicLibrary: {
@@ -4204,6 +4234,7 @@ export const adminTranslations: Record<AdminLanguage, AdminTranslations> = {
       clearFilters: 'Padam penapis',
       dismiss: 'Abaikan',
       recommended: 'Disyorkan',
+      tip: 'Petua',
     },
 
     auth: {
@@ -4667,6 +4698,21 @@ export const adminTranslations: Record<AdminLanguage, AdminTranslations> = {
       alreadyAdded: 'Ditambah',
       addedFromLibrary: 'Ditambah dari perpustakaan',
       trackFromLibrary: 'Dari perpustakaan',
+      // YouTube
+      tabUpload: 'Muat Naik Fail',
+      tabYouTube: 'Pautan YouTube',
+      youtubeUrlPlaceholder: 'Tampal URL video atau muzik YouTube',
+      invalidYouTubeUrl: 'Sila masukkan URL YouTube yang sah',
+      fetchingYouTubeInfo: 'Mendapatkan maklumat video...',
+      youtubeAddSuccess: 'Trek YouTube berjaya ditambah',
+      youtubeAddError: 'Gagal menambah trek YouTube',
+      youtubeVideoNotFound: 'Video tidak dijumpai atau tidak tersedia',
+      youtubeEmbedDisabled: 'Video ini tidak boleh dibenamkan',
+      youtubeNote:
+        'Nota: Iklan mungkin dipaparkan. Sesetengah video mungkin tidak membenarkan pembenaman.',
+      youtubeTip: 'Tampal URL YouTube untuk menambah muzik dari YouTube',
+      addYouTube: 'Tambah Trek YouTube',
+      library: 'Perpustakaan',
     },
 
     musicLibrary: {

@@ -1,4 +1,4 @@
-export type MusicSource = 'upload' | 'library'
+export type MusicSource = 'upload' | 'library' | 'youtube'
 export type PlayMode = 'single' | 'playlist'
 
 // ============================================
@@ -71,8 +71,9 @@ export interface MusicTrack {
   globalMusicId?: string | undefined // Present when source is 'library'
   license?: LicenseInfo | undefined // Copied from global track
   attribution?: string | null | undefined // Pre-computed attribution text
-  externalId?: string | undefined
-  externalUrl?: string | undefined
+  externalId?: string | undefined // YouTube video ID when source is 'youtube'
+  externalUrl?: string | undefined // YouTube URL when source is 'youtube'
+  thumbnailUrl?: string | undefined // YouTube thumbnail URL when source is 'youtube'
   uploadedAt: string
   uploadedBy: string
 }
@@ -282,6 +283,32 @@ export interface AddFromLibraryResponse {
   globalMusicId: string
   license?: LicenseInfo | undefined
   attribution?: string | null | undefined
+  uploadedAt: string
+  uploadedBy: string
+}
+
+// ============================================
+// YOUTUBE TRACK API TYPES
+// ============================================
+
+export interface AddYouTubeTrackRequest {
+  youtubeUrl: string
+}
+
+export interface AddYouTubeTrackResponse {
+  id: string
+  title: string
+  artist?: string | undefined
+  duration: number
+  filename: string
+  url: string
+  mimeType: string
+  fileSize: number
+  order: number
+  source: 'youtube'
+  externalId: string
+  externalUrl: string
+  thumbnailUrl: string
   uploadedAt: string
   uploadedBy: string
 }
