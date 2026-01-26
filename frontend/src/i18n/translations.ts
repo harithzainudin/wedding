@@ -54,8 +54,14 @@ export interface Translations {
     fullNamePlaceholder: string
     attendance: string
     attending: string
+    maybe: string
     notAttending: string
-    numberOfGuests: string
+    guestCountHintYes: string
+    guestCountHintMaybe: string
+    numberOfAdults: string
+    numberOfChildren: string
+    childrenAgeNote: string
+    totalGuests: string
     guestUnit: string
     phoneNumber: string
     phonePlaceholder: string
@@ -400,8 +406,15 @@ export const translations: Record<Language, Translations> = {
       fullNamePlaceholder: 'Nama penuh anda',
       attendance: 'Kehadiran',
       attending: 'Ya, saya akan hadir',
+      maybe: 'Mungkin, saya belum pasti',
       notAttending: 'Maaf, tidak dapat hadir',
-      numberOfGuests: 'Bilangan Tetamu',
+      guestCountHintYes: 'Bantu kami sediakan sambutan yang sempurna untuk anda!',
+      guestCountHintMaybe:
+        'Anggaran kasar pun membantu kami merancang - jangan risau, ia tidak muktamad!',
+      numberOfAdults: 'Dewasa',
+      numberOfChildren: 'Kanak-kanak',
+      childrenAgeNote: 'Kanak-kanak: 12 tahun ke bawah',
+      totalGuests: 'Jumlah tetamu',
       guestUnit: 'orang',
       phoneNumber: 'Nombor Telefon',
       phonePlaceholder: '012-3456789',
@@ -733,8 +746,14 @@ export const translations: Record<Language, Translations> = {
       fullNamePlaceholder: 'Your full name',
       attendance: 'Attendance',
       attending: 'Yes, I will attend',
+      maybe: "Maybe, I'm not sure yet",
       notAttending: 'Sorry, I cannot attend',
-      numberOfGuests: 'Number of Guests',
+      guestCountHintYes: 'Help us prepare the perfect celebration for you!',
+      guestCountHintMaybe: "Even a rough estimate helps us plan - don't worry, it's not set in stone!",
+      numberOfAdults: 'Adults',
+      numberOfChildren: 'Children',
+      childrenAgeNote: 'Children: 12 years and below',
+      totalGuests: 'Total guests',
       guestUnit: 'person(s)',
       phoneNumber: 'Phone Number',
       phonePlaceholder: '012-3456789',
@@ -1061,8 +1080,14 @@ export const translations: Record<Language, Translations> = {
       fullNamePlaceholder: '您的全名',
       attendance: '出席确认',
       attending: '是的，我会出席',
+      maybe: '也许，我还不确定',
       notAttending: '抱歉，无法出席',
-      numberOfGuests: '宾客人数',
+      guestCountHintYes: '帮助我们为您准备完美的庆祝活动！',
+      guestCountHintMaybe: '即使是粗略估计也能帮助我们规划 - 别担心，这不是最终决定！',
+      numberOfAdults: '成人',
+      numberOfChildren: '儿童',
+      childrenAgeNote: '儿童：12岁及以下',
+      totalGuests: '宾客总数',
       guestUnit: '人',
       phoneNumber: '电话号码',
       phonePlaceholder: '012-3456789',
@@ -1384,8 +1409,15 @@ export const translations: Record<Language, Translations> = {
       fullNamePlaceholder: 'உங்கள் முழுப் பெயர்',
       attendance: 'வருகை',
       attending: 'ஆம், நான் வருவேன்',
+      maybe: 'இருக்கலாம், எனக்கு உறுதியில்லை',
       notAttending: 'மன்னிக்கவும், வர இயலாது',
-      numberOfGuests: 'விருந்தினர் எண்ணிக்கை',
+      guestCountHintYes: 'உங்களுக்கான சிறந்த கொண்டாட்டத்தை தயாரிக்க உதவுங்கள்!',
+      guestCountHintMaybe:
+        'தோராயமான மதிப்பீடும் எங்களுக்கு உதவும் - கவலை வேண்டாம், இது இறுதி முடிவு அல்ல!',
+      numberOfAdults: 'பெரியவர்கள்',
+      numberOfChildren: 'குழந்தைகள்',
+      childrenAgeNote: 'குழந்தைகள்: 12 வயது மற்றும் அதற்கு கீழ்',
+      totalGuests: 'மொத்த விருந்தினர்',
       guestUnit: 'நபர்',
       phoneNumber: 'தொலைபேசி எண்',
       phonePlaceholder: '012-3456789',
@@ -1399,7 +1431,8 @@ export const translations: Record<Language, Translations> = {
         '"அல்லாஹ், இந்த திருமணத்தை ஆசீர்வதித்து புதுமணத் தம்பதிகளுக்கு மகிழ்ச்சியை வழங்குவாயாக. ஆமீன்."',
       errorName: 'உங்கள் முழுப் பெயரை உள்ளிடவும்.',
       errorPhone: 'உங்கள் தொலைபேசி எண்ணை உள்ளிடவும்.',
-      errorPhoneInvalid: 'தவறான தொலைபேசி எண் வடிவம். எடுத்துக்காட்டு: 012-3456789 அல்லது +60123456789',
+      errorPhoneInvalid:
+        'தவறான தொலைபேசி எண் வடிவம். எடுத்துக்காட்டு: 012-3456789 அல்லது +60123456789',
       errorGeneric: 'மன்னிக்கவும், பிழை ஏற்பட்டது. மீண்டும் முயற்சிக்கவும்.',
       // RSVP closed messages
       rsvpClosed: 'பதில் மூடப்பட்டது',
@@ -1856,10 +1889,12 @@ export interface AdminTranslations {
     title: string
     totalRsvps: string
     attending: string
+    maybe: string
     notAttending: string
     totalGuests: string
     filterAll: string
     filterAttending: string
+    filterMaybe: string
     filterNotAttending: string
     addGuest: string
     exportCsv: string
@@ -1884,8 +1919,11 @@ export interface AdminTranslations {
     attendance: string
     attendingLabel: string
     notAttendingLabel: string
-    numberOfGuests: string
-    guestsRange: string
+    numberOfAdults: string
+    numberOfChildren: string
+    childrenAgeNote: string
+    adultsLabel: string
+    childrenLabel: string
     message: string
     messageOptional: string
     wishesPlaceholder: string
@@ -2900,6 +2938,15 @@ export interface AdminTranslations {
     saveError: string
     changesSaved: string
   }
+
+  // Sticky action bar
+  actionBar: {
+    unsavedChanges: string
+    saving: string
+    saved: string
+    saveChanges: string
+    discardChanges: string
+  }
 }
 
 // String interpolation helper
@@ -3072,10 +3119,12 @@ export const adminTranslations: Record<AdminLanguage, AdminTranslations> = {
       title: 'RSVPs',
       totalRsvps: 'Total RSVPs',
       attending: 'Attending',
+      maybe: 'Maybe',
       notAttending: 'Not Attending',
       totalGuests: 'Total Guests',
       filterAll: 'All',
       filterAttending: 'Attending',
+      filterMaybe: 'Maybe',
       filterNotAttending: 'Not Attending',
       addGuest: 'Add Guest',
       exportCsv: 'Export CSV',
@@ -3100,8 +3149,11 @@ export const adminTranslations: Record<AdminLanguage, AdminTranslations> = {
       attendance: 'Attendance',
       attendingLabel: 'Attending',
       notAttendingLabel: 'Not Attending',
-      numberOfGuests: 'Number of Guests',
-      guestsRange: 'Enter 1-10 guests',
+      numberOfAdults: 'Adults',
+      numberOfChildren: 'Children',
+      childrenAgeNote: 'Children: 12 years and below',
+      adultsLabel: 'adults',
+      childrenLabel: 'children',
       message: 'Message',
       messageOptional: 'Message (Optional)',
       wishesPlaceholder: 'Any wishes or notes...',
@@ -4090,6 +4142,14 @@ export const adminTranslations: Record<AdminLanguage, AdminTranslations> = {
       saveError: 'Failed to save changes. Please try again.',
       changesSaved: 'Changes saved!',
     },
+
+    actionBar: {
+      unsavedChanges: 'Unsaved changes in {tab}',
+      saving: 'Saving...',
+      saved: 'Changes saved!',
+      saveChanges: 'Save Changes',
+      discardChanges: 'Discard',
+    },
   },
 
   ms: {
@@ -4258,10 +4318,12 @@ export const adminTranslations: Record<AdminLanguage, AdminTranslations> = {
       title: 'RSVP',
       totalRsvps: 'Jumlah RSVP',
       attending: 'Hadir',
+      maybe: 'Mungkin',
       notAttending: 'Tidak Hadir',
       totalGuests: 'Jumlah Tetamu',
       filterAll: 'Semua',
       filterAttending: 'Hadir',
+      filterMaybe: 'Mungkin',
       filterNotAttending: 'Tidak Hadir',
       addGuest: 'Tambah Tetamu',
       exportCsv: 'Eksport CSV',
@@ -4286,8 +4348,11 @@ export const adminTranslations: Record<AdminLanguage, AdminTranslations> = {
       attendance: 'Kehadiran',
       attendingLabel: 'Hadir',
       notAttendingLabel: 'Tidak Hadir',
-      numberOfGuests: 'Bilangan Tetamu',
-      guestsRange: 'Masukkan 1-10 tetamu',
+      numberOfAdults: 'Dewasa',
+      numberOfChildren: 'Kanak-kanak',
+      childrenAgeNote: 'Kanak-kanak: 12 tahun ke bawah',
+      adultsLabel: 'dewasa',
+      childrenLabel: 'kanak-kanak',
       message: 'Mesej',
       messageOptional: 'Mesej (Pilihan)',
       wishesPlaceholder: 'Sebarang ucapan atau catatan...',
@@ -5284,6 +5349,14 @@ export const adminTranslations: Record<AdminLanguage, AdminTranslations> = {
       saving: 'Menyimpan...',
       saveError: 'Gagal menyimpan perubahan. Sila cuba lagi.',
       changesSaved: 'Perubahan disimpan!',
+    },
+
+    actionBar: {
+      unsavedChanges: 'Perubahan belum disimpan di {tab}',
+      saving: 'Menyimpan...',
+      saved: 'Perubahan disimpan!',
+      saveChanges: 'Simpan Perubahan',
+      discardChanges: 'Buang',
     },
   },
 }

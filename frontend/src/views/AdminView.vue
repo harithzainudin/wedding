@@ -32,6 +32,7 @@
   import { useUnsavedChanges, useBeforeUnloadWarning } from '@/composables/useUnsavedChanges'
   import type { DirtyTabInfo, DirtyStateChangePayload } from '@/composables/useUnsavedChanges'
   import UnsavedChangesModal from '@/components/admin/UnsavedChangesModal.vue'
+  import AdminActionBar from '@/components/admin/AdminActionBar.vue'
   import { useToast } from '@/composables/useToast'
 
   const { adminT } = useAdminLanguage()
@@ -112,7 +113,12 @@
     handleSaveAndContinue,
     handleDiscard,
     handleStay,
+    saveCurrentDirtyTabs,
+    discardAllDirtyTabs,
   } = useUnsavedChanges()
+
+  // Action bar state
+  const actionBarSaveSuccess = ref(false)
 
   // Setup browser beforeunload warning
   useBeforeUnloadWarning()
@@ -302,6 +308,23 @@
         router.push(nav.routeLocation)
       }
     }
+  }
+
+  // Action bar handlers (no navigation involved)
+  const onActionBarSave = async (): Promise<void> => {
+    const result = await saveCurrentDirtyTabs()
+    if (result.success) {
+      actionBarSaveSuccess.value = true
+      showSuccessToast(adminT.value.unsavedChanges.changesSaved)
+      // Reset success state after a brief moment
+      setTimeout(() => {
+        actionBarSaveSuccess.value = false
+      }, 2000)
+    }
+  }
+
+  const onActionBarDiscard = (): void => {
+    discardAllDirtyTabs()
   }
 
   // Handle dirty state changes from tab components
@@ -549,6 +572,17 @@
         @stay="handleStay"
       />
 
+      <!-- Sticky Action Bar -->
+      <AdminActionBar
+        :show="hasDirtyTabs && !showUnsavedChangesModal"
+        :tab-label="currentDirtyTabLabel"
+        :is-saving="isUnsavedChangesSaving"
+        :save-error="unsavedChangesSaveError"
+        :save-success="actionBarSaveSuccess"
+        @save="onActionBarSave"
+        @discard="onActionBarDiscard"
+      />
+
       <!-- Mobile Menu -->
       <MobileAdminMenu
         :is-open="showMobileMenu"
@@ -562,7 +596,10 @@
         @logout="onLogout"
       />
 
-      <div class="max-w-6xl mx-auto px-4 py-8">
+      <div
+        class="max-w-6xl mx-auto px-4 py-8 transition-[padding-bottom] duration-300"
+        :class="{ 'pb-24 sm:pb-20': hasDirtyTabs && !showUnsavedChangesModal }"
+      >
         <AdminHeader
           :current-user="currentUser"
           :is-master-user="isMasterUser"

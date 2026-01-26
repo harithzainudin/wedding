@@ -1,6 +1,6 @@
 <script setup lang="ts">
   import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue'
-  import type { RsvpSubmission, AdminRsvpRequest, AnyGuestType } from '@/types/rsvp'
+  import type { RsvpSubmission, AdminRsvpRequest, AnyGuestType, AttendanceStatus } from '@/types/rsvp'
   import { GUEST_TYPES } from '@/types/rsvp'
   import type { HonorificTitle } from '@/types/index'
   import { HONORIFIC_TITLES } from '@/types/index'
@@ -26,10 +26,19 @@
   // Form state
   const title = ref<HonorificTitle | ''>('')
   const fullName = ref('')
-  const isAttending = ref(true)
-  const numberOfGuests = ref(1)
+  const isAttending = ref<AttendanceStatus>('yes')
+  const numberOfAdults = ref(1)
+  const numberOfChildren = ref(0)
   const guestType = ref<AnyGuestType | ''>('')
   const message = ref('')
+
+  // Computed total guests
+  const totalGuests = computed(() => numberOfAdults.value + numberOfChildren.value)
+
+  // Show guest count section for 'yes' and 'maybe' responses
+  const showGuestCount = computed(() => {
+    return isAttending.value === 'yes' || isAttending.value === 'maybe'
+  })
 
   // Computed
   const isEditMode = computed(() => !!props.rsvp)
@@ -68,16 +77,24 @@
         // Edit mode: populate from existing
         title.value = props.rsvp.title || ''
         fullName.value = props.rsvp.fullName
-        isAttending.value = props.rsvp.isAttending
-        numberOfGuests.value = props.rsvp.numberOfGuests || 1
+        // Handle both legacy boolean and new string format
+        const attendance = props.rsvp.isAttending
+        if (typeof attendance === 'boolean') {
+          isAttending.value = attendance ? 'yes' : 'no'
+        } else {
+          isAttending.value = attendance
+        }
+        numberOfAdults.value = props.rsvp.numberOfAdults || 1
+        numberOfChildren.value = props.rsvp.numberOfChildren || 0
         guestType.value = props.rsvp.guestType || ''
         message.value = props.rsvp.message || ''
       } else if (props.show) {
         // Create mode: reset to defaults
         title.value = ''
         fullName.value = ''
-        isAttending.value = true
-        numberOfGuests.value = 1
+        isAttending.value = 'yes'
+        numberOfAdults.value = 1
+        numberOfChildren.value = 0
         guestType.value = ''
         message.value = ''
       }
@@ -95,10 +112,13 @@
   const handleSubmit = () => {
     if (!isValid.value || props.isSubmitting) return
 
+    const shouldHaveGuests = isAttending.value === 'yes' || isAttending.value === 'maybe'
+
     const data: AdminRsvpRequest = {
       fullName: fullName.value.trim(),
       isAttending: isAttending.value,
-      numberOfGuests: isAttending.value ? numberOfGuests.value : 0,
+      numberOfAdults: shouldHaveGuests ? numberOfAdults.value : 0,
+      numberOfChildren: shouldHaveGuests ? numberOfChildren.value : 0,
     }
 
     if (title.value) {
@@ -121,24 +141,39 @@
   }
 
   // Toggle attendance
-  const setAttending = (value: boolean) => {
+  const setAttending = (value: AttendanceStatus) => {
     if (props.isSubmitting) return
     isAttending.value = value
   }
 
-  // Handle guest count input
-  const handleGuestInput = (e: Event) => {
+  // Handle adult count input
+  const handleAdultInput = (e: Event) => {
     const target = e.target as HTMLInputElement
     let value = parseInt(target.value, 10)
 
-    // Clamp value between 1 and 10
+    // Clamp value between 1 and 5
     if (isNaN(value) || value < 1) {
       value = 1
-    } else if (value > 10) {
-      value = 10
+    } else if (value > 5) {
+      value = 5
     }
 
-    numberOfGuests.value = value
+    numberOfAdults.value = value
+  }
+
+  // Handle children count input
+  const handleChildrenInput = (e: Event) => {
+    const target = e.target as HTMLInputElement
+    let value = parseInt(target.value, 10)
+
+    // Clamp value between 0 and 5
+    if (isNaN(value) || value < 0) {
+      value = 0
+    } else if (value > 5) {
+      value = 5
+    }
+
+    numberOfChildren.value = value
   }
 </script>
 
@@ -187,22 +222,23 @@
       </p>
     </div>
 
-    <!-- Attendance Status - Visual Toggle -->
+    <!-- Attendance Status - Visual Toggle (3 options) -->
     <div>
       <label class="block font-body text-sm text-charcoal dark:text-dark-text mb-2">
         {{ adminT.rsvps.attendance }}
       </label>
       <div class="flex rounded-lg overflow-hidden border border-sand-dark dark:border-dark-border">
+        <!-- Attending -->
         <button
           type="button"
           :disabled="isSubmitting"
-          class="flex-1 px-4 py-2.5 font-body text-sm font-medium transition-all duration-200 cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-2"
+          class="flex-1 px-3 py-2.5 font-body text-sm font-medium transition-all duration-200 cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
           :class="
-            isAttending
+            isAttending === 'yes'
               ? 'bg-green-600 text-white shadow-inner'
               : 'bg-white dark:bg-dark-bg text-charcoal-light dark:text-dark-text-secondary hover:bg-green-50 dark:hover:bg-green-900/20'
           "
-          @click="setAttending(true)"
+          @click="setAttending('yes')"
         >
           <svg
             class="w-4 h-4"
@@ -215,16 +251,34 @@
           </svg>
           {{ adminT.rsvps.attendingLabel }}
         </button>
+
+        <!-- Maybe -->
         <button
           type="button"
           :disabled="isSubmitting"
-          class="flex-1 px-4 py-2.5 font-body text-sm font-medium transition-all duration-200 cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-2 border-l border-sand-dark dark:border-dark-border"
+          class="flex-1 px-3 py-2.5 font-body text-sm font-medium transition-all duration-200 cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-1.5 border-l border-sand-dark dark:border-dark-border"
           :class="
-            !isAttending
+            isAttending === 'maybe'
+              ? 'bg-amber-500 text-white shadow-inner'
+              : 'bg-white dark:bg-dark-bg text-charcoal-light dark:text-dark-text-secondary hover:bg-amber-50 dark:hover:bg-amber-900/20'
+          "
+          @click="setAttending('maybe')"
+        >
+          <span class="text-base font-bold">?</span>
+          {{ adminT.rsvps.maybe }}
+        </button>
+
+        <!-- Not Attending -->
+        <button
+          type="button"
+          :disabled="isSubmitting"
+          class="flex-1 px-3 py-2.5 font-body text-sm font-medium transition-all duration-200 cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-1.5 border-l border-sand-dark dark:border-dark-border"
+          :class="
+            isAttending === 'no'
               ? 'bg-red-600 text-white shadow-inner'
               : 'bg-white dark:bg-dark-bg text-charcoal-light dark:text-dark-text-secondary hover:bg-red-50 dark:hover:bg-red-900/20'
           "
-          @click="setAttending(false)"
+          @click="setAttending('no')"
         >
           <svg
             class="w-4 h-4"
@@ -241,70 +295,132 @@
       </div>
     </div>
 
-    <!-- Number of Guests - With smooth transition -->
+    <!-- Number of Adults and Children - With smooth transition -->
     <Transition
       enter-active-class="transition-all duration-300 ease-out"
       enter-from-class="opacity-0 -translate-y-2 max-h-0"
-      enter-to-class="opacity-100 translate-y-0 max-h-32"
+      enter-to-class="opacity-100 translate-y-0 max-h-64"
       leave-active-class="transition-all duration-200 ease-in"
-      leave-from-class="opacity-100 translate-y-0 max-h-32"
+      leave-from-class="opacity-100 translate-y-0 max-h-64"
       leave-to-class="opacity-0 -translate-y-2 max-h-0"
     >
-      <div v-if="isAttending" class="overflow-hidden">
-        <label class="block font-body text-sm text-charcoal dark:text-dark-text mb-1">
-          {{ adminT.rsvps.numberOfGuests }}
-        </label>
-        <div class="flex items-center gap-2">
-          <button
-            type="button"
-            :disabled="isSubmitting || numberOfGuests <= 1"
-            class="w-10 h-10 rounded-lg border border-sand-dark dark:border-dark-border bg-white dark:bg-dark-bg flex items-center justify-center transition-colors hover:bg-sand dark:hover:bg-dark-border disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer flex-shrink-0"
-            @click="numberOfGuests = Math.max(1, numberOfGuests - 1)"
-          >
-            <svg
-              class="w-5 h-5 text-charcoal dark:text-dark-text"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
+      <div v-if="showGuestCount" class="overflow-hidden space-y-3">
+        <!-- Adults -->
+        <div>
+          <label class="block font-body text-sm text-charcoal dark:text-dark-text mb-1">
+            {{ adminT.rsvps.numberOfAdults }} <span class="text-red-500">*</span>
+          </label>
+          <div class="flex items-center gap-2">
+            <button
+              type="button"
+              :disabled="isSubmitting || numberOfAdults <= 1"
+              class="w-10 h-10 rounded-lg border border-sand-dark dark:border-dark-border bg-white dark:bg-dark-bg flex items-center justify-center transition-colors hover:bg-sand dark:hover:bg-dark-border disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer flex-shrink-0"
+              @click="numberOfAdults = Math.max(1, numberOfAdults - 1)"
             >
-              <line x1="5" y1="12" x2="19" y2="12" />
-            </svg>
-          </button>
-          <div class="flex-1 relative">
-            <input
-              type="number"
-              :value="numberOfGuests"
-              min="1"
-              max="10"
-              :disabled="isSubmitting"
-              class="w-full h-10 px-3 font-heading text-xl text-center text-charcoal dark:text-dark-text border border-sand-dark dark:border-dark-border rounded-lg bg-white dark:bg-dark-bg focus:outline-none focus:ring-2 focus:ring-sage/50 disabled:opacity-50 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-              @input="handleGuestInput"
-              @blur="handleGuestInput"
-            />
+              <svg
+                class="w-5 h-5 text-charcoal dark:text-dark-text"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <line x1="5" y1="12" x2="19" y2="12" />
+              </svg>
+            </button>
+            <div class="flex-1 relative">
+              <input
+                type="number"
+                :value="numberOfAdults"
+                min="1"
+                max="5"
+                :disabled="isSubmitting"
+                class="w-full h-10 px-3 font-heading text-xl text-center text-charcoal dark:text-dark-text border border-sand-dark dark:border-dark-border rounded-lg bg-white dark:bg-dark-bg focus:outline-none focus:ring-2 focus:ring-sage/50 disabled:opacity-50 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                @input="handleAdultInput"
+                @blur="handleAdultInput"
+              />
+            </div>
+            <button
+              type="button"
+              :disabled="isSubmitting || numberOfAdults >= 5"
+              class="w-10 h-10 rounded-lg border border-sand-dark dark:border-dark-border bg-white dark:bg-dark-bg flex items-center justify-center transition-colors hover:bg-sand dark:hover:bg-dark-border disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer flex-shrink-0"
+              @click="numberOfAdults = Math.min(5, numberOfAdults + 1)"
+            >
+              <svg
+                class="w-5 h-5 text-charcoal dark:text-dark-text"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <line x1="12" y1="5" x2="12" y2="19" />
+                <line x1="5" y1="12" x2="19" y2="12" />
+              </svg>
+            </button>
           </div>
-          <button
-            type="button"
-            :disabled="isSubmitting || numberOfGuests >= 10"
-            class="w-10 h-10 rounded-lg border border-sand-dark dark:border-dark-border bg-white dark:bg-dark-bg flex items-center justify-center transition-colors hover:bg-sand dark:hover:bg-dark-border disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer flex-shrink-0"
-            @click="numberOfGuests = Math.min(10, numberOfGuests + 1)"
-          >
-            <svg
-              class="w-5 h-5 text-charcoal dark:text-dark-text"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-            >
-              <line x1="12" y1="5" x2="12" y2="19" />
-              <line x1="5" y1="12" x2="19" y2="12" />
-            </svg>
-          </button>
         </div>
-        <p
-          class="mt-1 font-body text-xs text-charcoal-light dark:text-dark-text-secondary text-center"
-        >
-          {{ adminT.rsvps.guestsRange }}
+
+        <!-- Children -->
+        <div>
+          <label class="block font-body text-sm text-charcoal dark:text-dark-text mb-1">
+            {{ adminT.rsvps.numberOfChildren }}
+          </label>
+          <div class="flex items-center gap-2">
+            <button
+              type="button"
+              :disabled="isSubmitting || numberOfChildren <= 0"
+              class="w-10 h-10 rounded-lg border border-sand-dark dark:border-dark-border bg-white dark:bg-dark-bg flex items-center justify-center transition-colors hover:bg-sand dark:hover:bg-dark-border disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer flex-shrink-0"
+              @click="numberOfChildren = Math.max(0, numberOfChildren - 1)"
+            >
+              <svg
+                class="w-5 h-5 text-charcoal dark:text-dark-text"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <line x1="5" y1="12" x2="19" y2="12" />
+              </svg>
+            </button>
+            <div class="flex-1 relative">
+              <input
+                type="number"
+                :value="numberOfChildren"
+                min="0"
+                max="5"
+                :disabled="isSubmitting"
+                class="w-full h-10 px-3 font-heading text-xl text-center text-charcoal dark:text-dark-text border border-sand-dark dark:border-dark-border rounded-lg bg-white dark:bg-dark-bg focus:outline-none focus:ring-2 focus:ring-sage/50 disabled:opacity-50 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                @input="handleChildrenInput"
+                @blur="handleChildrenInput"
+              />
+            </div>
+            <button
+              type="button"
+              :disabled="isSubmitting || numberOfChildren >= 5"
+              class="w-10 h-10 rounded-lg border border-sand-dark dark:border-dark-border bg-white dark:bg-dark-bg flex items-center justify-center transition-colors hover:bg-sand dark:hover:bg-dark-border disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer flex-shrink-0"
+              @click="numberOfChildren = Math.min(5, numberOfChildren + 1)"
+            >
+              <svg
+                class="w-5 h-5 text-charcoal dark:text-dark-text"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <line x1="12" y1="5" x2="12" y2="19" />
+                <line x1="5" y1="12" x2="19" y2="12" />
+              </svg>
+            </button>
+          </div>
+          <p
+            class="mt-1 font-body text-xs text-charcoal-light dark:text-dark-text-secondary italic"
+          >
+            {{ adminT.rsvps.childrenAgeNote }}
+          </p>
+        </div>
+
+        <!-- Total -->
+        <p class="font-body text-sm text-charcoal dark:text-dark-text text-center font-medium">
+          {{ adminT.rsvps.totalGuests }}: {{ totalGuests }}
         </p>
       </div>
     </Transition>

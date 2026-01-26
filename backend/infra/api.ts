@@ -166,15 +166,15 @@ export function addRsvpAuthRoutes(tokenSecret: sst.Secret) {
     ...functionConfig,
   })
 
-  // PUT /admin/w/{weddingId}/rsvp/{id} - Update RSVP
-  api.route('PUT /admin/w/{weddingId}/rsvp/{id}', {
+  // PUT /admin/w/{weddingId}/rsvps/{id} - Update RSVP
+  api.route('PUT /admin/w/{weddingId}/rsvps/{id}', {
     handler: 'src/functions/rsvp/update.handler',
     link: [table, tokenSecret],
     ...functionConfig,
   })
 
-  // DELETE /admin/w/{weddingId}/rsvp/{id} - Delete RSVP
-  api.route('DELETE /admin/w/{weddingId}/rsvp/{id}', {
+  // DELETE /admin/w/{weddingId}/rsvps/{id} - Delete RSVP
+  api.route('DELETE /admin/w/{weddingId}/rsvps/{id}', {
     handler: 'src/functions/rsvp/delete.handler',
     link: [table, tokenSecret],
     ...functionConfig,

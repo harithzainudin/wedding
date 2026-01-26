@@ -5,12 +5,7 @@ export const DEFAULT_MAX_IMAGES = 50 // Combined count for images + videos
 export const DEFAULT_SHOW_GALLERY = true
 
 // Allowed MIME types
-export const ALLOWED_IMAGE_TYPES = [
-  'image/jpeg',
-  'image/png',
-  'image/webp',
-  'image/gif',
-] as const
+export const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'] as const
 
 export const ALLOWED_VIDEO_TYPES = [
   'video/mp4',

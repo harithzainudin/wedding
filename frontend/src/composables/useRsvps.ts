@@ -6,15 +6,18 @@ import { DEFAULT_RSVP_SETTINGS } from '@/types/rsvp'
 export interface RsvpSummary {
   total: number
   attending: number
+  maybe: number
   notAttending: number
   totalGuests: number
+  totalAdults: number
+  totalChildren: number
 }
 
 export function useRsvps() {
   const rsvps = ref<RsvpSubmission[]>([])
   const isLoading = ref(false)
   const loadError = ref('')
-  const filter = ref<'all' | 'attending' | 'not_attending'>('all')
+  const filter = ref<'all' | 'attending' | 'maybe' | 'not_attending'>('all')
 
   // Multi-tenant context tracking
   const currentWeddingId = ref<string | undefined>(undefined)
@@ -23,8 +26,11 @@ export function useRsvps() {
   const summary = ref<RsvpSummary>({
     total: 0,
     attending: 0,
+    maybe: 0,
     notAttending: 0,
     totalGuests: 0,
+    totalAdults: 0,
+    totalChildren: 0,
   })
 
   // RSVP settings
@@ -41,8 +47,9 @@ export function useRsvps() {
 
   const filteredRsvps = computed(() => {
     if (filter.value === 'all') return rsvps.value
-    if (filter.value === 'attending') return rsvps.value.filter((r) => r.isAttending)
-    return rsvps.value.filter((r) => !r.isAttending)
+    if (filter.value === 'attending') return rsvps.value.filter((r) => r.isAttending === 'yes')
+    if (filter.value === 'maybe') return rsvps.value.filter((r) => r.isAttending === 'maybe')
+    return rsvps.value.filter((r) => r.isAttending === 'no')
   })
 
   const fetchRsvps = async (weddingId?: string): Promise<void> => {
@@ -138,7 +145,7 @@ export function useRsvps() {
     currentWeddingSlug.value = weddingSlug
   }
 
-  const setFilter = (newFilter: 'all' | 'attending' | 'not_attending'): void => {
+  const setFilter = (newFilter: 'all' | 'attending' | 'maybe' | 'not_attending'): void => {
     filter.value = newFilter
   }
 
@@ -158,17 +165,27 @@ export function useRsvps() {
       'Full Name',
       'Phone',
       'Attending',
-      'Guests',
+      'Adults',
+      'Children',
+      'Total Guests',
       'Guest Type',
       'Message',
       'Submitted At',
     ]
+    // Map attendance status to display values
+    const attendanceLabel = (status: string): string => {
+      if (status === 'yes') return 'Yes'
+      if (status === 'maybe') return 'Maybe'
+      return 'No'
+    }
     const rows = rsvps.value.map((r) => [
       r.title,
       r.fullName,
       r.phoneNumber,
-      r.isAttending ? 'Yes' : 'No',
-      r.numberOfGuests.toString(),
+      attendanceLabel(r.isAttending),
+      r.numberOfAdults.toString(),
+      r.numberOfChildren.toString(),
+      (r.numberOfAdults + r.numberOfChildren).toString(),
       r.guestType ?? '',
       `"${r.message.replace(/"/g, '""')}"`,
       r.submittedAt,

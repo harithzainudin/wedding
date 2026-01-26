@@ -91,7 +91,9 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
     // ============================================
     const id = uuidv4()
     const timestamp = new Date().toISOString()
-    const status = data.isAttending ? 'attending' : 'not_attending'
+    // Map attendance status to GSI partition key
+    const statusMap = { yes: 'attending', maybe: 'maybe', no: 'not_attending' } as const
+    const status = statusMap[data.isAttending]
 
     const rsvpItem: Record<string, unknown> = {
       ...Keys.rsvp(weddingId, id),
@@ -101,7 +103,8 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
       title: data.title,
       fullName: data.fullName,
       isAttending: data.isAttending,
-      numberOfGuests: data.numberOfGuests,
+      numberOfAdults: data.numberOfAdults,
+      numberOfChildren: data.numberOfChildren,
       phoneNumber: data.phoneNumber,
       message: data.message ?? '',
       submittedAt: timestamp,

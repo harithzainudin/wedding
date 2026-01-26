@@ -35,6 +35,9 @@ import {
 const client = new DynamoDBClient({})
 const docClient = DynamoDBDocumentClient.from(client)
 
+// Attendance status type
+type AttendanceStatus = 'yes' | 'no' | 'maybe'
+
 interface RsvpRecord {
   pk: string
   sk: string
@@ -42,12 +45,22 @@ interface RsvpRecord {
   weddingId: string
   title: string
   fullName: string
-  isAttending: boolean
-  numberOfGuests: number
+  isAttending: AttendanceStatus | boolean // Support both new and legacy formats
+  numberOfAdults: number
+  numberOfChildren: number
+  // Legacy field - some old records may have this
+  numberOfGuests?: number
   phoneNumber: string
   message: string
   submittedAt: string
   guestType?: AnyGuestType
+}
+
+interface GuestStats {
+  entries: number
+  guests: number
+  adults: number
+  children: number
 }
 
 interface RsvpAnalytics {
@@ -55,10 +68,10 @@ interface RsvpAnalytics {
   avgPartySize: number
   byCategory: GuestCategoryMap
   bySide: {
-    bride: { entries: number; guests: number }
-    groom: { entries: number; guests: number }
-    mutual: { entries: number; guests: number }
-    unknown: { entries: number; guests: number }
+    bride: GuestStats
+    groom: GuestStats
+    mutual: GuestStats
+    unknown: GuestStats
   }
   timeline: Array<{ date: string; cumulative: number; daily: number }>
   partySizeDistribution: {
@@ -70,11 +83,42 @@ interface RsvpAnalytics {
   }
 }
 
-function computeAnalytics(rsvps: RsvpRecord[]): RsvpAnalytics {
-  const attending = rsvps.filter((r) => r.isAttending)
-  const totalGuests = attending.reduce((sum, r) => sum + r.numberOfGuests, 0)
+// Helper to get total guests from a record (handles both new and legacy formats)
+function getTotalGuests(rsvp: RsvpRecord): number {
+  // New format: numberOfAdults + numberOfChildren
+  if (rsvp.numberOfAdults !== undefined) {
+    return rsvp.numberOfAdults + (rsvp.numberOfChildren ?? 0)
+  }
+  // Legacy format: numberOfGuests
+  return rsvp.numberOfGuests ?? 0
+}
 
-  // Attendance rate
+// Helper to normalize attendance status (handles both boolean and string formats)
+function normalizeAttendance(isAttending: AttendanceStatus | boolean): AttendanceStatus {
+  if (typeof isAttending === 'boolean') {
+    return isAttending ? 'yes' : 'no'
+  }
+  return isAttending
+}
+
+// Check if the guest is confirmed attending
+function isConfirmedAttending(isAttending: AttendanceStatus | boolean): boolean {
+  const status = normalizeAttendance(isAttending)
+  return status === 'yes'
+}
+
+// Check if the guest is a maybe
+function isMaybeAttending(isAttending: AttendanceStatus | boolean): boolean {
+  const status = normalizeAttendance(isAttending)
+  return status === 'maybe'
+}
+
+function computeAnalytics(rsvps: RsvpRecord[]): RsvpAnalytics {
+  // Only count confirmed attending (not 'maybe') for firm planning
+  const attending = rsvps.filter((r) => isConfirmedAttending(r.isAttending))
+  const totalGuests = attending.reduce((sum, r) => sum + getTotalGuests(r), 0)
+
+  // Attendance rate: percentage of confirmed attendees
   const attendanceRate = rsvps.length > 0 ? (attending.length / rsvps.length) * 100 : 0
 
   // Average party size (only for attending RSVPs)
@@ -82,25 +126,25 @@ function computeAnalytics(rsvps: RsvpRecord[]): RsvpAnalytics {
 
   // Initialize byCategory
   const byCategory: GuestCategoryMap = {
-    father_guest: { entries: 0, guests: 0 },
-    mother_guest: { entries: 0, guests: 0 },
-    both_parents_guest: { entries: 0, guests: 0 },
-    father_relative: { entries: 0, guests: 0 },
-    mother_relative: { entries: 0, guests: 0 },
-    couple_friend: { entries: 0, guests: 0 },
-    couple_colleague: { entries: 0, guests: 0 },
-    spouse_family: { entries: 0, guests: 0 },
-    mutual_friend: { entries: 0, guests: 0 },
-    other: { entries: 0, guests: 0 },
-    unknown: { entries: 0, guests: 0 },
+    father_guest: { entries: 0, guests: 0, adults: 0, children: 0 },
+    mother_guest: { entries: 0, guests: 0, adults: 0, children: 0 },
+    both_parents_guest: { entries: 0, guests: 0, adults: 0, children: 0 },
+    father_relative: { entries: 0, guests: 0, adults: 0, children: 0 },
+    mother_relative: { entries: 0, guests: 0, adults: 0, children: 0 },
+    couple_friend: { entries: 0, guests: 0, adults: 0, children: 0 },
+    couple_colleague: { entries: 0, guests: 0, adults: 0, children: 0 },
+    spouse_family: { entries: 0, guests: 0, adults: 0, children: 0 },
+    mutual_friend: { entries: 0, guests: 0, adults: 0, children: 0 },
+    other: { entries: 0, guests: 0, adults: 0, children: 0 },
+    unknown: { entries: 0, guests: 0, adults: 0, children: 0 },
   }
 
   // Initialize bySide
-  const bySide = {
-    bride: { entries: 0, guests: 0 },
-    groom: { entries: 0, guests: 0 },
-    mutual: { entries: 0, guests: 0 },
-    unknown: { entries: 0, guests: 0 },
+  const bySide: RsvpAnalytics['bySide'] = {
+    bride: { entries: 0, guests: 0, adults: 0, children: 0 },
+    groom: { entries: 0, guests: 0, adults: 0, children: 0 },
+    mutual: { entries: 0, guests: 0, adults: 0, children: 0 },
+    unknown: { entries: 0, guests: 0, adults: 0, children: 0 },
   }
 
   // Party size distribution (only for attending)
@@ -116,28 +160,35 @@ function computeAnalytics(rsvps: RsvpRecord[]): RsvpAnalytics {
   const timelineMap = new Map<string, number>()
 
   for (const rsvp of rsvps) {
-    // Only count attending RSVPs for guest statistics
-    if (rsvp.isAttending) {
+    // Only count confirmed attending RSVPs for guest statistics (not 'maybe')
+    if (isConfirmedAttending(rsvp.isAttending)) {
+      const guestCount = getTotalGuests(rsvp)
+      const adults = rsvp.numberOfAdults ?? rsvp.numberOfGuests ?? 0
+      const children = rsvp.numberOfChildren ?? 0
+
       // By category
       const category = getGuestCategory(rsvp.guestType)
       byCategory[category].entries++
-      byCategory[category].guests += rsvp.numberOfGuests
+      byCategory[category].guests += guestCount
+      byCategory[category].adults += adults
+      byCategory[category].children += children
 
       // By side
       const side = getGuestSide(rsvp.guestType)
       bySide[side].entries++
-      bySide[side].guests += rsvp.numberOfGuests
+      bySide[side].guests += guestCount
+      bySide[side].adults += adults
+      bySide[side].children += children
 
       // Party size distribution
-      const size = rsvp.numberOfGuests
-      if (size === 1) partySizeDistribution['1']++
-      else if (size === 2) partySizeDistribution['2']++
-      else if (size === 3) partySizeDistribution['3']++
-      else if (size === 4) partySizeDistribution['4']++
+      if (guestCount === 1) partySizeDistribution['1']++
+      else if (guestCount === 2) partySizeDistribution['2']++
+      else if (guestCount === 3) partySizeDistribution['3']++
+      else if (guestCount === 4) partySizeDistribution['4']++
       else partySizeDistribution['5+']++
     }
 
-    // Timeline - count all RSVPs (attending or not)
+    // Timeline - count all RSVPs (attending, maybe, or not attending)
     const date = rsvp.submittedAt.split('T')[0] // Extract YYYY-MM-DD
     if (date) {
       timelineMap.set(date, (timelineMap.get(date) || 0) + 1)
@@ -228,7 +279,8 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
     // ============================================
     let items: RsvpRecord[] = []
 
-    if (status && ['attending', 'not_attending'].includes(status)) {
+    // Valid status filters: attending, maybe, not_attending
+    if (status && ['attending', 'maybe', 'not_attending'].includes(status)) {
       // Query by status using GSI
       const result = await docClient.send(
         new QueryCommand({
@@ -243,9 +295,9 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
       )
       items = (result.Items ?? []) as RsvpRecord[]
     } else {
-      // Query all RSVPs for this wedding by querying both status partitions
-      // RSVPs are stored with gsi1pk: WEDDING#${weddingId}#RSVP_STATUS#attending or #not_attending
-      const [attendingResult, notAttendingResult] = await Promise.all([
+      // Query all RSVPs for this wedding by querying all three status partitions
+      // RSVPs are stored with gsi1pk: WEDDING#${weddingId}#RSVP_STATUS#{attending|maybe|not_attending}
+      const [attendingResult, maybeResult, notAttendingResult] = await Promise.all([
         docClient.send(
           new QueryCommand({
             TableName: Resource.AppDataTable.name,
@@ -253,6 +305,17 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
             KeyConditionExpression: 'gsi1pk = :pk',
             ExpressionAttributeValues: {
               ':pk': `WEDDING#${weddingId}#RSVP_STATUS#attending`,
+            },
+            ScanIndexForward: false,
+          })
+        ),
+        docClient.send(
+          new QueryCommand({
+            TableName: Resource.AppDataTable.name,
+            IndexName: 'byStatus',
+            KeyConditionExpression: 'gsi1pk = :pk',
+            ExpressionAttributeValues: {
+              ':pk': `WEDDING#${weddingId}#RSVP_STATUS#maybe`,
             },
             ScanIndexForward: false,
           })
@@ -273,18 +336,21 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
       // Combine and sort by submittedAt descending
       const allItems = [
         ...((attendingResult.Items ?? []) as RsvpRecord[]),
+        ...((maybeResult.Items ?? []) as RsvpRecord[]),
         ...((notAttendingResult.Items ?? []) as RsvpRecord[]),
       ]
       items = allItems.sort((a, b) => b.submittedAt.localeCompare(a.submittedAt))
     }
 
-    // Transform items for response
+    // Transform items for response (normalize isAttending to string format)
     const rsvps = items.map((item) => ({
       id: item.id,
       title: item.title,
       fullName: item.fullName,
-      isAttending: item.isAttending,
-      numberOfGuests: item.numberOfGuests,
+      isAttending: normalizeAttendance(item.isAttending),
+      // New format
+      numberOfAdults: item.numberOfAdults ?? item.numberOfGuests ?? 0,
+      numberOfChildren: item.numberOfChildren ?? 0,
       phoneNumber: item.phoneNumber,
       message: item.message,
       submittedAt: item.submittedAt,
@@ -306,8 +372,15 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
     }
 
     // Authenticated response - full data with summary statistics, settings, and analytics
-    const attending = rsvps.filter((r) => r.isAttending)
-    const totalGuests = attending.reduce((sum, r) => sum + r.numberOfGuests, 0)
+    // Count each category separately
+    const attending = rsvps.filter((r) => isConfirmedAttending(r.isAttending))
+    const maybe = rsvps.filter((r) => isMaybeAttending(r.isAttending))
+    const notAttending = rsvps.length - attending.length - maybe.length
+
+    // Guest counts are based on confirmed attending only
+    const totalAdults = attending.reduce((sum, r) => sum + r.numberOfAdults, 0)
+    const totalChildren = attending.reduce((sum, r) => sum + r.numberOfChildren, 0)
+    const totalGuests = totalAdults + totalChildren
 
     // Fetch RSVP settings
     const settingsResult = await docClient.send(
@@ -329,8 +402,11 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
         summary: {
           total: rsvps.length,
           attending: attending.length,
-          notAttending: rsvps.length - attending.length,
+          maybe: maybe.length,
+          notAttending,
           totalGuests,
+          totalAdults,
+          totalChildren,
         },
         settings,
         analytics,

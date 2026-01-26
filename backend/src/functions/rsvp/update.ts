@@ -37,11 +37,15 @@ const VALID_TITLES = [
 
 type HonorificTitle = (typeof VALID_TITLES)[number]
 
+// Attendance status - supports Yes, No, and Maybe options
+type AttendanceStatus = 'yes' | 'no' | 'maybe'
+
 interface AdminRsvpInput {
   title?: string
   fullName: string
-  isAttending: boolean
-  numberOfGuests: number
+  isAttending: AttendanceStatus
+  numberOfAdults: number
+  numberOfChildren: number
   phoneNumber?: string
   message?: string
   guestType?: AnyGuestType | null // null means remove
@@ -72,19 +76,39 @@ function validateAdminRsvpInput(input: unknown):
     }
   }
 
-  if (typeof body.isAttending !== 'boolean') {
-    return { valid: false, error: 'Attendance status is required' }
+  // Validate attendance - must be 'yes', 'no', or 'maybe'
+  const validAttendanceValues: AttendanceStatus[] = ['yes', 'no', 'maybe']
+  if (
+    typeof body.isAttending !== 'string' ||
+    !validAttendanceValues.includes(body.isAttending as AttendanceStatus)
+  ) {
+    return { valid: false, error: 'Attendance status must be yes, no, or maybe' }
   }
 
-  if (body.isAttending) {
+  // Validate number of adults (required if attending or maybe, at least 1)
+  if (body.isAttending === 'yes' || body.isAttending === 'maybe') {
     if (
-      typeof body.numberOfGuests !== 'number' ||
-      body.numberOfGuests < 1 ||
-      body.numberOfGuests > 10
+      typeof body.numberOfAdults !== 'number' ||
+      body.numberOfAdults < 1 ||
+      body.numberOfAdults > 5
     ) {
       return {
         valid: false,
-        error: 'Number of guests must be between 1 and 10',
+        error: 'Number of adults must be between 1 and 5',
+      }
+    }
+
+    // Validate number of children (optional, 0-5)
+    if (body.numberOfChildren !== undefined) {
+      if (
+        typeof body.numberOfChildren !== 'number' ||
+        body.numberOfChildren < 0 ||
+        body.numberOfChildren > 5
+      ) {
+        return {
+          valid: false,
+          error: 'Number of children must be between 0 and 5',
+        }
       }
     }
   }
@@ -124,13 +148,19 @@ function validateAdminRsvpInput(input: unknown):
     validatedGuestType = body.guestType as AnyGuestType
   }
 
+  // For 'no' responses, set guest counts to 0
+  const shouldHaveGuestCounts = body.isAttending === 'yes' || body.isAttending === 'maybe'
+
   return {
     valid: true,
     data: {
       title: body.title as string | undefined,
       fullName: body.fullName.trim(),
-      isAttending: body.isAttending,
-      numberOfGuests: body.isAttending ? (body.numberOfGuests as number) : 0,
+      isAttending: body.isAttending as AttendanceStatus,
+      numberOfAdults: shouldHaveGuestCounts ? (body.numberOfAdults as number) : 0,
+      numberOfChildren: shouldHaveGuestCounts
+        ? ((body.numberOfChildren as number | undefined) ?? 0)
+        : 0,
       phoneNumber: cleanPhone || undefined,
       message: typeof body.message === 'string' ? body.message.trim() : undefined,
       guestType: validatedGuestType,
@@ -223,7 +253,9 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
 
     const { data } = validation
     const timestamp = new Date().toISOString()
-    const status = data.isAttending ? 'attending' : 'not_attending'
+    // Map attendance status to GSI partition key
+    const statusMap = { yes: 'attending', maybe: 'maybe', no: 'not_attending' } as const
+    const status = statusMap[data.isAttending]
 
     // ============================================
     // 7. Update RSVP Record
@@ -236,7 +268,8 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
       title: data.title ?? '',
       fullName: data.fullName,
       isAttending: data.isAttending,
-      numberOfGuests: data.numberOfGuests,
+      numberOfAdults: data.numberOfAdults,
+      numberOfChildren: data.numberOfChildren,
       phoneNumber: data.phoneNumber ?? '',
       message: data.message ?? '',
       submittedAt: existingItem.submittedAt,

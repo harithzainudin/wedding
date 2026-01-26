@@ -43,16 +43,33 @@
     })
   })
 
-  const guestOptions = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+  const adultOptions = [1, 2, 3, 4, 5]
+  const childrenOptions = [0, 1, 2, 3, 4, 5]
 
   const formData = reactive<RsvpFormData>({
     title: 'Encik',
     fullName: '',
-    isAttending: true,
-    numberOfGuests: 1,
+    isAttending: 'yes',
+    numberOfAdults: 1,
+    numberOfChildren: 0,
     phoneNumber: '',
     message: '',
   })
+
+  // Show guest count section for 'yes' and 'maybe' responses
+  const showGuestCount = computed(() => {
+    return formData.isAttending === 'yes' || formData.isAttending === 'maybe'
+  })
+
+  // Get the appropriate hint message based on attendance status
+  const guestCountHint = computed(() => {
+    if (formData.isAttending === 'yes') return t.value.rsvp.guestCountHintYes
+    if (formData.isAttending === 'maybe') return t.value.rsvp.guestCountHintMaybe
+    return ''
+  })
+
+  // Computed total guests for display
+  const totalGuests = computed(() => formData.numberOfAdults + formData.numberOfChildren)
 
   // Computed guest type options based on wedding type
   const guestTypeOptions = computed(() => {
@@ -249,52 +266,141 @@
             {{ t.rsvp.attendance }} *
           </label>
           <div class="space-y-2">
+            <!-- Yes, I will attend -->
             <label
-              class="flex items-center gap-2 cursor-pointer p-2 -m-2 rounded-lg active:bg-sand/50 dark:active:bg-dark-bg-elevated/50"
+              class="flex items-center gap-3 cursor-pointer p-3 rounded-lg border-2 transition-all"
+              :class="
+                formData.isAttending === 'yes'
+                  ? 'border-green-500 bg-green-50 dark:bg-green-900/20'
+                  : 'border-sand-dark dark:border-dark-border hover:border-green-300 dark:hover:border-green-700'
+              "
             >
               <input
                 v-model="formData.isAttending"
                 type="radio"
-                :value="true"
-                class="w-4 h-4 accent-sage"
+                value="yes"
+                class="w-4 h-4 accent-green-600"
               />
-              <span class="font-body text-sm sm:text-base text-charcoal dark:text-dark-text">
-                {{ t.rsvp.attending }}
-              </span>
+              <div class="flex items-center gap-2">
+                <span class="text-green-600 dark:text-green-400 text-lg">✓</span>
+                <span class="font-body text-sm sm:text-base text-charcoal dark:text-dark-text">
+                  {{ t.rsvp.attending }}
+                </span>
+              </div>
             </label>
+
+            <!-- Maybe, I'm not sure yet -->
             <label
-              class="flex items-center gap-2 cursor-pointer p-2 -m-2 rounded-lg active:bg-sand/50 dark:active:bg-dark-bg-elevated/50"
+              class="flex items-center gap-3 cursor-pointer p-3 rounded-lg border-2 transition-all"
+              :class="
+                formData.isAttending === 'maybe'
+                  ? 'border-amber-500 bg-amber-50 dark:bg-amber-900/20'
+                  : 'border-sand-dark dark:border-dark-border hover:border-amber-300 dark:hover:border-amber-700'
+              "
             >
               <input
                 v-model="formData.isAttending"
                 type="radio"
-                :value="false"
-                class="w-4 h-4 accent-sage"
+                value="maybe"
+                class="w-4 h-4 accent-amber-600"
               />
-              <span class="font-body text-sm sm:text-base text-charcoal dark:text-dark-text">
-                {{ t.rsvp.notAttending }}
-              </span>
+              <div class="flex items-center gap-2">
+                <span class="text-amber-600 dark:text-amber-400 text-lg">?</span>
+                <span class="font-body text-sm sm:text-base text-charcoal dark:text-dark-text">
+                  {{ t.rsvp.maybe }}
+                </span>
+              </div>
+            </label>
+
+            <!-- Sorry, I cannot attend -->
+            <label
+              class="flex items-center gap-3 cursor-pointer p-3 rounded-lg border-2 transition-all"
+              :class="
+                formData.isAttending === 'no'
+                  ? 'border-red-400 bg-red-50 dark:bg-red-900/20'
+                  : 'border-sand-dark dark:border-dark-border hover:border-red-300 dark:hover:border-red-700'
+              "
+            >
+              <input
+                v-model="formData.isAttending"
+                type="radio"
+                value="no"
+                class="w-4 h-4 accent-red-500"
+              />
+              <div class="flex items-center gap-2">
+                <span class="text-red-500 dark:text-red-400 text-lg">✗</span>
+                <span class="font-body text-sm sm:text-base text-charcoal dark:text-dark-text">
+                  {{ t.rsvp.notAttending }}
+                </span>
+              </div>
             </label>
           </div>
         </div>
 
-        <!-- Number of Guests (shown only if attending) -->
-        <div v-if="formData.isAttending">
-          <label
-            for="numberOfGuests"
-            class="block font-body text-xs sm:text-sm font-medium text-charcoal dark:text-dark-text mb-1"
+        <!-- Number of Guests (shown for 'yes' and 'maybe' responses) -->
+        <div v-if="showGuestCount" class="space-y-3">
+          <!-- Warm hint message -->
+          <p
+            class="font-body text-xs sm:text-sm text-center p-3 rounded-lg"
+            :class="
+              formData.isAttending === 'yes'
+                ? 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300'
+                : 'bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-300'
+            "
           >
-            {{ t.rsvp.numberOfGuests }}
-          </label>
-          <select
-            id="numberOfGuests"
-            v-model="formData.numberOfGuests"
-            class="w-full px-3 py-2.5 font-body text-sm sm:text-base border border-sand-dark dark:border-dark-border rounded-lg bg-sand dark:bg-dark-bg-elevated text-charcoal dark:text-dark-text focus:outline-none focus:border-sage"
+            {{ guestCountHint }}
+          </p>
+
+          <!-- Adults and Children in a row -->
+          <div class="flex gap-3">
+            <!-- Number of Adults -->
+            <div class="flex-1">
+              <label
+                for="numberOfAdults"
+                class="block font-body text-xs sm:text-sm font-medium text-charcoal dark:text-dark-text mb-1"
+              >
+                {{ t.rsvp.numberOfAdults }} *
+              </label>
+              <select
+                id="numberOfAdults"
+                v-model="formData.numberOfAdults"
+                class="w-full px-3 py-2.5 font-body text-sm sm:text-base border border-sand-dark dark:border-dark-border rounded-lg bg-sand dark:bg-dark-bg-elevated text-charcoal dark:text-dark-text focus:outline-none focus:border-sage"
+              >
+                <option v-for="num in adultOptions" :key="num" :value="num">
+                  {{ num }}
+                </option>
+              </select>
+            </div>
+
+            <!-- Number of Children -->
+            <div class="flex-1">
+              <label
+                for="numberOfChildren"
+                class="block font-body text-xs sm:text-sm font-medium text-charcoal dark:text-dark-text mb-1"
+              >
+                {{ t.rsvp.numberOfChildren }}
+              </label>
+              <select
+                id="numberOfChildren"
+                v-model="formData.numberOfChildren"
+                class="w-full px-3 py-2.5 font-body text-sm sm:text-base border border-sand-dark dark:border-dark-border rounded-lg bg-sand dark:bg-dark-bg-elevated text-charcoal dark:text-dark-text focus:outline-none focus:border-sage"
+              >
+                <option v-for="num in childrenOptions" :key="num" :value="num">
+                  {{ num }}
+                </option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Helper text and total -->
+          <div
+            class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 text-xs text-charcoal-light dark:text-dark-text-secondary"
           >
-            <option v-for="num in guestOptions" :key="num" :value="num">
-              {{ num }} {{ t.rsvp.guestUnit }}
-            </option>
-          </select>
+            <p class="font-body italic">{{ t.rsvp.childrenAgeNote }}</p>
+            <p class="font-body font-medium">
+              {{ t.rsvp.totalGuests }}: {{ totalGuests }} {{ t.rsvp.guestUnit }}
+            </p>
+          </div>
         </div>
 
         <!-- Phone Number -->
@@ -320,10 +426,7 @@
             @blur="phoneBlurred = true"
           />
           <!-- Inline phone validation error -->
-          <p
-            v-if="showPhoneError"
-            class="mt-1 font-body text-xs text-red-600 dark:text-red-400"
-          >
+          <p v-if="showPhoneError" class="mt-1 font-body text-xs text-red-600 dark:text-red-400">
             {{ t.rsvp.errorPhoneInvalid }}
           </p>
         </div>

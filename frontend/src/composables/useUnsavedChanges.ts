@@ -154,6 +154,46 @@ const handleStay = (): void => {
 }
 
 /**
+ * Save all dirty tabs without navigation (for action bar)
+ * Returns success/error status
+ */
+const saveCurrentDirtyTabs = async (): Promise<{ success: boolean; error?: string }> => {
+  isSaving.value = true
+  saveError.value = null
+
+  try {
+    const dirtyTabEntries = Array.from(dirtyTabs.value.entries())
+
+    for (const [, tabInfo] of dirtyTabEntries) {
+      const result = await tabInfo.save()
+      if (!result.success) {
+        saveError.value = result.error ?? `Failed to save ${tabInfo.tabLabel}`
+        isSaving.value = false
+        return { success: false, error: saveError.value }
+      }
+    }
+
+    // All saves successful
+    isSaving.value = false
+    return { success: true }
+  } catch (err) {
+    saveError.value = err instanceof Error ? err.message : 'Save failed'
+    isSaving.value = false
+    return { success: false, error: saveError.value }
+  }
+}
+
+/**
+ * Discard all dirty tabs without navigation (for action bar)
+ */
+const discardAllDirtyTabs = (): void => {
+  dirtyTabs.value.forEach((tabInfo) => {
+    tabInfo.discard()
+  })
+  saveError.value = null
+}
+
+/**
  * Browser beforeunload handler for preventing accidental tab/window close
  */
 const handleBeforeUnload = (e: BeforeUnloadEvent): void => {
@@ -203,6 +243,10 @@ export function useUnsavedChanges() {
     handleSaveAndContinue,
     handleDiscard,
     handleStay,
+
+    // Action bar methods (no navigation)
+    saveCurrentDirtyTabs,
+    discardAllDirtyTabs,
 
     // Browser beforeunload
     setupBeforeUnloadListener,

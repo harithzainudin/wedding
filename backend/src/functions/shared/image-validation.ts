@@ -1,8 +1,4 @@
-import {
-  ALLOWED_MEDIA_TYPES,
-  type AllowedMediaMimeType,
-  isVideoMimeType,
-} from './image-constants'
+import { ALLOWED_MEDIA_TYPES, type AllowedMediaMimeType, isVideoMimeType } from './image-constants'
 
 export interface ImageUploadRequest {
   filename: string

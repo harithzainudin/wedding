@@ -117,19 +117,27 @@ export function getGuestSide(
   return 'unknown'
 }
 
+// Guest stats type for analytics
+export interface GuestCategoryStats {
+  entries: number
+  guests: number
+  adults: number
+  children: number
+}
+
 // Guest category map for statistics
 export interface GuestCategoryMap {
-  father_guest: { entries: number; guests: number }
-  mother_guest: { entries: number; guests: number }
-  both_parents_guest: { entries: number; guests: number }
-  father_relative: { entries: number; guests: number }
-  mother_relative: { entries: number; guests: number }
-  couple_friend: { entries: number; guests: number }
-  couple_colleague: { entries: number; guests: number }
-  spouse_family: { entries: number; guests: number }
-  mutual_friend: { entries: number; guests: number }
-  other: { entries: number; guests: number }
-  unknown: { entries: number; guests: number }
+  father_guest: GuestCategoryStats
+  mother_guest: GuestCategoryStats
+  both_parents_guest: GuestCategoryStats
+  father_relative: GuestCategoryStats
+  mother_relative: GuestCategoryStats
+  couple_friend: GuestCategoryStats
+  couple_colleague: GuestCategoryStats
+  spouse_family: GuestCategoryStats
+  mutual_friend: GuestCategoryStats
+  other: GuestCategoryStats
+  unknown: GuestCategoryStats
 }
 
 export interface RsvpSettings {

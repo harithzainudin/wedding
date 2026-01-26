@@ -7,13 +7,14 @@
 
   const props = defineProps<{
     attending: number
+    maybe: number
     notAttending: number
   }>()
 
   const { isDark } = useDarkMode()
   const { adminT } = useAdminLanguage()
 
-  const series = computed(() => [props.attending, props.notAttending])
+  const series = computed(() => [props.attending, props.maybe, props.notAttending])
 
   const chartOptions = computed<ApexOptions>(() => ({
     chart: {
@@ -21,8 +22,8 @@
       background: 'transparent',
       fontFamily: 'inherit',
     },
-    labels: [adminT.value.rsvps.attending, adminT.value.rsvps.notAttending],
-    colors: ['#22c55e', '#ef4444'], // green-500, red-500
+    labels: [adminT.value.rsvps.attending, adminT.value.rsvps.maybe, adminT.value.rsvps.notAttending],
+    colors: ['#22c55e', '#f59e0b', '#ef4444'], // green-500, amber-500, red-500
     legend: {
       position: 'bottom',
       labels: {
@@ -59,7 +60,7 @@
               label: adminT.value.rsvps.totalRsvps,
               color: isDark.value ? '#9ca3af' : '#6b7280',
               fontSize: '12px',
-              formatter: () => String(props.attending + props.notAttending),
+              formatter: () => String(props.attending + props.maybe + props.notAttending),
             },
           },
         },

@@ -38,6 +38,8 @@
       categories: filtered.map((key) => categoryLabels.value[key]),
       guests: filtered.map((key) => props.byCategory[key].guests),
       entries: filtered.map((key) => props.byCategory[key].entries),
+      adults: filtered.map((key) => props.byCategory[key].adults),
+      children: filtered.map((key) => props.byCategory[key].children),
     }
   })
 
@@ -95,8 +97,11 @@
       theme: isDark.value ? 'dark' : 'light',
       y: {
         formatter: (val: number, opts) => {
-          const entries = chartData.value.entries[opts.dataPointIndex]
-          return `${val} ${adminT.value.rsvps.guestsLabel} (${entries} ${adminT.value.rsvps.entries})`
+          const idx = opts.dataPointIndex
+          const entries = chartData.value.entries[idx]
+          const adults = chartData.value.adults[idx]
+          const children = chartData.value.children[idx]
+          return `${val} ${adminT.value.rsvps.guestsLabel} (${adults} ${adminT.value.rsvps.adultsLabel}, ${children} ${adminT.value.rsvps.childrenLabel}) · ${entries} ${adminT.value.rsvps.entries}`
         },
       },
     },

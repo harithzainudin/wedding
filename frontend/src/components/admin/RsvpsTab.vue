@@ -234,7 +234,7 @@
 <template>
   <div>
     <!-- Stats Cards -->
-    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
+    <div class="grid grid-cols-2 sm:grid-cols-5 gap-4 mb-8">
       <div class="p-4 bg-white dark:bg-dark-bg-secondary rounded-xl shadow-sm dark:shadow-lg">
         <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary">
           {{ adminT.rsvps.totalRsvps }}
@@ -253,6 +253,14 @@
       </div>
       <div class="p-4 bg-white dark:bg-dark-bg-secondary rounded-xl shadow-sm dark:shadow-lg">
         <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary">
+          {{ adminT.rsvps.maybe }}
+        </p>
+        <p class="font-heading text-2xl text-amber-600 dark:text-amber-400">
+          {{ summary.maybe }}
+        </p>
+      </div>
+      <div class="p-4 bg-white dark:bg-dark-bg-secondary rounded-xl shadow-sm dark:shadow-lg">
+        <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary">
           {{ adminT.rsvps.notAttending }}
         </p>
         <p class="font-heading text-2xl text-red-600 dark:text-red-400">
@@ -265,6 +273,10 @@
         </p>
         <p class="font-heading text-2xl text-sage-dark dark:text-sage-light">
           {{ summary.totalGuests }}
+        </p>
+        <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary mt-1">
+          {{ summary.totalAdults }} {{ adminT.rsvps.adultsLabel }} · {{ summary.totalChildren }}
+          {{ adminT.rsvps.childrenLabel }}
         </p>
       </div>
     </div>
@@ -333,6 +345,7 @@
               </h4>
               <RsvpAttendanceChart
                 :attending="summary.attending"
+                :maybe="summary.maybe"
                 :not-attending="summary.notAttending"
               />
             </div>
@@ -401,6 +414,18 @@
           @click="setFilter('attending')"
         >
           {{ adminT.rsvps.filterAttending }} ({{ summary.attending }})
+        </button>
+        <button
+          type="button"
+          class="px-3 py-1.5 font-body text-sm rounded-full transition-colors cursor-pointer"
+          :class="
+            filter === 'maybe'
+              ? 'bg-amber-500 text-white'
+              : 'bg-white dark:bg-dark-bg-elevated text-charcoal dark:text-dark-text hover:bg-sand-dark dark:hover:bg-dark-border'
+          "
+          @click="setFilter('maybe')"
+        >
+          {{ adminT.rsvps.filterMaybe }} ({{ summary.maybe }})
         </button>
         <button
           type="button"
@@ -527,13 +552,22 @@
               </p>
               <span
                 class="px-2 py-0.5 text-xs font-medium rounded-full"
-                :class="
-                  rsvp.isAttending
-                    ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'
-                    : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300'
-                "
+                :class="{
+                  'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300':
+                    rsvp.isAttending === 'yes',
+                  'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300':
+                    rsvp.isAttending === 'maybe',
+                  'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300':
+                    rsvp.isAttending === 'no',
+                }"
               >
-                {{ rsvp.isAttending ? adminT.rsvps.attending : adminT.rsvps.notAttending }}
+                {{
+                  rsvp.isAttending === 'yes'
+                    ? adminT.rsvps.attending
+                    : rsvp.isAttending === 'maybe'
+                      ? adminT.rsvps.maybe
+                      : adminT.rsvps.notAttending
+                }}
               </span>
               <span
                 v-if="rsvp.source === 'admin'"
@@ -544,11 +578,16 @@
             </div>
             <p class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary">
               <span v-if="rsvp.phoneNumber">{{ rsvp.phoneNumber }}</span>
-              <span v-if="rsvp.phoneNumber && rsvp.isAttending"> &bull; </span>
-              <span v-if="rsvp.isAttending"
-                >{{ rsvp.numberOfGuests }} {{ adminT.rsvps.guests }}</span
+              <span
+                v-if="rsvp.phoneNumber && (rsvp.isAttending === 'yes' || rsvp.isAttending === 'maybe')"
               >
-              <span v-if="!rsvp.phoneNumber && !rsvp.isAttending" class="italic">{{
+                &bull;
+              </span>
+              <span v-if="rsvp.isAttending === 'yes' || rsvp.isAttending === 'maybe'">
+                {{ rsvp.numberOfAdults }} {{ adminT.rsvps.adultsLabel }},
+                {{ rsvp.numberOfChildren }} {{ adminT.rsvps.childrenLabel }}
+              </span>
+              <span v-if="!rsvp.phoneNumber && rsvp.isAttending === 'no'" class="italic">{{
                 adminT.rsvps.noPhoneProvided
               }}</span>
             </p>

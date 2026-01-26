@@ -93,7 +93,11 @@ function validateUpdateLimitsInput(input: unknown): ValidationResult | Validatio
     // Validate maxVideoSize (25MB to 500MB)
     if (gallery.maxVideoSize !== undefined) {
       const maxVideoSize = Number(gallery.maxVideoSize)
-      if (isNaN(maxVideoSize) || maxVideoSize < 25 * 1024 * 1024 || maxVideoSize > 500 * 1024 * 1024) {
+      if (
+        isNaN(maxVideoSize) ||
+        maxVideoSize < 25 * 1024 * 1024 ||
+        maxVideoSize > 500 * 1024 * 1024
+      ) {
         return { valid: false, error: 'Gallery max video size must be between 25MB and 500MB' }
       }
       data.gallery.maxVideoSize = maxVideoSize

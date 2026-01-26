@@ -1,5 +1,8 @@
 import type { HonorificTitle } from './index'
 
+// Attendance status - supports Yes, No, and Maybe options
+export type AttendanceStatus = 'yes' | 'no' | 'maybe'
+
 // Guest Type - for single-side weddings (simpler options)
 export type GuestType =
   | 'father_guest' // Dad's guest
@@ -69,6 +72,8 @@ export const COMBINED_GUEST_TYPES: CombinedGuestType[] = [
 export interface GuestCategoryStats {
   entries: number
   guests: number
+  adults: number
+  children: number
 }
 
 export interface RsvpAnalytics {
@@ -136,8 +141,9 @@ export interface RsvpSettingsResponse {
 export interface RsvpFormData {
   title: HonorificTitle
   fullName: string
-  isAttending: boolean
-  numberOfGuests: number
+  isAttending: AttendanceStatus
+  numberOfAdults: number
+  numberOfChildren: number
   phoneNumber: string
   message: string
   guestType?: AnyGuestType
@@ -151,6 +157,8 @@ export interface RsvpSubmission extends RsvpFormData {
   updatedAt?: string
   updatedBy?: string
   guestType?: AnyGuestType
+  // Legacy field for backward compatibility (computed as numberOfAdults + numberOfChildren)
+  numberOfGuests?: number
 }
 
 // Response data from RSVP submit endpoint (unwrapped)
@@ -166,8 +174,11 @@ export interface RsvpListResponse {
   summary: {
     total: number
     attending: number
+    maybe: number
     notAttending: number
     totalGuests: number
+    totalAdults: number
+    totalChildren: number
   }
   analytics?: RsvpAnalytics
   settings?: RsvpSettings
@@ -177,8 +188,9 @@ export interface RsvpListResponse {
 export interface AdminRsvpRequest {
   title?: HonorificTitle | ''
   fullName: string
-  isAttending: boolean
-  numberOfGuests: number
+  isAttending: AttendanceStatus
+  numberOfAdults: number
+  numberOfChildren: number
   phoneNumber?: string
   message?: string
   guestType?: AnyGuestType | null // null means explicitly remove
