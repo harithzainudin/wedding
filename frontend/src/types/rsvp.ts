@@ -182,6 +182,9 @@ export interface RsvpListResponse {
   }
   analytics?: RsvpAnalytics
   settings?: RsvpSettings
+  // Pagination fields
+  hasMore?: boolean
+  nextKey?: string | null
 }
 
 // Admin RSVP request (create/update)

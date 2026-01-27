@@ -286,14 +286,26 @@ export async function submitRsvp(
   return unwrapResponse(json)
 }
 
+export interface PaginationParams {
+  limit?: number
+  lastKey?: string | null
+}
+
 export async function listRsvps(
-  status?: 'attending' | 'not_attending',
-  weddingId?: string
+  status?: 'attending' | 'maybe' | 'not_attending',
+  weddingId?: string,
+  pagination?: PaginationParams
 ): Promise<RsvpListResponse> {
   const baseUrl = buildAdminUrl('/rsvps', weddingId)
   const url = new URL(baseUrl)
   if (status) {
     url.searchParams.set('status', status)
+  }
+  if (pagination?.limit) {
+    url.searchParams.set('limit', String(pagination.limit))
+  }
+  if (pagination?.lastKey) {
+    url.searchParams.set('lastKey', pagination.lastKey)
   }
 
   return authenticatedFetch<RsvpListResponse>(url.toString(), {

@@ -1799,6 +1799,8 @@ export interface AdminTranslations {
     dismiss: string
     recommended: string
     tip: string
+    loadMore: string
+    loadingMore: string
   }
 
   // Authentication
@@ -2045,6 +2047,9 @@ export interface AdminTranslations {
     person: string
     people: string
     orMore: string
+    // Pagination
+    showingCount: string
+    filterToLoadMore: string
   }
 
   // Gallery
@@ -3049,6 +3054,8 @@ export const adminTranslations: Record<AdminLanguage, AdminTranslations> = {
       dismiss: 'Dismiss',
       recommended: 'Recommended',
       tip: 'Tip',
+      loadMore: 'Load More',
+      loadingMore: 'Loading...',
     },
 
     auth: {
@@ -3291,6 +3298,9 @@ export const adminTranslations: Record<AdminLanguage, AdminTranslations> = {
       person: 'person',
       people: 'people',
       orMore: 'or more',
+      // Pagination
+      showingCount: 'Showing {count} guests',
+      filterToLoadMore: 'Filter by status tab to load more guests',
     },
 
     gallery: {
@@ -4261,6 +4271,8 @@ export const adminTranslations: Record<AdminLanguage, AdminTranslations> = {
       dismiss: 'Abaikan',
       recommended: 'Disyorkan',
       tip: 'Petua',
+      loadMore: 'Muatkan Lagi',
+      loadingMore: 'Memuatkan...',
     },
 
     auth: {
@@ -4505,6 +4517,9 @@ export const adminTranslations: Record<AdminLanguage, AdminTranslations> = {
       person: 'orang',
       people: 'orang',
       orMore: 'atau lebih',
+      // Pagination
+      showingCount: 'Menunjukkan {count} tetamu',
+      filterToLoadMore: 'Tapis mengikut tab status untuk muatkan lebih banyak tetamu',
     },
 
     gallery: {

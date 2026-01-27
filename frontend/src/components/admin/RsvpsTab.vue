@@ -48,7 +48,16 @@
     rsvpSettings,
     updateSettings,
     analytics,
+    // Pagination
+    hasMore,
+    isLoadingMore,
+    loadMoreRsvps,
   } = useRsvps()
+
+  // Handle load more button click
+  const handleLoadMore = async () => {
+    await loadMoreRsvps(weddingId.value ?? undefined)
+  }
 
   // Local state for other settings (saved when clicking save button in modal)
   const localAcceptingRsvps = ref(true)
@@ -646,6 +655,61 @@
             </div>
           </div>
         </div>
+      </div>
+
+      <!-- Load More Button -->
+      <div v-if="hasMore && filter !== 'all'" class="flex justify-center mt-6">
+        <button
+          type="button"
+          :disabled="isLoadingMore"
+          class="px-6 py-2 font-body text-sm text-white bg-sage rounded-lg hover:bg-sage-dark transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+          @click="handleLoadMore"
+        >
+          <span v-if="isLoadingMore" class="flex items-center gap-2">
+            <svg
+              class="animate-spin h-4 w-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <circle
+                cx="12"
+                cy="12"
+                r="10"
+                stroke-width="4"
+                class="opacity-25"
+                stroke="currentColor"
+              />
+              <path
+                class="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+              />
+            </svg>
+            {{ adminT.common.loadingMore }}
+          </span>
+          <span v-else>{{ adminT.common.loadMore }}</span>
+        </button>
+      </div>
+
+      <!-- Info message for "All" view when there's more data -->
+      <div
+        v-else-if="hasMore && filter === 'all'"
+        class="text-center mt-4 p-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg"
+      >
+        <p class="font-body text-sm text-amber-700 dark:text-amber-300">
+          {{ adminT.rsvps.filterToLoadMore }}
+        </p>
+      </div>
+
+      <!-- Count indicator when all loaded -->
+      <div
+        v-else-if="!hasMore && filteredRsvps.length > 0"
+        class="text-center mt-4 text-charcoal-light dark:text-dark-text-secondary"
+      >
+        <p class="font-body text-sm">
+          {{ interpolate(adminT.rsvps.showingCount, { count: String(filteredRsvps.length) }) }}
+        </p>
       </div>
     </div>
 

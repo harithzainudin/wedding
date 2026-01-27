@@ -45,6 +45,11 @@ export function useRsvps() {
   const isDeleting = ref(false)
   const operationError = ref('')
 
+  // Pagination state
+  const hasMore = ref(false)
+  const nextKey = ref<string | null>(null)
+  const isLoadingMore = ref(false)
+
   const filteredRsvps = computed(() => {
     if (filter.value === 'all') return rsvps.value
     if (filter.value === 'attending') return rsvps.value.filter((r) => r.isAttending === 'yes')
@@ -61,6 +66,10 @@ export function useRsvps() {
       currentWeddingId.value = weddingId
     }
 
+    // Reset pagination state on fresh fetch
+    hasMore.value = false
+    nextKey.value = null
+
     try {
       const data = await listRsvps(undefined, weddingId ?? currentWeddingId.value)
       rsvps.value = data.rsvps
@@ -71,10 +80,55 @@ export function useRsvps() {
       if (data.analytics) {
         analytics.value = data.analytics
       }
+      // Capture pagination state
+      hasMore.value = data.hasMore ?? false
+      nextKey.value = data.nextKey ?? null
     } catch {
       loadError.value = 'Failed to load RSVPs. Please try again.'
     } finally {
       isLoading.value = false
+    }
+  }
+
+  /**
+   * Load more RSVPs (pagination).
+   * Only works when filtering by a specific status (not "all" view).
+   */
+  const loadMoreRsvps = async (weddingId?: string): Promise<void> => {
+    // Can't load more if no more data or already loading
+    if (!hasMore.value || isLoadingMore.value || !nextKey.value) return
+
+    // Pagination only works with status filter, not "all" view
+    if (filter.value === 'all') {
+      // For "all" view, user needs to switch to a status tab to paginate
+      return
+    }
+
+    isLoadingMore.value = true
+    loadError.value = ''
+
+    const effectiveWeddingId = weddingId ?? currentWeddingId.value
+
+    try {
+      // Map filter to API status param
+      const statusParam = filter.value === 'attending' ? 'attending' : filter.value
+      const data = await listRsvps(statusParam, effectiveWeddingId, {
+        limit: 50,
+        lastKey: nextKey.value,
+      })
+
+      // Append new RSVPs to existing list
+      rsvps.value = [...rsvps.value, ...data.rsvps]
+
+      // Update pagination state
+      hasMore.value = data.hasMore ?? false
+      nextKey.value = data.nextKey ?? null
+
+      // Note: We don't update summary/analytics on loadMore since they represent full data
+    } catch {
+      loadError.value = 'Failed to load more RSVPs. Please try again.'
+    } finally {
+      isLoadingMore.value = false
     }
   }
 
@@ -250,5 +304,10 @@ export function useRsvps() {
     updateSettings,
     // Analytics
     analytics,
+    // Pagination
+    hasMore,
+    nextKey,
+    isLoadingMore,
+    loadMoreRsvps,
   }
 }

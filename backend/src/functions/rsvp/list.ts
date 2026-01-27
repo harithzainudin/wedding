@@ -16,6 +16,11 @@ import { createSuccessResponse, createErrorResponse } from '../shared/response'
 import { requireWeddingAccess } from '../shared/auth'
 import { logError } from '../shared/logger'
 import {
+  parsePaginationParams,
+  encodeNextKey,
+  buildQueryPaginationOptions,
+} from '../shared/pagination'
+import {
   resolveWeddingSlug,
   requireActiveWedding,
   getWeddingById,
@@ -275,13 +280,22 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
     const status = event.queryStringParameters?.status
 
     // ============================================
+    // Parse pagination parameters
+    // ============================================
+    // For status-filtered queries: default 50, max 100
+    // For "all" view: limit each partition to 100 (300 total max)
+    const pagination = parsePaginationParams(event.queryStringParameters, 50, 100)
+
+    // ============================================
     // Query RSVPs for this wedding
     // ============================================
     let items: RsvpRecord[] = []
+    let hasMore = false
+    let nextKey: string | null = null
 
     // Valid status filters: attending, maybe, not_attending
     if (status && ['attending', 'maybe', 'not_attending'].includes(status)) {
-      // Query by status using GSI
+      // Query by status using GSI with pagination
       const result = await docClient.send(
         new QueryCommand({
           TableName: Resource.AppDataTable.name,
@@ -291,12 +305,17 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
             ':pk': `WEDDING#${weddingId}#RSVP_STATUS#${status}`,
           },
           ScanIndexForward: false,
+          ...buildQueryPaginationOptions(pagination),
         })
       )
       items = (result.Items ?? []) as RsvpRecord[]
+      hasMore = !!result.LastEvaluatedKey
+      nextKey = encodeNextKey(result.LastEvaluatedKey)
     } else {
       // Query all RSVPs for this wedding by querying all three status partitions
       // RSVPs are stored with gsi1pk: WEDDING#${weddingId}#RSVP_STATUS#{attending|maybe|not_attending}
+      // Limit each partition to 100 to prevent excessive data transfer (300 total max)
+      const PARTITION_LIMIT = 100
       const [attendingResult, maybeResult, notAttendingResult] = await Promise.all([
         docClient.send(
           new QueryCommand({
@@ -307,6 +326,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
               ':pk': `WEDDING#${weddingId}#RSVP_STATUS#attending`,
             },
             ScanIndexForward: false,
+            Limit: PARTITION_LIMIT,
           })
         ),
         docClient.send(
@@ -318,6 +338,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
               ':pk': `WEDDING#${weddingId}#RSVP_STATUS#maybe`,
             },
             ScanIndexForward: false,
+            Limit: PARTITION_LIMIT,
           })
         ),
         docClient.send(
@@ -329,6 +350,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
               ':pk': `WEDDING#${weddingId}#RSVP_STATUS#not_attending`,
             },
             ScanIndexForward: false,
+            Limit: PARTITION_LIMIT,
           })
         ),
       ])
@@ -340,6 +362,14 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
         ...((notAttendingResult.Items ?? []) as RsvpRecord[]),
       ]
       items = allItems.sort((a, b) => b.submittedAt.localeCompare(a.submittedAt))
+
+      // If any partition has more data, indicate hasMore
+      // User should filter by status tab to paginate through specific partitions
+      hasMore =
+        !!attendingResult.LastEvaluatedKey ||
+        !!maybeResult.LastEvaluatedKey ||
+        !!notAttendingResult.LastEvaluatedKey
+      // nextKey is null for "all" view - user must filter by status to paginate
     }
 
     // Transform items for response (normalize isAttending to string format)
@@ -410,6 +440,9 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
         },
         settings,
         analytics,
+        // Pagination fields
+        hasMore,
+        nextKey,
       },
       context
     )
