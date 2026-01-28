@@ -4,6 +4,7 @@
   import { useAdminLanguage } from '@/composables/useAdminLanguage'
   import { useLoadingOverlay } from '@/composables/useLoadingOverlay'
   import { usePublicWeddingData } from '@/composables/usePublicWeddingData'
+  import { useDesign } from '@/composables/useDesign'
   import { getStoredPrimaryWeddingId } from '@/services/tokenManager'
   import type {
     EventDisplayFormat,
@@ -37,6 +38,12 @@
   const { adminT } = useAdminLanguage()
   const { withLoading } = useLoadingOverlay()
   const { fetchPublicData } = usePublicWeddingData()
+  const { designSettings, loadDesign, isLoaded: isDesignLoaded } = useDesign()
+
+  // Check if current layout is invitation card (for preview feature)
+  const isInvitationCardLayout = computed(
+    () => isDesignLoaded.value && designSettings.value.layoutId === 'invitation-card'
+  )
 
   // Get wedding ID for API calls
   const weddingId = computed(() => getStoredPrimaryWeddingId())
@@ -79,6 +86,48 @@
   const toggleSection = (section: keyof typeof expandedSections.value) => {
     expandedSections.value[section] = !expandedSections.value[section]
   }
+
+  // Helper to split name by newlines for multi-line preview
+  const splitNameLines = (name: string | undefined): string[] => {
+    if (!name) return []
+    return name
+      .split('\n')
+      .map((line) => line.trim())
+      .filter(Boolean)
+  }
+
+  // Preview names for invitation card (uses form data for real-time preview)
+  const previewFirstNameLines = computed(() => {
+    const isBrideFirst = formData.value.displayNameOrder === 'bride_first'
+    const person = isBrideFirst ? formData.value.couple.bride : formData.value.couple.groom
+    const fullName = person.fullName || person.nickname || ''
+    return splitNameLines(fullName)
+  })
+
+  const previewSecondNameLines = computed(() => {
+    const isBrideFirst = formData.value.displayNameOrder === 'bride_first'
+    const person = isBrideFirst ? formData.value.couple.groom : formData.value.couple.bride
+    const fullName = person.fullName || person.nickname || ''
+    return splitNameLines(fullName)
+  })
+
+  const previewHasNames = computed(
+    () => previewFirstNameLines.value.length > 0 || previewSecondNameLines.value.length > 0
+  )
+
+  // Format preview date
+  const previewFormattedDate = computed(() => {
+    if (!formData.value.eventDate) return ''
+    try {
+      return new Date(formData.value.eventDate).toLocaleDateString('en-GB', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+      })
+    } catch {
+      return ''
+    }
+  })
 
   // Local form state
   const formData = ref({
@@ -509,6 +558,11 @@
   onMounted(async () => {
     await fetchWeddingDetails(props.weddingSlug)
     syncFormData()
+
+    // Load design settings for invitation card preview feature
+    if (props.weddingSlug) {
+      await loadDesign(props.weddingSlug)
+    }
   })
 
   // Watch for wedding slug changes (user switching between weddings)
@@ -519,6 +573,8 @@
       if (newSlug && newSlug !== oldSlug) {
         await fetchWeddingDetails(newSlug)
         syncFormData()
+        // Reload design settings for the new wedding
+        await loadDesign(newSlug)
       }
     }
   )
@@ -648,13 +704,18 @@
                     >
                       {{ adminT.wedding.fullName }}
                     </label>
-                    <input
+                    <textarea
                       v-model="formData.couple.bride.fullName"
-                      type="text"
-                      class="w-full px-3 py-2.5 font-body text-base border border-sand-dark dark:border-dark-border rounded-lg bg-sand dark:bg-dark-bg-elevated text-charcoal dark:text-dark-text focus:outline-none focus:border-sage"
+                      rows="2"
+                      class="w-full px-3 py-2.5 font-body text-base border border-sand-dark dark:border-dark-border rounded-lg bg-sand dark:bg-dark-bg-elevated text-charcoal dark:text-dark-text focus:outline-none focus:border-sage resize-none"
                       :placeholder="adminT.wedding.fullNamePlaceholder"
                       :disabled="isSaving"
                     />
+                    <p
+                      class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary mt-1"
+                    >
+                      {{ adminT.wedding.fullNameMultilineHint }}
+                    </p>
                   </div>
                   <div>
                     <label
@@ -683,13 +744,18 @@
                     >
                       {{ adminT.wedding.fullName }}
                     </label>
-                    <input
+                    <textarea
                       v-model="formData.couple.groom.fullName"
-                      type="text"
-                      class="w-full px-3 py-2.5 font-body text-base border border-sand-dark dark:border-dark-border rounded-lg bg-sand dark:bg-dark-bg-elevated text-charcoal dark:text-dark-text focus:outline-none focus:border-sage"
+                      rows="2"
+                      class="w-full px-3 py-2.5 font-body text-base border border-sand-dark dark:border-dark-border rounded-lg bg-sand dark:bg-dark-bg-elevated text-charcoal dark:text-dark-text focus:outline-none focus:border-sage resize-none"
                       :placeholder="adminT.wedding.fullNamePlaceholder"
                       :disabled="isSaving"
                     />
+                    <p
+                      class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary mt-1"
+                    >
+                      {{ adminT.wedding.fullNameMultilineHint }}
+                    </p>
                   </div>
                   <div>
                     <label
@@ -710,6 +776,110 @@
             </div>
           </div>
         </div>
+      </div>
+
+      <!-- Invitation Card Preview (only shown when layout is invitation-card) -->
+      <div
+        v-if="isInvitationCardLayout && previewHasNames"
+        class="bg-white dark:bg-dark-bg-secondary rounded-lg border border-sage/50 p-4 sm:p-6"
+      >
+        <div class="flex items-center gap-2 mb-4">
+          <svg class="w-5 h-5 text-sage" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+            />
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+            />
+          </svg>
+          <h3 class="font-heading text-base font-medium text-sage-dark dark:text-sage-light">
+            {{ adminT.wedding.invitationCardPreview }}
+          </h3>
+        </div>
+        <p class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary mb-4">
+          {{ adminT.wedding.invitationCardPreviewDesc }}
+        </p>
+
+        <!-- Preview Card -->
+        <div
+          class="border-2 border-sage/30 rounded-xl p-6 sm:p-8 bg-gradient-to-br from-sand via-sand to-sand-dark dark:from-dark-bg dark:via-dark-bg-secondary dark:to-dark-bg text-center max-w-sm mx-auto"
+        >
+          <!-- Decorative Heart -->
+          <div class="mb-4">
+            <svg
+              class="w-10 h-10 mx-auto text-sage opacity-60"
+              viewBox="0 0 24 24"
+              fill="currentColor"
+            >
+              <path
+                d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"
+              />
+            </svg>
+          </div>
+
+          <!-- First Person's Name (multi-line) -->
+          <div class="mb-2">
+            <p
+              v-for="(line, index) in previewFirstNameLines"
+              :key="`preview-first-${index}`"
+              class="font-heading text-xl sm:text-2xl text-charcoal dark:text-dark-text leading-tight"
+            >
+              {{ line }}
+            </p>
+          </div>
+
+          <!-- Ampersand Separator -->
+          <p class="font-heading text-lg text-charcoal-light dark:text-dark-text-secondary my-2">
+            &amp;
+          </p>
+
+          <!-- Second Person's Name (multi-line) -->
+          <div class="mt-2">
+            <p
+              v-for="(line, index) in previewSecondNameLines"
+              :key="`preview-second-${index}`"
+              class="font-heading text-xl sm:text-2xl text-charcoal dark:text-dark-text leading-tight"
+            >
+              {{ line }}
+            </p>
+          </div>
+
+          <!-- Wedding Date -->
+          <p
+            v-if="previewFormattedDate"
+            class="font-body text-sm text-charcoal-light dark:text-dark-text-secondary mt-4"
+          >
+            {{ previewFormattedDate }}
+          </p>
+
+          <!-- Open Invitation Button (static preview) -->
+          <div
+            class="inline-flex items-center gap-2 px-5 py-2.5 bg-sage text-white font-body font-medium text-sm rounded-full mt-4 opacity-80"
+          >
+            <span>{{ adminT.wedding.openInvitationPreview }}</span>
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M9 5l7 7-7 7"
+              />
+            </svg>
+          </div>
+        </div>
+
+        <!-- Preview Note -->
+        <p
+          class="font-body text-xs text-charcoal-light dark:text-dark-text-secondary mt-3 text-center italic"
+        >
+          {{ adminT.wedding.invitationCardPreviewNote }}
+        </p>
       </div>
 
       <!-- Name Display Order Setting -->

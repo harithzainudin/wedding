@@ -173,10 +173,19 @@ function validateCoupleInfo(
   if (typeof obj.fullName !== 'string' || !obj.fullName.trim()) {
     return { valid: false, error: `${label} full name is required` }
   }
-  if (obj.fullName.length > 100) {
+  // Increased limit to 150 to accommodate multi-line names
+  if (obj.fullName.length > 150) {
     return {
       valid: false,
-      error: `${label} full name must be 100 characters or less`,
+      error: `${label} full name must be 150 characters or less`,
+    }
+  }
+  // Validate line count (max 4 lines for reasonable display on invitation card)
+  const lines = obj.fullName.split('\n').filter((line: string) => line.trim() !== '')
+  if (lines.length > 4) {
+    return {
+      valid: false,
+      error: `${label} full name can have at most 4 lines`,
     }
   }
 
@@ -190,10 +199,17 @@ function validateCoupleInfo(
     }
   }
 
+  // Preserve newlines while trimming each line
+  const trimmedFullName = obj.fullName
+    .split('\n')
+    .map((line: string) => line.trim())
+    .join('\n')
+    .trim()
+
   return {
     valid: true,
     data: {
-      fullName: obj.fullName.trim(),
+      fullName: trimmedFullName,
       nickname: obj.nickname.trim(),
     },
   }

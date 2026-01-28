@@ -8,6 +8,7 @@
   import { ref, computed, onMounted, onUnmounted } from 'vue'
   import type { DesignSettings, SectionConfig } from '@/types/design'
   import { usePublicWeddingData } from '@/composables/usePublicWeddingData'
+  import { useNameOrder } from '@/composables/useNameOrder'
   import { useLanguage } from '@/composables/useLanguage'
   import SectionRenderer from './SectionRenderer.vue'
   import StickyNavigation from '@/components/ui/StickyNavigation.vue'
@@ -21,6 +22,7 @@
   }>()
 
   const { weddingDetails } = usePublicWeddingData()
+  const { orderedCouple } = useNameOrder()
   const { t } = useLanguage()
 
   const isCardOpen = ref(false)
@@ -47,18 +49,33 @@
     }
   })
 
-  // Get couple names for cover
-  const coupleNames = computed(() => {
-    if (!weddingDetails.value?.couple) return ''
-    const groomName =
-      weddingDetails.value.couple.groom?.fullName || weddingDetails.value.couple.groom?.nickname
-    const brideName =
-      weddingDetails.value.couple.bride?.fullName || weddingDetails.value.couple.bride?.nickname
-    if (groomName && brideName) {
-      return `${groomName} & ${brideName}`
-    }
-    return groomName ?? brideName ?? ''
+  // Helper to split name by newlines for multi-line display
+  const splitNameLines = (name: string | undefined): string[] => {
+    if (!name) return []
+    return name
+      .split('\n')
+      .map((line) => line.trim())
+      .filter(Boolean)
+  }
+
+  // Get first person's name lines (respects display order)
+  const firstNameLines = computed(() => {
+    const fullName =
+      orderedCouple.value.first?.fullName || orderedCouple.value.first?.nickname || ''
+    return splitNameLines(fullName)
   })
+
+  // Get second person's name lines (respects display order)
+  const secondNameLines = computed(() => {
+    const fullName =
+      orderedCouple.value.second?.fullName || orderedCouple.value.second?.nickname || ''
+    return splitNameLines(fullName)
+  })
+
+  // Check if we have any names to display
+  const hasNames = computed(
+    () => firstNameLines.value.length > 0 || secondNameLines.value.length > 0
+  )
 
   const openCard = () => {
     if (isAnimating.value) return
@@ -119,13 +136,37 @@
           </svg>
         </div>
 
-        <!-- Couple Names -->
-        <h1
-          v-if="cardSettings.showCoverText && coupleNames"
-          class="font-heading text-4xl sm:text-5xl md:text-6xl text-charcoal dark:text-dark-text mb-4"
-        >
-          {{ coupleNames }}
-        </h1>
+        <!-- Couple Names - Multi-line Support -->
+        <div v-if="cardSettings.showCoverText && hasNames" class="mb-4">
+          <!-- First Person's Name (multi-line) -->
+          <div class="mb-2">
+            <p
+              v-for="(line, index) in firstNameLines"
+              :key="`first-${index}`"
+              class="font-heading text-3xl sm:text-4xl md:text-5xl text-charcoal dark:text-dark-text leading-tight"
+            >
+              {{ line }}
+            </p>
+          </div>
+
+          <!-- Ampersand Separator -->
+          <p
+            class="font-heading text-2xl sm:text-3xl text-charcoal-light dark:text-dark-text-secondary my-3"
+          >
+            &amp;
+          </p>
+
+          <!-- Second Person's Name (multi-line) -->
+          <div class="mt-2">
+            <p
+              v-for="(line, index) in secondNameLines"
+              :key="`second-${index}`"
+              class="font-heading text-3xl sm:text-4xl md:text-5xl text-charcoal dark:text-dark-text leading-tight"
+            >
+              {{ line }}
+            </p>
+          </div>
+        </div>
 
         <!-- Wedding Date -->
         <p

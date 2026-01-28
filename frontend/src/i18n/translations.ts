@@ -2347,6 +2347,7 @@ export interface AdminTranslations {
     coupleInfoDesc: string
     fullName: string
     fullNamePlaceholder: string
+    fullNameMultilineHint: string
     nickname: string
     nicknamePlaceholder: string
     bride: string
@@ -2357,6 +2358,10 @@ export interface AdminTranslations {
     brideFirstDesc: string
     groomFirst: string
     groomFirstDesc: string
+    invitationCardPreview: string
+    invitationCardPreviewDesc: string
+    invitationCardPreviewNote: string
+    openInvitationPreview: string
     bismillah: string
     bismillahDesc: string
     showTranslation: string
@@ -3590,6 +3595,7 @@ export const adminTranslations: Record<AdminLanguage, AdminTranslations> = {
       coupleInfoDesc: 'Enter the names that will appear on the wedding invitation',
       fullName: 'Full Name',
       fullNamePlaceholder: 'Full name',
+      fullNameMultilineHint: 'Press Enter to split name across lines for the invitation card',
       nickname: 'Nickname',
       nicknamePlaceholder: 'Nickname',
       bride: 'Bride',
@@ -3601,6 +3607,12 @@ export const adminTranslations: Record<AdminLanguage, AdminTranslations> = {
       brideFirstDesc: 'Traditional arrangement',
       groomFirst: 'Groom First',
       groomFirstDesc: 'Alternative arrangement',
+      invitationCardPreview: 'Invitation Card Preview',
+      invitationCardPreviewDesc:
+        'This preview shows intentional line breaks (Enter key). Natural word wrapping on the actual site may differ based on screen size.',
+      invitationCardPreviewNote:
+        'Tip: Press Enter in the name field above to split your name across lines intentionally.',
+      openInvitationPreview: 'Open Invitation',
       bismillah: 'Bismillah Calligraphy',
       bismillahDesc: 'Choose the calligraphy style for the Bismillah displayed on the hero section',
       showTranslation: 'Show Translation',
@@ -4813,6 +4825,7 @@ export const adminTranslations: Record<AdminLanguage, AdminTranslations> = {
       coupleInfoDesc: 'Masukkan nama yang akan dipaparkan pada kad jemputan',
       fullName: 'Nama Penuh',
       fullNamePlaceholder: 'Nama penuh',
+      fullNameMultilineHint: 'Tekan Enter untuk pisahkan nama ke baris baharu pada kad jemputan',
       nickname: 'Nama Panggilan',
       nicknamePlaceholder: 'Nama panggilan',
       bride: 'Pengantin Perempuan',
@@ -4824,6 +4837,12 @@ export const adminTranslations: Record<AdminLanguage, AdminTranslations> = {
       brideFirstDesc: 'Susunan tradisional',
       groomFirst: 'Pengantin Lelaki Dahulu',
       groomFirstDesc: 'Susunan alternatif',
+      invitationCardPreview: 'Pratonton Kad Jemputan',
+      invitationCardPreviewDesc:
+        'Pratonton ini menunjukkan pemisahan baris yang disengajakan (kekunci Enter). Pembalutan perkataan pada laman sebenar mungkin berbeza mengikut saiz skrin.',
+      invitationCardPreviewNote:
+        'Tip: Tekan Enter dalam ruangan nama di atas untuk pisahkan nama ke baris baharu secara sengaja.',
+      openInvitationPreview: 'Buka Jemputan',
       bismillah: 'Kaligrafi Bismillah',
       bismillahDesc: 'Pilih gaya kaligrafi untuk Bismillah yang dipaparkan pada bahagian hero',
       showTranslation: 'Papar Terjemahan',

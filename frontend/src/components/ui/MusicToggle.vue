@@ -37,6 +37,9 @@
   const youtubeProgressInterval = ref<ReturnType<typeof setInterval> | null>(null)
   const currentYouTubeDuration = ref(0)
 
+  // Pending YouTube track (for when player isn't ready yet)
+  const pendingYouTubeTrack = ref<MusicTrack | null>(null)
+
   // Ref for click outside detection
   const containerRef = ref<HTMLElement | null>(null)
 
@@ -79,6 +82,21 @@
     if (playMode.value === 'single') return false
     return currentTrackIndex.value < sortedTracks.value.length - 1 || shouldLoop.value
   })
+
+  const hasPreviousTrack = computed(() => {
+    if (playMode.value === 'single') return false
+    return currentTrackIndex.value > 0 || shouldLoop.value
+  })
+
+  const hasYouTubeTracks = computed(() =>
+    tracks.value.some((t) => t.source === 'youtube' && !!t.externalId)
+  )
+
+  const currentYouTubeVideoId = computed(() =>
+    currentTrack.value && isYouTubeTrack(currentTrack.value)
+      ? (currentTrack.value.externalId ?? '')
+      : ''
+  )
 
   // Shuffle algorithm (Fisher-Yates)
   const initShuffle = (): void => {
@@ -144,31 +162,86 @@
     }, YOUTUBE_PROGRESS_INTERVAL)
   }
 
+  // Fade out whatever is currently playing
+  const fadeOutCurrent = async (): Promise<void> => {
+    const fadeSteps = 10
+    const fadeDuration = 800 // 800ms total fade
+    const stepDelay = fadeDuration / fadeSteps
+
+    const isAudioPlaying = audioElement.value && !audioElement.value.paused
+    const isYouTubePlaying = youtubeProgressInterval.value !== null
+
+    if (isAudioPlaying && audioElement.value) {
+      const startVolume = audioElement.value.volume
+      for (let i = fadeSteps; i >= 0; i--) {
+        if (audioElement.value) {
+          audioElement.value.volume = (startVolume * i) / fadeSteps
+        }
+        await new Promise((resolve) => setTimeout(resolve, stepDelay))
+      }
+    } else if (isYouTubePlaying && youtubePlayerRef.value) {
+      const startVolume = localVolume.value
+      for (let i = fadeSteps; i >= 0; i--) {
+        youtubePlayerRef.value?.setVolume((startVolume * i) / fadeSteps)
+        await new Promise((resolve) => setTimeout(resolve, stepDelay))
+      }
+    }
+  }
+
+  // Fade in YouTube volume
+  const fadeInYouTube = async (): Promise<void> => {
+    if (!youtubePlayerRef.value) return
+
+    const fadeSteps = 10
+    const fadeDuration = 800
+    const stepDelay = fadeDuration / fadeSteps
+    const targetVolume = localVolume.value
+
+    youtubePlayerRef.value.setVolume(0)
+    for (let i = 1; i <= fadeSteps; i++) {
+      youtubePlayerRef.value?.setVolume((targetVolume * i) / fadeSteps)
+      await new Promise((resolve) => setTimeout(resolve, stepDelay))
+    }
+  }
+
   // Transition to a track (handles both audio and YouTube)
   const transitionToTrack = async (track: MusicTrack): Promise<void> => {
-    const wasYouTube = currentTrack.value && isYouTubeTrack(currentTrack.value)
     const isNextYouTube = isYouTubeTrack(track)
 
-    // Stop any ongoing playback
-    if (wasYouTube) {
-      stopYouTubeProgress()
-      youtubePlayerRef.value?.pause()
-    } else if (audioElement.value) {
+    // Fade out whatever is currently playing for smooth transition
+    await fadeOutCurrent()
+
+    // Stop playback after fade
+    stopYouTubeProgress()
+    youtubePlayerRef.value?.stop()
+
+    if (audioElement.value) {
       audioElement.value.pause()
+      audioElement.value.removeEventListener('ended', handleTrackEnd)
+      audioElement.value.removeEventListener('timeupdate', updateProgress)
+      audioElement.value.src = '' // Clear source to fully stop
     }
 
     progress.value = 0
 
     if (isNextYouTube) {
       // Play YouTube track
-      if (track.externalId && youtubePlayerRef.value) {
-        youtubePlayerRef.value.loadVideo(track.externalId)
-        youtubePlayerRef.value.setVolume(localVolume.value)
-        youtubePlayerRef.value.play()
-        startYouTubeProgress()
+      if (track.externalId) {
+        if (youtubePlayerRef.value) {
+          youtubePlayerRef.value.loadVideo(track.externalId)
+          youtubePlayerRef.value.setVolume(0) // Start silent for fade-in
+          youtubePlayerRef.value.play()
+          startYouTubeProgress()
+          isPlaying.value = true
+          // Fade in YouTube volume
+          fadeInYouTube()
+        } else {
+          // Player not ready yet, queue the track
+          pendingYouTubeTrack.value = track
+        }
       }
     } else {
-      // Play audio track using crossfade
+      // Play audio track using crossfade (already has built-in fade)
       await crossfadeToTrack(track)
     }
   }
@@ -270,7 +343,18 @@
 
   // Handle YouTube player ready
   const handleYouTubeReady = (): void => {
-    // Player is ready
+    // If there's a pending YouTube track to play, start it now
+    if (pendingYouTubeTrack.value && youtubePlayerRef.value) {
+      const track = pendingYouTubeTrack.value
+      pendingYouTubeTrack.value = null
+      if (track.externalId) {
+        youtubePlayerRef.value.loadVideo(track.externalId)
+        youtubePlayerRef.value.setVolume(localVolume.value)
+        youtubePlayerRef.value.play()
+        startYouTubeProgress()
+        isPlaying.value = true
+      }
+    }
   }
 
   // Handle YouTube duration change
@@ -336,6 +420,36 @@
         // YouTube tracks are loaded on demand
       } else if (audioElement.value) {
         audioElement.value.src = nextTrack.url
+      }
+    }
+  }
+
+  // Skip to previous track
+  const skipPrevious = (): void => {
+    if (!hasPreviousTrack.value || playMode.value === 'single') return
+
+    if (currentTrackIndex.value > 0) {
+      currentTrackIndex.value--
+    } else if (shouldLoop.value) {
+      currentTrackIndex.value = sortedTracks.value.length - 1
+    }
+
+    const prevTrack = currentTrack.value
+    if (prevTrack && isPlaying.value) {
+      transitionToTrack(prevTrack)
+    }
+  }
+
+  // Play a specific track by index
+  const playTrackAtIndex = (index: number): void => {
+    if (index < 0 || index >= sortedTracks.value.length) return
+
+    currentTrackIndex.value = index
+    const track = currentTrack.value
+    if (track) {
+      transitionToTrack(track)
+      if (!isPlaying.value) {
+        isPlaying.value = true
       }
     }
   }
@@ -543,11 +657,11 @@
 </script>
 
 <template>
-  <!-- Hidden YouTube Player -->
+  <!-- Hidden YouTube Player - mount when any track is YouTube so it's ready when needed -->
   <YouTubePlayer
-    v-if="isEnabled && currentTrack && isYouTubeTrack(currentTrack)"
+    v-if="isEnabled && hasYouTubeTracks"
     ref="youtubePlayerRef"
-    :video-id="currentTrack.externalId ?? ''"
+    :video-id="currentYouTubeVideoId"
     :volume="localVolume"
     :autoplay="false"
     @ready="handleYouTubeReady"
@@ -629,11 +743,11 @@
     <Transition name="controls">
       <div
         v-if="showControls"
-        class="absolute top-full right-0 mt-2 p-3 bg-white/20 backdrop-blur-md border border-white/30 rounded-xl min-w-[200px] z-50"
+        class="absolute top-full right-0 mt-2 p-3 bg-white/20 backdrop-blur-md border border-white/30 rounded-xl min-w-[240px] max-w-[280px] z-50"
       >
         <!-- Volume Slider -->
         <div class="flex items-center gap-2 mb-3">
-          <svg class="w-4 h-4 text-white/70" fill="currentColor" viewBox="0 0 24 24">
+          <svg class="w-4 h-4 text-white/70 shrink-0" fill="currentColor" viewBox="0 0 24 24">
             <path
               d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"
             />
@@ -652,8 +766,50 @@
           >
         </div>
 
-        <!-- Track Info -->
-        <div v-if="currentTrack" class="text-white text-xs mb-2">
+        <!-- Playback Controls (playlist mode) -->
+        <div v-if="playMode === 'playlist'" class="flex items-center justify-center gap-4 mb-3">
+          <!-- Previous -->
+          <button
+            type="button"
+            class="p-1.5 text-white/70 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer"
+            :disabled="!hasPreviousTrack"
+            @click="skipPrevious"
+          >
+            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M6 6h2v12H6zm3.5 6l8.5 6V6z" />
+            </svg>
+          </button>
+
+          <!-- Play/Pause -->
+          <button
+            type="button"
+            class="p-2 bg-white/20 rounded-full text-white hover:bg-white/30 transition-colors cursor-pointer"
+            @click="toggleMusic"
+          >
+            <svg v-if="isPlaying" class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" />
+            </svg>
+            <svg v-else class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M8 5v14l11-7z" />
+            </svg>
+          </button>
+
+          <!-- Next -->
+          <button
+            type="button"
+            class="p-1.5 text-white/70 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer"
+            :disabled="!hasNextTrack"
+            @click="skipNext"
+          >
+            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z" />
+            </svg>
+          </button>
+        </div>
+
+        <!-- Current Track Info -->
+        <div v-if="currentTrack" class="text-white text-xs mb-3 pb-3 border-b border-white/20">
+          <p class="text-white/50 text-[10px] mb-0.5">Now Playing</p>
           <p class="font-medium truncate">{{ currentTrack.title }}</p>
           <p class="text-white/60 truncate">
             {{ currentTrack.artist || 'Unknown' }} ·
@@ -674,18 +830,56 @@
           </p>
         </div>
 
-        <!-- Skip Button (playlist mode) -->
-        <button
-          v-if="playMode === 'playlist' && hasNextTrack"
-          type="button"
-          class="flex items-center gap-1 text-white/80 hover:text-white text-xs transition-colors cursor-pointer"
-          @click="skipNext"
-        >
-          <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z" />
-          </svg>
-          Skip
-        </button>
+        <!-- Track List (playlist mode with multiple tracks) -->
+        <div v-if="playMode === 'playlist' && sortedTracks.length > 1">
+          <p class="text-white/50 text-[10px] mb-1.5">
+            Playlist ({{ sortedTracks.length }} tracks)
+          </p>
+          <div class="max-h-[120px] overflow-y-auto space-y-0.5 -mx-1 px-1">
+            <button
+              v-for="(track, index) in sortedTracks"
+              :key="track.id"
+              type="button"
+              class="w-full flex items-center gap-2 px-2 py-1.5 rounded text-left text-xs transition-colors cursor-pointer"
+              :class="
+                currentTrackIndex === index
+                  ? 'bg-white/20 text-white'
+                  : 'text-white/70 hover:bg-white/10 hover:text-white'
+              "
+              @click="playTrackAtIndex(index)"
+            >
+              <!-- Playing indicator or track number -->
+              <span class="w-4 shrink-0 text-center">
+                <svg
+                  v-if="currentTrackIndex === index && isPlaying"
+                  class="w-3 h-3 mx-auto"
+                  fill="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"
+                  />
+                </svg>
+                <span v-else class="text-[10px]">{{ index + 1 }}</span>
+              </span>
+
+              <!-- Track info -->
+              <div class="flex-1 min-w-0">
+                <p class="truncate">{{ track.title }}</p>
+              </div>
+
+              <!-- YouTube indicator -->
+              <span v-if="isYouTubeTrack(track)" class="text-[10px] text-red-400/80 shrink-0"
+                >YT</span
+              >
+
+              <!-- Duration -->
+              <span class="text-white/50 text-[10px] shrink-0">{{
+                formatDuration(track.duration)
+              }}</span>
+            </button>
+          </div>
+        </div>
       </div>
     </Transition>
   </div>

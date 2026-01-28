@@ -180,7 +180,12 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
     const isSuperAdmin = authResult.user.type === 'super' || authResult.user.isMaster
     const accessCheck = requireAdminAccessibleWedding(wedding, isSuperAdmin)
     if (!accessCheck.success) {
-      return createErrorResponse(accessCheck.statusCode, accessCheck.error, context, 'ACCESS_DENIED')
+      return createErrorResponse(
+        accessCheck.statusCode,
+        accessCheck.error,
+        context,
+        'ACCESS_DENIED'
+      )
     }
 
     // ============================================

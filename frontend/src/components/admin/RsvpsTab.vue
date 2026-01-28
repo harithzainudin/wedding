@@ -666,12 +666,7 @@
           @click="handleLoadMore"
         >
           <span v-if="isLoadingMore" class="flex items-center gap-2">
-            <svg
-              class="animate-spin h-4 w-4"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
+            <svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <circle
                 cx="12"
                 cy="12"
